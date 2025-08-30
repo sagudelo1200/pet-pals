@@ -23,7 +23,7 @@
     "android": {
       "package": "com.petpals.app",
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
+        "foregroundImage": "./assets/splash.png",
         "backgroundColor": "#1B5E20"
       }
     },

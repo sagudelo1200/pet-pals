@@ -103,7 +103,7 @@ export default class Pro extends React.Component {
                 style={{
                   marginTop: theme.SIZES.BASE * 1.5,
                   marginBottom: theme.SIZES.BASE * 4,
-                  height: 210,
+                  height: 261,
                 }}
               ></Block>
               <Button
