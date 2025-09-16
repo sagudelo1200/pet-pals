@@ -103,13 +103,13 @@ export default class Pro extends React.Component {
                 style={{
                   marginTop: theme.SIZES.BASE * 1.5,
                   marginBottom: theme.SIZES.BASE * 4,
-                  height: 261,
+                  height: 201,
                 }}
               ></Block>
               <Button
                 shadowless
                 style={styles.button}
-                color={argonTheme.COLORS.INFO}
+                color={argonTheme.COLORS.SUCCESS}
                 onPress={() => navigation.navigate('App')}
               >
                 <Text
@@ -117,6 +117,19 @@ export default class Pro extends React.Component {
                   color={theme.COLORS.WHITE}
                 >
                   🐾 ¡Empieza ahora!
+                </Text>
+              </Button>
+              <Button
+                shadowless
+                style={styles.button}
+                color={argonTheme.COLORS.WARNING}
+                onPress={() => navigation.navigate('App')}
+              >
+                <Text
+                  style={{ fontFamily: 'open-sans-bold', fontSize: 24 }}
+                  color={theme.COLORS.WHITE}
+                >
+                  👟 Soy paseador
                 </Text>
               </Button>
             </Block>
