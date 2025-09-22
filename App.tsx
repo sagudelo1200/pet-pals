@@ -16,6 +16,8 @@ enableScreens();
 
 import Screens from './navigation/Screens';
 import { Images, articles, argonTheme } from './constants';
+// Importar el AuthProvider
+import { AuthProvider } from './services/context/AuthContext';
 
 // cache app images
 const assetImages: (string | any)[] = [
@@ -45,6 +47,7 @@ function cacheImages(images: (string | any)[]): Promise<any>[] {
 export default function App(): React.ReactElement {
   const [appIsReady, setAppIsReady] = useState<boolean>(false);
 
+  console.log('🔥 App: Renderizado inicial');
   useEffect(() => {
     async function prepare() {
       try {
@@ -82,15 +85,17 @@ export default function App(): React.ReactElement {
 
   return (
     <SafeAreaProvider>
-      <NavigationContainer onReady={onLayoutRootView}>
-        <GalioProvider theme={argonTheme}>
-          <SafeAreaView style={{ flex: 1 }}>
-            <Block flex>
-              <Screens />
-            </Block>
-          </SafeAreaView>
-        </GalioProvider>
-      </NavigationContainer>
+      <AuthProvider>
+        <NavigationContainer onReady={onLayoutRootView}>
+          <GalioProvider theme={argonTheme}>
+            <SafeAreaView style={{ flex: 1 }}>
+              <Block flex>
+                <Screens />
+              </Block>
+            </SafeAreaView>
+          </GalioProvider>
+        </NavigationContainer>
+      </AuthProvider>
     </SafeAreaProvider>
   );
 }

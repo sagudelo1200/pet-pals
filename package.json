@@ -15,6 +15,7 @@
   },
   "dependencies": {
     "@expo/metro-runtime": "~3.2.3",
+    "@react-native-async-storage/async-storage": "^1.23.1",
     "@react-native-masked-view/masked-view": "0.3.1",
     "@react-navigation/bottom-tabs": "^6.3.1",
     "@react-navigation/compat": "^5.1.25",

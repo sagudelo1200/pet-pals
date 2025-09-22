@@ -2,11 +2,12 @@ import React from 'react';
 import { Dimensions } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createDrawerNavigator, DrawerContentComponentProps } from '@react-navigation/drawer';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 
 import CustomDrawerContent from './Menu';
 import Home from '../screens/Home';
 import Pro from '../screens/Pro';
+// Importar el nuevo AuthNavigator
+import AuthNavigator from '../screens/AuthNavigator';
 
 const { width } = Dimensions.get('screen')
 
@@ -14,6 +15,7 @@ const { width } = Dimensions.get('screen')
 export type OnboardingStackParamList = {
   Onboarding: undefined
   App: undefined
+  Auth: undefined // Nueva ruta para autenticación
 }
 
 export type RootDrawerParamList = {
@@ -23,22 +25,6 @@ export type RootDrawerParamList = {
   ElementsDrawer: undefined
   ArticlesDrawer: undefined
   SettingsDrawer: undefined
-}
-
-export type HomeTabParamList = {
-  Personal: undefined
-  System: undefined
-}
-
-export type HomeStackParamList = {
-  Home: undefined
-  Beauty: undefined
-  Product: undefined
-  Gallery: undefined
-  Chat: undefined
-  Search: undefined
-  Cart: undefined
-  Notifications: undefined
 }
 
 // crea los navegadores tipados
@@ -64,11 +50,11 @@ function AppStack() {
   )
 }
 
-// exporta el root navigator con Onboarding y App
+// exporta el root navigator con Onboarding, Auth y App
 export default function Views(): React.ReactElement {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
-      <Stack.Screen name='Onboarding' component={Pro} />
+      <Stack.Screen name='Onboarding' component={AuthNavigator} />
       <Stack.Screen name='App' component={AppStack} />
     </Stack.Navigator>
   )

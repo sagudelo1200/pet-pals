@@ -1,6 +1,7 @@
 import { initializeApp } from 'firebase/app'
-import { getAuth, GoogleAuthProvider } from 'firebase/auth'
+import { initializeAuth, getReactNativePersistence } from 'firebase/auth'
 import { getFirestore } from 'firebase/firestore'
+import ReactNativeAsyncStorage from '@react-native-async-storage/async-storage'
 import Constants from 'expo-constants'
 
 const { firebase } = Constants.expoConfig?.extra || {}
@@ -17,7 +18,10 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig)
 
-export const auth = getAuth(app)
-export const googleProvider = new GoogleAuthProvider()
+// Inicializar Auth con persistencia de React Native
+export const auth = initializeAuth(app, {
+  persistence: getReactNativePersistence(ReactNativeAsyncStorage),
+})
+
 export const db = getFirestore(app)
 export default app
