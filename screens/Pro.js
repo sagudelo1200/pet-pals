@@ -116,7 +116,7 @@ export default class Pro extends React.Component {
                   style={{ fontFamily: 'open-sans-bold', fontSize: 24 }}
                   color={theme.COLORS.WHITE}
                 >
-                  🐾 ¡Empieza ahora!
+                  🐾 ¡Unirme ahora!
                 </Text>
               </Button>
               <Button
