@@ -47,7 +47,6 @@ function cacheImages(images: (string | any)[]): Promise<any>[] {
 export default function App(): React.ReactElement {
   const [appIsReady, setAppIsReady] = useState<boolean>(false);
 
-  console.log('🔥 App: Renderizado inicial');
   useEffect(() => {
     async function prepare() {
       try {

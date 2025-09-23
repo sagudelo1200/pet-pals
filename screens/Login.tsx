@@ -48,7 +48,7 @@ const Login: React.FC = () => {
     setIsLoading(true);
     
     try {
-      const result = await login(email.trim(), password);
+      const result = await login(email.trim(), password.trim());
       
       if (!result.success) {
         Alert.alert('Error de autenticación', result.error || 'No se pudo iniciar sesión');
@@ -78,34 +78,23 @@ const Login: React.FC = () => {
                 <Block flex={0.2} middle style={styles.socialConnect}>
                   <Block flex={0.6} middle>
                     <Text color="#8898AA" size={12}>
-                      Sign in with
+                      Ingresa con
                     </Text>
                   </Block>
-                  <Block flex={0.4} row style={{ marginBottom: 18 }}>
+                  <Block flex={0.4} row center style={{ marginBottom: 18 }}>
                     <Button
-                      style={{ ...styles.socialButtons, marginRight: 30 }}
+                      style={styles.socialButtons}
+                      onPress={() => Alert.alert('Funcionalidad no implementada', 'Inicio de sesión con Google no está disponible en esta versión.')}
                     >
                       <Block row>
                         <Icon
-                          name="logo-github"
+                          name="logo-google"
                           family="Ionicon"
-                          size={14}
-                          color={'black'}
-                          style={{ marginTop: 2, marginRight: 5 }}
+                          size={33}
+                          color={'#DF3E30'}
+                          style={{ marginRight: 3 }}
                         />
-                        <Text style={styles.socialTextButtons}>GITHUB</Text>
-                      </Block>
-                    </Button>
-                    <Button style={styles.socialButtons}>
-                      <Block row>
-                        <Icon
-                          name="facebook-square"
-                          family="font-awesome"
-                          size={14}
-                          color={'black'}
-                          style={{ marginTop: 2, marginRight: 5 }}
-                        />
-                        <Text style={styles.socialTextButtons}>FACEBOOK</Text>
+                        <Text style={styles.socialTextButtons}>GOOGLE</Text>
                       </Block>
                     </Button>
                   </Block>
@@ -120,19 +109,19 @@ const Login: React.FC = () => {
                       color="#8898AA"
                       size={12}
                     >
-                      Or sign in the classic way
+                      O hazlo de la manera clásica
                     </Text>
                   </Block>
                   <Block center flex={0.9}>
-                    <Block flex space="between">
+                    <Block flex center>
                       <Block>
                         <Block
                           width={width * 0.8}
-                          style={{ marginBottom: 15 }}
+                          style={{ marginBottom: 6 }}
                         >
                           <Input
                             borderless
-                            placeholder="Email"
+                            placeholder="Correo"
                             value={email}
                             onChangeText={setEmail}
                             keyboardType="email-address"
@@ -153,7 +142,7 @@ const Login: React.FC = () => {
                           <Input
                             password
                             borderless
-                            placeholder="Password"
+                            placeholder="Contraseña"
                             value={password}
                             onChangeText={setPassword}
                             iconContent={
@@ -168,8 +157,7 @@ const Login: React.FC = () => {
                           />
                         </Block>
                         
-                        {/* Botón de "Forgot Password" opcional */}
-                        <Block row style={styles.forgotPassword}>
+                        {/* <Block row style={styles.forgotPassword}>
                           <Button
                             color="transparent"
                             textStyle={{
@@ -178,12 +166,12 @@ const Login: React.FC = () => {
                               fontFamily: 'open-sans-regular',
                             }}
                           >
-                            Forgot password?
+                            ¡Olvidé mi contraseña!
                           </Button>
-                        </Block>
+                        </Block> */}
                       </Block>
                       
-                      <Block center>
+                      <Block center style={{ marginTop: 39 }}>
                         <Button 
                           color="primary" 
                           style={styles.loginButton}
@@ -192,22 +180,24 @@ const Login: React.FC = () => {
                         >
                           <Text
                             style={{ fontFamily: 'open-sans-bold' }}
-                            size={14}
+                            size={21}
                             color={argonTheme.COLORS.WHITE}
                           >
-                            {isLoading ? 'SIGNING IN...' : 'SIGN IN'}
+                            {isLoading ? 'Ingresando...' : 'Iniciar sesión'}
                           </Text>
                         </Button>
                         
-                        {/* Botón para ir a registro */}
-                        <Block row style={styles.signUpLink}>
-                          <Text
-                            style={{ fontFamily: 'open-sans-regular' }}
-                            size={14}
-                            color={argonTheme.COLORS.TEXT}
-                          >
-                            Don't have an account?{' '}
-                          </Text>
+                        {/* <Block row style={styles.signUpLink}>
+                          <Block>
+
+                            <Text
+                              style={{ fontFamily: 'open-sans-regular' }}
+                              size={14}
+                              color={argonTheme.COLORS.TEXT}
+                              >
+                              ¿No tienes una cuenta?
+                            </Text>
+                          </Block>
                           <Button
                             color="transparent"
                             textStyle={{
@@ -216,9 +206,9 @@ const Login: React.FC = () => {
                               fontFamily: 'open-sans-bold',
                             }}
                           >
-                            Sign up
+                            Regístrate
                           </Button>
-                        </Block>
+                        </Block> */}
                       </Block>
                     </Block>
                   </Block>
@@ -235,9 +225,9 @@ const Login: React.FC = () => {
 const styles = StyleSheet.create({
   loginContainer: {
     width: width * 0.9,
-    height: height < 812 ? height * 0.8 : height * 0.7,
+    height: height < 812 ? height * 0.7 : height * 0.6,
     backgroundColor: '#F4F5F7',
-    borderRadius: 4,
+    borderRadius: 36,
     shadowColor: argonTheme.COLORS.BLACK,
     shadowOffset: {
       width: 0,
@@ -254,8 +244,8 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(136, 152, 170, 0.3)',
   },
   socialButtons: {
-    width: 120,
-    height: 40,
+    width: 132,
+    height: 39,
     backgroundColor: '#fff',
     shadowColor: argonTheme.COLORS.BLACK,
     shadowOffset: {
@@ -268,19 +258,18 @@ const styles = StyleSheet.create({
   },
   socialTextButtons: {
     color: argonTheme.COLORS.PRIMARY,
-    fontWeight: '800',
-    fontSize: 14,
+    fontWeight: '900',
+    fontSize: 21,
   },
   inputIcons: {
     marginRight: 12,
   },
   forgotPassword: {
     justifyContent: 'flex-end',
-    paddingRight: 16,
-    marginBottom: 20,
+    marginBottom: 9,
   },
   loginButton: {
-    width: width * 0.5,
+    width: width * 0.6,
     marginTop: 25,
     marginBottom: 20,
   },

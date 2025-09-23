@@ -43,6 +43,8 @@ export class AuthService {
   // Login con email y contraseña
   static async loginWithEmail(email: string, password: string): Promise<AuthResult> {
     try {
+      
+      await new Promise(resolve => setTimeout(resolve, 3000));
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       return {
         success: true,
