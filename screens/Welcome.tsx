@@ -4,9 +4,16 @@ import { Block, Text } from 'galio-framework';
 import { Button } from '../components';
 import { argonTheme } from '../constants';
 import { useAuth } from '../services/context/AuthContext';
+import { useNavigation } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { OnboardingStackParamList } from '../navigation/Screens';
+
+// Tipado para la navegación
+type WelcomeNavigationProp = StackNavigationProp<OnboardingStackParamList, 'Auth'>;
 
 const Welcome: React.FC = () => {
   const { user, logout } = useAuth();
+  const navigation = useNavigation<WelcomeNavigationProp>();
 
   const handleLogout = async (): Promise<void> => {
     try {
@@ -14,6 +21,10 @@ const Welcome: React.FC = () => {
     } catch (error) {
       console.error('Error en logout:', error);
     }
+  };
+
+  const handleGoToApp = (): void => {
+    navigation.navigate('App');
   };
 
   return (
@@ -42,6 +53,20 @@ const Welcome: React.FC = () => {
         >
           Email: {user?.email}
         </Text>
+
+        <Button
+          color="success" 
+          style={{ marginTop: 30, width: 200 }}
+          onPress={handleGoToApp}
+        >
+          <Text
+            style={{ fontFamily: 'open-sans-bold' }}
+            size={14}
+            color={argonTheme.COLORS.WHITE}
+          >
+            IR A LA APP
+          </Text>
+        </Button>
         
         <Button 
           color="primary" 
