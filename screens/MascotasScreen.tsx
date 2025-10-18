@@ -6,9 +6,9 @@ import {
   FlatList, 
   StyleSheet,
   RefreshControl,
-  ActivityIndicator 
 } from 'react-native';
 import { useMascotas } from '../hooks';
+import { LoadingScreen } from '../components';
 
 export const MascotasScreen: React.FC = () => {
   const {
@@ -24,10 +24,10 @@ export const MascotasScreen: React.FC = () => {
 
   if (loading) {
     return (
-      <View style={styles.centered}>
-        <ActivityIndicator size="large" color="#0066cc" />
-        <Text style={styles.loadingText}>Cargando mascotas...</Text>
-      </View>
+      <LoadingScreen 
+        messageType="pets"
+        spinnerColor="#0066cc"
+      />
     );
   }
 
@@ -91,17 +91,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f5f5f5',
-  },
-  centered: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#f5f5f5',
-  },
-  loadingText: {
-    marginTop: 10,
-    fontSize: 16,
-    color: '#666',
   },
   header: {
     flexDirection: 'row',

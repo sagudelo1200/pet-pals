@@ -23,6 +23,7 @@ type ScreenItem = {
 const screens: ScreenItem[] = [
   { title: 'Home', navigateTo: 'HomeDrawer' },
   { title: 'Mascotas', navigateTo: 'MascotasDrawer' },
+  { title: 'Loading Examples', navigateTo: 'LoadingExampleDrawer' },
   { title: 'Profile', navigateTo: 'ProfileDrawer' },
   { title: 'Account', navigateTo: 'AccountDrawer' },
   { title: 'Elements', navigateTo: 'ElementsDrawer' },

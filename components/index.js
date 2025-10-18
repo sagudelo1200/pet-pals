@@ -7,6 +7,7 @@ import Input from './Input';
 import Switch from './Switch';
 import Select from './Select';
 import Notification from './Notification';
+import LoadingScreen from './LoadingScreen';
 
 export {
   Button,
@@ -18,4 +19,5 @@ export {
   Switch,
   Select,
   Notification,
+  LoadingScreen,
 };
