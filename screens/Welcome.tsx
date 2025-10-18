@@ -31,6 +31,10 @@ const Welcome: React.FC = () => {
     navigation.navigate('CrearMascota');
   };
 
+  const handleVerMascotas = (): void => {
+    navigation.navigate('MascotasScreen');
+  };
+
   return (
     <Block flex center middle style={styles.container}>
       <Block center style={styles.content}>
@@ -85,6 +89,20 @@ const Welcome: React.FC = () => {
               color={argonTheme.COLORS.WHITE}
             >
               🐕 REGISTRAR MASCOTA
+            </Text>
+          </Button>
+
+          <Button
+            color="warning" 
+            style={styles.actionButton}
+            onPress={handleVerMascotas}
+          >
+            <Text
+              style={{ fontFamily: 'open-sans-bold' }}
+              size={14}
+              color={argonTheme.COLORS.WHITE}
+            >
+              📋 VER MIS MASCOTAS
             </Text>
           </Button>
         </Block>

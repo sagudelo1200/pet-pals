@@ -6,6 +6,7 @@ import { createDrawerNavigator, DrawerContentComponentProps } from '@react-navig
 import CustomDrawerContent from './Menu';
 import Home from '../screens/Home';
 import CrearMascota from '../screens/CrearMascota';
+import { MascotasScreen } from '../screens/MascotasScreen';
 // Importar el nuevo AuthNavigator
 import AuthNavigator from '../screens/AuthNavigator';
 
@@ -16,6 +17,8 @@ export type OnboardingStackParamList = {
   Onboarding: undefined
   App: undefined
   Auth: undefined // Nueva ruta para autenticación
+  CrearMascota: undefined
+  MascotasScreen: undefined
 }
 
 export type RootDrawerParamList = {
@@ -25,6 +28,7 @@ export type RootDrawerParamList = {
   ElementsDrawer: undefined
   ArticlesDrawer: undefined
   SettingsDrawer: undefined
+  MascotasDrawer: undefined
 }
 
 // crea los navegadores tipados
@@ -46,6 +50,7 @@ function AppStack() {
       }}
     >
       <Drawer.Screen name='HomeDrawer' component={Home} />
+      <Drawer.Screen name='MascotasDrawer' component={MascotasScreen} />
     </Drawer.Navigator>
   )
 }
@@ -57,6 +62,7 @@ export default function Views(): React.ReactElement {
       <Stack.Screen name='Onboarding' component={AuthNavigator} />
       <Stack.Screen name='App' component={AppStack} />
       <Stack.Screen name='CrearMascota' component={CrearMascota} />
+      <Stack.Screen name='MascotasScreen' component={MascotasScreen} />
     </Stack.Navigator>
   )
 }

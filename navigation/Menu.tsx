@@ -12,7 +12,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { DrawerContentComponentProps } from '@react-navigation/drawer';
 import Images from '../constants/Images';
 import { DrawerItem as DrawerCustomItem } from '../components';
-import { RootDrawerParamList } from './Views';
+import { RootDrawerParamList } from './Screens';
 
 const { width } = Dimensions.get('screen');
 
@@ -23,6 +23,7 @@ type ScreenItem = {
 
 const screens: ScreenItem[] = [
   { title: 'Home', navigateTo: 'HomeDrawer' },
+  { title: 'Mascotas', navigateTo: 'MascotasDrawer' },
   { title: 'Profile', navigateTo: 'ProfileDrawer' },
   { title: 'Account', navigateTo: 'AccountDrawer' },
   { title: 'Elements', navigateTo: 'ElementsDrawer' },
