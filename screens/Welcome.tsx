@@ -27,6 +27,10 @@ const Welcome: React.FC = () => {
     navigation.navigate('App');
   };
 
+  const handleCrearMascota = (): void => {
+    navigation.navigate('CrearMascota');
+  };
+
   return (
     <Block flex center middle style={styles.container}>
       <Block center style={styles.content}>
@@ -54,19 +58,36 @@ const Welcome: React.FC = () => {
           Email: {user?.email}
         </Text>
 
-        <Button
-          color="success" 
-          style={{ marginTop: 30, width: 200 }}
-          onPress={handleGoToApp}
-        >
-          <Text
-            style={{ fontFamily: 'open-sans-bold' }}
-            size={14}
-            color={argonTheme.COLORS.WHITE}
+        {/* Botones de acción */}
+        <Block center style={styles.buttonSection}>
+          <Button
+            color="success" 
+            style={styles.actionButton}
+            onPress={handleGoToApp}
           >
-            IR A LA APP
-          </Text>
-        </Button>
+            <Text
+              style={{ fontFamily: 'open-sans-bold' }}
+              size={14}
+              color={argonTheme.COLORS.WHITE}
+            >
+              IR A LA APP
+            </Text>
+          </Button>
+
+          <Button
+            color="info" 
+            style={styles.actionButton}
+            onPress={handleCrearMascota}
+          >
+            <Text
+              style={{ fontFamily: 'open-sans-bold' }}
+              size={14}
+              color={argonTheme.COLORS.WHITE}
+            >
+              🐕 REGISTRAR MASCOTA
+            </Text>
+          </Button>
+        </Block>
         
         <Button 
           color="primary" 
@@ -93,8 +114,15 @@ const styles = StyleSheet.create({
   content: {
     padding: 40,
   },
-  logoutButton: {
+  buttonSection: {
     marginTop: 30,
+    marginBottom: 20,
+  },
+  actionButton: {
+    width: 200,
+    marginBottom: 15,
+  },
+  logoutButton: {
     width: 200,
   },
 });

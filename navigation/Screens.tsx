@@ -5,7 +5,7 @@ import { createDrawerNavigator, DrawerContentComponentProps } from '@react-navig
 
 import CustomDrawerContent from './Menu';
 import Home from '../screens/Home';
-import Pro from '../screens/Pro';
+import CrearMascota from '../screens/CrearMascota';
 // Importar el nuevo AuthNavigator
 import AuthNavigator from '../screens/AuthNavigator';
 
@@ -56,6 +56,7 @@ export default function Views(): React.ReactElement {
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name='Onboarding' component={AuthNavigator} />
       <Stack.Screen name='App' component={AppStack} />
+      <Stack.Screen name='CrearMascota' component={CrearMascota} />
     </Stack.Navigator>
   )
 }
