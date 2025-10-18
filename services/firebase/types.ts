@@ -18,3 +18,10 @@ export interface AuthContextType {
   register: (email: string, password: string, displayName: string) => Promise<AuthResult>;
   logout: () => Promise<AuthResult>;
 }
+
+// Tipos simples para CRUD
+export interface CrudResult<T = any> {
+  success: boolean;
+  data?: T;
+  error?: string;
+}
