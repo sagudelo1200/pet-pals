@@ -1,197 +1,88 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { 
   View, 
   Text, 
   TouchableOpacity, 
   FlatList, 
-  Alert, 
   StyleSheet,
   RefreshControl,
   ActivityIndicator 
 } from 'react-native';
-import { MascotaService } from '../services/firebase/index';
-import { Mascota } from '../models/Mascota';
-import { useAuth } from '../services/context/AuthContext';
+import { useMascotas } from '../hooks';
 
 export const MascotasScreen: React.FC = () => {
-  const [mascotas, setMascotas] = useState<Mascota[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
-  const { user } = useAuth();
+  const {
+    mascotas,
+    loading,
+    refreshing,
+    crearMascotaEjemplo,
+    eliminarMascota,
+    onRefresh,
+    hasMascotas,
+    totalMascotas
+  } = useMascotas();
 
-  // Cargar mascotas al montar el componente
-  useEffect(() => {
-    if (user?.uid) {
-      cargarMascotas();
-    }
-  }, [user?.uid]);
-
-  const cargarMascotas = async () => {
-    if (!user?.uid) return;
-    
-    setLoading(true);
-    try {
-      const resultado = await MascotaService.getByUsuario(user.uid);
-      if (resultado.success) {
-        setMascotas(resultado.data || []);
-      } else {
-        Alert.alert('Error', resultado.error || 'No se pudieron cargar las mascotas');
-      }
-    } catch (error) {
-      Alert.alert('Error', 'Error de conexión');
-      console.error('Error cargando mascotas:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const onRefresh = async () => {
-    setRefreshing(true);
-    await cargarMascotas();
-    setRefreshing(false);
-  };
-
-  const crearMascotaEjemplo = async () => {
-    if (!user?.uid) {
-      Alert.alert('Error', 'Usuario no autenticado');
-      return;
-    }
-
-    try {
-      const nuevaMascota = {
-        id_usuario: user.uid,
-        nombre: `Mascota ${mascotas.length + 1}`,
-        especie: 'perro' as const,
-        tamano: 'mediano' as const,
-        nivel_energia: 'medio' as const,
-        descripcion: 'Mascota creada desde la app'
-      };
-
-      const resultado = await MascotaService.create(nuevaMascota);
-      
-      if (resultado.success) {
-        Alert.alert('Éxito', 'Mascota creada correctamente');
-        cargarMascotas(); // Recargar la lista
-      } else {
-        Alert.alert('Error', resultado.error || 'No se pudo crear la mascota');
-      }
-    } catch (error) {
-      Alert.alert('Error', 'Error de conexión');
-      console.error('Error creando mascota:', error);
-    }
-  };
-
-  const eliminarMascota = async (mascotaId: string, nombre: string) => {
-    Alert.alert(
-      'Confirmar eliminación',
-      `¿Estás seguro de eliminar a ${nombre}?`,
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        {
-          text: 'Eliminar',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              const resultado = await MascotaService.delete(mascotaId);
-              if (resultado.success) {
-                Alert.alert('Éxito', 'Mascota eliminada correctamente');
-                cargarMascotas(); // Recargar la lista
-              } else {
-                Alert.alert('Error', resultado.error || 'No se pudo eliminar la mascota');
-              }
-            } catch (error) {
-              Alert.alert('Error', 'Error de conexión');
-              console.error('Error eliminando mascota:', error);
-            }
-          }
-        }
-      ]
-    );
-  };
-
-  const renderMascota = ({ item }: { item: Mascota }) => (
-    <View style={styles.mascotaCard}>
-      <View style={styles.mascotaInfo}>
-        <Text style={styles.mascotaNombre}>{item.nombre}</Text>
-        <Text style={styles.mascotaDetalle}>Especie: {item.especie}</Text>
-        <Text style={styles.mascotaDetalle}>
-          Tamaño: {item.tamano || 'No especificado'}
-        </Text>
-        <Text style={styles.mascotaDetalle}>
-          Energía: {item.nivel_energia || 'No especificado'}
-        </Text>
-        {item.descripcion && (
-          <Text style={styles.mascotaDescripcion}>{item.descripcion}</Text>
-        )}
-      </View>
-      
-      <TouchableOpacity
-        style={styles.deleteButton}
-        onPress={() => eliminarMascota(item.id, item.nombre)}
-      >
-        <Text style={styles.deleteButtonText}>Eliminar</Text>
-      </TouchableOpacity>
-    </View>
-  );
-
-  const renderEmptyState = () => (
-    <View style={styles.emptyState}>
-      <Text style={styles.emptyStateTitle}>No tienes mascotas registradas</Text>
-      <Text style={styles.emptyStateSubtitle}>
-        Crea tu primera mascota para comenzar
-      </Text>
-    </View>
-  );
-
-  const renderHeader = () => (
-    <View style={styles.header}>
-      <Text style={styles.title}>Mis Mascotas ({mascotas.length})</Text>
-      
-      <TouchableOpacity
-        style={styles.createButton}
-        onPress={crearMascotaEjemplo}
-      >
-        <Text style={styles.createButtonText}>Crear Mascota de Prueba</Text>
-      </TouchableOpacity>
-    </View>
-  );
-
-  if (loading && !refreshing) {
+  if (loading) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#007AFF" />
+      <View style={styles.centered}>
+        <ActivityIndicator size="large" color="#0066cc" />
         <Text style={styles.loadingText}>Cargando mascotas...</Text>
-      </View>
-    );
-  }
-
-  if (!user?.uid) {
-    return (
-      <View style={styles.errorContainer}>
-        <Text style={styles.errorText}>Usuario no autenticado</Text>
       </View>
     );
   }
 
   return (
     <View style={styles.container}>
-      {renderHeader()}
-      
-      <FlatList
-        data={mascotas}
-        keyExtractor={(item) => item.id}
-        renderItem={renderMascota}
-        ListEmptyComponent={renderEmptyState}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            colors={['#007AFF']}
-          />
-        }
-        contentContainerStyle={mascotas.length === 0 ? styles.emptyContainer : undefined}
-        showsVerticalScrollIndicator={false}
-      />
+      <View style={styles.header}>
+        <Text style={styles.title}>Mis Mascotas ({totalMascotas})</Text>
+        <TouchableOpacity
+          style={styles.addButton}
+          onPress={crearMascotaEjemplo}
+        >
+          <Text style={styles.addButtonText}>+ Agregar</Text>
+        </TouchableOpacity>
+      </View>
+
+      {!hasMascotas ? (
+        <View style={styles.emptyContainer}>
+          <Text style={styles.emptyText}>No tienes mascotas registradas</Text>
+          <TouchableOpacity
+            style={styles.createButton}
+            onPress={crearMascotaEjemplo}
+          >
+            <Text style={styles.createButtonText}>Crear mi primera mascota</Text>
+          </TouchableOpacity>
+        </View>
+      ) : (
+        <FlatList
+          data={mascotas}
+          keyExtractor={(item) => item.id || Math.random().toString()}
+          renderItem={({ item }) => (
+            <View style={styles.mascotaCard}>
+              <View style={styles.mascotaInfo}>
+                <Text style={styles.nombre}>{item.nombre}</Text>
+                <Text style={styles.detalles}>
+                  {item.especie} • {item.tamano} • Energía: {item.nivel_energia}
+                </Text>
+                {item.descripcion && (
+                  <Text style={styles.descripcion}>{item.descripcion}</Text>
+                )}
+              </View>
+              
+              <TouchableOpacity
+                style={styles.deleteButton}
+                onPress={() => eliminarMascota(item.id!, item.nombre)}
+              >
+                <Text style={styles.deleteButtonText}>Eliminar</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          }
+          contentContainerStyle={styles.listContainer}
+        />
+      )}
     </View>
   );
 };
@@ -199,120 +90,111 @@ export const MascotasScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8f9fa',
+    backgroundColor: '#f5f5f5',
   },
-  loadingContainer: {
+  centered: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#f8f9fa',
+    backgroundColor: '#f5f5f5',
   },
   loadingText: {
-    marginTop: 12,
+    marginTop: 10,
     fontSize: 16,
     color: '#666',
   },
-  errorContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#f8f9fa',
-  },
-  errorText: {
-    fontSize: 16,
-    color: '#dc3545',
-    textAlign: 'center',
-  },
   header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     padding: 20,
     backgroundColor: '#fff',
     borderBottomWidth: 1,
-    borderBottomColor: '#e9ecef',
+    borderBottomColor: '#eee',
   },
   title: {
-    fontSize: 28,
+    fontSize: 24,
     fontWeight: 'bold',
-    color: '#212529',
-    marginBottom: 16,
+    color: '#333',
+  },
+  addButton: {
+    backgroundColor: '#0066cc',
+    paddingHorizontal: 15,
+    paddingVertical: 8,
+    borderRadius: 20,
+  },
+  addButtonText: {
+    color: '#fff',
+    fontWeight: '600',
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  emptyText: {
+    fontSize: 18,
+    color: '#666',
+    textAlign: 'center',
+    marginBottom: 20,
   },
   createButton: {
-    backgroundColor: '#007AFF',
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderRadius: 8,
-    alignItems: 'center',
+    backgroundColor: '#0066cc',
+    paddingHorizontal: 30,
+    paddingVertical: 15,
+    borderRadius: 25,
   },
   createButtonText: {
     color: '#fff',
     fontSize: 16,
     fontWeight: '600',
   },
+  listContainer: {
+    padding: 15,
+  },
   mascotaCard: {
     backgroundColor: '#fff',
-    marginHorizontal: 20,
-    marginVertical: 8,
-    padding: 16,
-    borderRadius: 12,
+    padding: 15,
+    marginBottom: 10,
+    borderRadius: 10,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
-    shadowRadius: 3.84,
-    elevation: 5,
+    shadowRadius: 4,
+    elevation: 3,
   },
   mascotaInfo: {
-    marginBottom: 12,
+    flex: 1,
   },
-  mascotaNombre: {
-    fontSize: 20,
+  nombre: {
+    fontSize: 18,
     fontWeight: 'bold',
-    color: '#212529',
-    marginBottom: 8,
+    color: '#333',
+    marginBottom: 5,
   },
-  mascotaDetalle: {
+  detalles: {
     fontSize: 14,
-    color: '#6c757d',
-    marginBottom: 4,
+    color: '#666',
+    marginBottom: 3,
   },
-  mascotaDescripcion: {
-    fontSize: 14,
-    color: '#495057',
-    marginTop: 8,
+  descripcion: {
+    fontSize: 12,
+    color: '#999',
     fontStyle: 'italic',
   },
   deleteButton: {
-    backgroundColor: '#dc3545',
+    backgroundColor: '#ff4444',
+    paddingHorizontal: 15,
     paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 6,
-    alignSelf: 'flex-start',
+    borderRadius: 15,
   },
   deleteButtonText: {
     color: '#fff',
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: '600',
-  },
-  emptyContainer: {
-    flexGrow: 1,
-  },
-  emptyState: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 40,
-  },
-  emptyStateTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#6c757d',
-    textAlign: 'center',
-    marginBottom: 8,
-  },
-  emptyStateSubtitle: {
-    fontSize: 16,
-    color: '#adb5bd',
-    textAlign: 'center',
   },
 });

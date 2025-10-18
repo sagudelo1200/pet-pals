@@ -1,0 +1,1 @@
+export { useMascotas, useMascotasList } from './useMascotas';
