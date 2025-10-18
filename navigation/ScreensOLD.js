@@ -1,56 +1,57 @@
-import { Animated, Dimensions, Easing } from 'react-native'
+/* eslint-disable */
+import { Animated, Dimensions, Easing } from 'react-native';
 // header for screens
-import { Header, Icon } from '../components'
-import { argonTheme, tabs } from '../constants'
+import { Header, Icon } from '../components';
+import { argonTheme, tabs } from '../constants';
 
-import AboutScreen from '../screens/About'
-import AgreementScreen from '../screens/Agreement'
-import Articles from '../screens/Articles'
-import Beauty from '../screens/Beauty'
-import Cart from '../screens/Cart'
-import Category from '../screens/Category'
-import Chat from '../screens/Chat'
+import AboutScreen from '../screens/About';
+import AgreementScreen from '../screens/Agreement';
+import Articles from '../screens/Articles';
+import Beauty from '../screens/Beauty';
+import Cart from '../screens/Cart';
+import Category from '../screens/Category';
+import Chat from '../screens/Chat';
 // drawer
-import CustomDrawerContent from './Menu'
-import Elements from '../screens/Elements'
-import Fashion from '../screens/Fashion'
-import Gallery from '../screens/Gallery'
+import CustomDrawerContent from './Menu';
+import Elements from '../screens/Elements';
+import Fashion from '../screens/Fashion';
+import Gallery from '../screens/Gallery';
 // screens
-import Home from '../screens/Home'
-import NotificationsScreen from '../screens/Notifications'
+import Home from '../screens/Home';
+import NotificationsScreen from '../screens/Notifications';
 // Notifications
-import PersonalNotifications from '../screens/PersonalNotifications'
-import PrivacyScreen from '../screens/Privacy'
+import PersonalNotifications from '../screens/PersonalNotifications';
+import PrivacyScreen from '../screens/Privacy';
 // import Onboarding from "../screens/Onboarding";
-import Pro from '../screens/Pro'
-import Product from '../screens/Product'
-import Profile from '../screens/Profile'
-import React from 'react'
-import Register from '../screens/Register'
-import Search from '../screens/Search'
+import Pro from '../screens/Pro';
+import Product from '../screens/Product';
+import Profile from '../screens/Profile';
+import React from 'react';
+import Register from '../screens/Register';
+import Search from '../screens/Search';
 // settings
-import SettingsScreen from '../screens/Settings'
-import SystemNotifications from '../screens/SystemNotifications'
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
-import { createDrawerNavigator } from '@react-navigation/drawer'
-import { createStackNavigator } from '@react-navigation/stack'
+import SettingsScreen from '../screens/Settings';
+import SystemNotifications from '../screens/SystemNotifications';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { createDrawerNavigator } from '@react-navigation/drawer';
+import { createStackNavigator } from '@react-navigation/stack';
 
-const { width } = Dimensions.get('screen')
+const { width } = Dimensions.get('screen');
 
-const Stack = createStackNavigator()
-const Drawer = createDrawerNavigator()
-const Tab = createBottomTabNavigator()
+const Stack = createStackNavigator();
+const Drawer = createDrawerNavigator();
+const Tab = createBottomTabNavigator();
 
 function NotificationsStack(props) {
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
         tabBarIcon: ({ focused, color }) => {
-          let iconName
+          let iconName;
           if (route.name === 'Personal') {
-            iconName = 'user'
+            iconName = 'user';
           } else if (route.name === 'System') {
-            iconName = 'database'
+            iconName = 'database';
           }
           // You can return any component that you like here!
           return (
@@ -61,7 +62,7 @@ function NotificationsStack(props) {
               color={color}
               style={{ marginTop: 10 }}
             />
-          )
+          );
         },
         tabBarActiveTintColor: argonTheme.COLORS.PRIMARY,
         tabBarInactiveTintColor: 'gray',
@@ -73,7 +74,7 @@ function NotificationsStack(props) {
       <Tab.Screen name='Personal' component={PersonalNotifications} />
       <Tab.Screen name='System' component={SystemNotifications} />
     </Tab.Navigator>
-  )
+  );
 }
 
 function ElementsStack(props) {
@@ -95,7 +96,7 @@ function ElementsStack(props) {
         }}
       />
     </Stack.Navigator>
-  )
+  );
 }
 
 function SettingsStack(props) {
@@ -202,7 +203,7 @@ function SettingsStack(props) {
         }}
       />
     </Stack.Navigator>
-  )
+  );
 }
 
 function ArticlesStack(props) {
@@ -224,7 +225,7 @@ function ArticlesStack(props) {
         }}
       />
     </Stack.Navigator>
-  )
+  );
 }
 
 function ProfileStack(props) {
@@ -284,7 +285,7 @@ function ProfileStack(props) {
         }}
       />
     </Stack.Navigator>
-  )
+  );
 }
 
 function HomeStack(props) {
@@ -452,7 +453,7 @@ function HomeStack(props) {
         }}
       />
     </Stack.Navigator>
-  )
+  );
 }
 
 function AppStack(props) {
@@ -529,7 +530,7 @@ function AppStack(props) {
         }}
       />
     </Drawer.Navigator>
-  )
+  );
 }
 
 export default function OnboardingStack(props) {
@@ -549,5 +550,5 @@ export default function OnboardingStack(props) {
       />
       <Stack.Screen name='App' component={AppStack} />
     </Stack.Navigator>
-  )
+  );
 }

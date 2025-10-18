@@ -1,9 +1,9 @@
-import React from 'react'
-import { StyleSheet, TouchableWithoutFeedback } from 'react-native'
-import PropTypes from 'prop-types'
-import { Block, Text } from 'galio-framework'
-import Icon from './Icon'
-import { argonTheme } from '../constants'
+import React from 'react';
+import { StyleSheet, TouchableWithoutFeedback } from 'react-native';
+import PropTypes from 'prop-types';
+import { Block, Text } from 'galio-framework';
+import Icon from './Icon';
+import { argonTheme } from '../constants';
 
 export default class Notification extends React.Component {
   render() {
@@ -20,14 +20,14 @@ export default class Notification extends React.Component {
       time,
       title,
       transparent,
-    } = this.props
+    } = this.props;
 
     const iconContainer = [
       styles.iconContainer,
       { backgroundColor: color || argonTheme.COLORS.PRIMARY },
       system && { width: 34, height: 34 },
       !system && styles.iconShadow,
-    ]
+    ];
 
     const container = [
       styles.card,
@@ -35,7 +35,7 @@ export default class Notification extends React.Component {
       !transparent && styles.cardShadow,
       system && { height: 78 },
       style,
-    ]
+    ];
     return (
       <Block style={container} middle>
         <TouchableWithoutFeedback onPress={onPress}>
@@ -119,7 +119,7 @@ export default class Notification extends React.Component {
           </Block>
         </TouchableWithoutFeedback>
       </Block>
-    )
+    );
   }
 }
 
@@ -136,7 +136,7 @@ Notification.propTypes = {
   time: PropTypes.string,
   title: PropTypes.string,
   transparent: PropTypes.bool,
-}
+};
 
 const styles = StyleSheet.create({
   iconContainer: {
@@ -164,4 +164,4 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     elevation: 2,
   },
-})
+});

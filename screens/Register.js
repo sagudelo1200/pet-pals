@@ -1,4 +1,4 @@
-import React from 'react'
+import React from 'react';
 import {
   StyleSheet,
   ImageBackground,
@@ -6,19 +6,19 @@ import {
   StatusBar,
   TouchableWithoutFeedback,
   Keyboard,
-} from 'react-native'
-import { Block, Checkbox, Text } from 'galio-framework'
+} from 'react-native';
+import { Block, Checkbox, Text } from 'galio-framework';
 
-import { Button, Icon, Input } from '../components'
-import { Images, argonTheme } from '../constants'
+import { Button, Icon, Input } from '../components';
+import { Images, argonTheme } from '../constants';
 
-const { width, height } = Dimensions.get('screen')
+const { width, height } = Dimensions.get('screen');
 
 const DismissKeyboard = ({ children }) => (
   <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
     {children}
   </TouchableWithoutFeedback>
-)
+);
 
 class Register extends React.Component {
   render() {
@@ -199,7 +199,7 @@ class Register extends React.Component {
           </ImageBackground>
         </Block>
       </DismissKeyboard>
-    )
+    );
   }
 }
 
@@ -255,6 +255,6 @@ const styles = StyleSheet.create({
     marginTop: 25,
     marginBottom: 40,
   },
-})
+});
 
-export default Register
+export default Register;

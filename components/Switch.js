@@ -1,17 +1,17 @@
-import React from 'react'
-import { Switch, Platform } from 'react-native'
+import React from 'react';
+import { Switch, Platform } from 'react-native';
 
-import argonTheme from '../constants/Theme'
+import argonTheme from '../constants/Theme';
 
 class MkSwitch extends React.Component {
   render() {
-    const { value, ...props } = this.props
+    const { value, ...props } = this.props;
     const thumbColor =
       Platform.OS === 'ios'
         ? null
         : Platform.OS === 'android' && value
         ? argonTheme.COLORS.SWITCH_ON
-        : argonTheme.COLORS.SWITCH_OFF
+        : argonTheme.COLORS.SWITCH_OFF;
 
     return (
       <Switch
@@ -24,8 +24,8 @@ class MkSwitch extends React.Component {
         }}
         {...props}
       />
-    )
+    );
   }
 }
 
-export default MkSwitch
+export default MkSwitch;

@@ -1,0 +1,40 @@
+{
+  "env": {
+    "browser": true,
+    "es2021": true,
+    "node": true,
+    "react-native/react-native": true
+  },
+  "extends": [
+    "eslint:recommended"
+  ],
+  "parser": "@typescript-eslint/parser",
+  "parserOptions": {
+    "ecmaFeatures": {
+      "jsx": true
+    },
+    "ecmaVersion": 12,
+    "sourceType": "module"
+  },
+  "plugins": [
+    "react",
+    "react-native",
+    "@typescript-eslint"
+  ],
+  "rules": {
+    "no-console": "off",
+    "no-debugger": "error", 
+    "no-duplicate-imports": "error",
+    "prefer-const": "error",
+    "quotes": ["error", "single"],
+    "semi": ["error", "always"]
+  },
+  "ignorePatterns": [
+    "node_modules/",
+    ".expo/",
+    "web-build/",
+    "babel.config.js",
+    "metro.config.js",
+    "*js"
+  ]
+}

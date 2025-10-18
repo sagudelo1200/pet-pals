@@ -1,70 +1,70 @@
-import React from 'react'
+import React from 'react';
 import {
   View,
   Image,
   StyleSheet,
   FlatList,
   KeyboardAvoidingView,
-} from 'react-native'
+} from 'react-native';
 
-import { Input, Block, Text, theme } from 'galio-framework'
-import { Icon } from '../components/'
+import { Input, Block, Text, theme } from 'galio-framework';
+import { Icon } from '../components/';
 
-import Images from '../constants/Images'
-import argonTheme from '../constants/Theme'
+import Images from '../constants/Images';
+import argonTheme from '../constants/Theme';
 
 const messages = [
   {
     id: 1,
     avatar: Images.ProfileChat,
-    message: `Hey there! How are you today? Can we me et and talk? Thanks!`,
-    time: `10:31 PM`,
+    message: 'Hey there! How are you today? Can we me et and talk? Thanks!',
+    time: '10:31 PM',
   },
   {
     id: 2,
-    message: `Sure, just let me finish something and I’ll call you.`,
-    time: `10:34 PM`,
+    message: 'Sure, just let me finish something and I’ll call you.',
+    time: '10:34 PM',
   },
   {
     id: 3,
     avatar: Images.ProfileChat,
-    message: `OK. Cool! See you!`,
-    time: `10:35 PM`,
+    message: 'OK. Cool! See you!',
+    time: '10:35 PM',
   },
   {
     id: 4,
-    message: `Bye bye`,
-    time: `10:36 PM`,
+    message: 'Bye bye',
+    time: '10:36 PM',
   },
-]
+];
 
 export default class Chat extends React.Component {
   state = {
     messages: messages,
     height: 0,
-  }
+  };
 
-  messagesScroll = React.createRef()
+  messagesScroll = React.createRef();
 
   itemLayout = (data, index) => ({
     length: this.state.messages.length - 1,
     offset: 32 * index,
     index,
-  })
+  });
 
   handleScroll = () => {
     // const totalIndex = this.state.messages.length - 1;
     // const insetBottom = this.state.messages.length * (theme.SIZES.BASE * 6.5) + 64; // total messages x message height
     setTimeout(() => {
-      this.messagesScroll.current.scrollToOffset({ offset: this.state.height })
-    }, 1)
-  }
+      this.messagesScroll.current.scrollToOffset({ offset: this.state.height });
+    }, 1);
+  };
 
   onContentSizeChange = (width, height) => {
     this.setState({
       height,
-    })
-  }
+    });
+  };
 
   componentDidMount() {
     // this.handleScroll();
@@ -94,7 +94,7 @@ export default class Chat extends React.Component {
             </Block>
           </Block>
         </Block>
-      )
+      );
     }
 
     return (
@@ -119,12 +119,12 @@ export default class Chat extends React.Component {
           />
         </Block>
       </Block>
-    )
-  }
+    );
+  };
 
   renderMessages = () => {
     const insetBottom =
-      this.state.messages.length * (theme.SIZES.BASE * 6.5) + 64 // total messages x message height
+      this.state.messages.length * (theme.SIZES.BASE * 6.5) + 64; // total messages x message height
     return (
       <FlatList
         ref={this.messagesScroll}
@@ -136,16 +136,16 @@ export default class Chat extends React.Component {
         renderItem={({ item }) => this.renderMessage(item)}
         onContentSizeChange={this.onContentSizeChange}
       />
-    )
-  }
+    );
+  };
 
   handleMessageChange = (type, text) => {
-    this.setState({ message: text })
-  }
+    this.setState({ message: text });
+  };
 
   handleMessage = () => {
-    const { messages, message } = this.state
-    const date = new Date()
+    const { messages, message } = this.state;
+    const date = new Date();
 
     messages.push({
       id: messages.length + 1,
@@ -154,14 +154,14 @@ export default class Chat extends React.Component {
         hour: '2-digit',
         minute: 'numeric',
       }),
-    })
+    });
 
-    this.setState({ messages, message: '' })
-    this.handleScroll()
-  }
+    this.setState({ messages, message: '' });
+    this.handleScroll();
+  };
 
   messageForm = () => {
-    const { navigation } = this.props
+    const { navigation } = this.props;
 
     return (
       <View style={styles.messageFormContainer}>
@@ -192,8 +192,8 @@ export default class Chat extends React.Component {
           />
         </Block>
       </View>
-    )
-  }
+    );
+  };
 
   render() {
     return (
@@ -208,7 +208,7 @@ export default class Chat extends React.Component {
           {this.messageForm()}
         </KeyboardAvoidingView>
       </Block>
-    )
+    );
   }
 }
 
@@ -279,4 +279,4 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     marginBottom: theme.SIZES.BASE,
   },
-})
+});

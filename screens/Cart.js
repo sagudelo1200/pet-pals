@@ -1,56 +1,56 @@
-import React from 'react'
+import React from 'react';
 import {
   StyleSheet,
   Dimensions,
   Image,
   FlatList,
   TouchableWithoutFeedback,
-} from 'react-native'
-import { Block, Text, theme } from 'galio-framework'
+} from 'react-native';
+import { Block, Text, theme } from 'galio-framework';
 // butoane text mai gros ca la register screen
-import { Card, Select, Button } from '../components/'
-import { argonTheme } from '../constants/'
-import { cart } from '../constants'
+import { Card, Select, Button } from '../components/';
+import { argonTheme } from '../constants/';
+import { cart } from '../constants';
 
-const { width } = Dimensions.get('screen')
+const { width } = Dimensions.get('screen');
 
 export default class Cart extends React.Component {
   state = {
     cart: cart.products,
-  }
+  };
 
   handleQuantity = (id, qty) => {
-    const { cart } = this.state
+    const { cart } = this.state;
 
     const updatedCart = cart.map((product) => {
-      if (product.id === id) product.qty = qty
-      return product
-    })
+      if (product.id === id) product.qty = qty;
+      return product;
+    });
 
-    this.setState({ cart: updatedCart })
-  }
+    this.setState({ cart: updatedCart });
+  };
 
   handleDelete = (id) => {
-    const { cart } = this.state
-    const updatedCart = cart.filter((product) => product.id !== id)
-    this.setState({ cart: updatedCart })
-  }
+    const { cart } = this.state;
+    const updatedCart = cart.filter((product) => product.id !== id);
+    this.setState({ cart: updatedCart });
+  };
 
   handleAdd = (item) => {
-    const { cart } = this.state
+    const { cart } = this.state;
 
     cart.push({
       ...item,
       id: cart.length + 1,
       stock: true,
       qty: 1,
-    })
+    });
 
-    this.setState({ cart })
-  }
+    this.setState({ cart });
+  };
 
   renderProduct = ({ item }) => {
-    const { navigation } = this.props
+    const { navigation } = this.props;
 
     return (
       <Block>
@@ -138,14 +138,14 @@ export default class Cart extends React.Component {
           </Block>
         </Block>
       </Block>
-    )
-  }
+    );
+  };
 
   renderHorizontalProduct = ({ item }) => {
     const buttonStyles = {
       ...styles.optionsButton,
       marginTop: 5,
-    }
+    };
     return (
       <Block style={{ marginRight: theme.SIZES.BASE }}>
         <Card
@@ -164,8 +164,8 @@ export default class Cart extends React.Component {
           ADD TO CART
         </Button>
       </Block>
-    )
-  }
+    );
+  };
 
   renderHorizontalProducts = () => {
     return (
@@ -186,16 +186,16 @@ export default class Cart extends React.Component {
           renderItem={this.renderHorizontalProduct}
         />
       </Block>
-    )
-  }
+    );
+  };
 
   renderHeader = () => {
-    const { navigation } = this.props
-    const { cart } = this.state
-    const productsQty = cart.length
+    const { navigation } = this.props;
+    const { cart } = this.state;
+    const productsQty = cart.length;
     const total =
       cart &&
-      cart.reduce((prev, product) => prev + product.price * product.qty, 0)
+      cart.reduce((prev, product) => prev + product.price * product.qty, 0);
 
     return (
       <Block flex style={styles.header}>
@@ -226,11 +226,11 @@ export default class Cart extends React.Component {
           </Button>
         </Block>
       </Block>
-    )
-  }
+    );
+  };
 
   renderFooter = () => {
-    const { navigation } = this.props
+    const { navigation } = this.props;
     return (
       <Block flex style={styles.footer}>
         {this.renderHorizontalProducts()}
@@ -248,8 +248,8 @@ export default class Cart extends React.Component {
           </Button>
         </Block>
       </Block>
-    )
-  }
+    );
+  };
 
   renderEmpty() {
     return (
@@ -259,11 +259,11 @@ export default class Cart extends React.Component {
       >
         The cart is empty
       </Text>
-    )
+    );
   }
 
   renderCheckoutButton() {
-    const { navigation } = this.props
+    const { navigation } = this.props;
     return (
       <Block center>
         <Button
@@ -277,7 +277,7 @@ export default class Cart extends React.Component {
           PROCEED TO CHECKOUT
         </Button>
       </Block>
-    )
+    );
   }
 
   render() {
@@ -293,7 +293,7 @@ export default class Cart extends React.Component {
           ListFooterComponent={this.renderFooter()}
         />
       </Block>
-    )
+    );
   }
 }
 
@@ -412,4 +412,4 @@ const styles = StyleSheet.create({
     shadowRadius: theme.SIZES.BASE / 4,
     shadowOpacity: 1,
   },
-})
+});

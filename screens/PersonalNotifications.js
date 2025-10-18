@@ -1,8 +1,8 @@
-import React from 'react'
-import { ScrollView, Alert } from 'react-native'
-import { Block } from 'galio-framework'
-import { Notification } from '../components'
-import { argonTheme } from '../constants'
+import React from 'react';
+import { ScrollView, Alert } from 'react-native';
+import { Block } from 'galio-framework';
+import { Notification } from '../components';
+import { argonTheme } from '../constants';
 
 export default class PersonalNotifications extends React.Component {
   render() {
@@ -65,6 +65,6 @@ export default class PersonalNotifications extends React.Component {
           </ScrollView>
         </Block>
       </Block>
-    )
+    );
   }
 }

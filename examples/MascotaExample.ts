@@ -11,25 +11,25 @@ export class MascotaController {
     // Los datos que enviarías desde el formulario
     const datosMascota = {
       id_usuario: userId,
-      nombre: "Firulais",
-      especie: "perro" as EspecieMascota,
-      raza: "Golden Retriever",
-      fecha_nacimiento: new Date("2020-05-15"),
-      genero: "macho" as GeneroMascota,
-      tamano: "grande" as TamanoMascota,
+      nombre: 'Firulais',
+      especie: 'perro' as EspecieMascota,
+      raza: 'Golden Retriever',
+      fecha_nacimiento: new Date('2020-05-15'),
+      genero: 'macho' as GeneroMascota,
+      tamano: 'grande' as TamanoMascota,
       peso: 30,
       esterilizado: true,
-      nivel_energia: "alto" as NivelEnergia,
-      descripcion: "Perro muy juguetón y amigable"
+      nivel_energia: 'alto' as NivelEnergia,
+      descripcion: 'Perro muy juguetón y amigable'
     };
 
     const resultado = await MascotaService.create(datosMascota);
     
     if (resultado.success) {
-      console.log("Mascota creada:", resultado.data);
+      console.log('Mascota creada:', resultado.data);
       return resultado.data;
     } else {
-      console.error("Error:", resultado.error);
+      console.error('Error:', resultado.error);
       return null;
     }
   }
@@ -41,10 +41,10 @@ export class MascotaController {
     const resultado = await MascotaService.getByUsuario(userId);
     
     if (resultado.success) {
-      console.log("Mascotas encontradas:", resultado.data?.length);
+      console.log('Mascotas encontradas:', resultado.data?.length);
       return resultado.data || [];
     } else {
-      console.error("Error:", resultado.error);
+      console.error('Error:', resultado.error);
       return [];
     }
   }
@@ -56,10 +56,10 @@ export class MascotaController {
     const resultado = await MascotaService.update(mascotaId, nuevoDatos);
     
     if (resultado.success) {
-      console.log("Mascota actualizada:", resultado.data);
+      console.log('Mascota actualizada:', resultado.data);
       return resultado.data;
     } else {
-      console.error("Error:", resultado.error);
+      console.error('Error:', resultado.error);
       return null;
     }
   }
@@ -79,7 +79,7 @@ export class MascotaController {
     const mascotaActual = await MascotaService.getById(mascotaId);
     
     if (!mascotaActual.success || !mascotaActual.data) {
-      console.error("No se encontró la mascota");
+      console.error('No se encontró la mascota');
       return null;
     }
 
@@ -103,10 +103,10 @@ export class MascotaController {
     const resultado = await MascotaService.delete(mascotaId);
     
     if (resultado.success) {
-      console.log("Mascota eliminada exitosamente");
+      console.log('Mascota eliminada exitosamente');
       return true;
     } else {
-      console.error("Error:", resultado.error);
+      console.error('Error:', resultado.error);
       return false;
     }
   }
@@ -121,7 +121,7 @@ export class MascotaController {
       console.log(`Mascotas de tamaño ${tamano}:`, resultado.data?.length);
       return resultado.data || [];
     } else {
-      console.error("Error:", resultado.error);
+      console.error('Error:', resultado.error);
       return [];
     }
   }
@@ -129,7 +129,7 @@ export class MascotaController {
 
 // Ejemplo de uso en un componente React
 export const ejemploDeUso = async () => {
-  const userId = "usuario123";
+  const userId = 'usuario123';
   
   try {
     // 1. Crear una mascota
@@ -138,19 +138,19 @@ export const ejemploDeUso = async () => {
 
     // 2. Obtener todas las mascotas del usuario
     const mascotas = await MascotaController.obtenerMascotasUsuario(userId);
-    console.log("Total mascotas:", mascotas.length);
+    console.log('Total mascotas:', mascotas.length);
 
     // 3. Actualizar el peso de la mascota
     await MascotaController.actualizarPeso(nuevaMascota.id, 32);
 
     // 4. Agregar una vacuna
-    await MascotaController.agregarVacuna(nuevaMascota.id, "Rabia");
+    await MascotaController.agregarVacuna(nuevaMascota.id, 'Rabia');
 
     // 5. Buscar mascotas grandes
-    const mascotasGrandes = await MascotaController.buscarPorTamano("grande");
-    console.log("Mascotas grandes:", mascotasGrandes.length);
+    const mascotasGrandes = await MascotaController.buscarPorTamano('grande');
+    console.log('Mascotas grandes:', mascotasGrandes.length);
 
   } catch (error) {
-    console.error("Error en el ejemplo:", error);
+    console.error('Error en el ejemplo:', error);
   }
 };

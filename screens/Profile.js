@@ -1,4 +1,4 @@
-import React from 'react'
+import React from 'react';
 import {
   StyleSheet,
   Dimensions,
@@ -6,16 +6,16 @@ import {
   Image,
   ImageBackground,
   Platform,
-} from 'react-native'
-import { Block, Text, theme } from 'galio-framework'
+} from 'react-native';
+import { Block, Text, theme } from 'galio-framework';
 
-import { Button } from '../components'
-import { Images, argonTheme } from '../constants'
-import { HeaderHeight } from '../constants/utils'
+import { Button } from '../components';
+import { Images, argonTheme } from '../constants';
+import { HeaderHeight } from '../constants/utils';
 
-const { width, height } = Dimensions.get('screen')
+const { width, height } = Dimensions.get('screen');
 
-const thumbMeasure = (width - 48 - 32) / 3
+const thumbMeasure = (width - 48 - 32) / 3;
 
 class Profile extends React.Component {
   render() {
@@ -195,7 +195,7 @@ class Profile extends React.Component {
           </ImageBackground>
         </Block>
       </Block>
-    )
+    );
   }
 }
 
@@ -257,6 +257,6 @@ const styles = StyleSheet.create({
     width: thumbMeasure,
     height: thumbMeasure,
   },
-})
+});
 
-export default Profile
+export default Profile;

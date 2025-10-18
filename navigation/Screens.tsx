@@ -10,7 +10,7 @@ import { MascotasScreen } from '../screens/MascotasScreen';
 // Importar el nuevo AuthNavigator
 import AuthNavigator from '../screens/AuthNavigator';
 
-const { width } = Dimensions.get('screen')
+const { width } = Dimensions.get('screen');
 
 // Param list para cada stack/drawer/tab
 export type OnboardingStackParamList = {
@@ -32,8 +32,8 @@ export type RootDrawerParamList = {
 }
 
 // crea los navegadores tipados
-const Stack = createStackNavigator<OnboardingStackParamList>()
-const Drawer = createDrawerNavigator<RootDrawerParamList>()
+const Stack = createStackNavigator<OnboardingStackParamList>();
+const Drawer = createDrawerNavigator<RootDrawerParamList>();
 
 
 // drawer principal
@@ -52,7 +52,7 @@ function AppStack() {
       <Drawer.Screen name='HomeDrawer' component={Home} />
       <Drawer.Screen name='MascotasDrawer' component={MascotasScreen} />
     </Drawer.Navigator>
-  )
+  );
 }
 
 // exporta el root navigator con Onboarding, Auth y App
@@ -64,5 +64,5 @@ export default function Views(): React.ReactElement {
       <Stack.Screen name='CrearMascota' component={CrearMascota} />
       <Stack.Screen name='MascotasScreen' component={MascotasScreen} />
     </Stack.Navigator>
-  )
+  );
 }

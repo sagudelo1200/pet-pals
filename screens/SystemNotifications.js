@@ -1,8 +1,8 @@
-import React from 'react'
-import { StyleSheet, ScrollView, Alert } from 'react-native'
-import { Block, Text } from 'galio-framework'
-import { Notification } from '../components'
-import { argonTheme } from '../constants'
+import React from 'react';
+import { StyleSheet, ScrollView } from 'react-native';
+import { Block, Text } from 'galio-framework';
+import { Notification } from '../components';
+import { argonTheme } from '../constants';
 
 export default class SystemNotifications extends React.Component {
   render() {
@@ -95,7 +95,7 @@ export default class SystemNotifications extends React.Component {
           <Block style={{ marginBottom: 20 }} />
         </ScrollView>
       </Block>
-    )
+    );
   }
 }
 
@@ -113,4 +113,4 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(0,0,0,0.2)',
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
-})
+});

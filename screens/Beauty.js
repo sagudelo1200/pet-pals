@@ -1,16 +1,16 @@
-import React from 'react'
+import React from 'react';
 import {
   StyleSheet,
   Dimensions,
   ImageBackground,
   ScrollView,
   TouchableWithoutFeedback,
-} from 'react-native'
-import { Block, Text, theme } from 'galio-framework'
+} from 'react-native';
+import { Block, Text, theme } from 'galio-framework';
 
-import Images from '../constants/Images'
+import Images from '../constants/Images';
 
-const { width } = Dimensions.get('screen')
+const { width } = Dimensions.get('screen');
 
 const menuCategories = {
   music: [
@@ -41,15 +41,15 @@ const menuCategories = {
       image: Images.Music['Wedding_dress'],
     },
   ],
-}
+};
 
 export default class Categories extends React.Component {
   renderCategories = () => {
-    const { navigation, route } = this.props
+    const { navigation, route } = this.props;
     // const tabId = navigation.getParam("tabId");
     // const categories = tabId ? menuCategories[tabId] : menuCategories.beauty;
-    const tabId = route.params?.tabId
-    const categories = tabId ? menuCategories[tabId] : menuCategories.beauty
+    const tabId = route.params?.tabId;
+    const categories = tabId ? menuCategories[tabId] : menuCategories.beauty;
 
     return (
       <ScrollView
@@ -89,14 +89,14 @@ export default class Categories extends React.Component {
           ))}
         </Block>
       </ScrollView>
-    )
-  }
+    );
+  };
   render() {
     return (
       <Block flex center style={styles.categories}>
         {this.renderCategories()}
       </Block>
-    )
+    );
   }
 }
 
@@ -132,4 +132,4 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     elevation: 2,
   },
-})
+});

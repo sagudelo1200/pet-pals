@@ -1,31 +1,31 @@
-import React from 'react'
+import React from 'react';
 import {
   StyleSheet,
   Dimensions,
   ScrollView,
   TouchableOpacity,
-} from 'react-native'
-import { Block, theme, Text } from 'galio-framework'
-import { useNavigation } from '@react-navigation/native'
+} from 'react-native';
+import { Block, theme, Text } from 'galio-framework';
+import { useNavigation } from '@react-navigation/native';
 
-import { Card } from '../components'
-import articles from '../constants/articles'
-const { width } = Dimensions.get('screen')
+import { Card } from '../components';
+import articles from '../constants/articles';
+const { width } = Dimensions.get('screen');
 
 // Componente de botón para navegar a mascotas
 const MascotasButton = () => {
-  const navigation = useNavigation()
+  const navigation = useNavigation();
 
   const handlePress = () => {
-    navigation.navigate('MascotasDrawer')
-  }
+    navigation.navigate('MascotasDrawer');
+  };
 
   return (
     <TouchableOpacity onPress={handlePress} style={styles.mascotasButton}>
       <Text style={styles.mascotasButtonText}>🐕 VER MIS MASCOTAS</Text>
     </TouchableOpacity>
-  )
-}
+  );
+};
 
 class Home extends React.Component {
   renderArticles = () => {
@@ -47,8 +47,8 @@ class Home extends React.Component {
           <Card item={articles[4]} full />
         </Block>
       </ScrollView>
-    )
-  }
+    );
+  };
 
   render() {
     return (
@@ -56,7 +56,7 @@ class Home extends React.Component {
         <MascotasButton />
         {this.renderArticles()}
       </Block>
-    )
+    );
   }
 }
 
@@ -90,6 +90,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
   },
-})
+});
 
-export default Home
+export default Home;

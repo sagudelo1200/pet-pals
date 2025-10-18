@@ -1,15 +1,15 @@
-import React from 'react'
-import { StyleSheet } from 'react-native'
-import PropTypes from 'prop-types'
+import React from 'react';
+import { StyleSheet } from 'react-native';
+import PropTypes from 'prop-types';
 
-import { Input } from 'galio-framework'
+import { Input } from 'galio-framework';
 
-import Icon from './Icon'
-import { argonTheme } from '../constants'
+import Icon from './Icon';
+import { argonTheme } from '../constants';
 
 class ArInput extends React.Component {
   render() {
-    const { shadowless, success, error } = this.props
+    const { shadowless, success, error } = this.props;
 
     const inputStyles = [
       styles.input,
@@ -17,7 +17,7 @@ class ArInput extends React.Component {
       success && styles.success,
       error && styles.error,
       { ...this.props.style },
-    ]
+    ];
 
     return (
       <Input
@@ -35,7 +35,7 @@ class ArInput extends React.Component {
         }
         {...this.props}
       />
-    )
+    );
   }
 }
 
@@ -43,13 +43,13 @@ ArInput.defaultProps = {
   shadowless: false,
   success: false,
   error: false,
-}
+};
 
 ArInput.propTypes = {
   shadowless: PropTypes.bool,
   success: PropTypes.bool,
   error: PropTypes.bool,
-}
+};
 
 const styles = StyleSheet.create({
   input: {
@@ -71,6 +71,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.13,
     elevation: 2,
   },
-})
+});
 
-export default ArInput
+export default ArInput;

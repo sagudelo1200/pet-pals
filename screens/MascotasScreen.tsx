@@ -61,10 +61,10 @@ export const MascotasScreen: React.FC = () => {
       const nuevaMascota = {
         id_usuario: user.uid,
         nombre: `Mascota ${mascotas.length + 1}`,
-        especie: "perro" as const,
-        tamano: "mediano" as const,
-        nivel_energia: "medio" as const,
-        descripcion: "Mascota creada desde la app"
+        especie: 'perro' as const,
+        tamano: 'mediano' as const,
+        nivel_energia: 'medio' as const,
+        descripcion: 'Mascota creada desde la app'
       };
 
       const resultado = await MascotaService.create(nuevaMascota);

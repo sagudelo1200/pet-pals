@@ -1,4 +1,4 @@
-import React from 'react'
+import React from 'react';
 import {
   StyleSheet,
   Dimensions,
@@ -6,20 +6,20 @@ import {
   Image,
   Animated,
   Platform,
-} from 'react-native'
+} from 'react-native';
 
-import { Block, theme } from 'galio-framework'
-import { HeaderHeight } from '../constants/utils'
+import { Block, theme } from 'galio-framework';
+import { HeaderHeight } from '../constants/utils';
 
-const { width } = Dimensions.get('window')
+const { width } = Dimensions.get('window');
 
 export default class Gallery extends React.Component {
-  scrollX = new Animated.Value(0)
+  scrollX = new Animated.Value(0);
 
   renderGallery = () => {
-    const { navigation, route } = this.props
+    const { navigation, route } = this.props;
 
-    const { images, index } = route.params
+    const { images, index } = route.params;
 
     return (
       <ScrollView
@@ -42,14 +42,14 @@ export default class Gallery extends React.Component {
           />
         ))}
       </ScrollView>
-    )
-  }
+    );
+  };
 
   renderProgress = () => {
-    const { navigation, route } = this.props
+    const { navigation, route } = this.props;
 
-    const { images, index } = route.params
-    const position = Animated.divide(this.scrollX, width)
+    const { images, index } = route.params;
+    const position = Animated.divide(this.scrollX, width);
     return (
       <Block row>
         {images.map((_, i) => {
@@ -57,21 +57,21 @@ export default class Gallery extends React.Component {
             inputRange: [i - 1, i, i + 1],
             outputRange: [0.5, 1, 0.5],
             extrapolate: 'clamp',
-          })
+          });
 
           const width = position.interpolate({
             inputRange: [i - 1, i, i + 1],
             outputRange: [8, 18, 8],
             extrapolate: 'clamp',
-          })
+          });
 
           return (
             <Animated.View key={i} style={[styles.dots, { opacity, width }]} />
-          )
+          );
         })}
       </Block>
-    )
-  }
+    );
+  };
 
   render() {
     return (
@@ -84,7 +84,7 @@ export default class Gallery extends React.Component {
           </Block>
         </Block>
       </Block>
-    )
+    );
   }
 }
 
@@ -109,4 +109,4 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
   },
-})
+});

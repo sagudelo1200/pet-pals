@@ -1,4 +1,5 @@
-import React from 'react'
+/* eslint-disable */
+import React from 'react';
 import {
   ScrollView,
   StyleSheet,
@@ -6,13 +7,13 @@ import {
   Image,
   TouchableOpacity,
   Linking,
-} from 'react-native'
-import { Block, Text, theme } from 'galio-framework'
-import { useSafeArea } from 'react-native-safe-area-context'
-import Images from '../constants/Images'
-import { DrawerItem as DrawerCustomItem } from '../components/index'
+} from 'react-native';
+import { Block, Text, theme } from 'galio-framework';
+import { useSafeArea } from 'react-native-safe-area-context';
+import Images from '../constants/Images';
+import { DrawerItem as DrawerCustomItem } from '../components/index';
 
-const { width } = Dimensions.get('screen')
+const { width } = Dimensions.get('screen');
 
 function CustomDrawerContent({
   drawerPosition,
@@ -22,7 +23,7 @@ function CustomDrawerContent({
   state,
   ...rest
 }) {
-  const insets = useSafeArea()
+  const insets = useSafeArea();
   const screens = [
     { title: 'Home', navigateTo: 'HomeDrawer' },
     { title: 'Profile', navigateTo: 'ProfileDrawer' },
@@ -30,7 +31,7 @@ function CustomDrawerContent({
     { title: 'Elements', navigateTo: 'ElementsDrawer' },
     { title: 'Articles', navigateTo: 'ArticlesDrawer' },
     { title: 'Settings', navigateTo: 'SettingsDrawer' },
-  ]
+  ];
   return (
     <Block
       style={styles.container}
@@ -50,7 +51,7 @@ function CustomDrawerContent({
                 focused={state.index === index ? true : false}
                 navigateTo={item?.navigateTo}
               />
-            )
+            );
           })}
           <Block
             flex
@@ -78,7 +79,7 @@ function CustomDrawerContent({
         </ScrollView>
       </Block>
     </Block>
-  )
+  );
 }
 
 const styles = StyleSheet.create({
@@ -91,6 +92,6 @@ const styles = StyleSheet.create({
     paddingTop: theme.SIZES.BASE * 3,
     justifyContent: 'center',
   },
-})
+});
 
-export default CustomDrawerContent
+export default CustomDrawerContent;

@@ -4,7 +4,6 @@ import {
   StyleSheet,
   Dimensions,
   Image,
-  TouchableOpacity,
   Linking,
 } from 'react-native';
 import { Block, Text, theme } from 'galio-framework';

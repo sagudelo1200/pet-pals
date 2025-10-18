@@ -1,24 +1,24 @@
-import React from 'react'
-import { withNavigation } from '@react-navigation/compat'
+import React from 'react';
+import { withNavigation } from '@react-navigation/compat';
 import {
   TouchableOpacity,
   StyleSheet,
   Platform,
   Dimensions,
   Keyboard,
-} from 'react-native'
-import { Button, Block, NavBar, Text, theme } from 'galio-framework'
-import { CommonActions } from '@react-navigation/native'
+} from 'react-native';
+import { Button, Block, NavBar, Text, theme } from 'galio-framework';
+import { CommonActions } from '@react-navigation/native';
 
-import Icon from './Icon'
-import Input from './Input'
-import Tabs from './Tabs'
-import argonTheme from '../constants/Theme'
+import Icon from './Icon';
+import Input from './Input';
+import Tabs from './Tabs';
+import argonTheme from '../constants/Theme';
 
-const { height, width } = Dimensions.get('window')
+const { height, width } = Dimensions.get('window');
 const iPhoneX = () =>
   Platform.OS === 'ios' &&
-  (height === 812 || width === 812 || height === 896 || width === 896)
+  (height === 812 || width === 812 || height === 896 || width === 896);
 
 const BellButton = ({ isWhite, style, navigation }) => (
   <TouchableOpacity
@@ -33,7 +33,7 @@ const BellButton = ({ isWhite, style, navigation }) => (
     />
     <Block middle style={styles.notify} />
   </TouchableOpacity>
-)
+);
 
 const BasketButton = ({ isWhite, style, navigation }) => (
   <TouchableOpacity
@@ -47,7 +47,7 @@ const BasketButton = ({ isWhite, style, navigation }) => (
       color={argonTheme.COLORS[isWhite ? 'WHITE' : 'ICON']}
     />
   </TouchableOpacity>
-)
+);
 
 const SearchButton = ({ isWhite, style, navigation }) => (
   <TouchableOpacity
@@ -61,17 +61,17 @@ const SearchButton = ({ isWhite, style, navigation }) => (
       color={theme.COLORS[isWhite ? 'WHITE' : 'ICON']}
     />
   </TouchableOpacity>
-)
+);
 
 class Header extends React.Component {
   handleLeftPress = () => {
-    const { back, navigation, scene } = this.props
+    const { back, navigation, scene } = this.props;
     return back
       ? navigation.dispatch(CommonActions.goBack())
-      : navigation.openDrawer()
-  }
+      : navigation.openDrawer();
+  };
   renderRight = () => {
-    const { white, title, navigation } = this.props
+    const { white, title, navigation } = this.props;
     // const { routeName } = navigation.state;
 
     if (title === 'Title') {
@@ -82,7 +82,7 @@ class Header extends React.Component {
           navigation={navigation}
           isWhite={white}
         />,
-      ]
+      ];
     }
 
     switch (title) {
@@ -105,13 +105,13 @@ class Header extends React.Component {
             navigation={navigation}
             isWhite={white}
           />,
-        ]
+        ];
       default:
-        break
+        break;
     }
-  }
+  };
   renderSearch = () => {
-    const { navigation } = this.props
+    const { navigation } = this.props;
     return (
       <Input
         right
@@ -120,8 +120,8 @@ class Header extends React.Component {
         placeholder='What are you looking for?'
         placeholderTextColor={'#8898AA'}
         onFocus={() => {
-          Keyboard.dismiss()
-          navigation.navigate('Search')
+          Keyboard.dismiss();
+          navigation.navigate('Search');
         }}
         iconContent={
           <Icon
@@ -132,10 +132,10 @@ class Header extends React.Component {
           />
         }
       />
-    )
-  }
+    );
+  };
   renderOptions = () => {
-    const { navigation, optionLeft, optionRight } = this.props
+    const { navigation, optionLeft, optionRight } = this.props;
 
     return (
       <Block row style={styles.options}>
@@ -181,13 +181,13 @@ class Header extends React.Component {
           </Block>
         </Button>
       </Block>
-    )
-  }
+    );
+  };
   renderTabs = () => {
-    const { tabs, tabIndex, navigation } = this.props
-    const defaultTab = tabs && tabs[0] && tabs[0].id
+    const { tabs, tabIndex, navigation } = this.props;
+    const defaultTab = tabs && tabs[0] && tabs[0].id;
 
-    if (!tabs) return null
+    if (!tabs) return null;
 
     return (
       <Tabs
@@ -195,10 +195,10 @@ class Header extends React.Component {
         initialIndex={tabIndex || defaultTab}
         onChange={(id) => navigation.setParams({ tabId: id })}
       />
-    )
-  }
+    );
+  };
   renderHeader = () => {
-    const { search, options, tabs } = this.props
+    const { search, options, tabs } = this.props;
     if (search || tabs || options) {
       return (
         <Block center>
@@ -206,9 +206,9 @@ class Header extends React.Component {
           {options ? this.renderOptions() : null}
           {tabs ? this.renderTabs() : null}
         </Block>
-      )
+      );
     }
-  }
+  };
   render() {
     const {
       back,
@@ -220,7 +220,7 @@ class Header extends React.Component {
       titleColor,
       navigation,
       ...props
-    } = this.props
+    } = this.props;
     // const { routeName } = navigation.state;
     const noShadow = [
       'Search',
@@ -228,16 +228,16 @@ class Header extends React.Component {
       'Deals',
       'Pro',
       'Profile',
-    ].includes(title)
+    ].includes(title);
     const headerStyles = [
       !noShadow ? styles.shadow : null,
       transparent ? { backgroundColor: 'rgba(0,0,0,0)' } : null,
-    ]
+    ];
 
     const navbarStyles = [
       styles.navbar,
       bgColor && { backgroundColor: bgColor },
-    ]
+    ];
 
     return (
       <Block style={headerStyles}>
@@ -273,7 +273,7 @@ class Header extends React.Component {
         />
         {this.renderHeader()}
       </Block>
-    )
+    );
   }
 }
 
@@ -343,6 +343,6 @@ const styles = StyleSheet.create({
     fontWeight: '400',
     color: argonTheme.COLORS.HEADER,
   },
-})
+});
 
-export default withNavigation(Header)
+export default withNavigation(Header);

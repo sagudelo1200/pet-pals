@@ -1,4 +1,4 @@
-import React from 'react'
+import React from 'react';
 import {
   Animated,
   FlatList,
@@ -7,49 +7,49 @@ import {
   StyleSheet,
   TouchableOpacity,
   TouchableWithoutFeedback,
-} from 'react-native'
-import { Block, Text, Input, theme } from 'galio-framework'
+} from 'react-native';
+import { Block, Text, Input, theme } from 'galio-framework';
 
-const { width } = Dimensions.get('screen')
+const { width } = Dimensions.get('screen');
 
-import { articles, categories, argonTheme } from '../constants/'
-import { Icon, Card } from '../components/'
+import { articles, categories, argonTheme } from '../constants/';
+import { Icon, Card } from '../components/';
 
 const suggestions = [
   { id: 'DJs', title: 'DJs', image: categories['DJs'] },
   { id: 'artists', title: 'Artists', image: categories['artists'] },
   { id: 'accessory', title: 'Accessories', image: categories['accessory'] },
-]
+];
 
 export default class Search extends React.Component {
   state = {
     results: [],
     search: '',
     active: false,
-  }
+  };
 
-  animatedValue = new Animated.Value(0)
+  animatedValue = new Animated.Value(0);
 
   animate() {
-    this.animatedValue.setValue(0)
+    this.animatedValue.setValue(0);
 
     Animated.timing(this.animatedValue, {
       toValue: 1,
       duration: 300,
       useNativeDriver: true,
-    }).start()
+    }).start();
   }
 
   handleSearchChange = (search) => {
     const results = articles.filter(
       (item) => search && item.title.toLowerCase().includes(search)
-    )
-    this.setState({ results, search })
-    this.animate()
-  }
+    );
+    this.setState({ results, search });
+    this.animate();
+  };
 
   renderSearch = () => {
-    const { search } = this.state
+    const { search } = this.state;
     const iconSearch = search ? (
       <TouchableWithoutFeedback onPress={() => this.setState({ search: '' })}>
         <Icon
@@ -66,7 +66,7 @@ export default class Search extends React.Component {
         name='magnifying-glass'
         family='entypo'
       />
-    )
+    );
 
     return (
       <Input
@@ -83,8 +83,8 @@ export default class Search extends React.Component {
         onBlur={() => this.setState({ active: false })}
         onChangeText={this.handleSearchChange}
       />
-    )
-  }
+    );
+  };
 
   renderNotFound = () => {
     return (
@@ -108,11 +108,11 @@ export default class Search extends React.Component {
           You can see more products from other categories.
         </Text>
       </Block>
-    )
-  }
+    );
+  };
 
   renderSuggestions = () => {
-    const { navigation } = this.props
+    const { navigation } = this.props;
 
     return (
       <FlatList
@@ -140,8 +140,8 @@ export default class Search extends React.Component {
           </TouchableOpacity>
         )}
       />
-    )
-  }
+    );
+  };
 
   renderDeals = () => {
     return (
@@ -160,15 +160,15 @@ export default class Search extends React.Component {
           <Card item={articles[0]} horizontal />
         </Block>
       </ScrollView>
-    )
-  }
+    );
+  };
 
   renderResult = (result) => {
     const opacity = this.animatedValue.interpolate({
       inputRange: [0, 1],
       outputRange: [0.8, 1],
       extrapolate: 'clamp',
-    })
+    });
 
     return (
       <Animated.View
@@ -177,11 +177,11 @@ export default class Search extends React.Component {
       >
         <Card item={result} horizontal />
       </Animated.View>
-    )
-  }
+    );
+  };
 
   renderResults = () => {
-    const { results, search } = this.state
+    const { results, search } = this.state;
 
     if (results.length === 0 && search) {
       return (
@@ -197,15 +197,15 @@ export default class Search extends React.Component {
           </Text>
           {this.renderDeals()}
         </Block>
-      )
+      );
     }
 
     return (
       <Block style={{ paddingTop: theme.SIZES.BASE * 2 }}>
         {results.map((result) => this.renderResult(result))}
       </Block>
-    )
-  }
+    );
+  };
 
   render() {
     return (
@@ -217,7 +217,7 @@ export default class Search extends React.Component {
           {this.renderResults()}
         </ScrollView>
       </Block>
-    )
+    );
   }
 }
 
@@ -302,4 +302,4 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 4,
     borderTopLeftRadius: 4,
   },
-})
+});

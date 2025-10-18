@@ -1,4 +1,4 @@
-import React from 'react'
+import React from 'react';
 import {
   ImageBackground,
   Image,
@@ -6,17 +6,17 @@ import {
   StatusBar,
   Dimensions,
   SafeAreaView,
-} from 'react-native'
-import { Block, Button, Text, theme } from 'galio-framework'
+} from 'react-native';
+import { Block, Button, Text, theme } from 'galio-framework';
 
-const { height, width } = Dimensions.get('screen')
+const { height, width } = Dimensions.get('screen');
 
-import argonTheme from '../constants/Theme'
-import Images from '../constants/Images'
+import argonTheme from '../constants/Theme';
+import Images from '../constants/Images';
 
 class Onboarding extends React.Component {
   render() {
-    const { navigation } = this.props
+    const { navigation } = this.props;
 
     return (
       <SafeAreaView style={styles.container}>
@@ -67,7 +67,7 @@ class Onboarding extends React.Component {
           </Block>
         </Block>
       </SafeAreaView>
-    )
+    );
   }
 }
 
@@ -109,6 +109,6 @@ const styles = StyleSheet.create({
     height: 22,
     marginTop: 15,
   },
-})
+});
 
-export default Onboarding
+export default Onboarding;

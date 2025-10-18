@@ -1,13 +1,13 @@
-import React from 'react'
-import { StyleSheet, TouchableOpacity, Linking } from 'react-native'
-import { Block, Text, theme } from 'galio-framework'
+import React from 'react';
+import { StyleSheet, TouchableOpacity, Linking } from 'react-native';
+import { Block, Text, theme } from 'galio-framework';
 
-import Icon from './Icon'
-import argonTheme from '../constants/Theme'
+import Icon from './Icon';
+import argonTheme from '../constants/Theme';
 
 class DrawerItem extends React.Component {
   renderIcon = () => {
-    const { title, focused } = this.props
+    const { title, focused } = this.props;
 
     switch (title) {
       case 'Home':
@@ -18,7 +18,7 @@ class DrawerItem extends React.Component {
             size={14}
             color={focused ? 'white' : argonTheme.COLORS.PRIMARY}
           />
-        )
+        );
       case 'Elements':
         return (
           <Icon
@@ -27,7 +27,7 @@ class DrawerItem extends React.Component {
             size={14}
             color={focused ? 'white' : argonTheme.COLORS.ERROR}
           />
-        )
+        );
       case 'Articles':
         return (
           <Icon
@@ -36,7 +36,7 @@ class DrawerItem extends React.Component {
             size={14}
             color={focused ? 'white' : argonTheme.COLORS.PRIMARY}
           />
-        )
+        );
       case 'Profile':
         return (
           <Icon
@@ -45,7 +45,7 @@ class DrawerItem extends React.Component {
             size={14}
             color={focused ? 'white' : argonTheme.COLORS.WARNING}
           />
-        )
+        );
       case 'Account':
         return (
           <Icon
@@ -54,7 +54,7 @@ class DrawerItem extends React.Component {
             size={14}
             color={focused ? 'white' : argonTheme.COLORS.INFO}
           />
-        )
+        );
       case 'Settings':
         return (
           <Icon
@@ -63,7 +63,7 @@ class DrawerItem extends React.Component {
             size={14}
             color={focused ? 'white' : argonTheme.COLORS.DEFAULT}
           />
-        )
+        );
       case 'Getting Started':
         return (
           <Icon
@@ -72,21 +72,21 @@ class DrawerItem extends React.Component {
             size={14}
             color={focused ? 'white' : 'rgba(0,0,0,0.5)'}
           />
-        )
+        );
       case 'Log out':
-        return <Icon />
+        return <Icon />;
       default:
-        return null
+        return null;
     }
-  }
+  };
 
   render() {
-    const { focused, title, navigation, navigateTo } = this.props
+    const { focused, title, navigation, navigateTo } = this.props;
 
     const containerStyles = [
       styles.defaultStyle,
       focused ? [styles.activeStyle, styles.shadow] : null,
-    ]
+    ];
 
     return (
       <TouchableOpacity
@@ -115,7 +115,7 @@ class DrawerItem extends React.Component {
           </Block>
         </Block>
       </TouchableOpacity>
-    )
+    );
   }
 }
 
@@ -138,6 +138,6 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     shadowOpacity: 0.1,
   },
-})
+});
 
-export default DrawerItem
+export default DrawerItem;

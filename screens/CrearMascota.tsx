@@ -5,15 +5,12 @@ import {
   TouchableOpacity,
   Image,
   Alert,
-  Dimensions,
 } from 'react-native';
 import { Block, Text } from 'galio-framework';
 import { Input, Button } from '../components';
 import { argonTheme } from '../constants';
 import { useAuth } from '../services/context/AuthContext';
 import { EspecieMascota, GeneroMascota, TamanoMascota } from '../models/Mascota';
-
-const { width } = Dimensions.get('screen');
 
 interface FormData {
   nombre: string;

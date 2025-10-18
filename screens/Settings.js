@@ -1,18 +1,18 @@
-import React from 'react'
-import { StyleSheet, FlatList, TouchableOpacity, View } from 'react-native'
-import { Block, Text, theme, Icon } from 'galio-framework'
-import { Switch } from '../components'
+import React from 'react';
+import { StyleSheet, FlatList, TouchableOpacity, View } from 'react-native';
+import { Block, Text, theme, Icon } from 'galio-framework';
+import { Switch } from '../components';
 
-import argonTheme from '../constants/Theme'
+import argonTheme from '../constants/Theme';
 
 export default class Settings extends React.Component {
-  state = {}
+  state = {};
 
   toggleSwitch = (switchNumber) =>
-    this.setState({ [switchNumber]: !this.state[switchNumber] })
+    this.setState({ [switchNumber]: !this.state[switchNumber] });
 
   renderItem = ({ item }) => {
-    const { navigate } = this.props.navigation
+    const { navigate } = this.props.navigation;
 
     switch (item.type) {
       case 'switch':
@@ -30,7 +30,7 @@ export default class Settings extends React.Component {
               value={this.state[item.id]}
             />
           </Block>
-        )
+        );
       case 'button':
         return (
           <Block style={styles.rows}>
@@ -55,29 +55,29 @@ export default class Settings extends React.Component {
               </Block>
             </TouchableOpacity>
           </Block>
-        )
+        );
       default:
-        break
+        break;
     }
-  }
+  };
 
   render() {
     const recommended = [
       { title: 'Use FaceID to sign in', id: 'face', type: 'switch' },
       { title: 'Auto-Lock security', id: 'autolock', type: 'switch' },
       { title: 'Notifications', id: 'NotificationsSettings', type: 'button' },
-    ]
+    ];
 
     const payment = [
       { title: 'Manage Payment Options', id: 'Payment', type: 'button' },
       { title: 'Manage Gift Cards', id: 'gift', type: 'button' },
-    ]
+    ];
 
     const privacy = [
       { title: 'User Agreement', id: 'Agreement', type: 'button' },
       { title: 'Privacy', id: 'Privacy', type: 'button' },
       { title: 'About', id: 'About', type: 'button' },
-    ]
+    ];
 
     return (
       <View
@@ -155,7 +155,7 @@ export default class Settings extends React.Component {
           renderItem={this.renderItem}
         />
       </View>
-    )
+    );
   }
 }
 
@@ -172,4 +172,4 @@ const styles = StyleSheet.create({
     paddingHorizontal: theme.SIZES.BASE,
     marginBottom: theme.SIZES.BASE / 2,
   },
-})
+});

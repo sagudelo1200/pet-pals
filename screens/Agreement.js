@@ -1,8 +1,8 @@
-import React from 'react'
-import { ScrollView, StyleSheet } from 'react-native'
-import { Block, Text, theme } from 'galio-framework'
+import React from 'react';
+import { ScrollView, StyleSheet } from 'react-native';
+import { Block, Text, theme } from 'galio-framework';
 
-import argonTheme from '../constants/Theme'
+import argonTheme from '../constants/Theme';
 
 export default class Agreement extends React.Component {
   render() {
@@ -53,7 +53,7 @@ export default class Agreement extends React.Component {
           </Text>
         </ScrollView>
       </Block>
-    )
+    );
   }
 }
 
@@ -61,4 +61,4 @@ const styles = StyleSheet.create({
   agreements: {
     padding: theme.SIZES.BASE,
   },
-})
+});

@@ -1,15 +1,15 @@
-import React from 'react'
-import { StyleSheet, FlatList } from 'react-native'
-import { Block, Text, theme } from 'galio-framework'
-import { Switch } from '../components'
+import React from 'react';
+import { StyleSheet, FlatList } from 'react-native';
+import { Block, Text, theme } from 'galio-framework';
+import { Switch } from '../components';
 
-import argonTheme from '../constants/Theme'
+import argonTheme from '../constants/Theme';
 
 export default class Notifications extends React.Component {
-  state = {}
+  state = {};
 
   toggleSwitch = (switchNumber) =>
-    this.setState({ [switchNumber]: !this.state[switchNumber] })
+    this.setState({ [switchNumber]: !this.state[switchNumber] });
 
   renderItem = ({ item }) => (
     <Block row middle space='between' style={styles.rows}>
@@ -26,7 +26,7 @@ export default class Notifications extends React.Component {
         value={this.state[item.id]}
       />
     </Block>
-  )
+  );
 
   render() {
     const notifications = [
@@ -34,7 +34,7 @@ export default class Notifications extends React.Component {
       { title: 'Anyone follows me', id: 'follows' },
       { title: 'Someone comments me', id: 'comments' },
       { title: 'A seller follows me', id: 'seller' },
-    ]
+    ];
 
     return (
       <Block flex style={styles.notification}>
@@ -64,7 +64,7 @@ export default class Notifications extends React.Component {
           }
         />
       </Block>
-    )
+    );
   }
 }
 
@@ -80,4 +80,4 @@ const styles = StyleSheet.create({
     paddingHorizontal: theme.SIZES.BASE,
     marginBottom: theme.SIZES.BASE * 1.25,
   },
-})
+});

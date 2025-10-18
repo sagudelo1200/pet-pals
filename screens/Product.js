@@ -1,4 +1,4 @@
-import React from 'react'
+import React from 'react';
 import {
   StyleSheet,
   Dimensions,
@@ -8,34 +8,34 @@ import {
   Image,
   Animated,
   Platform,
-} from 'react-native'
+} from 'react-native';
 
-import { Block, Text, Button, theme } from 'galio-framework'
-import { Icon } from '../components'
-import argonTheme from '../constants/Theme'
-import Images from '../constants/Images'
-import { iPhoneX, HeaderHeight } from '../constants/utils'
+import { Block, Text, Button, theme } from 'galio-framework';
+import { Icon } from '../components';
+import argonTheme from '../constants/Theme';
+import Images from '../constants/Images';
+import { iPhoneX, HeaderHeight } from '../constants/utils';
 
-const { height, width } = Dimensions.get('window')
+const { height, width } = Dimensions.get('window');
 
 export default class Product extends React.Component {
   state = {
     selectedSize: null,
-  }
+  };
 
-  scrollX = new Animated.Value(0)
+  scrollX = new Animated.Value(0);
 
   renderGallery = () => {
-    const { navigation, route } = this.props
+    const { navigation, route } = this.props;
     // const { params } = navigation && navigation.state;
     // const product = params.product;
-    const product = route.params?.product
+    const product = route.params?.product;
     const productImages = [
       product.image,
       product.image,
       product.image,
       product.image,
-    ]
+    ];
 
     return (
       <ScrollView
@@ -64,22 +64,22 @@ export default class Product extends React.Component {
           </TouchableWithoutFeedback>
         ))}
       </ScrollView>
-    )
-  }
+    );
+  };
 
   renderProgress = () => {
-    const { navigation, route } = this.props
+    const { navigation, route } = this.props;
     // const { params } = navigation && navigation.state;
     // const product = params.product;
-    const product = route.params?.product
+    const product = route.params?.product;
     const productImages = [
       product.image,
       product.image,
       product.image,
       product.image,
-    ]
+    ];
 
-    const position = Animated.divide(this.scrollX, width)
+    const position = Animated.divide(this.scrollX, width);
 
     return (
       <Block row>
@@ -88,24 +88,24 @@ export default class Product extends React.Component {
             inputRange: [i - 1, i, i + 1],
             outputRange: [0.5, 1, 0.5],
             extrapolate: 'clamp',
-          })
+          });
 
           const width = position.interpolate({
             inputRange: [i - 1, i, i + 1],
             outputRange: [8, 18, 8],
             extrapolate: 'clamp',
-          })
+          });
 
           return (
             <Animated.View key={i} style={[styles.dots, { opacity, width }]} />
-          )
+          );
         })}
       </Block>
-    )
-  }
+    );
+  };
 
   renderSize = (label) => {
-    const active = this.state.selectedSize === label
+    const active = this.state.selectedSize === label;
 
     return (
       <TouchableHighlight
@@ -120,11 +120,11 @@ export default class Product extends React.Component {
           {label}
         </Text>
       </TouchableHighlight>
-    )
-  }
+    );
+  };
 
   renderChatButton = () => {
-    const { navigation } = this.props
+    const { navigation } = this.props;
     return (
       <Block style={styles.chatContainer}>
         <Button
@@ -142,15 +142,15 @@ export default class Product extends React.Component {
           />
         </Button>
       </Block>
-    )
-  }
+    );
+  };
 
   render() {
-    const { selectedSize } = this.state
-    const { navigation, route } = this.props
+    const { selectedSize } = this.state;
+    const { navigation, route } = this.props;
     // const { params } = navigation && navigation.state;
     // const product = params.product;
-    const product = route.params?.product
+    const product = route.params?.product;
 
     return (
       <Block flex style={styles.product}>
@@ -302,7 +302,7 @@ export default class Product extends React.Component {
           </ScrollView>
         </Block>
       </Block>
-    )
+    );
   }
 }
 
@@ -409,4 +409,4 @@ const styles = StyleSheet.create({
     borderLeftWidth: 0.5,
     borderBottomWidth: 0,
   },
-})
+});

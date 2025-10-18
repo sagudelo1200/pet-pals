@@ -1,21 +1,21 @@
-import React from 'react'
-import { StyleSheet, Dimensions, ScrollView } from 'react-native'
-import { Block, theme } from 'galio-framework'
+import React from 'react';
+import { StyleSheet, Dimensions, ScrollView } from 'react-native';
+import { Block, theme } from 'galio-framework';
 
-import { Card } from '../components/'
+import { Card } from '../components/';
 
-import deals from '../constants/deals'
+import deals from '../constants/deals';
 
-const { width } = Dimensions.get('screen')
+const { width } = Dimensions.get('screen');
 // import products from '../constants/products';
 
 export default class Deals extends React.Component {
   renderProducts = () => {
-    const { navigation, route } = this.props
+    const { navigation, route } = this.props;
     // const tabId = navigation.getParam("tabId");
     // const products = tabId ? deals[tabId] : deals.shoes;
-    const tabId = route.params?.tabId
-    const products = tabId ? deals[tabId] : deals.beauty
+    const tabId = route.params?.tabId;
+    const products = tabId ? deals[tabId] : deals.beauty;
 
     return (
       <ScrollView
@@ -35,15 +35,15 @@ export default class Deals extends React.Component {
           <Card item={products[4]} full />
         </Block>
       </ScrollView>
-    )
-  }
+    );
+  };
 
   render() {
     return (
       <Block flex center style={styles.deals}>
         {this.renderProducts()}
       </Block>
-    )
+    );
   }
 }
 
@@ -55,4 +55,4 @@ const styles = StyleSheet.create({
     width: width - theme.SIZES.BASE * 2,
     paddingVertical: theme.SIZES.BASE,
   },
-})
+});

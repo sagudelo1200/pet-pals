@@ -1,4 +1,4 @@
-import React from 'react'
+import React from 'react';
 import {
   ScrollView,
   StyleSheet,
@@ -6,17 +6,17 @@ import {
   TouchableWithoutFeedback,
   ImageBackground,
   Dimensions,
-} from 'react-native'
+} from 'react-native';
 //galio
-import { Block, Text, theme } from 'galio-framework'
+import { Block, Text, theme } from 'galio-framework';
 //argon
-import { articles, Images, argonTheme } from '../constants/'
-import { Card, Button } from '../components/'
+import { articles, Images, argonTheme } from '../constants/';
+import { Card, Button } from '../components/';
 
-const { width } = Dimensions.get('screen')
+const { width } = Dimensions.get('screen');
 
-const thumbMeasure = (width - 48 - 32) / 3
-const cardWidth = width - theme.SIZES.BASE * 2
+const thumbMeasure = (width - 48 - 32) / 3;
+const cardWidth = width - theme.SIZES.BASE * 2;
 const categories = [
   {
     title: 'Music Album',
@@ -34,11 +34,11 @@ const categories = [
       'https://images.unsplash.com/photo-1543747579-795b9c2c3ada?fit=crop&w=840&q=80',
     price: '$35',
   },
-]
+];
 
 class Articles extends React.Component {
   renderProduct = (item, index) => {
-    const { navigation } = this.props
+    const { navigation } = this.props;
 
     return (
       <TouchableWithoutFeedback
@@ -75,8 +75,8 @@ class Articles extends React.Component {
           </Block>
         </Block>
       </TouchableWithoutFeedback>
-    )
-  }
+    );
+  };
 
   renderCards = () => {
     return (
@@ -140,11 +140,11 @@ class Articles extends React.Component {
           </Block>
         </Block>
       </Block>
-    )
-  }
+    );
+  };
 
   renderAlbum = () => {
-    const { navigation } = this.props
+    const { navigation } = this.props;
 
     return (
       <Block
@@ -181,8 +181,8 @@ class Articles extends React.Component {
           </Block>
         </Block>
       </Block>
-    )
-  }
+    );
+  };
 
   render() {
     return (
@@ -192,7 +192,7 @@ class Articles extends React.Component {
           {this.renderAlbum()}
         </ScrollView>
       </Block>
-    )
+    );
   }
 }
 
@@ -253,6 +253,6 @@ const styles = StyleSheet.create({
     fontFamily: 'open-sans-regular',
     // paddingBottom: theme.SIZES.BASE * 2,
   },
-})
+});
 
-export default Articles
+export default Articles;

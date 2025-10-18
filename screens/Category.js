@@ -1,41 +1,41 @@
-import React from 'react'
+import React from 'react';
 import {
   Image,
   StyleSheet,
   ScrollView,
   Dimensions,
   TouchableWithoutFeedback,
-} from 'react-native'
-import { Block, Text, theme } from 'galio-framework'
+} from 'react-native';
+import { Block, Text, theme } from 'galio-framework';
 
-import { Card } from '../components/'
-import categories from '../constants/categories'
-import { argonTheme } from '../constants'
+import { Card } from '../components/';
+import categories from '../constants/categories';
+import { argonTheme } from '../constants';
 
-const { width } = Dimensions.get('window')
-const cardWidth = width - theme.SIZES.BASE * 2
+const { width } = Dimensions.get('window');
+const cardWidth = width - theme.SIZES.BASE * 2;
 
 export default class Category extends React.Component {
   renderSuggestions = () => {
-    const { navigation, route } = this.props
+    const { navigation, route } = this.props;
     // const { params } = navigation && navigation.state;
     // const category = categories[params.id];
     // const suggestions = category && category.suggestions;
-    const category = categories[route.params?.id]
-    const suggestions = category && category.suggestions
+    const category = categories[route.params?.id];
+    const suggestions = category && category.suggestions;
 
-    if (!suggestions) return null
+    if (!suggestions) return null;
 
     return (
       <React.Fragment>
         <Card item={suggestions[0]} style={{ marginRight: theme.SIZES.BASE }} />
         <Card item={suggestions[1]} />
       </React.Fragment>
-    )
-  }
+    );
+  };
 
   renderCard = (item, index) => {
-    const { navigation } = this.props
+    const { navigation } = this.props;
     return (
       <TouchableWithoutFeedback
         key={`Card-${item.title}`}
@@ -70,14 +70,14 @@ export default class Category extends React.Component {
           </Block>
         </Block>
       </TouchableWithoutFeedback>
-    )
-  }
+    );
+  };
 
   render() {
-    const { navigation, route } = this.props
+    const { navigation, route } = this.props;
     // const { params } = navigation && navigation.state;
     // const category = categories[params.id];
-    const category = categories[route.params?.id]
+    const category = categories[route.params?.id];
 
     return (
       <Block flex>
@@ -107,7 +107,7 @@ export default class Category extends React.Component {
           </Block>
         </ScrollView>
       </Block>
-    )
+    );
   }
 }
 
@@ -156,4 +156,4 @@ const styles = StyleSheet.create({
   suggestionDescription: {
     padding: theme.SIZES.BASE / 2,
   },
-})
+});

@@ -83,6 +83,7 @@ export class AuthService {
     return auth.currentUser;
   }
 
+  /* eslint-disable no-unused-vars */
   // Escuchar cambios de autenticación
   static onAuthStateChange(callback: (user: User | null) => void) {
     return onAuthStateChanged(auth, callback);

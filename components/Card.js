@@ -1,10 +1,10 @@
-import React from 'react'
-import { withNavigation } from '@react-navigation/compat'
-import PropTypes from 'prop-types'
-import { StyleSheet, Image, TouchableWithoutFeedback } from 'react-native'
-import { Block, Text, theme } from 'galio-framework'
+import React from 'react';
+import { withNavigation } from '@react-navigation/compat';
+import PropTypes from 'prop-types';
+import { StyleSheet, Image, TouchableWithoutFeedback } from 'react-native';
+import { Block, Text, theme } from 'galio-framework';
 
-import { argonTheme } from '../constants'
+import { argonTheme } from '../constants';
 
 class Card extends React.Component {
   render() {
@@ -17,18 +17,18 @@ class Card extends React.Component {
       ctaColor,
       imageStyle,
       ctaRight,
-    } = this.props
+    } = this.props;
 
     const imageStyles = [
       full ? styles.fullImage : styles.horizontalImage,
       imageStyle,
-    ]
-    const cardContainer = [styles.card, styles.shadow, style]
+    ];
+    const cardContainer = [styles.card, styles.shadow, style];
     const imgContainer = [
       styles.imageContainer,
       horizontal ? styles.horizontalStyles : styles.verticalStyles,
       styles.shadow,
-    ]
+    ];
 
     return (
       <Block row={horizontal} card flex style={cardContainer}>
@@ -80,7 +80,7 @@ class Card extends React.Component {
           </Block>
         </TouchableWithoutFeedback>
       </Block>
-    )
+    );
   }
 }
 
@@ -91,7 +91,7 @@ Card.propTypes = {
   ctaColor: PropTypes.string,
   imageStyle: PropTypes.any,
   ctaRight: PropTypes.bool,
-}
+};
 
 const styles = StyleSheet.create({
   card: {
@@ -139,6 +139,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     elevation: 2,
   },
-})
+});
 
-export default withNavigation(Card)
+export default withNavigation(Card);

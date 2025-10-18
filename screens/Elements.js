@@ -1,26 +1,26 @@
-import React from 'react'
+import React from 'react';
 import {
   ScrollView,
   StyleSheet,
   Dimensions,
   TouchableOpacity,
-} from 'react-native'
+} from 'react-native';
 // Galio components
-import { Block, Text, Button as GaButton, theme } from 'galio-framework'
+import { Block, Text, Button as GaButton, theme } from 'galio-framework';
 // Argon themed components
-import { argonTheme, tabs } from '../constants/'
-import { Button, Select, Icon, Input, Header, Switch } from '../components/'
+import { argonTheme, tabs } from '../constants/';
+import { Button, Select, Icon, Input, Header, Switch } from '../components/';
 
-const { width } = Dimensions.get('screen')
+const { width } = Dimensions.get('screen');
 
 class Elements extends React.Component {
   state = {
     'switch-1': true,
     'switch-2': false,
-  }
+  };
 
   toggleSwitch = (switchId) =>
-    this.setState({ [switchId]: !this.state[switchId] })
+    this.setState({ [switchId]: !this.state[switchId] });
 
   renderButtons = () => {
     return (
@@ -122,8 +122,8 @@ class Elements extends React.Component {
           </Block>
         </Block>
       </Block>
-    )
-  }
+    );
+  };
 
   renderText = () => {
     return (
@@ -197,8 +197,8 @@ class Elements extends React.Component {
           </Text>
         </Block>
       </Block>
-    )
-  }
+    );
+  };
 
   renderInputs = () => {
     return (
@@ -300,8 +300,8 @@ class Elements extends React.Component {
           />
         </Block>
       </Block>
-    )
-  }
+    );
+  };
 
   renderSwitches = () => {
     return (
@@ -343,11 +343,11 @@ class Elements extends React.Component {
           </Block>
         </Block>
       </Block>
-    )
-  }
+    );
+  };
 
   renderTableCell = () => {
-    const { navigation } = this.props
+    const { navigation } = this.props;
     return (
       <Block flex style={styles.group}>
         <Text size={16} style={styles.title}>
@@ -374,8 +374,8 @@ class Elements extends React.Component {
           </Block>
         </Block>
       </Block>
-    )
-  }
+    );
+  };
 
   renderSocial = () => {
     return (
@@ -427,8 +427,8 @@ class Elements extends React.Component {
           </Block>
         </Block>
       </Block>
-    )
-  }
+    );
+  };
 
   renderNavigation = () => {
     return (
@@ -478,8 +478,8 @@ class Elements extends React.Component {
           </Block>
         </Block>
       </Block>
-    )
-  }
+    );
+  };
 
   render() {
     return (
@@ -497,7 +497,7 @@ class Elements extends React.Component {
           {this.renderTableCell()}
         </ScrollView>
       </Block>
-    )
+    );
   }
 }
 
@@ -559,6 +559,6 @@ const styles = StyleSheet.create({
     borderRadius: theme.SIZES.BASE * 1.75,
     justifyContent: 'center',
   },
-})
+});
 
-export default Elements
+export default Elements;

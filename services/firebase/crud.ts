@@ -7,8 +7,7 @@ import {
   updateDoc,
   deleteDoc,
   query,
-  where,
-  orderBy
+  where
 } from 'firebase/firestore';
 import { db } from '../../firebase.config';
 import { BaseModel } from '../../models/BaseModel';

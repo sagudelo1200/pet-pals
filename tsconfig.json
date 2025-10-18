@@ -11,6 +11,7 @@
     "moduleResolution": "node",
     "experimentalDecorators": true,
     "strict": false,
+    "noImplicitAny": true,
     "noEmit": true,
     "allowSyntheticDefaultImports": true,
     "forceConsistentCasingInFileNames": true,

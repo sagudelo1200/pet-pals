@@ -1,10 +1,10 @@
-import React from 'react'
-import { ScrollView, StyleSheet } from 'react-native'
+import React from 'react';
+import { ScrollView, StyleSheet } from 'react-native';
 
-import { LinearGradient } from 'expo-linear-gradient'
-import { Block, Button, Text, theme } from 'galio-framework'
+import { LinearGradient } from 'expo-linear-gradient';
+import { Block, Button, Text, theme } from 'galio-framework';
 
-import argonTheme from '../constants/Theme'
+import argonTheme from '../constants/Theme';
 
 export default class Privacy extends React.Component {
   render() {
@@ -100,7 +100,7 @@ export default class Privacy extends React.Component {
           style={styles.gradient}
         />
       </Block>
-    )
+    );
   }
 }
 
@@ -135,4 +135,4 @@ const styles = StyleSheet.create({
     right: 0,
     height: '30%',
   },
-})
+});
