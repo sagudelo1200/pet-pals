@@ -1,14 +1,26 @@
 import React from 'react';
 import { StyleSheet, TouchableOpacity, Linking } from 'react-native';
-import { Block, Text, theme } from 'galio-framework';
+import { Block, Text } from 'galio-framework';
 
 import Icon from './Icon';
 import argonTheme from '../constants/Theme';
 
-class DrawerItem extends React.Component {
-  renderIcon = () => {
-    const { title, focused } = this.props;
+interface DrawerItemProps {
+    title: string;
+    focused?: boolean;
+    navigation: {
+    navigate: (screen: any) => void;
+  };
+  navigateTo: string;
+}
 
+const DrawerItem: React.FC<DrawerItemProps> = ({ 
+  title, 
+  focused = false, 
+  navigation, 
+  navigateTo 
+}) => {
+  const renderIcon = (): React.ReactElement | null => {
     switch (title) {
       case 'Inicio':
         return (
@@ -19,7 +31,7 @@ class DrawerItem extends React.Component {
             color={focused ? 'white' : argonTheme.COLORS.PRIMARY}
           />
         );
-      case 'Elements':
+      case 'Mis Mascotas':
         return (
           <Icon
             name='map-big'
@@ -28,7 +40,7 @@ class DrawerItem extends React.Component {
             color={focused ? 'white' : argonTheme.COLORS.ERROR}
           />
         );
-      case 'Articles':
+      case 'Loading Examples':
         return (
           <Icon
             name='spaceship'
@@ -37,7 +49,7 @@ class DrawerItem extends React.Component {
             color={focused ? 'white' : argonTheme.COLORS.PRIMARY}
           />
         );
-      case 'Profile':
+      case 'Paseos':
         return (
           <Icon
             name='chart-pie-35'
@@ -46,7 +58,7 @@ class DrawerItem extends React.Component {
             color={focused ? 'white' : argonTheme.COLORS.WARNING}
           />
         );
-      case 'Account':
+      case 'Mi Perfil':
         return (
           <Icon
             name='calendar-date'
@@ -55,7 +67,7 @@ class DrawerItem extends React.Component {
             color={focused ? 'white' : argonTheme.COLORS.INFO}
           />
         );
-      case 'Settings':
+      case 'Valoraciones':
         return (
           <Icon
             name='calendar-date'
@@ -64,7 +76,7 @@ class DrawerItem extends React.Component {
             color={focused ? 'white' : argonTheme.COLORS.DEFAULT}
           />
         );
-      case 'Getting Started':
+      case 'Sobre Nosotros':
         return (
           <Icon
             name='spaceship'
@@ -80,44 +92,48 @@ class DrawerItem extends React.Component {
     }
   };
 
-  render() {
-    const { focused, title, navigation, navigateTo } = this.props;
+  const handlePress = (): void => {
+    if (title === 'Getting Started') {
+      Linking.openURL(
+        'https://demos.creative-tim.com/argon-pro-react-native/docs/'
+      ).catch((err) => console.error('An error occurred', err));
+    } else {
+      navigation.navigate(navigateTo);
+    }
+  };
 
-    const containerStyles = [
-      styles.defaultStyle,
-      focused ? [styles.activeStyle, styles.shadow] : null,
-    ];
-
-    return (
-      <TouchableOpacity
-        style={{ height: 60 }}
-        onPress={() =>
-          title == 'Getting Started'
-            ? Linking.openURL(
-                'https://demos.creative-tim.com/argon-pro-react-native/docs/'
-              ).catch((err) => console.error('An error occurred', err))
-            : navigation.navigate(navigateTo)
-        }
+  return (
+    <TouchableOpacity
+      style={{ height: 60 }}
+      onPress={handlePress}
+    >
+      <Block 
+        flex 
+        row 
+        style={Object.assign(
+          {},
+          styles.defaultStyle,
+          focused ? styles.activeStyle : {},
+          focused ? styles.shadow : {}
+        )}
       >
-        <Block flex row style={containerStyles}>
-          <Block middle flex={0.1} style={{ marginRight: 5 }}>
-            {this.renderIcon()}
-          </Block>
-          <Block row center flex={0.9}>
-            <Text
-              style={{ fontFamily: 'open-sans-regular' }}
-              size={15}
-              bold={focused ? true : false}
-              color={focused ? 'white' : 'rgba(0,0,0,0.5)'}
-            >
-              {title}
-            </Text>
-          </Block>
+        <Block middle flex={0.1} style={{ marginRight: 5 }}>
+          {renderIcon()}
         </Block>
-      </TouchableOpacity>
-    );
-  }
-}
+        <Block row center flex={0.9}>
+          <Text
+            style={{ fontFamily: 'open-sans-regular' }}
+            size={15}
+            bold={focused}
+            color={focused ? 'white' : 'rgba(0,0,0,0.5)'}
+          >
+            {title}
+          </Text>
+        </Block>
+      </Block>
+    </TouchableOpacity>
+  );
+};
 
 const styles = StyleSheet.create({
   defaultStyle: {
@@ -130,7 +146,7 @@ const styles = StyleSheet.create({
     borderRadius: 4,
   },
   shadow: {
-    shadowColor: theme.COLORS.BLACK,
+    shadowColor: '#000000',
     shadowOffset: {
       width: 0,
       height: 2,

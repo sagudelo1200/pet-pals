@@ -4,7 +4,6 @@ import {
   StyleSheet,
   Dimensions,
   Image,
-  Linking,
 } from 'react-native';
 import { Block, Text, theme } from 'galio-framework';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -24,11 +23,9 @@ const screens: ScreenItem[] = [
   { title: 'Inicio', navigateTo: 'HomeDrawer' },
   { title: 'Mis Mascotas', navigateTo: 'MascotasDrawer' },
   { title: 'Loading Examples', navigateTo: 'LoadingExampleDrawer' },
-  { title: 'Profile', navigateTo: 'Profile' },
-  { title: 'Account', navigateTo: 'Account' },
-  { title: 'Elements', navigateTo: 'Elements' },
-  { title: 'Articles', navigateTo: 'Articles' },
-  { title: 'Settings', navigateTo: 'Settings' },
+  { title: 'Paseos', navigateTo: 'Profile' },
+  { title: 'Mi Perfil', navigateTo: 'Account' },
+  { title: 'Valoraciones', navigateTo: 'Elements' },
 ];
 
 export default function CustomDrawerContent(
@@ -75,15 +72,15 @@ export default function CustomDrawerContent(
                 marginLeft: 8,
                 fontFamily: 'open-sans-regular',
               }}
-              onPress={() =>
+              /* onPress={() =>
                 Linking.openURL('https://your-docs-url.com')
-              }
+              } */
             >
-              DOCUMENTATION
+              ACERCA DE PETPALS
             </Text>
           </Block>
           <DrawerCustomItem
-            title='Getting Started'
+            title='Sobre Nosotros'
             navigation={navigation}
             navigateTo='HomeDrawer'
           />

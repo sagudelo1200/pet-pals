@@ -51,7 +51,7 @@ export const ArticlesScreen = () => (
   <PlaceholderScreen 
     title="Artículos" 
     description="Lee artículos sobre cuidado de mascotas"
-    icon="📰"
+    icon="🗞️"
   />
 );
 
