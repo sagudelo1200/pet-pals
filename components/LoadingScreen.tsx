@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { View, Text, ActivityIndicator, StyleSheet } from 'react-native';
 
 interface LoadingScreenProps {
@@ -20,10 +20,62 @@ interface LoadingScreenProps {
   textStyle?: object;
 }
 
+// Definir las colecciones de mensajes fuera del componente para evitar recrearlas
+const defaultMessageCollections = {
+  general: [
+    '⏳ Cargando...',
+    '🚀 Preparando todo para ti...',
+    '✨ Un momento por favor...',
+    '🔄 Actualizando información...',
+    '📱 Configurando la aplicación...',
+  ],
+  
+  auth: [
+    '🔐 Verificando credenciales...',
+    '👤 Iniciando sesión...',
+    '🔑 Autenticando usuario...',
+    '✅ Configurando tu perfil...',
+    '🏠 Preparando tu cuenta...',
+  ],
+  
+  pets: [
+    /* Tips de cuidado y bienestar */
+    '🚶‍♂️🐕 Un paseo diario mantiene a tu perro feliz y saludable.',
+    '💧🐶 Lleva siempre agua fresca en los paseos.',
+    '🦴🍖 Una dieta equilibrada es clave para la salud de tu mascota.',
+    '🐾🔍 Revisa sus patitas al volver, pueden tener piedritas.',
+    '🧘‍♂️🐕 El ejercicio reduce el estrés y la ansiedad.',
+    '☀️🔥🐾 Evita pasear en horas de calor para cuidar sus patas.',
+    
+    /* Mensajes divertidos/tiernos */
+    '🐶💤 "¿Otra vez pasear? ¡Estoy listo para la aventura!"',
+    '🌎🐕 Cada paseo es una aventura para tu perro.',
+    '🐶➡️👋 Una cola moviéndose es pura alegría.',
+    '🐕💨 "¡Corre, salta y juega! ¡El mundo es nuestro!"',
+    '🐾❤️ "Un paseo contigo es lo mejor del día."',
+    '🐕🌳 "Explorar nuevos lugares es mi pasatiempo favorito."',
+    
+    /* Educación y responsabilidad */
+    '🦺🐕 Usa siempre correa para la seguridad de tu perro.',
+    '💩🗑️ Recoge siempre los desechos de tu mascota.',
+    '📅🐶 Mantén sus vacunas y desparasitaciones al día.',
+    '👂🐶 Escucha a tu perro, su lenguaje corporal dice mucho.',
+  ],
+  
+  walks: [
+    '🚶‍♂️ Preparando el paseo perfecto...',
+    '🗺️ Buscando las mejores rutas...',
+    '🐕 Tu mascota está emocionada por salir...',
+    '🌳 Encontrando parques cercanos...',
+    '⏰ Calculando tiempo ideal de paseo...',
+    '🐾 Configurando el seguimiento del paseo...',
+  ],
+};
+
 const LoadingScreen: React.FC<LoadingScreenProps> = ({
   message,
   messageType = 'general',
-  customMessages = [],
+  customMessages,
   showSpinner = true,
   spinnerColor = '#0066cc',
   spinnerSize = 'large',
@@ -32,59 +84,11 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({
 }) => {
   const [currentMessage, setCurrentMessage] = useState<string>('');
 
-  // Diferentes tipos de mensajes
-  const messageCollections = {
-    general: [
-      '⏳ Cargando...',
-      '🚀 Preparando todo para ti...',
-      '✨ Un momento por favor...',
-      '🔄 Actualizando información...',
-      '📱 Configurando la aplicación...',
-    ],
-    
-    auth: [
-      '🔐 Verificando credenciales...',
-      '👤 Iniciando sesión...',
-      '🔑 Autenticando usuario...',
-      '✅ Configurando tu perfil...',
-      '🏠 Preparando tu cuenta...',
-    ],
-    
-    pets: [
-      /* Tips de cuidado y bienestar */
-      '🚶‍♂️🐕 Un paseo diario mantiene a tu perro feliz y saludable.',
-      '💧🐶 Lleva siempre agua fresca en los paseos.',
-      '🦴🍖 Una dieta equilibrada es clave para la salud de tu mascota.',
-      '🐾🔍 Revisa sus patitas al volver, pueden tener piedritas.',
-      '🧘‍♂️🐕 El ejercicio reduce el estrés y la ansiedad.',
-      '☀️🔥🐾 Evita pasear en horas de calor para cuidar sus patas.',
-      
-      /* Mensajes divertidos/tiernos */
-      '🐶💤 "¿Otra vez pasear? ¡Estoy listo para la aventura!"',
-      '🌎🐕 Cada paseo es una aventura para tu perro.',
-      '🐶➡️👋 Una cola moviéndose es pura alegría.',
-      '🐕💨 "¡Corre, salta y juega! ¡El mundo es nuestro!"',
-      '🐾❤️ "Un paseo contigo es lo mejor del día."',
-      '🐕🌳 "Explorar nuevos lugares es mi pasatiempo favorito."',
-      
-      /* Educación y responsabilidad */
-      '🦺🐕 Usa siempre correa para la seguridad de tu perro.',
-      '💩🗑️ Recoge siempre los desechos de tu mascota.',
-      '📅🐶 Mantén sus vacunas y desparasitaciones al día.',
-      '👂🐶 Escucha a tu perro, su lenguaje corporal dice mucho.',
-    ],
-    
-    walks: [
-      '🚶‍♂️ Preparando el paseo perfecto...',
-      '🗺️ Buscando las mejores rutas...',
-      '🐕 Tu mascota está emocionada por salir...',
-      '🌳 Encontrando parques cercanos...',
-      '⏰ Calculando tiempo ideal de paseo...',
-      '🐾 Configurando el seguimiento del paseo...',
-    ],
-    
-    custom: customMessages
-  };
+  // Usar useMemo para crear las colecciones de mensajes solo cuando customMessages cambie
+  const messageCollections = useMemo(() => ({
+    ...defaultMessageCollections,
+    custom: customMessages || []
+  }), [customMessages]);
 
   useEffect(() => {
     // Si hay un mensaje específico, usarlo
@@ -99,7 +103,7 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({
     // Seleccionar mensaje aleatorio
     const randomMessage = messages[Math.floor(Math.random() * messages.length)];
     setCurrentMessage(randomMessage);
-  }, [message, messageType, customMessages]);
+  }, [message, messageType]);
 
   return (
     <View style={[styles.container, containerStyle]}>
