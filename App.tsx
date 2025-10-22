@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import * as SplashScreen from 'expo-splash-screen';
 import * as Font from 'expo-font';
 import { Asset } from 'expo-asset';
@@ -87,11 +87,9 @@ export default function App(): React.ReactElement {
       <AuthProvider>
         <NavigationContainer onReady={onLayoutRootView}>
           <GalioProvider theme={argonTheme}>
-            <SafeAreaView style={{ flex: 1 }}>
-              <Block flex>
-                <Screens />
-              </Block>
-            </SafeAreaView>
+            <Block flex>
+              <Screens />
+            </Block>
           </GalioProvider>
         </NavigationContainer>
       </AuthProvider>

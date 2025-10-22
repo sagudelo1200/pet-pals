@@ -15,7 +15,15 @@ const { width } = Dimensions.get('screen');
 const DrawerToggleButton = ({ onPress }: { onPress: () => void }) => (
   <TouchableOpacity 
     onPress={onPress}
-    style={{ marginLeft: 15, padding: 5 }}
+    style={{ 
+      marginLeft: 12, 
+      paddingHorizontal: 8,
+      paddingVertical: 8,
+      justifyContent: 'center',
+      alignItems: 'center',
+      minWidth: 44, // Área táctil mínima
+      minHeight: 44,
+    }}
   >
     <Ionicons name="menu" size={24} color="#fff" />
   </TouchableOpacity>
@@ -46,10 +54,13 @@ function AppStack() {
         headerShown: true,
         headerStyle: {
           backgroundColor: '#0066cc',
+          elevation: 4, // Sombra en Android
+          shadowOpacity: 0.3, // Sombra en iOS
         },
         headerTintColor: '#fff',
         headerTitleStyle: {
           fontWeight: 'bold',
+          fontSize: 18,
         },
         drawerStyle: {
           backgroundColor: '#fff',
