@@ -4,11 +4,13 @@ import {
   ScrollView,
   TouchableOpacity,
   View,
+  Alert,
 } from 'react-native';
 import { theme, Text } from 'galio-framework';
 import { useNavigation } from '@react-navigation/native';
 import { DrawerNavigationProp } from '@react-navigation/drawer';
 import { RootDrawerParamList } from '../navigation/Screens';
+import { ejecutarTest } from '../examples/TestCRUD';
 
 // Tipo para la navegación
 type HomeNavigationProp = DrawerNavigationProp<RootDrawerParamList>;
@@ -19,6 +21,20 @@ const Home: React.FC = () => {
 
   const handleMascotasPress = () => {
     navigation.navigate('MascotasDrawer');
+  };
+
+  const handleTestCRUD = async () => {
+    Alert.alert('Test CRUD', 'Ejecutando test... Revisa la consola para ver los resultados.');
+    try {
+      const resultado = await ejecutarTest();
+      if (resultado) {
+        Alert.alert('✅ Test Exitoso', 'Todos los tests del CRUD pasaron correctamente');
+      } else {
+        Alert.alert('❌ Test Falló', 'Algunos tests fallaron. Revisa la consola para más detalles');
+      }
+    } catch (error) {
+      Alert.alert('❌ Error', 'Error ejecutando el test: ' + error);
+    }
   };
 
   return (
@@ -44,6 +60,15 @@ const Home: React.FC = () => {
           <Text style={styles.mascotasIcon}>🐕</Text>
           <Text style={styles.mascotasButtonText}>VER MIS MASCOTAS</Text>
           <Text style={styles.mascotasSubtext}>Administra y cuida a tus compañeros</Text>
+        </TouchableOpacity>
+
+        {/* Botón de Test CRUD (temporal para desarrollo) */}
+        <TouchableOpacity 
+          style={styles.testButton}
+          onPress={handleTestCRUD}
+        >
+          <Text style={styles.testButtonText}>🧪 FUCK</Text>
+          <Text style={styles.testSubtext}>Probar operaciones de base de datos</Text>
         </TouchableOpacity>
 
         {/* Sección de estadísticas rápidas (placeholder para futuro) */}
@@ -191,6 +216,32 @@ const styles = StyleSheet.create({
     color: '#7F8C8D',
     textAlign: 'center',
     fontStyle: 'italic',
+  },
+  testButton: {
+    backgroundColor: '#FF6B6B',
+    padding: theme.SIZES.BASE * 1.5,
+    borderRadius: 12,
+    alignItems: 'center',
+    marginVertical: theme.SIZES.BASE,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  testButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginBottom: 4,
+  },
+  testSubtext: {
+    color: '#fff',
+    fontSize: 12,
+    opacity: 0.9,
   },
 });
 
