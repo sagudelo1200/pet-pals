@@ -3,10 +3,10 @@ import { useAuth } from '../services/context/AuthContext';
 import { LoadingScreen } from '../components';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { OnboardingStackParamList } from '../navigation/Screens';
+import { AuthStackParamList } from '../navigation/Screens';
 import Login from './Login';
 
-type AuthNavigationProp = StackNavigationProp<OnboardingStackParamList, 'Onboarding'>;
+type AuthNavigationProp = StackNavigationProp<AuthStackParamList, 'Auth'>;
 
 const AuthNavigator: React.FC = () => {
   const { user, loading } = useAuth();

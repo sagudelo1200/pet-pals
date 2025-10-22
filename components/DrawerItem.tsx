@@ -8,10 +8,8 @@ import argonTheme from '../constants/Theme';
 interface DrawerItemProps {
     title: string;
     focused?: boolean;
-    navigation: {
-    navigate: (screen: any) => void;
-  };
-  navigateTo: string;
+    navigation: any;
+    navigateTo: string;
 }
 
 const DrawerItem: React.FC<DrawerItemProps> = ({ 
@@ -34,46 +32,10 @@ const DrawerItem: React.FC<DrawerItemProps> = ({
       case 'Mis Mascotas':
         return (
           <Icon
-            name='map-big'
-            family='ArgonExtra'
-            size={14}
-            color={focused ? 'white' : argonTheme.COLORS.ERROR}
-          />
-        );
-      case 'Loading Examples':
-        return (
-          <Icon
             name='spaceship'
             family='ArgonExtra'
             size={14}
-            color={focused ? 'white' : argonTheme.COLORS.PRIMARY}
-          />
-        );
-      case 'Paseos':
-        return (
-          <Icon
-            name='chart-pie-35'
-            family='ArgonExtra'
-            size={14}
-            color={focused ? 'white' : argonTheme.COLORS.WARNING}
-          />
-        );
-      case 'Mi Perfil':
-        return (
-          <Icon
-            name='calendar-date'
-            family='ArgonExtra'
-            size={14}
-            color={focused ? 'white' : argonTheme.COLORS.INFO}
-          />
-        );
-      case 'Valoraciones':
-        return (
-          <Icon
-            name='calendar-date'
-            family='ArgonExtra'
-            size={14}
-            color={focused ? 'white' : argonTheme.COLORS.DEFAULT}
+            color={focused ? 'white' : argonTheme.COLORS.ERROR}
           />
         );
       case 'Sobre Nosotros':
@@ -85,8 +47,6 @@ const DrawerItem: React.FC<DrawerItemProps> = ({
             color={focused ? 'white' : 'rgba(0,0,0,0.5)'}
           />
         );
-      case 'Log out':
-        return <Icon />;
       default:
         return null;
     }

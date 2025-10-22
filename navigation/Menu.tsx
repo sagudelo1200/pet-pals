@@ -4,6 +4,7 @@ import {
   StyleSheet,
   Dimensions,
   Image,
+  View,
 } from 'react-native';
 import { Block, Text, theme } from 'galio-framework';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -22,10 +23,6 @@ type ScreenItem = {
 const screens: ScreenItem[] = [
   { title: 'Inicio', navigateTo: 'HomeDrawer' },
   { title: 'Mis Mascotas', navigateTo: 'MascotasDrawer' },
-  { title: 'Loading Examples', navigateTo: 'LoadingExampleDrawer' },
-  { title: 'Paseos', navigateTo: 'Profile' },
-  { title: 'Mi Perfil', navigateTo: 'Account' },
-  { title: 'Valoraciones', navigateTo: 'Elements' },
 ];
 
 export default function CustomDrawerContent(
@@ -35,7 +32,7 @@ export default function CustomDrawerContent(
   const { state, navigation } = props;
 
   return (
-    <Block style={[styles.container, { paddingTop: insets.top }]}>
+    <View style={[styles.container, { paddingTop: insets.top }]}>
       <Block flex={0.06} style={styles.header}>
         <Image source={Images.Logo} style={styles.logo} />
       </Block>
@@ -86,7 +83,7 @@ export default function CustomDrawerContent(
           />
         </ScrollView>
       </Block>
-    </Block>
+    </View>
   );
 }
 
