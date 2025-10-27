@@ -5,19 +5,6 @@ import Icon from './Icon';
 import Header from './Header';
 import Input from './Input';
 import Switch from './Switch';
-import Select from './Select';
-import Notification from './Notification';
 import LoadingScreen from './LoadingScreen';
 
-export {
-  Button,
-  Card,
-  DrawerItem,
-  Icon,
-  Input,
-  Header,
-  Switch,
-  Select,
-  Notification,
-  LoadingScreen,
-};
+export { Button, Card, DrawerItem, Icon, Input, Header, Switch, LoadingScreen };
