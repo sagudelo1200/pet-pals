@@ -22,6 +22,7 @@ const Home: React.FC = () => {
     navigation.navigate('MascotasTab');
   };
 
+
   return (
     <View style={styles.container}>
       <ScrollView 
@@ -194,6 +195,32 @@ const styles = StyleSheet.create({
     color: '#7F8C8D',
     textAlign: 'center',
     fontStyle: 'italic',
+  },
+  testButton: {
+    backgroundColor: '#FF6B6B',
+    padding: theme.SIZES.BASE * 1.5,
+    borderRadius: 12,
+    alignItems: 'center',
+    marginVertical: theme.SIZES.BASE,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  testButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginBottom: 4,
+  },
+  testSubtext: {
+    color: '#fff',
+    fontSize: 12,
+    opacity: 0.9,
   },
 });
 
