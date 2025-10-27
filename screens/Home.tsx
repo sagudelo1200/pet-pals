@@ -4,21 +4,22 @@ import {
   ScrollView,
   TouchableOpacity,
   View,
+  Platform,
 } from 'react-native';
 import { theme, Text } from 'galio-framework';
 import { useNavigation } from '@react-navigation/native';
-import { DrawerNavigationProp } from '@react-navigation/drawer';
-import { RootDrawerParamList } from '../navigation/Screens';
+import { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
+import { RootTabParamList } from '../navigation/Screens';
 
 // Tipo para la navegación
-type HomeNavigationProp = DrawerNavigationProp<RootDrawerParamList>;
+type HomeNavigationProp = BottomTabNavigationProp<RootTabParamList>;
 
 // Componente principal del Dashboard
 const Home: React.FC = () => {
   const navigation = useNavigation<HomeNavigationProp>();
 
   const handleMascotasPress = () => {
-    navigation.navigate('MascotasDrawer');
+    navigation.navigate('MascotasTab');
   };
 
   return (
@@ -83,7 +84,9 @@ const styles = StyleSheet.create({
   },
   content: {
     padding: theme.SIZES.BASE,
-    paddingBottom: theme.SIZES.BASE * 2,
+    paddingBottom: Platform.OS === 'android' 
+      ? 120  // Extra padding para Android tabs
+      : theme.SIZES.BASE * 2,
   },
   header: {
     marginBottom: theme.SIZES.BASE * 2,

@@ -2,20 +2,16 @@ import React, { useEffect } from 'react';
 import { useAuth } from '../services/context/AuthContext';
 import { LoadingScreen } from '../components';
 import { useNavigation } from '@react-navigation/native';
-import { StackNavigationProp } from '@react-navigation/stack';
-import { AuthStackParamList } from '../navigation/Screens';
 import Login from './Login';
-
-type AuthNavigationProp = StackNavigationProp<AuthStackParamList, 'Auth'>;
 
 const AuthNavigator: React.FC = () => {
   const { user, loading } = useAuth();
-  const navigation = useNavigation<AuthNavigationProp>();
+  const navigation = useNavigation<any>(); // Usar any temporalmente para las pruebas
 
-  // Efecto para navegar automáticamente al drawer cuando hay usuario
+  // Efecto para navegar automáticamente cuando hay usuario
   useEffect(() => {
     if (user && !loading) {
-      // Navegar al drawer automáticamente
+      // Navegar a App (Tab Navigator) cuando hay usuario autenticado
       navigation.reset({
         index: 0,
         routes: [{ name: 'App' }],

@@ -1,4 +1,4 @@
-import 'dotenv/config'
+import 'dotenv/config';
 
 export default {
   expo: {
@@ -9,6 +9,7 @@ export default {
     version: '0.1.0',
     orientation: 'portrait',
     icon: './assets/icon.png',
+    entryPoint: './index.tsx',
     splash: {
       image: './assets/splash.png',
       resizeMode: 'cover',
@@ -21,6 +22,9 @@ export default {
     ios: {
       supportsTablet: true,
       bundleIdentifier: 'com.petpals.app',
+      infoPlist: {
+        CFBundleAllowMixedLocalizations: true,
+      },
     },
     android: {
       package: 'com.petpals.app',
@@ -29,6 +33,19 @@ export default {
         backgroundColor: '#1B5E20',
       },
     },
+    plugins: [
+      [
+        'expo-build-properties',
+        {
+          ios: {
+            newArchEnabled: false,
+          },
+          android: {
+            newArchEnabled: false,
+          },
+        },
+      ],
+    ],
     description:
       '🐾 Pet Pals - Paseos seguros y felices para tu mascota. Confianza y tranquilidad para ti.',
     extra: {
@@ -50,4 +67,4 @@ export default {
       },
     },
   },
-}
+};

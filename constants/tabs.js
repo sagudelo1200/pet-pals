@@ -1,4 +1,4 @@
-export default tabs = {
+const tabs = {
   beauty: [
     { id: 'music', title: 'Music' },
     { id: 'beauty', title: 'Beauty' },
@@ -11,4 +11,6 @@ export default tabs = {
     { id: 'fashion', title: 'Fashion' },
     { id: 'places', title: 'Places' },
   ],
-}
+};
+
+export default tabs;

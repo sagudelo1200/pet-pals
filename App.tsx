@@ -1,97 +1,121 @@
-import React, { useCallback, useEffect, useState } from 'react';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
-import * as SplashScreen from 'expo-splash-screen';
-import * as Font from 'expo-font';
-import { Asset } from 'expo-asset';
-import { Block, GalioProvider } from 'galio-framework';
+import React from 'react';
+import { Platform } from 'react-native';
+import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { NavigationContainer } from '@react-navigation/native';
-import { Image } from 'react-native';
-
-// Keep the splash screen visible while we fetch resources
-SplashScreen.preventAutoHideAsync();
-
-// Before rendering any navigation stack
-import { enableScreens } from 'react-native-screens';
-enableScreens();
-
-import Screens from './navigation/Screens';
-import { Images, articles, argonTheme } from './constants';
-// Importar el AuthProvider
+import { createStackNavigator } from '@react-navigation/stack';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { Ionicons } from '@expo/vector-icons';
+import { GalioProvider } from 'galio-framework';
 import { AuthProvider } from './services/context/AuthContext';
+import Home from './screens/Home';
+import AuthNavigator from './screens/AuthNavigator';
+import { MascotasScreen } from './screens/MascotasScreen';
+import CrearMascota from './screens/CrearMascota';
+import PerfilScreen from './screens/PerfilScreen';
 
-// cache app images
-const assetImages: (string | any)[] = [
-  Images.Onboarding,
-  Images.LogoOnboarding,
-  Images.Logo,
-  Images.Pro,
-  Images.ArgonLogo,
-  Images.PetPalsLogo,
-  Images.iOSLogo,
-  Images.androidLogo,
-];
+const Stack = createStackNavigator();
+const Tab = createBottomTabNavigator();
 
-// cache product images
-articles.map((article) => assetImages.push(article.image));
-
-function cacheImages(images: (string | any)[]): Promise<any>[] {
-  return images.map((image) => {
-    if (typeof image === 'string') {
-      return Image.prefetch(image);
-    } else {
-      return Asset.fromModule(image).downloadAsync();
-    }
-  });
+// AppStack con Tab Navigator optimizado para iOS y Android con Safe Area
+function AppStack() {
+  const insets = useSafeAreaInsets();
+  
+  return (
+    <Tab.Navigator
+      screenOptions={{
+        headerShown: true,
+        headerStyle: {
+          backgroundColor: '#0066cc',
+        },
+        headerTintColor: '#fff',
+        headerTitleStyle: {
+          fontWeight: 'bold',
+          fontSize: 18,
+        },
+        tabBarActiveTintColor: '#0066cc',
+        tabBarInactiveTintColor: '#999',
+        tabBarStyle: {
+          backgroundColor: '#fff',
+          borderTopWidth: 1,
+          borderTopColor: '#e0e0e0',
+          paddingBottom: Platform.OS === 'ios' 
+            ? Math.max(insets.bottom, 20) 
+            : Math.max(insets.bottom + 5, 15),
+          paddingTop: 5,
+          height: Platform.OS === 'ios' 
+            ? Math.max(insets.bottom + 65, 85) 
+            : Math.max(insets.bottom + 60, 75),
+          position: 'absolute',
+          bottom: 0,
+          left: 0,
+          right: 0,
+        },
+        tabBarLabelStyle: {
+          fontSize: 12,
+          fontWeight: '500',
+        },
+      }}
+    >
+      <Tab.Screen 
+        name='HomeTab' 
+        component={Home}
+        options={{
+          title: 'Inicio',
+          headerTitle: 'Pet Pals - Inicio',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="home" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tab.Screen 
+        name='MascotasTab' 
+        component={MascotasScreen}
+        options={{
+          title: 'Mis Mascotas',
+          headerTitle: 'Pet Pals - Mascotas',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="paw" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tab.Screen 
+        name='CrearTab' 
+        component={CrearMascota}
+        options={{
+          title: 'Agregar',
+          headerTitle: 'Pet Pals - Nueva Mascota',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="add-circle" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tab.Screen 
+        name='PerfilTab' 
+        component={PerfilScreen}
+        options={{
+          title: 'Perfil',
+          headerTitle: 'Pet Pals - Mi Perfil',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="person" size={size} color={color} />
+          ),
+        }}
+      />
+    </Tab.Navigator>
+  );
 }
 
 export default function App(): React.ReactElement {
-  const [appIsReady, setAppIsReady] = useState<boolean>(false);
-
-  useEffect(() => {
-    async function prepare() {
-      try {
-        // Load Resources
-        await _loadResourcesAsync();
-        // Pre-load fonts
-        await Font.loadAsync({
-          'open-sans-regular': require('./assets/font/OpenSans-Regular.ttf'),
-          'open-sans-light': require('./assets/font/OpenSans-Light.ttf'),
-          'open-sans-bold': require('./assets/font/OpenSans-Bold.ttf'),
-        });
-      } catch (e) {
-        console.warn(e);
-      } finally {
-        setAppIsReady(true);
-      }
-    }
-
-    prepare();
-  }, []);
-
-  const _loadResourcesAsync = async (): Promise<any[]> => {
-    return Promise.all([...cacheImages(assetImages)]);
-  };
-
-  const onLayoutRootView = useCallback(async () => {
-    if (appIsReady) {
-      await SplashScreen.hideAsync();
-    }
-  }, [appIsReady]);
-
-  if (!appIsReady) {
-    return null;
-  }
-
   return (
     <SafeAreaProvider>
       <AuthProvider>
-        <NavigationContainer onReady={onLayoutRootView}>
-          <GalioProvider theme={argonTheme}>
-            <Block flex>
-              <Screens />
-            </Block>
-          </GalioProvider>
-        </NavigationContainer>
+        <GalioProvider>
+          <NavigationContainer>
+            <Stack.Navigator screenOptions={{ headerShown: false }}>
+              <Stack.Screen name="Auth" component={AuthNavigator} />
+              <Stack.Screen name="App" component={AppStack} />
+            </Stack.Navigator>
+          </NavigationContainer>
+        </GalioProvider>
       </AuthProvider>
     </SafeAreaProvider>
   );

@@ -7,7 +7,7 @@ interface NavigateToMascotasProps {
 
 export const NavigateToMascotasButton: React.FC<NavigateToMascotasProps> = ({ navigation }) => {
   const handlePress = () => {
-    navigation.navigate('MascotasDrawer');
+    navigation.navigate('MascotasTab');
   };
 
   return (

@@ -6,6 +6,7 @@ import {
   FlatList, 
   StyleSheet,
   RefreshControl,
+  Platform,
 } from 'react-native';
 import { useMascotas } from '../hooks';
 import { LoadingScreen } from '../components';
@@ -141,6 +142,7 @@ const styles = StyleSheet.create({
   },
   listContainer: {
     padding: 15,
+    paddingBottom: Platform.OS === 'android' ? 120 : 15,
   },
   mascotaCard: {
     backgroundColor: '#fff',
