@@ -1,4 +1,4 @@
 import argonTheme from './Theme';
-import utils from './utils';
+import * as utils from './utils';
 
 export { argonTheme, utils };
