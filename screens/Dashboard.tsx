@@ -12,11 +12,11 @@ import { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import { RootTabParamList } from '../navigation/Screens';
 
 // Tipo para la navegación
-type HomeNavigationProp = BottomTabNavigationProp<RootTabParamList>;
+type DashboardNavigationProp = BottomTabNavigationProp<RootTabParamList>;
 
 // Componente principal del Dashboard
-const Home: React.FC = () => {
-  const navigation = useNavigation<HomeNavigationProp>();
+const Dashboard: React.FC = () => {
+  const navigation = useNavigation<DashboardNavigationProp>();
 
   const handleMascotasPress = () => {
     navigation.navigate('MascotasTab');
@@ -224,4 +224,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default Home;
+export default Dashboard;

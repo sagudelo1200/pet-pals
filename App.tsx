@@ -7,11 +7,9 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
 import { GalioProvider } from 'galio-framework';
 import { AuthProvider } from './services/context/AuthContext';
-import Home from './screens/Home';
+import Dashboard from './screens/Dashboard';
 import AuthNavigator from './screens/AuthNavigator';
 import { MascotasScreen } from './screens/MascotasScreen';
-import CrearMascota from './screens/CrearMascota';
-import PerfilScreen from './screens/PerfilScreen';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -57,11 +55,11 @@ function AppStack() {
       }}
     >
       <Tab.Screen 
-        name='HomeTab' 
-        component={Home}
+        name='AppTab' 
+        component={Dashboard}
         options={{
           title: 'Inicio',
-          headerTitle: 'Pet Pals - Inicio',
+          headerTitle: 'Pet Pals',
           tabBarIcon: ({ color, size }) => (
             <Ionicons name='home' size={size} color={color} />
           ),
@@ -72,31 +70,9 @@ function AppStack() {
         component={MascotasScreen}
         options={{
           title: 'Mis Mascotas',
-          headerTitle: 'Pet Pals - Mascotas',
+          headerTitle: 'Pet Pals',
           tabBarIcon: ({ color, size }) => (
             <Ionicons name='paw' size={size} color={color} />
-          ),
-        }}
-      />
-      <Tab.Screen 
-        name='CrearTab' 
-        component={CrearMascota}
-        options={{
-          title: 'Agregar',
-          headerTitle: 'Pet Pals - Nueva Mascota',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name='add-circle' size={size} color={color} />
-          ),
-        }}
-      />
-      <Tab.Screen 
-        name='PerfilTab' 
-        component={PerfilScreen}
-        options={{
-          title: 'Perfil',
-          headerTitle: 'Pet Pals - Mi Perfil',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name='person' size={size} color={color} />
           ),
         }}
       />

@@ -1,19 +1,17 @@
 import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
-import Home from '../screens/Home';
+import Dashboard from '../screens/Dashboard';
 import AuthNavigator from '../screens/AuthNavigator';
 
-// Tipos de navegación para Pet Pals con Tabs
+// Tipos de navegación para Pet Pals
 export type AuthStackParamList = {
   Auth: undefined;
-  App: undefined;
+  App: { screen?: keyof RootTabParamList };
 };
 
 export type RootTabParamList = {
-  HomeTab: undefined;
+  AppTab: undefined;
   MascotasTab: undefined;
-  CrearTab: undefined;
-  PerfilTab: undefined;
 };
 
 // Stack principal con autenticación
@@ -24,7 +22,7 @@ export default function Views(): React.ReactElement {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name='Auth' component={AuthNavigator} />
-      <Stack.Screen name='App' component={Home} />
+      <Stack.Screen name='App' component={Dashboard} />
     </Stack.Navigator>
   );
 }
