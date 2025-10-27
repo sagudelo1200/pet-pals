@@ -9,7 +9,7 @@ import {
 import { theme, Text } from 'galio-framework';
 import { useNavigation } from '@react-navigation/native';
 import { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
-import { RootTabParamList } from '../navigation/Screens';
+import { RootTabParamList } from '../navigation/types';
 
 // Tipo para la navegación
 type DashboardNavigationProp = BottomTabNavigationProp<RootTabParamList>;
@@ -19,7 +19,7 @@ const Dashboard: React.FC = () => {
   const navigation = useNavigation<DashboardNavigationProp>();
 
   const handleMascotasPress = () => {
-    navigation.navigate('MascotasTab');
+    navigation.navigate('Mascotas');
   };
 
 

@@ -10,9 +10,10 @@ import { AuthProvider } from './services/context/AuthContext';
 import Dashboard from './screens/Dashboard';
 import AuthNavigator from './screens/AuthNavigator';
 import { MascotasScreen } from './screens/MascotasScreen';
+import { RootTabParamList } from './navigation/types';
 
 const Stack = createStackNavigator();
-const Tab = createBottomTabNavigator();
+const Tab = createBottomTabNavigator<RootTabParamList>();
 
 // AppStack con Tab Navigator optimizado para iOS y Android con Safe Area
 function AppStack() {
@@ -55,7 +56,7 @@ function AppStack() {
       }}
     >
       <Tab.Screen 
-        name='AppTab' 
+        name='Inicio' 
         component={Dashboard}
         options={{
           title: 'Inicio',
@@ -66,7 +67,7 @@ function AppStack() {
         }}
       />
       <Tab.Screen 
-        name='MascotasTab' 
+        name='Mascotas' 
         component={MascotasScreen}
         options={{
           title: 'Mis Mascotas',

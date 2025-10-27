@@ -2,17 +2,7 @@ import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
 import Dashboard from '../screens/Dashboard';
 import AuthNavigator from '../screens/AuthNavigator';
-
-// Tipos de navegación para Pet Pals
-export type AuthStackParamList = {
-  Auth: undefined;
-  App: { screen?: keyof RootTabParamList };
-};
-
-export type RootTabParamList = {
-  AppTab: undefined;
-  MascotasTab: undefined;
-};
+import { AuthStackParamList } from './types';
 
 // Stack principal con autenticación
 const Stack = createStackNavigator<AuthStackParamList>();
