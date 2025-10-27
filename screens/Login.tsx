@@ -11,7 +11,10 @@ import {
 import { Block, Text } from 'galio-framework';
 
 import { Button, Icon, Input } from '../components';
-import { Images, argonTheme } from '../constants';
+import { argonTheme } from '../constants';
+
+// Imagen local
+const RegisterBackground = require('../assets/imgs/register-bg.png');
 import { useAuth } from '../services/context/AuthContext';
 
 const { width, height } = Dimensions.get('screen');
@@ -69,7 +72,7 @@ const Login: React.FC = () => {
       <Block flex middle>
         <StatusBar hidden />
         <ImageBackground
-          source={Images.RegisterBackground}
+          source={RegisterBackground}
           style={{ width, height, zIndex: 1 }}
         >
           <Block flex middle>
