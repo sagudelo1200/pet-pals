@@ -1,6 +1,4 @@
 import 'react-native-gesture-handler';
-// Comentar reanimated temporalmente para iOS
-// import 'react-native-reanimated';
 
 import { AppRegistry, Platform } from 'react-native';
 import { registerRootComponent } from 'expo';
