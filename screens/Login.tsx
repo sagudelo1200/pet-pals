@@ -77,10 +77,10 @@ const Login: React.FC = () => {
         >
           <Block flex middle>
             <Block style={styles.loginContainer}>
-              <Block flex space="between">
+              <Block flex space='between'>
                 <Block flex={0.2} middle style={styles.socialConnect}>
                   <Block flex={0.6} middle>
-                    <Text color="#8898AA" size={12}>
+                    <Text color='#8898AA' size={12}>
                       Ingresa con
                     </Text>
                   </Block>
@@ -91,8 +91,8 @@ const Login: React.FC = () => {
                     >
                       <Block row>
                         <Icon
-                          name="logo-google"
-                          family="Ionicon"
+                          name='logo-google'
+                          family='Ionicon'
                           size={33}
                           color={'#DF3E30'}
                           style={{ marginRight: 3 }}
@@ -102,14 +102,14 @@ const Login: React.FC = () => {
                     </Button>
                   </Block>
                 </Block>
-                <Block flex={0.8} middle space="between">
+                <Block flex={0.8} middle space='between'>
                   <Block flex={0.2} middle>
                     <Text
                       style={{
                         fontFamily: 'open-sans-regular',
                         textAlign: 'center',
                       }}
-                      color="#8898AA"
+                      color='#8898AA'
                       size={12}
                     >
                       O hazlo de la manera clásica
@@ -124,18 +124,18 @@ const Login: React.FC = () => {
                         >
                           <Input
                             borderless
-                            placeholder="Correo"
+                            placeholder='Correo'
                             value={email}
                             onChangeText={setEmail}
-                            keyboardType="email-address"
-                            autoCapitalize="none"
+                            keyboardType='email-address'
+                            autoCapitalize='none'
                             autoCorrect={false}
                             iconContent={
                               <Icon
                                 size={16}
-                                color="#ADB5BD"
-                                name="ic_mail_24px"
-                                family="ArgonExtra"
+                                color='#ADB5BD'
+                                name='ic_mail_24px'
+                                family='ArgonExtra'
                                 style={styles.inputIcons}
                               />
                             }
@@ -145,15 +145,15 @@ const Login: React.FC = () => {
                           <Input
                             password
                             borderless
-                            placeholder="Contraseña"
+                            placeholder='Contraseña'
                             value={password}
                             onChangeText={setPassword}
                             iconContent={
                               <Icon
                                 size={16}
-                                color="#ADB5BD"
-                                name="padlock-unlocked"
-                                family="ArgonExtra"
+                                color='#ADB5BD'
+                                name='padlock-unlocked'
+                                family='ArgonExtra'
                                 style={styles.inputIcons}
                               />
                             }
@@ -162,7 +162,7 @@ const Login: React.FC = () => {
                         
                         {/* <Block row style={styles.forgotPassword}>
                           <Button
-                            color="transparent"
+                            color='transparent'
                             textStyle={{
                               color: argonTheme.COLORS.PRIMARY,
                               fontSize: 14,
@@ -176,7 +176,7 @@ const Login: React.FC = () => {
                       
                       <Block center style={{ marginTop: 39 }}>
                         <Button 
-                          color="primary" 
+                          color='primary' 
                           style={styles.loginButton}
                           onPress={handleLogin}
                           loading={isLoading}
@@ -202,7 +202,7 @@ const Login: React.FC = () => {
                             </Text>
                           </Block>
                           <Button
-                            color="transparent"
+                            color='transparent'
                             textStyle={{
                               color: argonTheme.COLORS.PRIMARY,
                               fontSize: 14,

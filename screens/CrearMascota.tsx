@@ -156,7 +156,7 @@ const CrearMascota: React.FC = () => {
           <Block style={styles.inputContainer}>
             <Text style={styles.label}>Nombre *</Text>
             <Input
-              placeholder="Ej: Max, Luna, Rocky..."
+              placeholder='Ej: Max, Luna, Rocky...'
               value={formData.nombre}
               onChangeText={(value) => handleInputChange('nombre', value)}
               style={styles.input}
@@ -167,7 +167,7 @@ const CrearMascota: React.FC = () => {
           <Block style={styles.inputContainer}>
             <Text style={styles.label}>Raza</Text>
             <Input
-              placeholder="Ej: Labrador, Mestizo, Golden..."
+              placeholder='Ej: Labrador, Mestizo, Golden...'
               value={formData.raza}
               onChangeText={(value) => handleInputChange('raza', value)}
               style={styles.input}
@@ -178,7 +178,7 @@ const CrearMascota: React.FC = () => {
           <Block style={styles.inputContainer}>
             <Text style={styles.label}>Fecha de nacimiento</Text>
             <Input
-              placeholder="DD/MM/AAAA"
+              placeholder='DD/MM/AAAA'
               value={formData.fechaNacimiento}
               onChangeText={(value) => handleInputChange('fechaNacimiento', value)}
               style={styles.input}
@@ -242,7 +242,7 @@ const CrearMascota: React.FC = () => {
           <Block style={styles.inputContainer}>
             <Text style={styles.label}>Descripción</Text>
             <Input
-              placeholder="Cuéntanos sobre la personalidad de tu mascota..."
+              placeholder='Cuéntanos sobre la personalidad de tu mascota...'
               value={formData.descripcion}
               onChangeText={(value) => handleInputChange('descripcion', value)}
               multiline={true}
@@ -256,7 +256,7 @@ const CrearMascota: React.FC = () => {
         {/* Botones */}
         <Block style={styles.buttonContainer}>
           <Button
-            color="primary"
+            color='primary'
             style={styles.submitButton}
             onPress={handleSubmit}
             loading={loading}

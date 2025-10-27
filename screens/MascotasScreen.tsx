@@ -26,8 +26,8 @@ export const MascotasScreen: React.FC = () => {
   if (loading) {
     return (
       <LoadingScreen 
-        messageType="pets"
-        spinnerColor="#0066cc"
+        messageType='pets'
+        spinnerColor='#0066cc'
       />
     );
   }

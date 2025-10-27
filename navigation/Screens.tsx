@@ -23,8 +23,8 @@ const Stack = createStackNavigator<AuthStackParamList>();
 export default function Views(): React.ReactElement {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="Auth" component={AuthNavigator} />
-      <Stack.Screen name="App" component={Home} />
+      <Stack.Screen name='Auth' component={AuthNavigator} />
+      <Stack.Screen name='App' component={Home} />
     </Stack.Navigator>
   );
 }

@@ -65,7 +65,7 @@ const Welcome: React.FC = () => {
         {/* Botones de acción */}
         <Block center style={styles.buttonSection}>
           <Button
-            color="success" 
+            color='success' 
             style={styles.actionButton}
             onPress={handleGoToApp}
           >
@@ -79,7 +79,7 @@ const Welcome: React.FC = () => {
           </Button>
 
           <Button
-            color="info" 
+            color='info' 
             style={styles.actionButton}
             onPress={handleCrearMascota}
           >
@@ -93,7 +93,7 @@ const Welcome: React.FC = () => {
           </Button>
 
           <Button
-            color="warning" 
+            color='warning' 
             style={styles.actionButton}
             onPress={handleVerMascotas}
           >
@@ -108,7 +108,7 @@ const Welcome: React.FC = () => {
         </Block>
         
         <Button 
-          color="primary" 
+          color='primary' 
           style={styles.logoutButton}
           onPress={handleLogout}
         >

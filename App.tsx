@@ -63,7 +63,7 @@ function AppStack() {
           title: 'Inicio',
           headerTitle: 'Pet Pals - Inicio',
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="home" size={size} color={color} />
+            <Ionicons name='home' size={size} color={color} />
           ),
         }}
       />
@@ -74,7 +74,7 @@ function AppStack() {
           title: 'Mis Mascotas',
           headerTitle: 'Pet Pals - Mascotas',
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="paw" size={size} color={color} />
+            <Ionicons name='paw' size={size} color={color} />
           ),
         }}
       />
@@ -85,7 +85,7 @@ function AppStack() {
           title: 'Agregar',
           headerTitle: 'Pet Pals - Nueva Mascota',
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="add-circle" size={size} color={color} />
+            <Ionicons name='add-circle' size={size} color={color} />
           ),
         }}
       />
@@ -96,7 +96,7 @@ function AppStack() {
           title: 'Perfil',
           headerTitle: 'Pet Pals - Mi Perfil',
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="person" size={size} color={color} />
+            <Ionicons name='person' size={size} color={color} />
           ),
         }}
       />
@@ -111,8 +111,8 @@ export default function App(): React.ReactElement {
         <GalioProvider>
           <NavigationContainer>
             <Stack.Navigator screenOptions={{ headerShown: false }}>
-              <Stack.Screen name="Auth" component={AuthNavigator} />
-              <Stack.Screen name="App" component={AppStack} />
+              <Stack.Screen name='Auth' component={AuthNavigator} />
+              <Stack.Screen name='App' component={AppStack} />
             </Stack.Navigator>
           </NavigationContainer>
         </GalioProvider>
