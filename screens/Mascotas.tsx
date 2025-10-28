@@ -17,9 +17,7 @@ const Mascotas = () => {
 const styles = {
   container: {
     flex: 1,
-    justifyContent: 'center' as const,
     alignItems: 'center' as const,
-    paddingBottom: 60,
     backgroundColor: COLORS.DEFAULT,
   },
   text: {
