@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { View, Text, ActivityIndicator, StyleSheet } from 'react-native';
+import { argonTheme } from '../constants';
 
 interface LoadingScreenProps {
   /** Mensaje personalizado, si no se proporciona usa uno aleatorio */
@@ -77,7 +78,7 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({
   messageType = 'general',
   customMessages,
   showSpinner = true,
-  spinnerColor = '#0066cc',
+  spinnerColor = argonTheme.COLORS.PRIMARY,
   spinnerSize = 'large',
   containerStyle,
   textStyle
@@ -108,22 +109,13 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({
   return (
     <View style={[styles.container, containerStyle]}>
       {showSpinner && (
-        <ActivityIndicator 
-          size={spinnerSize} 
-          color={spinnerColor} 
+        <ActivityIndicator
+          size={spinnerSize}
+          color={spinnerColor}
           style={styles.spinner}
         />
       )}
-      
-      <Text style={[styles.message, textStyle]}>
-        {currentMessage}
-      </Text>
-      
-      {messageType === 'pets' && !message && (
-        <Text style={styles.subtitle}>
-          Cargando tu mundo de mascotas...
-        </Text>
-      )}
+      <Text style={[styles.text, textStyle]}>{currentMessage}</Text>
     </View>
   );
 };
@@ -133,24 +125,16 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#f5f5f5',
+    backgroundColor: argonTheme.COLORS.DEFAULT,
     padding: 20,
   },
   spinner: {
     marginBottom: 20,
   },
-  message: {
+  text: {
     fontSize: 16,
     textAlign: 'center',
-    color: '#333',
-    lineHeight: 24,
-    marginBottom: 10,
-  },
-  subtitle: {
-    fontSize: 14,
-    textAlign: 'center',
-    color: '#666',
-    fontStyle: 'italic',
+    color: argonTheme.COLORS.TEXT,
   },
 });
 

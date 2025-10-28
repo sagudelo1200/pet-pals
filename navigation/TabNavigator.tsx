@@ -5,6 +5,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
 import Dashboard from '../screens/Dashboard';
 import { RootTabParamList } from './types';
+import { COLORS } from '../constants/Theme';
 
 const Tab = createBottomTabNavigator<RootTabParamList>();
 
@@ -17,19 +18,19 @@ export default function TabNavigator(): React.ReactElement {
       screenOptions={{
         headerShown: true,
         headerStyle: {
-          backgroundColor: '#0066cc',
+          backgroundColor: COLORS.HEADER,
         },
-        headerTintColor: '#fff',
+        headerTintColor: COLORS.TEXT,
         headerTitleStyle: {
           fontWeight: 'bold',
           fontSize: 18,
         },
-        tabBarActiveTintColor: '#0066cc',
-        tabBarInactiveTintColor: '#999',
+        tabBarActiveTintColor: COLORS.PRIMARY,
+        tabBarInactiveTintColor: COLORS.MUTED,
         tabBarStyle: {
-          backgroundColor: '#fff',
+          backgroundColor: COLORS.SECONDARY,
           borderTopWidth: 1,
-          borderTopColor: '#e0e0e0',
+          borderTopColor: COLORS.BORDER,
           paddingBottom: Platform.OS === 'ios' 
             ? Math.max(insets.bottom, 20) 
             : Math.max(insets.bottom + 5, 15),

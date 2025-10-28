@@ -10,6 +10,7 @@ import { theme, Text } from 'galio-framework';
 import { useNavigation } from '@react-navigation/native';
 import { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import { RootTabParamList } from '../navigation/types';
+import { argonTheme } from '../constants';
 
 // Tipo para la navegación
 type DashboardNavigationProp = BottomTabNavigationProp<RootTabParamList>;
@@ -78,7 +79,7 @@ const Dashboard: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8F9FE',
+    backgroundColor: argonTheme.COLORS.DEFAULT,
   },
   scrollView: {
     flex: 1,
@@ -96,17 +97,17 @@ const styles = StyleSheet.create({
   welcomeText: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#2C3E50',
+    color: argonTheme.COLORS.TEXT,
     textAlign: 'center',
     marginBottom: 8,
   },
   subtitleText: {
     fontSize: 16,
-    color: '#7F8C8D',
+    color: argonTheme.COLORS.MUTED,
     textAlign: 'center',
   },
   mascotasButton: {
-    backgroundColor: '#007AFF',
+    backgroundColor: argonTheme.COLORS.PRIMARY,
     paddingVertical: 20,
     paddingHorizontal: 24,
     borderRadius: 12,
@@ -126,18 +127,19 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   mascotasButtonText: {
-    color: '#fff',
+    color: argonTheme.COLORS.BLACK,
     fontSize: 18,
     fontWeight: '700',
     marginBottom: 4,
   },
   mascotasSubtext: {
-    color: '#E8F4FD',
+    color: argonTheme.COLORS.BLACK,
     fontSize: 14,
     textAlign: 'center',
+    opacity: 0.8,
   },
   statsContainer: {
-    backgroundColor: '#fff',
+    backgroundColor: argonTheme.COLORS.SECONDARY,
     padding: theme.SIZES.BASE,
     borderRadius: 12,
     marginBottom: theme.SIZES.BASE * 2,
@@ -153,7 +155,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#2C3E50',
+    color: argonTheme.COLORS.TEXT,
     marginBottom: theme.SIZES.BASE,
   },
   statsRow: {
@@ -164,21 +166,22 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     padding: theme.SIZES.BASE,
-    backgroundColor: '#F8F9FE',
+    backgroundColor: argonTheme.COLORS.BLOCK,
     borderRadius: 8,
     marginHorizontal: 4,
   },
   statNumber: {
     fontSize: 24,
     marginBottom: 4,
+    color: argonTheme.COLORS.TEXT,
   },
   statLabel: {
     fontSize: 12,
-    color: '#7F8C8D',
+    color: argonTheme.COLORS.MUTED,
     textAlign: 'center',
   },
   quickActionsContainer: {
-    backgroundColor: '#fff',
+    backgroundColor: argonTheme.COLORS.SECONDARY,
     padding: theme.SIZES.BASE,
     borderRadius: 12,
     shadowColor: '#000',
@@ -192,7 +195,7 @@ const styles = StyleSheet.create({
   },
   comingSoonText: {
     fontSize: 14,
-    color: '#7F8C8D',
+    color: argonTheme.COLORS.MUTED,
     textAlign: 'center',
     fontStyle: 'italic',
   },

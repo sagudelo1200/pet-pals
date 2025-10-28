@@ -59,7 +59,7 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     borderColor: argonTheme.COLORS.BORDER,
     height: 44,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: argonTheme.COLORS.INPUT,
   },
   success: {
     borderColor: argonTheme.COLORS.INPUT_SUCCESS,

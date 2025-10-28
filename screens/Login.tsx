@@ -229,7 +229,7 @@ const styles = StyleSheet.create({
   loginContainer: {
     width: width * 0.9,
     height: height < 812 ? height * 0.7 : height * 0.6,
-    backgroundColor: '#F4F5F7',
+    backgroundColor: argonTheme.COLORS.SECONDARY,
     borderRadius: 36,
     shadowColor: argonTheme.COLORS.BLACK,
     shadowOffset: {
@@ -242,14 +242,14 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   socialConnect: {
-    backgroundColor: argonTheme.COLORS.WHITE,
+    backgroundColor: argonTheme.COLORS.DEFAULT,
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderColor: 'rgba(136, 152, 170, 0.3)',
   },
   socialButtons: {
     width: 132,
     height: 39,
-    backgroundColor: '#fff',
+    backgroundColor: argonTheme.COLORS.SECONDARY,
     shadowColor: argonTheme.COLORS.BLACK,
     shadowOffset: {
       width: 0,
