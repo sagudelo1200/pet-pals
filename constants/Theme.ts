@@ -32,8 +32,8 @@ export const COLORS = {
   HEADER: '#1A2F2B',        // Same as secondary
 
   // Inversions for dark mode
-  WHITE: '#0A1411',         // Represents the main background
-  BLACK: '#E1EFE6',         // Represents the main text color
+  WHITE: '#E1EFE6',         // Represents the main background
+  BLACK: '#0A1411',         // Represents the main text color
 
   // Social Colors (kept as is)
   TWITTER: '#1DA1F2',
