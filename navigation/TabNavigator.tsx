@@ -69,7 +69,7 @@ export default function TabNavigator(): React.ReactElement {
         component={Mascotas}
         options={{
           title: 'Mascotas',
-          headerTitle: 'Mis Mascotas',
+          headerTitle: 'Mascotas',
           tabBarIcon: ({ color, size }) => (
             <Ionicons name='paw' size={size} color={color} />
           ),
