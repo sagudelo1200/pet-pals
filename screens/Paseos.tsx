@@ -6,7 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 const Paseos = () => {
   return (
     <SafeAreaView style={styles.container}>
-      <Text style={styles.text}>¡Mi Cuenta!</Text>
+      <Text style={styles.text}>¡Paseos!</Text>
       <Text style={styles.subText}>
         Esta sección está en desarrollo. ¡Mantente atento a las actualizaciones!
       </Text>
