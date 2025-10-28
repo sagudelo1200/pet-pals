@@ -1,0 +1,39 @@
+import { COLORS } from '@/constants/Theme';
+import React from 'react';
+import { Text } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+
+const MiCuenta = () => {
+  return (
+    <SafeAreaView style={styles.container}>
+      <Text style={styles.text}>¡Mi Cuenta!</Text>
+      <Text style={styles.subText}>
+        Esta sección está en desarrollo. ¡Mantente atento a las actualizaciones!
+      </Text>
+    </SafeAreaView>
+  );
+};
+
+const styles = {
+  container: {
+    flex: 1,
+    justifyContent: 'center' as const,
+    alignItems: 'center' as const,
+    paddingBottom: 60,
+    backgroundColor: COLORS.DEFAULT,
+  },
+  text: {
+    fontSize: 24,
+    fontWeight: 'bold' as 'bold',
+    textAlign: 'center' as const,
+    color: COLORS.TEXT,
+  },
+  subText: {
+    fontSize: 16,
+    textAlign: 'center' as const,
+    marginTop: 10,
+    color: COLORS.MUTED,
+  },
+};
+
+export default MiCuenta;

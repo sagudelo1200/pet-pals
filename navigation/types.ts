@@ -10,4 +10,7 @@ export type AuthStackParamList = {
 export type RootTabParamList = {
   Inicio: undefined;
   Mascotas: undefined;
+  Paseos: undefined;
+  MiCuenta: undefined;
+  Placeholder: undefined;
 };

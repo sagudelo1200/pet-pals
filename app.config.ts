@@ -5,7 +5,7 @@ export default {
     name: 'Pet Pals',
     slug: 'pet-pals',
     privacy: 'public',
-    platforms: ['ios', 'android', 'web'],
+    platforms: ['ios', 'android'],
     version: '0.1.0',
     orientation: 'portrait',
     icon: './assets/icon.png',

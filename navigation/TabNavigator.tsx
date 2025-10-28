@@ -3,7 +3,11 @@ import { Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
-import Dashboard from '../screens/Dashboard';
+import Dashboard from '@/screens/Dashboard';
+import Mascotas from '@/screens/Mascotas';
+import Paseos from '@/screens/Paseos';
+import MiCuenta from '@/screens/MiCuenta';
+import Placeholder from '@/screens/Placeholder';
 import { RootTabParamList } from './types';
 import { COLORS } from '../constants/Theme';
 
@@ -57,6 +61,50 @@ export default function TabNavigator(): React.ReactElement {
           headerTitle: 'Pet Pals',
           tabBarIcon: ({ color, size }) => (
             <Ionicons name='home' size={size} color={color} />
+          ),
+        }}
+      />
+      <Tab.Screen 
+        name='Mascotas' 
+        component={Mascotas}
+        options={{
+          title: 'Mascotas',
+          headerTitle: 'Mis Mascotas',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name='paw' size={size} color={color} />
+          ),
+        }}
+      />
+      <Tab.Screen 
+        name='Paseos' 
+        component={Paseos}
+        options={{
+          title: 'Paseos',
+          headerTitle: 'Paseos',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name='walk' size={size} color={color} />
+          ),
+        }}
+      />
+      <Tab.Screen
+        name='Placeholder'
+        component={Placeholder}
+        options={{
+          title: 'Placeholder',
+          headerTitle: 'Placeholder',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name='ellipse' size={size} color={color} />
+          ),
+        }}
+      />
+      <Tab.Screen 
+        name='MiCuenta' 
+        component={MiCuenta}
+        options={{
+          title: 'Mi Cuenta',
+          headerTitle: 'Mi Cuenta',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name='person' size={size} color={color} />
           ),
         }}
       />
