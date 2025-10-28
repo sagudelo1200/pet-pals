@@ -4,7 +4,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
 import Dashboard from '../screens/Dashboard';
-import { MascotasScreen } from '../screens/MascotasScreen';
 import { RootTabParamList } from './types';
 
 const Tab = createBottomTabNavigator<RootTabParamList>();
@@ -57,17 +56,6 @@ export default function TabNavigator(): React.ReactElement {
           headerTitle: 'Pet Pals',
           tabBarIcon: ({ color, size }) => (
             <Ionicons name='home' size={size} color={color} />
-          ),
-        }}
-      />
-      <Tab.Screen 
-        name='Mascotas' 
-        component={MascotasScreen}
-        options={{
-          title: 'Mis Mascotas',
-          headerTitle: 'Pet Pals',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name='paw' size={size} color={color} />
           ),
         }}
       />
