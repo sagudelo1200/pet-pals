@@ -9,7 +9,7 @@ import Paseos from '@/screens/Paseos';
 import MiCuenta from '@/screens/MiCuenta';
 import ColorDemo from '@/screens/ColorDemo';
 import { RootTabParamList } from './types';
-import { COLORS } from '../constants/Theme';
+import { COLOR } from '@/constants';
 
 const Tab = createBottomTabNavigator<RootTabParamList>();
 
@@ -22,19 +22,19 @@ export default function TabNavigator(): React.ReactElement {
       screenOptions={{
         headerShown: true,
         headerStyle: {
-          backgroundColor: COLORS.HEADER,
+          backgroundColor: COLOR.BLOQUE,
         },
-        headerTintColor: COLORS.TEXT,
+        headerTintColor: COLOR.TEXTO,
         headerTitleStyle: {
           fontWeight: 'bold',
           fontSize: 18,
         },
-        tabBarActiveTintColor: COLORS.PRIMARY,
-        tabBarInactiveTintColor: COLORS.MUTED,
+        tabBarActiveTintColor: COLOR.ENFASIS,
+        tabBarInactiveTintColor: COLOR.SUBTEXTO,
         tabBarStyle: {
-          backgroundColor: COLORS.SECONDARY,
+          backgroundColor: COLOR.BLOQUE,
           borderTopWidth: 1,
-          borderTopColor: COLORS.BORDER,
+          borderTopColor: COLOR.BORDE,
           paddingBottom: Platform.OS === 'ios' 
             ? Math.max(insets.bottom, 20) 
             : Math.max(insets.bottom + 5, 15),

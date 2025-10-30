@@ -1,37 +1,97 @@
-import { COLORS } from '@/constants/Theme';
 import React from 'react';
-import { Text } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { StyleSheet, ScrollView, View, Text, TouchableOpacity } from 'react-native';
+import { COLOR } from '@/constants';
 
-const Mascotas = () => {
+const Mascotas: React.FC = () => {
+  const mockMascotas = [
+    { id: '1', nombre: 'Luna', raza: 'Mestiza' },
+    { id: '2', nombre: 'Max', raza: 'Labrador' },
+    { id: '3', nombre: 'Nala', raza: 'Golden Retriever' },
+    { id: '4', nombre: 'Rocky', raza: 'Bulldog' },
+  ];
+
   return (
-    <SafeAreaView style={styles.container}>
-      <Text style={styles.text}>¡Mascotas!</Text>
-      <Text style={styles.subText}>
-        Esta sección está en desarrollo. ¡Mantente atento a las actualizaciones!
-      </Text>
-    </SafeAreaView>
+    <View style={styles.container}>
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}
+      >
+        <Text style={styles.title}>Mis Mascotas</Text>
+        <View style={styles.grid}>
+          {mockMascotas.map((m) => (
+            <View key={m.id} style={styles.card}>
+              <Text style={styles.cardEmoji}>🐾</Text>
+              <Text style={styles.cardTitle}>{m.nombre}</Text>
+              <Text style={styles.cardSubtitle}>{m.raza}</Text>
+              <TouchableOpacity activeOpacity={0.85} style={styles.cardButton}>
+                <Text style={styles.cardButtonText}>Ver detalles</Text>
+              </TouchableOpacity>
+            </View>
+          ))}
+        </View>
+      </ScrollView>
+    </View>
   );
 };
 
-const styles = {
+const styles = StyleSheet.create({
   container: {
     flex: 1,
-    alignItems: 'center' as const,
-    backgroundColor: COLORS.DEFAULT,
+    backgroundColor: COLOR.BASE,
   },
-  text: {
+  scrollView: {
+    flex: 1,
+  },
+  content: {
+    padding: 16,
+    paddingBottom: 32,
+  },
+  title: {
     fontSize: 24,
-    fontWeight: 'bold' as 'bold',
-    textAlign: 'center' as const,
-    color: COLORS.TEXT,
+    fontWeight: '700',
+    color: COLOR.TEXTO,
+    marginBottom: 12,
   },
-  subText: {
-    fontSize: 16,
-    textAlign: 'center' as const,
-    marginTop: 10,
-    color: COLORS.MUTED,
+  grid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap' as const,
+    justifyContent: 'space-between',
   },
-};
+  card: {
+    width: '100%',
+    backgroundColor: COLOR.BLOQUE,
+    borderColor: COLOR.BORDE,
+    borderWidth: 1,
+    borderRadius: 12,
+    padding: 12,
+    marginBottom: 12,
+  },
+  cardEmoji: {
+    fontSize: 28,
+    marginBottom: 8,
+  },
+  cardTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: COLOR.TEXTO,
+  },
+  cardSubtitle: {
+    fontSize: 13,
+    color: COLOR.SUBTEXTO,
+    marginTop: 2,
+    marginBottom: 10,
+  },
+  cardButton: {
+    backgroundColor: COLOR.PRIMARIO,
+    paddingVertical: 10,
+    borderRadius: 10,
+    alignItems: 'center',
+  },
+  cardButtonText: {
+    color: COLOR.TEXTO,
+    fontWeight: '700',
+  },
+});
 
 export default Mascotas;
