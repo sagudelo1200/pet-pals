@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { useAuth } from '../services/context/AuthContext';
 import { LoadingScreen } from '../components';
 import { useNavigation } from '@react-navigation/native';
-import Login from './Login';
+import Ingresar from './Ingresar';
 
 const AuthNavigator: React.FC = () => {
   const { user, loading } = useAuth();
@@ -41,7 +41,7 @@ const AuthNavigator: React.FC = () => {
   }
 
   // Si no hay usuario, muestra la pantalla de login
-  return <Login />;
+  return <Ingresar />;
 };
 
 export default AuthNavigator;
