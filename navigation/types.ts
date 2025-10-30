@@ -6,6 +6,12 @@ export type AuthStackParamList = {
   App: undefined;
 };
 
+// Flujo interno de autenticación (pantallas del stack de Auth)
+export type AuthFlowParamList = {
+  Ingresar: undefined;
+  Registro: undefined;
+};
+
 // Tabs principales de la aplicación
 export type RootTabParamList = {
   Inicio: undefined;

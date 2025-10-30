@@ -2,7 +2,12 @@ import React, { useEffect } from 'react';
 import { useAuth } from '../services/context/AuthContext';
 import { LoadingScreen } from '../components';
 import { useNavigation } from '@react-navigation/native';
+import { createStackNavigator } from '@react-navigation/stack';
 import Ingresar from './Ingresar';
+import Registro from './Registro';
+import { AuthFlowParamList } from '@/navigation/types';
+
+const Stack = createStackNavigator<AuthFlowParamList>();
 
 const AuthNavigator: React.FC = () => {
   const { user, loading } = useAuth();
@@ -40,8 +45,13 @@ const AuthNavigator: React.FC = () => {
     );
   }
 
-  // Si no hay usuario, muestra la pantalla de login
-  return <Ingresar />;
+  // Si no hay usuario, mostramos el stack de autenticación (Ingresar / Registro)
+  return (
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      <Stack.Screen name='Ingresar' component={Ingresar} />
+      <Stack.Screen name='Registro' component={Registro} />
+    </Stack.Navigator>
+  );
 };
 
 export default AuthNavigator;

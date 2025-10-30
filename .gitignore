@@ -8,3 +8,5 @@ yarn.lock
 *.key
 *.mobileprovision
 .env
+
+.github

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   TouchableWithoutFeedback,
   Keyboard,
@@ -12,6 +12,10 @@ import {
 import { Block, Text } from 'galio-framework';
 import { COLOR } from '@/constants';
 import { Button, TextInput } from '@/components/ui';
+import { useAuth } from '@/services/context/AuthContext';
+import { useNavigation } from '@react-navigation/native';
+import type { AuthFlowParamList } from '@/navigation/types';
+import type { StackNavigationProp } from '@react-navigation/stack';
 
 
 
@@ -25,14 +29,28 @@ const DismissKeyboard: React.FC<DismissKeyboardProps> = ({ children }) => (
   </TouchableWithoutFeedback>
 );
 
+type Nav = StackNavigationProp<AuthFlowParamList>;
+
 const Ingresar: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const navigation = useNavigation<Nav>();
+  const { login, loading } = useAuth();
+  const handleSubmit = useCallback(async () => {
+    if (!email || !password) {
+      Alert.alert('Campos incompletos', 'Ingresa tu correo y contraseña.');
+      return;
+    }
+    const result = await login(email.trim(), password);
+    if (!result.success) {
+      Alert.alert('No se pudo iniciar sesión', result.error || 'Intenta nuevamente.');
+    }
+    // Si tiene éxito, AuthNavigator se encargará de redirigir a App
+  }, [email, password, login]);
 
-  const handleSubmit = () => {
-    // Solo UI: no implementa auth real aún
-    Alert.alert('Ingresar', `Correo: ${email}`);
-  };
+  const goToRegistro = useCallback(() => {
+    navigation.navigate('Registro');
+  }, [navigation]);
 
   return (
     <DismissKeyboard>
@@ -68,11 +86,21 @@ const Ingresar: React.FC = () => {
               />
 
               <Button
-                title='Ingresar'
+                title={loading ? 'Ingresando…' : 'Ingresar'}
                 onPress={handleSubmit}
                 variant='primario'
                 fullWidth
                 style={styles.submit}
+                disabled={loading}
+                loading={loading}
+              />
+
+              <Button
+                title='Crear una cuenta'
+                onPress={goToRegistro}
+                variant='bloque'
+                fullWidth
+                style={styles.secondary}
               />
             </View>
           </Block>
@@ -109,6 +137,9 @@ const styles = StyleSheet.create({
   },
   submit: {
     marginTop: 10,
+  },
+  secondary: {
+    marginTop: 8,
   },
 });
 
