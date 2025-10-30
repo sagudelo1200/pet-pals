@@ -10,7 +10,7 @@ import { theme, Text } from 'galio-framework';
 import { useNavigation } from '@react-navigation/native';
 import { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import { RootTabParamList } from '../navigation/types';
-import { argonTheme } from '../constants';
+import { COLOR } from '../constants';
 
 // Tipo para la navegación
 type DashboardNavigationProp = BottomTabNavigationProp<RootTabParamList>;
@@ -79,7 +79,7 @@ const Dashboard: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: argonTheme.COLORS.DEFAULT,
+    backgroundColor: COLOR.BASE,
   },
   scrollView: {
     flex: 1,
@@ -97,23 +97,23 @@ const styles = StyleSheet.create({
   welcomeText: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: argonTheme.COLORS.TEXT,
+    color: COLOR.TEXTO,
     textAlign: 'center',
     marginBottom: 8,
   },
   subtitleText: {
     fontSize: 16,
-    color: argonTheme.COLORS.MUTED,
+    color: COLOR.SUBTEXTO,
     textAlign: 'center',
   },
   mascotasButton: {
-    backgroundColor: argonTheme.COLORS.PRIMARY,
+    backgroundColor: COLOR.PRIMARIO,
     paddingVertical: 20,
     paddingHorizontal: 24,
     borderRadius: 12,
     alignItems: 'center',
     marginBottom: theme.SIZES.BASE * 2,
-    shadowColor: '#000',
+    shadowColor: COLOR.PRIMARIO,
     shadowOffset: {
       width: 0,
       height: 4,
@@ -127,19 +127,19 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   mascotasButtonText: {
-    color: argonTheme.COLORS.BLACK,
+    color: COLOR.TEXTO,
     fontSize: 18,
     fontWeight: '700',
     marginBottom: 4,
   },
   mascotasSubtext: {
-    color: argonTheme.COLORS.BLACK,
+    color: COLOR.TEXTO,
     fontSize: 14,
     textAlign: 'center',
     opacity: 0.8,
   },
   statsContainer: {
-    backgroundColor: argonTheme.COLORS.SECONDARY,
+    backgroundColor: COLOR.SECUNDARIO,
     padding: theme.SIZES.BASE,
     borderRadius: 12,
     marginBottom: theme.SIZES.BASE * 2,
@@ -155,7 +155,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: argonTheme.COLORS.TEXT,
+    color: COLOR.TEXTO,
     marginBottom: theme.SIZES.BASE,
   },
   statsRow: {
@@ -166,22 +166,22 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     padding: theme.SIZES.BASE,
-    backgroundColor: argonTheme.COLORS.BLOCK,
+    backgroundColor: COLOR.BLOQUE,
     borderRadius: 8,
     marginHorizontal: 4,
   },
   statNumber: {
     fontSize: 24,
     marginBottom: 4,
-    color: argonTheme.COLORS.TEXT,
+    color: COLOR.TEXTO,
   },
   statLabel: {
     fontSize: 12,
-    color: argonTheme.COLORS.MUTED,
+    color: COLOR.SUBTEXTO,
     textAlign: 'center',
   },
   quickActionsContainer: {
-    backgroundColor: argonTheme.COLORS.SECONDARY,
+    backgroundColor: COLOR.SECUNDARIO,
     padding: theme.SIZES.BASE,
     borderRadius: 12,
     shadowColor: '#000',
@@ -195,12 +195,12 @@ const styles = StyleSheet.create({
   },
   comingSoonText: {
     fontSize: 14,
-    color: argonTheme.COLORS.MUTED,
+    color: COLOR.SUBTEXTO,
     textAlign: 'center',
     fontStyle: 'italic',
   },
   testButton: {
-    backgroundColor: '#FF6B6B',
+    backgroundColor: COLOR.ERROR,
     padding: theme.SIZES.BASE * 1.5,
     borderRadius: 12,
     alignItems: 'center',
@@ -215,13 +215,13 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   testButtonText: {
-    color: '#fff',
+    color: COLOR.TEXTO,
     fontSize: 16,
     fontWeight: 'bold',
     marginBottom: 4,
   },
   testSubtext: {
-    color: '#fff',
+    color: COLOR.TEXTO,
     fontSize: 12,
     opacity: 0.9,
   },

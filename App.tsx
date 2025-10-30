@@ -11,7 +11,7 @@ export default function App(): React.ReactElement {
   return (
     <SafeAreaProvider>
       <AuthProvider>
-        <GalioProvider theme={argonTheme}>
+          <GalioProvider theme={argonTheme as any}>
           <NavigationContainer>
             <RootNavigator />
           </NavigationContainer>

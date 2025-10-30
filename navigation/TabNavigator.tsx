@@ -7,7 +7,7 @@ import Dashboard from '@/screens/Dashboard';
 import Mascotas from '@/screens/Mascotas';
 import Paseos from '@/screens/Paseos';
 import MiCuenta from '@/screens/MiCuenta';
-import Placeholder from '@/screens/Placeholder';
+import ColorDemo from '@/screens/ColorDemo';
 import { RootTabParamList } from './types';
 import { COLORS } from '../constants/Theme';
 
@@ -87,13 +87,13 @@ export default function TabNavigator(): React.ReactElement {
         }}
       />
       <Tab.Screen
-        name='Placeholder'
-        component={Placeholder}
+        name='Colors'
+        component={ColorDemo}
         options={{
-          title: 'Placeholder',
-          headerTitle: 'Placeholder',
+          title: 'Colores',
+          headerTitle: 'Demo de Colores',
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name='ellipse' size={size} color={color} />
+            <Ionicons name='color-palette' size={size} color={color} />
           ),
         }}
       />

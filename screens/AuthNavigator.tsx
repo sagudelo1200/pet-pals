@@ -24,7 +24,7 @@ const AuthNavigator: React.FC = () => {
     return (
       <LoadingScreen 
         messageType='pets'
-        spinnerColor='#0066cc'
+        spinnerColor='#22A47C'
       />
     );
   }
@@ -35,7 +35,7 @@ const AuthNavigator: React.FC = () => {
       <LoadingScreen 
         message='🚀 Accediendo a tu cuenta...'
         messageType='auth'
-        spinnerColor='#0066cc'
+        spinnerColor='#22A47C'
       />
     );
   }

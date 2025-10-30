@@ -12,5 +12,5 @@ export type RootTabParamList = {
   Mascotas: undefined;
   Paseos: undefined;
   MiCuenta: undefined;
-  Placeholder: undefined;
+  Colors: undefined;
 };
