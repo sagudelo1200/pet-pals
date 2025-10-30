@@ -60,7 +60,7 @@ const Login: React.FC = () => {
         console.log('Login exitoso');
       }
     } catch (error) {
-      Alert.alert('Error', 'Ocurrió un error inesperado');
+      Alert.alert('Error', error.message || 'Ocurrió un error inesperado');
       console.error('Error en login:', error);
     } finally {
       setIsLoading(false);
@@ -94,7 +94,7 @@ const Login: React.FC = () => {
                           name='logo-google'
                           family='Ionicon'
                           size={33}
-                          color={'#DF3E30'}
+                          color={'#DF4930'}
                           style={{ marginRight: 3 }}
                         />
                         <Text style={styles.socialTextButtons}>GOOGLE</Text>
@@ -190,7 +190,7 @@ const Login: React.FC = () => {
                           </Text>
                         </Button>
                         
-                        {/* <Block row style={styles.signUpLink}>
+                        <Block row style={styles.signUpLink}>
                           <Block>
 
                             <Text
@@ -211,7 +211,7 @@ const Login: React.FC = () => {
                           >
                             Regístrate
                           </Button>
-                        </Block> */}
+                        </Block>
                       </Block>
                     </Block>
                   </Block>
