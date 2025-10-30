@@ -98,7 +98,7 @@ const Registro: React.FC = () => {
                 value={nombre}
                 onChangeText={setNombre}
                 placeholder='Tu nombre'
-                iconName='person'
+                iconName='user'
               />
 
               <TextInput
@@ -108,7 +108,7 @@ const Registro: React.FC = () => {
                 placeholder='tucorreo@dominio.com'
                 keyboardType='email-address'
                 autoCapitalize='none'
-                iconName='mail'
+                iconName='envelope'
               />
 
               <TextInput
@@ -118,7 +118,7 @@ const Registro: React.FC = () => {
                 placeholder='••••••••'
                 secureTextEntry
                 autoCapitalize='none'
-                iconName='lock-closed'
+                iconName='lock'
               />
 
               <Text style={styles.label}>Soy:</Text>

@@ -72,7 +72,7 @@ const Ingresar: React.FC = () => {
                 placeholder='tucorreo@dominio.com'
                 keyboardType='email-address'
                 autoCapitalize='none'
-                iconName='mail'
+                iconName='envelope'
               />
 
               <TextInput
@@ -82,7 +82,7 @@ const Ingresar: React.FC = () => {
                 placeholder='••••••••'
                 secureTextEntry
                 autoCapitalize='none'
-                iconName='lock-closed'
+                iconName='lock'
               />
 
               <Button
