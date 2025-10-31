@@ -58,7 +58,7 @@ const TextInput: React.FC<Props> = ({
         color={COLOR.TEXTO}
         icon={iconName}
         family='FontAwesome5'
-        iconProps={{ size: 18, color: COLOR.SUBTEXTO }}
+        iconProps={{ size: 18, color: COLOR.SUBTEXTO, solid: true }}
         style={[styles.input, { borderColor }] as any}
       />
       {errorText ? <Text style={styles.error}>{errorText}</Text> : null}

@@ -2,7 +2,7 @@ import React from 'react';
 import { Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { FontAwesome5 } from '@expo/vector-icons';
+import { Icon } from '@/components/ui';
 import Dashboard from '@/screens/Dashboard';
 import Mascotas from '@/screens/Mascotas';
 import Paseos from '@/screens/Paseos';
@@ -60,7 +60,7 @@ export default function TabNavigator(): React.ReactElement {
           title: 'Inicio',
           headerTitle: 'Pet Pals',
           tabBarIcon: ({ color, size }) => (
-            <FontAwesome5 name='home' size={size} color={color} />
+            <Icon name='home' size={size} color={color} />
           ),
         }}
       />
@@ -71,7 +71,7 @@ export default function TabNavigator(): React.ReactElement {
           title: 'Mascotas',
           headerTitle: 'Mascotas',
           tabBarIcon: ({ color, size }) => (
-            <FontAwesome5 name='paw' size={size} color={color} />
+            <Icon name='paw' size={size} color={color} />
           ),
         }}
       />
@@ -82,7 +82,7 @@ export default function TabNavigator(): React.ReactElement {
           title: 'Paseos',
           headerTitle: 'Paseos',
           tabBarIcon: ({ color, size }) => (
-            <FontAwesome5 name='walking' size={size} color={color} />
+            <Icon name='walking' size={size} color={color} />
           ),
         }}
       />
@@ -93,7 +93,7 @@ export default function TabNavigator(): React.ReactElement {
           title: 'Colores',
           headerTitle: 'Demo de Colores',
           tabBarIcon: ({ color, size }) => (
-            <FontAwesome5 name='palette' size={size} color={color} />
+            <Icon name='palette' size={size} color={color} />
           ),
         }}
       />
@@ -104,7 +104,7 @@ export default function TabNavigator(): React.ReactElement {
           title: 'Mi Cuenta',
           headerTitle: 'Mi Cuenta',
           tabBarIcon: ({ color, size }) => (
-            <FontAwesome5 name='user' size={size} color={color} />
+            <Icon name='user' size={size} color={color} />
           ),
         }}
       />
