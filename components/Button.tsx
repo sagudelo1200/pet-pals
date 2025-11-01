@@ -1,87 +1,84 @@
-import React from 'react';
-import { StyleSheet, ViewStyle, TextStyle } from 'react-native';
-import { Button } from 'galio-framework';
+import React from 'react'
+import { StyleSheet, ViewStyle, TextStyle } from 'react-native'
+import { Button } from 'galio-framework'
 
-import { COLOR } from '../constants';
+import { COLOR } from '../constants'
 
 // Tipos para los colores disponibles
-type ColorType = 
+type ColorType =
   | 'default'
   | 'primary'
   | 'secondary'
   | 'info'
   | 'error'
   | 'success'
-  | 'warning';
+  | 'warning'
 
 // Props interface
 interface ArButtonProps {
-  small?: boolean;
-  shadowless?: boolean;
-  color?: string | ColorType;
-  style?: ViewStyle | ViewStyle[];
-  fontSize?: number;
-  children: React.ReactNode;
-  [key: string]: any; // Para permitir props adicionales
+  small?: boolean
+  shadowless?: boolean
+  color?: string | ColorType
+  style?: ViewStyle | ViewStyle[]
+  fontSize?: number
+  children: React.ReactNode
+  [key: string]: any // Para permitir props adicionales
 }
 
 interface ArButtonState {}
 
 class ArButton extends React.Component<ArButtonProps, ArButtonState> {
   render() {
-    const { small, shadowless, children, color, style, fontSize, ...props } = this.props;
+    const { small, shadowless, children, color, style, fontSize, ...props } =
+      this.props
 
     const normalize = (c?: string | ColorType): string | undefined => {
-      if (!c) return undefined;
+      if (!c) return undefined
       if (typeof c === 'string') {
-        const key = c.toLowerCase();
+        const key = c.toLowerCase()
         switch (key) {
           case 'default':
-            return COLOR.BLOQUE;
+            return COLOR.BLOQUE
           case 'primary':
-            return COLOR.PRIMARIO;
+            return COLOR.PRIMARIO
           case 'secondary':
-            return COLOR.SECUNDARIO;
+            return COLOR.SECUNDARIO
           case 'info':
-            return COLOR.INFO;
+            return COLOR.INFO
           case 'error':
-            return COLOR.ERROR;
+            return COLOR.ERROR
           case 'success':
-            return COLOR.EXITO;
+            return COLOR.EXITO
           case 'warning':
-            return COLOR.ALERTA;
+            return COLOR.ALERTA
           case 'transparent':
-            return 'transparent';
+            return 'transparent'
           default:
-            return c; // Assume custom color string (e.g., hex)
+            return c // Assume custom color string (e.g., hex)
         }
       }
-      return undefined;
-    };
+      return undefined
+    }
 
-    const colorStyle = normalize(color);
+    const colorStyle = normalize(color)
 
     const buttonStyles: ViewStyle = StyleSheet.flatten([
       small && styles.smallButton,
       color && { backgroundColor: colorStyle },
       !shadowless && styles.shadow,
       ...(Array.isArray(style) ? style : [style]),
-    ]);
+    ])
 
-    const textStyle: TextStyle = { 
-      fontSize: fontSize || 12, 
-      fontWeight: '700' 
-    };
+    const textStyle: TextStyle = {
+      fontSize: fontSize || 12,
+      fontWeight: '700',
+    }
 
     return (
-      <Button
-        style={buttonStyles}
-        textStyle={textStyle}
-        {...props}
-      >
+      <Button style={buttonStyles} textStyle={textStyle} {...props}>
         {children}
       </Button>
-    );
+    )
   }
 }
 
@@ -97,6 +94,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     elevation: 2,
   },
-});
+})
 
-export default ArButton;
+export default ArButton

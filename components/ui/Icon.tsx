@@ -1,17 +1,17 @@
-import React from 'react';
-import { View, StyleSheet, ViewStyle } from 'react-native';
-import { FontAwesome5 } from '@expo/vector-icons';
+import React from 'react'
+import { View, StyleSheet, ViewStyle } from 'react-native'
+import { FontAwesome5 } from '@expo/vector-icons'
 
-export type IconType = 'solid' | 'regular' | 'brands';
+export type IconType = 'solid' | 'regular' | 'brands'
 
 export interface IconProps {
-  name: React.ComponentProps<typeof FontAwesome5>['name'];
-  size?: number;
-  color?: string;
-  type?: IconType; // peso del ícono: solid (default), regular o brands
-  style?: any; // estilo del ícono
-  containerStyle?: ViewStyle | ViewStyle[]; // estilo del contenedor
-  testID?: string;
+  name: React.ComponentProps<typeof FontAwesome5>['name']
+  size?: number
+  color?: string
+  type?: IconType // peso del ícono: solid (default), regular o brands
+  style?: any // estilo del ícono
+  containerStyle?: ViewStyle | ViewStyle[] // estilo del contenedor
+  testID?: string
 }
 
 /**
@@ -30,18 +30,18 @@ const Icon: React.FC<IconProps> = ({
 }) => {
   const normalizedType: IconType = ['solid', 'regular', 'brands'].includes(type)
     ? type
-    : 'solid';
+    : 'solid'
 
-  const solid = normalizedType === 'solid' ? true : undefined;
-  const regular = normalizedType === 'regular' ? true : undefined;
-  const brands = normalizedType === 'brands' ? true : undefined;
+  const solid = normalizedType === 'solid' ? true : undefined
+  const regular = normalizedType === 'regular' ? true : undefined
+  const brands = normalizedType === 'brands' ? true : undefined
 
   const box: ViewStyle = {
     width: size,
     height: size,
     alignItems: 'center',
     justifyContent: 'center',
-  };
+  }
 
   return (
     <View style={[styles.box, box, containerStyle]}>
@@ -56,13 +56,13 @@ const Icon: React.FC<IconProps> = ({
         testID={testID}
       />
     </View>
-  );
-};
+  )
+}
 
 const styles = StyleSheet.create({
   box: {
     minWidth: 1,
   },
-});
+})
 
-export default Icon;
+export default Icon

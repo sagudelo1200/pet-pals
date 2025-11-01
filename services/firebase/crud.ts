@@ -7,12 +7,12 @@ import {
   updateDoc,
   deleteDoc,
   query,
-  where
-} from 'firebase/firestore';
-import { db } from '../../firebase.config';
-import { BaseModel } from '../../models/BaseModel';
-import { CrudResult } from './types';
-import { AuthService } from './auth';
+  where,
+} from 'firebase/firestore'
+import { db } from '../../firebase.config'
+import { BaseModel } from '../../models/BaseModel'
+import { CrudResult } from './types'
+import { AuthService } from './auth'
 
 export class BaseCrudService {
   /**
@@ -23,28 +23,28 @@ export class BaseCrudService {
     data: Omit<T, 'id' | 'createdAt' | 'updatedAt' | 'createdBy' | 'updatedBy'>
   ): Promise<CrudResult<T>> {
     try {
-      const currentUser = AuthService.getCurrentUser();
-      const now = new Date();
-      
+      const currentUser = AuthService.getCurrentUser()
+      const now = new Date()
+
       const docData = {
         ...data,
         createdAt: now,
         updatedAt: now,
         createdBy: currentUser?.uid,
-        updatedBy: currentUser?.uid
-      };
+        updatedBy: currentUser?.uid,
+      }
 
-      const docRef = await addDoc(collection(db, collectionName), docData);
-      
+      const docRef = await addDoc(collection(db, collectionName), docData)
+
       return {
         success: true,
-        data: { id: docRef.id, ...docData } as T
-      };
+        data: { id: docRef.id, ...docData } as T,
+      }
     } catch (error: any) {
       return {
         success: false,
-        error: error.message
-      };
+        error: error.message,
+      }
     }
   }
 
@@ -56,31 +56,31 @@ export class BaseCrudService {
     id: string
   ): Promise<CrudResult<T>> {
     try {
-      const docRef = doc(db, collectionName, id);
-      const docSnap = await getDoc(docRef);
+      const docRef = doc(db, collectionName, id)
+      const docSnap = await getDoc(docRef)
 
       if (docSnap.exists()) {
-        const data = docSnap.data();
+        const data = docSnap.data()
         return {
           success: true,
           data: {
             id: docSnap.id,
             ...data,
             createdAt: data.createdAt?.toDate(),
-            updatedAt: data.updatedAt?.toDate()
-          } as T
-        };
+            updatedAt: data.updatedAt?.toDate(),
+          } as T,
+        }
       }
 
       return {
         success: false,
-        error: 'Documento no encontrado'
-      };
+        error: 'Documento no encontrado',
+      }
     } catch (error: any) {
       return {
         success: false,
-        error: error.message
-      };
+        error: error.message,
+      }
     }
   }
 
@@ -93,24 +93,24 @@ export class BaseCrudService {
     data: Partial<Omit<T, 'id' | 'createdAt' | 'createdBy'>>
   ): Promise<CrudResult<T>> {
     try {
-      const currentUser = AuthService.getCurrentUser();
-      const docRef = doc(db, collectionName, id);
-      
+      const currentUser = AuthService.getCurrentUser()
+      const docRef = doc(db, collectionName, id)
+
       const updateData = {
         ...data,
         updatedAt: new Date(),
-        updatedBy: currentUser?.uid
-      };
+        updatedBy: currentUser?.uid,
+      }
 
-      await updateDoc(docRef, updateData);
-      
+      await updateDoc(docRef, updateData)
+
       // Retornar documento actualizado
-      return this.getById<T>(collectionName, id);
+      return this.getById<T>(collectionName, id)
     } catch (error: any) {
       return {
         success: false,
-        error: error.message
-      };
+        error: error.message,
+      }
     }
   }
 
@@ -122,18 +122,18 @@ export class BaseCrudService {
     id: string
   ): Promise<CrudResult<boolean>> {
     try {
-      const docRef = doc(db, collectionName, id);
-      await deleteDoc(docRef);
+      const docRef = doc(db, collectionName, id)
+      await deleteDoc(docRef)
 
       return {
         success: true,
-        data: true
-      };
+        data: true,
+      }
     } catch (error: any) {
       return {
         success: false,
-        error: error.message
-      };
+        error: error.message,
+      }
     }
   }
 
@@ -144,28 +144,28 @@ export class BaseCrudService {
     collectionName: string
   ): Promise<CrudResult<T[]>> {
     try {
-      const querySnapshot = await getDocs(collection(db, collectionName));
-      const documents: T[] = [];
+      const querySnapshot = await getDocs(collection(db, collectionName))
+      const documents: T[] = []
 
-      querySnapshot.forEach((doc) => {
-        const data = doc.data();
+      querySnapshot.forEach(doc => {
+        const data = doc.data()
         documents.push({
           id: doc.id,
           ...data,
           createdAt: data.createdAt?.toDate(),
-          updatedAt: data.updatedAt?.toDate()
-        } as T);
-      });
+          updatedAt: data.updatedAt?.toDate(),
+        } as T)
+      })
 
       return {
         success: true,
-        data: documents
-      };
+        data: documents,
+      }
     } catch (error: any) {
       return {
         success: false,
-        error: error.message
-      };
+        error: error.message,
+      }
     }
   }
 
@@ -178,29 +178,29 @@ export class BaseCrudService {
     value: any
   ): Promise<CrudResult<T[]>> {
     try {
-      const q = query(collection(db, collectionName), where(field, '==', value));
-      const querySnapshot = await getDocs(q);
-      const documents: T[] = [];
+      const q = query(collection(db, collectionName), where(field, '==', value))
+      const querySnapshot = await getDocs(q)
+      const documents: T[] = []
 
-      querySnapshot.forEach((doc) => {
-        const data = doc.data();
+      querySnapshot.forEach(doc => {
+        const data = doc.data()
         documents.push({
           id: doc.id,
           ...data,
           createdAt: data.createdAt?.toDate(),
-          updatedAt: data.updatedAt?.toDate()
-        } as T);
-      });
+          updatedAt: data.updatedAt?.toDate(),
+        } as T)
+      })
 
       return {
         success: true,
-        data: documents
-      };
+        data: documents,
+      }
     } catch (error: any) {
       return {
         success: false,
-        error: error.message
-      };
+        error: error.message,
+      }
     }
   }
 }

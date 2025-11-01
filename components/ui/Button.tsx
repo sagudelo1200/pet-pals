@@ -1,6 +1,12 @@
-import React, { useMemo } from 'react';
-import { ActivityIndicator, Pressable, StyleSheet, Text, ViewStyle } from 'react-native';
-import { COLOR } from '@/constants';
+import React, { useMemo } from 'react'
+import {
+  ActivityIndicator,
+  Pressable,
+  StyleSheet,
+  Text,
+  ViewStyle,
+} from 'react-native'
+import { COLOR } from '@/constants'
 
 export type ButtonVariant =
   | 'primario'
@@ -12,18 +18,18 @@ export type ButtonVariant =
   | 'bloque'
   | 'enfasis'
   | 'base'
-  | 'inactivo';
+  | 'inactivo'
 
 interface Props {
-  title: string;
-  onPress: () => void;
-  disabled?: boolean;
-  loading?: boolean;
-  variant?: ButtonVariant;
-  fullWidth?: boolean;
-  style?: ViewStyle | ViewStyle[];
-  textStyle?: any;
-  testID?: string;
+  title: string
+  onPress: () => void
+  disabled?: boolean
+  loading?: boolean
+  variant?: ButtonVariant
+  fullWidth?: boolean
+  style?: ViewStyle | ViewStyle[]
+  textStyle?: any
+  testID?: string
 }
 
 const Button: React.FC<Props> = ({
@@ -40,35 +46,35 @@ const Button: React.FC<Props> = ({
   const bgColor = useMemo(() => {
     switch (variant) {
       case 'primario':
-        return COLOR.PRIMARIO;
+        return COLOR.PRIMARIO
       case 'secundario':
-        return COLOR.SECUNDARIO;
+        return COLOR.SECUNDARIO
       case 'info':
-        return COLOR.INFO;
+        return COLOR.INFO
       case 'error':
-        return COLOR.ERROR;
+        return COLOR.ERROR
       case 'exito':
-        return COLOR.EXITO;
+        return COLOR.EXITO
       case 'alerta':
-        return COLOR.ALERTA;
+        return COLOR.ALERTA
       case 'enfasis':
-        return COLOR.ENFASIS;
+        return COLOR.ENFASIS
       case 'base':
-        return COLOR.BASE;
+        return COLOR.BASE
       case 'inactivo':
-        return COLOR.INACTIVO;
+        return COLOR.INACTIVO
       case 'bloque':
       default:
-        return COLOR.BLOQUE;
+        return COLOR.BLOQUE
     }
-  }, [variant]);
+  }, [variant])
 
   const buttonStyles: ViewStyle | ViewStyle[] = [
     styles.button,
     { backgroundColor: bgColor, opacity: disabled || loading ? 0.6 : 1 },
     fullWidth ? styles.fullWidth : undefined,
     ...(Array.isArray(style) ? style : style ? [style] : []),
-  ];
+  ]
 
   return (
     <Pressable
@@ -78,13 +84,13 @@ const Button: React.FC<Props> = ({
       style={buttonStyles}
     >
       {loading ? (
-        <ActivityIndicator size='small' color={COLOR.TEXTO} />
+        <ActivityIndicator size="small" color={COLOR.TEXTO} />
       ) : (
         <Text style={[styles.text, textStyle]}>{title}</Text>
       )}
     </Pressable>
-  );
-};
+  )
+}
 
 const styles = StyleSheet.create({
   button: {
@@ -100,6 +106,6 @@ const styles = StyleSheet.create({
     color: COLOR.TEXTO,
     fontWeight: '700',
   },
-});
+})
 
-export default Button;
+export default Button

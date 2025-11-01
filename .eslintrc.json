@@ -5,9 +5,7 @@
     "node": true,
     "react-native/react-native": true
   },
-  "extends": [
-    "eslint:recommended"
-  ],
+  "extends": ["eslint:recommended"],
   "parser": "@typescript-eslint/parser",
   "parserOptions": {
     "ecmaFeatures": {
@@ -16,18 +14,14 @@
     "ecmaVersion": 12,
     "sourceType": "module"
   },
-  "plugins": [
-    "react",
-    "react-native",
-    "@typescript-eslint"
-  ],
+  "plugins": ["react", "react-native", "@typescript-eslint"],
   "rules": {
     "no-console": "off",
-    "no-debugger": "error", 
+    "no-debugger": "error",
     "no-duplicate-imports": "error",
     "prefer-const": "error",
     "quotes": ["error", "single"],
-    "semi": ["error", "always"]
+    "semi": ["error", "never"]
   },
   "ignorePatterns": [
     "node_modules/",

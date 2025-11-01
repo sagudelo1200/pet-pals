@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react'
 import {
   TouchableWithoutFeedback,
   Keyboard,
@@ -9,81 +9,84 @@ import {
   View,
   Alert,
   Pressable,
-} from 'react-native';
-import { Block, Text } from 'galio-framework';
-import { COLOR } from '@/constants';
-import { Button, TextInput } from '@/components/ui';
-import { useAuth } from '@/services/context/AuthContext';
-import { UsuarioService } from '@/services/firebase/usuario';
-import type { RolUsuario } from '@/models/Usuario';
-import { useNavigation } from '@react-navigation/native';
-import type { StackNavigationProp } from '@react-navigation/stack';
-import type { AuthFlowParamList } from '@/navigation/types';
+} from 'react-native'
+import { Block, Text } from 'galio-framework'
+import { COLOR } from '@/constants'
+import { Button, TextInput } from '@/components/ui'
+import { useAuth } from '@/services/context/AuthContext'
+import { UsuarioService } from '@/services/firebase/usuario'
+import type { RolUsuario } from '@/models/Usuario'
+import { useNavigation } from '@react-navigation/native'
+import type { StackNavigationProp } from '@react-navigation/stack'
+import type { AuthFlowParamList } from '@/navigation/types'
 
 interface DismissKeyboardProps {
-  children: React.ReactNode;
+  children: React.ReactNode
 }
 
 const DismissKeyboard: React.FC<DismissKeyboardProps> = ({ children }) => (
   <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
     {children}
   </TouchableWithoutFeedback>
-);
+)
 
-type Nav = StackNavigationProp<AuthFlowParamList>;
+type Nav = StackNavigationProp<AuthFlowParamList>
 
 const Registro: React.FC = () => {
-  const navigation = useNavigation<Nav>();
-  const { register, loading, reloadProfile } = useAuth();
-  const [nombre, setNombre] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [rol, setRol] = useState<RolUsuario>('dueño');
-  const [emailTouched, setEmailTouched] = useState(false);
-  const [passwordTouched, setPasswordTouched] = useState(false);
-  const [creatingProfile, setCreatingProfile] = useState(false);
+  const navigation = useNavigation<Nav>()
+  const { register, loading, reloadProfile } = useAuth()
+  const [nombre, setNombre] = useState('')
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [rol, setRol] = useState<RolUsuario>('dueño')
+  const [emailTouched, setEmailTouched] = useState(false)
+  const [passwordTouched, setPasswordTouched] = useState(false)
+  const [creatingProfile, setCreatingProfile] = useState(false)
 
   const emailValid = useMemo(() => {
-    const value = email.trim();
-    if (value.length === 0) return false;
-    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return re.test(value);
-  }, [email]);
+    const value = email.trim()
+    if (value.length === 0) return false
+    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    return re.test(value)
+  }, [email])
 
-  const passwordValid = useMemo(() => password.length >= 6, [password]);
+  const passwordValid = useMemo(() => password.length >= 6, [password])
 
   const emailError = useMemo(() => {
-    if (!emailTouched) return '';
-    if (email.trim().length === 0) return 'El correo es obligatorio.';
-    if (!emailValid) return 'El correo no es válido.';
-    return '';
-  }, [email, emailTouched, emailValid]);
+    if (!emailTouched) return ''
+    if (email.trim().length === 0) return 'El correo es obligatorio.'
+    if (!emailValid) return 'El correo no es válido.'
+    return ''
+  }, [email, emailTouched, emailValid])
 
   const passwordError = useMemo(() => {
-    if (!passwordTouched) return '';
-    if (password.length === 0) return 'La contraseña es obligatoria.';
-    if (!passwordValid) return 'Use al menos 6 caracteres.';
-    return '';
-  }, [password, passwordTouched, passwordValid]);
+    if (!passwordTouched) return ''
+    if (password.length === 0) return 'La contraseña es obligatoria.'
+    if (!passwordValid) return 'Use al menos 6 caracteres.'
+    return ''
+  }, [password, passwordTouched, passwordValid])
 
   const canSubmit = useMemo(() => {
-    return nombre.trim() !== '' && emailValid && passwordValid;
-  }, [nombre, emailValid, passwordValid]);
+    return nombre.trim() !== '' && emailValid && passwordValid
+  }, [nombre, emailValid, passwordValid])
 
   const onSubmit = useCallback(async () => {
     if (!canSubmit) {
-      Alert.alert('Datos incompletos', 'Completa nombre, correo y una contraseña de al menos 6 caracteres.');
-      return;
+      Alert.alert(
+        'Datos incompletos',
+        'Completa nombre, correo y una contraseña de al menos 6 caracteres.'
+      )
+      return
     }
 
-    const result = await register(email.trim(), password, nombre.trim());
+    const result = await register(email.trim(), password, nombre.trim())
     if (!result.success || !result.user) {
-      Alert.alert('No se pudo registrar', result.error || 'Intenta nuevamente.');
-      return;
+      Alert.alert('No se pudo registrar', result.error || 'Intenta nuevamente.')
+      return
     }
 
     try {
-      setCreatingProfile(true);
+      setCreatingProfile(true)
       await UsuarioService.create({
         nombre: nombre.trim(),
         correo: email.trim(),
@@ -92,18 +95,18 @@ const Registro: React.FC = () => {
         verificado: false,
         fecha_registro: new Date(),
         estado: 'activo',
-      } as any);
-      await reloadProfile?.();
+      } as any)
+      await reloadProfile?.()
     } catch (e: any) {
-      Alert.alert('Perfil no creado', e?.message || 'Intenta nuevamente.');
+      Alert.alert('Perfil no creado', e?.message || 'Intenta nuevamente.')
     } finally {
-      setCreatingProfile(false);
+      setCreatingProfile(false)
     }
-  }, [canSubmit, email, nombre, password, register, rol]);
+  }, [canSubmit, email, nombre, password, register, rol])
 
   const goToLogin = useCallback(() => {
-    navigation.navigate('Ingresar');
-  }, [navigation]);
+    navigation.navigate('Ingresar')
+  }, [navigation])
 
   return (
     <DismissKeyboard>
@@ -114,37 +117,45 @@ const Registro: React.FC = () => {
           style={styles.kav}
         >
           <Block style={styles.content}>
-            <Text h4 style={styles.title}>Crear cuenta</Text>
+            <Text h4 style={styles.title}>
+              Crear cuenta
+            </Text>
             <Text style={styles.subtitle}>Regístrate para empezar</Text>
 
             <View style={styles.form}>
               <TextInput
-                label='Nombre completo'
+                label="Nombre completo"
                 value={nombre}
                 onChangeText={setNombre}
-                placeholder='Tu nombre'
-                iconName='user'
+                placeholder="Tu nombre"
+                iconName="user"
               />
 
               <TextInput
-                label='Correo electrónico'
+                label="Correo electrónico"
                 value={email}
-                onChangeText={(t) => { setEmail(t); if (!emailTouched) setEmailTouched(true); }}
-                placeholder='tucorreo@dominio.com'
-                keyboardType='email-address'
-                autoCapitalize='none'
-                iconName='envelope'
+                onChangeText={t => {
+                  setEmail(t)
+                  if (!emailTouched) setEmailTouched(true)
+                }}
+                placeholder="tucorreo@dominio.com"
+                keyboardType="email-address"
+                autoCapitalize="none"
+                iconName="envelope"
                 errorText={emailError}
               />
 
               <TextInput
-                label='Contraseña'
+                label="Contraseña"
                 value={password}
-                onChangeText={(t) => { setPassword(t); if (!passwordTouched) setPasswordTouched(true); }}
-                placeholder='••••••••'
+                onChangeText={t => {
+                  setPassword(t)
+                  if (!passwordTouched) setPasswordTouched(true)
+                }}
+                placeholder="••••••••"
                 secureTextEntry
-                autoCapitalize='none'
-                iconName='lock'
+                autoCapitalize="none"
+                iconName="lock"
                 errorText={passwordError}
               />
 
@@ -152,22 +163,31 @@ const Registro: React.FC = () => {
               <View style={styles.roleRow}>
                 <Pressable
                   onPress={() => setRol('dueño')}
-                  style={[styles.roleBtn, { marginRight: 8 }, rol === 'dueño' ? styles.roleBtnActive : undefined]}
+                  style={[
+                    styles.roleBtn,
+                    { marginRight: 8 },
+                    rol === 'dueño' ? styles.roleBtnActive : undefined,
+                  ]}
                 >
                   <Text style={styles.roleText}>Dueño</Text>
                 </Pressable>
                 <Pressable
                   onPress={() => setRol('paseador')}
-                  style={[styles.roleBtn, rol === 'paseador' ? styles.roleBtnActive : undefined]}
+                  style={[
+                    styles.roleBtn,
+                    rol === 'paseador' ? styles.roleBtnActive : undefined,
+                  ]}
                 >
                   <Text style={styles.roleText}>Paseador</Text>
                 </Pressable>
               </View>
 
               <Button
-                title={loading || creatingProfile ? 'Creando cuenta…' : 'Registrarme'}
+                title={
+                  loading || creatingProfile ? 'Creando cuenta…' : 'Registrarme'
+                }
                 onPress={onSubmit}
-                variant='primario'
+                variant="primario"
                 fullWidth
                 style={styles.submit}
                 disabled={!canSubmit || creatingProfile}
@@ -175,9 +195,9 @@ const Registro: React.FC = () => {
               />
 
               <Button
-                title='Ya tengo cuenta'
+                title="Ya tengo cuenta"
                 onPress={goToLogin}
-                variant='bloque'
+                variant="bloque"
                 fullWidth
                 style={styles.secondary}
               />
@@ -186,8 +206,8 @@ const Registro: React.FC = () => {
         </KeyboardAvoidingView>
       </View>
     </DismissKeyboard>
-  );
-};
+  )
+}
 
 const styles = StyleSheet.create({
   container: {
@@ -246,6 +266,6 @@ const styles = StyleSheet.create({
     color: COLOR.TEXTO,
     fontWeight: '700',
   },
-});
+})
 
-export default Registro;
+export default Registro

@@ -1,1 +1,1 @@
-export { useGlobalLoading } from './useGlobalLoading';
+export { useGlobalLoading } from './useGlobalLoading'

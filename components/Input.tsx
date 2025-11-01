@@ -1,19 +1,19 @@
-import React from 'react';
-import { StyleSheet, ViewStyle } from 'react-native';
-import { Input } from 'galio-framework';
+import React from 'react'
+import { StyleSheet, ViewStyle } from 'react-native'
+import { Input } from 'galio-framework'
 
-import { COLOR } from '../constants';
+import { COLOR } from '../constants'
 
 // Props interface
 interface ArInputProps {
-  shadowless?: boolean;
-  success?: boolean;
-  error?: boolean;
-  style?: ViewStyle | ViewStyle[];
-  placeholder?: string;
-  placeholderTextColor?: string;
-  color?: string;
-  [key: string]: any; // Para permitir props adicionales del Input de Galio
+  shadowless?: boolean
+  success?: boolean
+  error?: boolean
+  style?: ViewStyle | ViewStyle[]
+  placeholder?: string
+  placeholderTextColor?: string
+  color?: string
+  [key: string]: any // Para permitir props adicionales del Input de Galio
 }
 
 interface ArInputState {}
@@ -23,10 +23,10 @@ class ArInput extends React.Component<ArInputProps, ArInputState> {
     shadowless: false,
     success: false,
     error: false,
-  };
+  }
 
   render(): React.ReactNode {
-    const { shadowless, success, error, style, ...otherProps } = this.props;
+    const { shadowless, success, error, style, ...otherProps } = this.props
 
     const inputStyles: ViewStyle = StyleSheet.flatten([
       styles.input,
@@ -34,23 +34,23 @@ class ArInput extends React.Component<ArInputProps, ArInputState> {
       success && styles.success,
       error && styles.error,
       style,
-    ]);
+    ])
 
     return (
       <Input
-        placeholder='write something here'
+        placeholder="write something here"
         placeholderTextColor={COLOR.SUBTEXTO}
         style={inputStyles}
         color={COLOR.TEXTO}
-        icon='link'
-        family='AntDesign'
+        icon="link"
+        family="AntDesign"
         iconProps={{
           size: 14,
           color: COLOR.TEXTO,
         }}
         {...otherProps}
       />
-    );
+    )
   }
 }
 
@@ -74,6 +74,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.13,
     elevation: 2,
   },
-});
+})
 
-export default ArInput;
+export default ArInput
