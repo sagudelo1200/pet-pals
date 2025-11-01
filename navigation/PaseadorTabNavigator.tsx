@@ -3,8 +3,8 @@ import { Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Icon } from '@/components/ui';
-import Paseos from '@/screens/Paseos';
-import MiCuenta from '@/screens/MiCuenta';
+import Paseos from '@/screens/paseador/Paseos';
+import MiCuenta from '@/screens/shared/MiCuenta';
 import { PaseadorTabParamList } from './types';
 import { COLOR } from '@/constants';
 

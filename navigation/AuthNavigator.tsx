@@ -3,8 +3,8 @@ import { useAuth } from '@/services/context/AuthContext';
 import { LoadingScreen } from '@/components';
 import { useNavigation } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
-import Ingresar from '@/screens/Ingresar';
-import Registro from '@/screens/Registro';
+import Ingresar from '@/screens/auth/Ingresar';
+import Registro from '@/screens/auth/Registro';
 import { AuthFlowParamList } from './types';
 
 const Stack = createStackNavigator<AuthFlowParamList>();

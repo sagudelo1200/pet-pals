@@ -3,11 +3,11 @@ import { Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Icon } from '@/components/ui';
-import Dashboard from '@/screens/Dashboard';
-import Mascotas from '@/screens/Mascotas';
-import Paseos from '@/screens/Paseos';
-import MiCuenta from '@/screens/MiCuenta';
-import ColorDemo from '@/screens/ColorDemo';
+import Dashboard from '@/screens/dueno/Dashboard';
+import Mascotas from '@/screens/dueno/Mascotas';
+import Paseos from '@/screens/dueno/Paseos';
+import MiCuenta from '@/screens/shared/MiCuenta';
+import ColorDemo from '@/screens/dueno/ColorDemo';
 import { DuenoTabParamList } from './types';
 import { COLOR } from '@/constants';
 

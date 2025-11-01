@@ -16,8 +16,6 @@ import { useNavigation } from '@react-navigation/native';
 import type { AuthFlowParamList } from '@/navigation/types';
 import type { StackNavigationProp } from '@react-navigation/stack';
 
-
-
 interface DismissKeyboardProps {
   children: React.ReactNode;
 }
@@ -44,7 +42,6 @@ const Ingresar: React.FC = () => {
     if (!result.success) {
       Alert.alert('No se pudo iniciar sesión', result.error || 'Intenta nuevamente.');
     }
-    // Si tiene éxito, AuthNavigator se encargará de redirigir a App
   }, [email, password, login]);
 
   const goToRegistro = useCallback(() => {

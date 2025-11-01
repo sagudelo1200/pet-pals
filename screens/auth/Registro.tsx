@@ -46,7 +46,6 @@ const Registro: React.FC = () => {
   const emailValid = useMemo(() => {
     const value = email.trim();
     if (value.length === 0) return false;
-    // Validación básica de correo
     const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return re.test(value);
   }, [email]);
@@ -94,9 +93,7 @@ const Registro: React.FC = () => {
         fecha_registro: new Date(),
         estado: 'activo',
       } as any);
-      // Tras crear el perfil, recargarlo en contexto para redirigir según rol
       await reloadProfile?.();
-      // La navegación a App la hará AuthNavigator al detectar usuario
     } catch (e: any) {
       Alert.alert('Perfil no creado', e?.message || 'Intenta nuevamente.');
     } finally {
