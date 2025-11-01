@@ -9,6 +9,18 @@ import {
 } from 'react-native'
 import { Text, theme } from 'galio-framework'
 import { COLOR } from '@/constants'
+import {
+  Divider,
+  Spacer,
+  Card as UICard,
+  Avatar,
+  Badge,
+  Chip,
+  EmptyState,
+  Skeleton,
+  Icon,
+  Button,
+} from '@/components/ui'
 
 type ColorKey = keyof typeof COLOR
 
@@ -82,35 +94,6 @@ const ColorDemo: React.FC = () => {
           >
             <Text style={styles.btnText}>Inactivo</Text>
           </TouchableOpacity>
-        </View>
-
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Badges / Chips</Text>
-          <View style={styles.row}>
-            <View style={[styles.chip, { backgroundColor: COLOR.PRIMARIO }]}>
-              <Text style={styles.chipText}>Nuevo</Text>
-            </View>
-            <View style={[styles.chip, { backgroundColor: COLOR.ENFASIS }]}>
-              <Text style={styles.chipText}>Enfasis</Text>
-            </View>
-            <View style={[styles.chip, { backgroundColor: COLOR.EXITO }]}>
-              <Text style={styles.chipText}>Confirmado</Text>
-            </View>
-            <View style={[styles.chip, { backgroundColor: COLOR.ERROR }]}>
-              <Text style={styles.chipText}>Fallo</Text>
-            </View>
-            <View style={[styles.chip, { backgroundColor: COLOR.INFO }]}>
-              <Text style={styles.chipText}>Info</Text>
-            </View>
-            <View style={[styles.chip, { backgroundColor: COLOR.ALERTA }]}>
-              <Text style={[styles.chipText, { color: COLOR.BASE }]}>
-                Cuidado
-              </Text>
-            </View>
-            <View style={[styles.chip, { backgroundColor: COLOR.INACTIVO }]}>
-              <Text style={styles.chipText}>Deshabilitado</Text>
-            </View>
-          </View>
         </View>
 
         <View style={styles.card}>
@@ -197,6 +180,137 @@ const ColorDemo: React.FC = () => {
         </View>
 
         <View style={{ height: 90 }} />
+
+        <Text style={styles.sectionTitle}>🧩 UI (Nuevos componentes)</Text>
+
+        {/* Card */}
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>Card</Text>
+          <UICard
+            title="Título de tarjeta"
+            subtitle="Subtítulo opcional"
+            right={
+              <Icon name="chevron-right" color={COLOR.SUBTEXTO} size={16} />
+            }
+            footer={<Text style={{ color: COLOR.SUBTEXTO }}>Pie opcional</Text>}
+          >
+            <Text style={{ color: COLOR.TEXTO }}>
+              Contenido libre dentro de la tarjeta.
+            </Text>
+          </UICard>
+        </View>
+
+        {/* Avatar */}
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>Avatar</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <Avatar name="Luna Perez" showStatus />
+            <Spacer horizontal size={12} />
+            <Avatar name="Max" statusColor={COLOR.ALERTA} showStatus />
+            <Spacer horizontal size={12} />
+            <Avatar />
+          </View>
+        </View>
+
+        {/* Badge */}
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>Badge</Text>
+          <View style={styles.row}>
+            <Badge label="Primario" variant="primario" />
+            <Spacer horizontal size={8} />
+            <Badge label="Éxito" variant="exito" />
+            <Spacer horizontal size={8} />
+            <Badge label="Error" variant="error" />
+            <Spacer horizontal size={8} />
+            <Badge label="Info" variant="info" />
+            <Spacer horizontal size={8} />
+            <Badge label="Enfasis" variant="enfasis" />
+          </View>
+        </View>
+
+        {/* Chip */}
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>Chip</Text>
+          <View style={styles.row}>
+            <Chip label="Filtro" onPress={() => {}} />
+            <Spacer horizontal size={8} />
+            <Chip label="Seleccionado" selected onPress={() => {}} />
+            <Spacer horizontal size={8} />
+            <Chip label="Con icono" leftIconName="paw" onPress={() => {}} />
+            <Spacer horizontal size={8} />
+            <Chip label="Cerrable" onPress={() => {}} onClose={() => {}} />
+          </View>
+        </View>
+
+        {/* Divider & Spacer */}
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>Divider & Spacer</Text>
+          <Text style={{ color: COLOR.SUBTEXTO, marginBottom: 8 }}>
+            Horizontal
+          </Text>
+          <Divider thickness={2} />
+          <Spacer size={12} />
+          <Text style={{ color: COLOR.SUBTEXTO, marginBottom: 8 }}>Dashed</Text>
+          <Divider dashed thickness={2} />
+          <Spacer size={12} />
+          <Text style={{ color: COLOR.SUBTEXTO, marginBottom: 8 }}>
+            Vertical
+          </Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <Text style={{ color: COLOR.TEXTO }}>A</Text>
+            <Spacer horizontal size={8} />
+            <Divider vertical thickness={2} inset={6} />
+            <Spacer horizontal size={8} />
+            <Text style={{ color: COLOR.TEXTO }}>B</Text>
+          </View>
+        </View>
+
+        {/* Skeleton */}
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>Skeleton</Text>
+          <View style={{ marginBottom: 10 }}>
+            <Skeleton width={'60%'} height={16} />
+            <Spacer size={8} />
+            <Skeleton width={'80%'} height={14} />
+            <Spacer size={8} />
+            <Skeleton width={'40%'} height={14} />
+          </View>
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <Skeleton circle height={40} width={40} />
+            <Spacer horizontal size={12} />
+            <View style={{ flex: 1 }}>
+              <Skeleton width={'70%'} height={14} />
+              <Spacer size={6} />
+              <Skeleton width={'40%'} height={12} />
+            </View>
+          </View>
+        </View>
+
+        {/* EmptyState */}
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>EmptyState</Text>
+          <EmptyState
+            title="Sin datos por ahora"
+            description="Aún no tienes elementos aquí."
+            actionLabel="Crear uno"
+            onActionPress={() => {}}
+          />
+        </View>
+
+        {/* Button (UI wrapper) opcional */}
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>Button (UI)</Text>
+          <Button
+            title="Primario"
+            variant="primario"
+            onPress={() => {}}
+            fullWidth
+          />
+          <Spacer size={8} />
+          <Button title="Éxito" variant="exito" onPress={() => {}} fullWidth />
+          <Spacer size={8} />
+          <Button title="Error" variant="error" onPress={() => {}} fullWidth />
+        </View>
       </ScrollView>
     </View>
   )
