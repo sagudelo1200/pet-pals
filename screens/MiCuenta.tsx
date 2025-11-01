@@ -1,4 +1,4 @@
-import { COLORS } from '@/constants/Theme';
+import { COLOR } from '@/constants';
 import React, { useCallback } from 'react';
 import { Alert, Platform, Text, View } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -57,7 +57,7 @@ const styles = {
   container: {
     flex: 1,
     alignItems: 'center' as const,
-    backgroundColor: COLORS.DEFAULT,
+  backgroundColor: COLOR.BASE,
   },
   content: {
     flex: 1,
@@ -69,19 +69,19 @@ const styles = {
     fontSize: 24,
     fontWeight: 'bold' as 'bold',
     textAlign: 'center' as const,
-    color: COLORS.TEXT,
+  color: COLOR.TEXTO,
   },
   subText: {
     fontSize: 16,
     textAlign: 'center' as const,
     marginTop: 10,
-    color: COLORS.MUTED,
+  color: COLOR.SUBTEXTO,
   },
   nameText: {
     marginTop: 14,
     fontSize: 16,
     fontWeight: '700' as '700',
-    color: COLORS.TEXT,
+  color: COLOR.TEXTO,
     textAlign: 'center' as const,
   },
   footer: {
@@ -96,7 +96,7 @@ const styles = {
   emailText: {
     marginTop: 16,
     fontSize: 14,
-    color: COLORS.MUTED,
+  color: COLOR.SUBTEXTO,
     textAlign: 'center' as const,
   },
 };

@@ -2,7 +2,7 @@ import React from 'react';
 import { StyleSheet, ViewStyle } from 'react-native';
 import { Input } from 'galio-framework';
 
-import { argonTheme } from '../constants';
+import { COLOR } from '../constants';
 
 // Props interface
 interface ArInputProps {
@@ -39,14 +39,14 @@ class ArInput extends React.Component<ArInputProps, ArInputState> {
     return (
       <Input
         placeholder='write something here'
-        placeholderTextColor={argonTheme.COLORS.MUTED}
+        placeholderTextColor={COLOR.SUBTEXTO}
         style={inputStyles}
-        color={argonTheme.COLORS.HEADER}
+        color={COLOR.TEXTO}
         icon='link'
         family='AntDesign'
         iconProps={{
           size: 14,
-          color: argonTheme.COLORS.ICON,
+          color: COLOR.TEXTO,
         }}
         {...otherProps}
       />
@@ -57,18 +57,18 @@ class ArInput extends React.Component<ArInputProps, ArInputState> {
 const styles = StyleSheet.create({
   input: {
     borderRadius: 4,
-    borderColor: argonTheme.COLORS.BORDER,
+    borderColor: COLOR.BORDE,
     height: 44,
-    backgroundColor: argonTheme.COLORS.INPUT,
+    backgroundColor: COLOR.SECUNDARIO,
   },
   success: {
-    borderColor: argonTheme.COLORS.INPUT_SUCCESS,
+    borderColor: COLOR.EXITO,
   },
   error: {
-    borderColor: argonTheme.COLORS.INPUT_ERROR,
+    borderColor: COLOR.ERROR,
   },
   shadow: {
-    shadowColor: argonTheme.COLORS.BLACK,
+    shadowColor: COLOR.BASE,
     shadowOffset: { width: 0, height: 0.5 },
     shadowRadius: 1,
     shadowOpacity: 0.13,
