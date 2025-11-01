@@ -1,7 +1,8 @@
 import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
-import TabNavigator from './TabNavigator';
-import AuthNavigator from '../screens/AuthNavigator';
+import DuenoTabNavigator from '@/navigation/DuenoTabNavigator';
+import PaseadorTabNavigator from '@/navigation/PaseadorTabNavigator';
+import AuthNavigator from './AuthNavigator';
 import { AuthStackParamList } from './types';
 
 // Stack principal con autenticación
@@ -12,7 +13,8 @@ export default function RootNavigator(): React.ReactElement {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name='Auth' component={AuthNavigator} />
-      <Stack.Screen name='App' component={TabNavigator} />
+      <Stack.Screen name='DuenoApp' component={DuenoTabNavigator} />
+      <Stack.Screen name='PaseadorApp' component={PaseadorTabNavigator} />
     </Stack.Navigator>
   );
 }

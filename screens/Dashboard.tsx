@@ -9,11 +9,11 @@ import {
 import { theme, Text } from 'galio-framework';
 import { useNavigation } from '@react-navigation/native';
 import { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
-import { RootTabParamList } from '../navigation/types';
+import { DuenoTabParamList } from '../navigation/types';
 import { COLOR } from '../constants';
 
 // Tipo para la navegación
-type DashboardNavigationProp = BottomTabNavigationProp<RootTabParamList>;
+type DashboardNavigationProp = BottomTabNavigationProp<DuenoTabParamList>;
 
 // Componente principal del Dashboard
 const Dashboard: React.FC = () => {

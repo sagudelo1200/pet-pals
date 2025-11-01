@@ -8,13 +8,13 @@ import Mascotas from '@/screens/Mascotas';
 import Paseos from '@/screens/Paseos';
 import MiCuenta from '@/screens/MiCuenta';
 import ColorDemo from '@/screens/ColorDemo';
-import { RootTabParamList } from './types';
+import { DuenoTabParamList } from './types';
 import { COLOR } from '@/constants';
 
-const Tab = createBottomTabNavigator<RootTabParamList>();
+const Tab = createBottomTabNavigator<DuenoTabParamList>();
 
-// Tab Navigator principal de la aplicación
-export default function TabNavigator(): React.ReactElement {
+// Tab Navigator para el rol Dueño
+export default function DuenoTabNavigator(): React.ReactElement {
   const insets = useSafeAreaInsets();
   
   return (

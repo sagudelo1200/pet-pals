@@ -2,6 +2,8 @@ import React, { createContext, useContext, useEffect, useState, ReactNode } from
 import { User } from 'firebase/auth';
 import { AuthService } from '../firebase/auth';
 import { AuthUser, AuthContextType, AuthResult } from '../firebase/types';
+import { UsuarioService } from '../firebase/usuario';
+import { RolUsuario, Usuario } from '../../models/Usuario';
 
 // Crear el contexto
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -24,12 +26,14 @@ interface AuthProviderProps {
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
+  const [roles, setRoles] = useState<RolUsuario[] | undefined>(undefined);
+  const [profile, setProfile] = useState<Usuario | null | undefined>(undefined);
 
   // Escuchar cambios de autenticación cuando se monta el componente
   useEffect(() => {
     
-    const unsubscribe = AuthService.onAuthStateChange((firebaseUser: User | null) => {
-      
+    const unsubscribe = AuthService.onAuthStateChange(async (firebaseUser: User | null) => {
+      setLoading(true);
       if (firebaseUser) {
         // Si hay usuario, crear el objeto AuthUser
         const authUser: AuthUser = {
@@ -39,9 +43,27 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           photoURL: firebaseUser.photoURL,
         };
         setUser(authUser);
+
+        // Cargar el perfil desde Firestore por correo (campo 'correo' según el modelo Usuario)
+        if (firebaseUser.email) {
+          const res = await UsuarioService.getByEmail(firebaseUser.email);
+          if (res.success && res.data && res.data.length > 0) {
+            const doc = res.data[0];
+            setProfile(doc);
+            setRoles(doc.roles);
+          } else {
+            setProfile(null);
+            setRoles([]);
+          }
+        } else {
+          setProfile(null);
+          setRoles([]);
+        }
       } else {
         // No hay usuario autenticado
         setUser(null);
+        setProfile(null);
+        setRoles([]);
       }
       setLoading(false);
     });
@@ -54,7 +76,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const login = async (email: string, password: string): Promise<AuthResult> => {
     setLoading(true);
     const result = await AuthService.loginWithEmail(email, password);
-    setLoading(false);
+    // Si falla, liberamos loading; si no, onAuthStateChange se encargará de bajarlo
+    if (!result.success) setLoading(false);
     return result;
   };
 
@@ -62,7 +85,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const register = async (email: string, password: string, displayName: string): Promise<AuthResult> => {
     setLoading(true);
     const result = await AuthService.registerWithEmail(email, password, displayName);
-    setLoading(false);
+    if (!result.success) setLoading(false);
     return result;
   };
 
@@ -70,8 +93,21 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const logout = async (): Promise<AuthResult> => {
     setLoading(true);
     const result = await AuthService.logout();
-    setLoading(false);
+    if (!result.success) setLoading(false);
     return result;
+  };
+
+  // Recargar perfil/roles bajo demanda (por ejemplo, tras crear el documento de usuario)
+  const reloadProfile = async (): Promise<void> => {
+    const current = AuthService.getCurrentUser();
+    if (current?.email) {
+      const res = await UsuarioService.getByEmail(current.email);
+      if (res.success && res.data && res.data.length > 0) {
+        const doc = res.data[0];
+        setProfile(doc);
+        setRoles(doc.roles);
+      }
+    }
   };
 
   // Valor que se pasa al contexto
@@ -81,6 +117,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     login,
     register,
     logout,
+    roles,
+    profile: profile ?? null,
+    hasRole: (role: RolUsuario) => Array.isArray(roles) && roles.includes(role),
+    reloadProfile,
   };
 
   return (

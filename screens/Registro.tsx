@@ -34,7 +34,7 @@ type Nav = StackNavigationProp<AuthFlowParamList>;
 
 const Registro: React.FC = () => {
   const navigation = useNavigation<Nav>();
-  const { register, loading } = useAuth();
+  const { register, loading, reloadProfile } = useAuth();
   const [nombre, setNombre] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -68,6 +68,8 @@ const Registro: React.FC = () => {
         fecha_registro: new Date(),
         estado: 'activo',
       } as any);
+      // Tras crear el perfil, recargarlo en contexto para redirigir según rol
+      await reloadProfile?.();
       // La navegación a App la hará AuthNavigator al detectar usuario
     } catch (e: any) {
       Alert.alert('Perfil no creado', e?.message || 'Intenta nuevamente.');
@@ -143,7 +145,7 @@ const Registro: React.FC = () => {
                 variant='primario'
                 fullWidth
                 style={styles.submit}
-                disabled={loading || creatingProfile || !canSubmit}
+                disabled={!canSubmit || creatingProfile}
                 loading={loading || creatingProfile}
               />
 

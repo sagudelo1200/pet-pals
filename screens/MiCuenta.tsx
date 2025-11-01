@@ -9,9 +9,11 @@ import { useNavigation } from '@react-navigation/native';
 const MiCuenta = () => {
   const navigation = useNavigation<any>();
   const insets = useSafeAreaInsets();
-  const { logout, loading } = useAuth();
+  const { logout, loading, user, profile } = useAuth();
+  const correo = user?.email ?? (profile as any)?.correo ?? '—';
+  const nombre = user?.displayName ?? (profile as any)?.nombre ?? '—';
 
-  // Altura del TabBar (replicando la lógica de TabNavigator) para evitar superposición
+  // Altura del TabBar (replicando la lógica de DuenoTabNavigator) para evitar superposición
   const TAB_BAR_HEIGHT = Platform.OS === 'ios'
     ? Math.max(insets.bottom + 65, 85)
     : Math.max(insets.bottom + 60, 75);
@@ -33,6 +35,8 @@ const MiCuenta = () => {
         <Text style={styles.subText}>
           Esta sección está en desarrollo. ¡Mantente atento a las actualizaciones!
         </Text>
+        <Text style={styles.nameText}>Nombre: {nombre}</Text>
+        <Text style={styles.emailText}>Sesión iniciada como: {correo}</Text>
       </View>
 
       <View style={styles.footer}>
@@ -73,12 +77,27 @@ const styles = {
     marginTop: 10,
     color: COLORS.MUTED,
   },
+  nameText: {
+    marginTop: 14,
+    fontSize: 16,
+    fontWeight: '700' as '700',
+    color: COLORS.TEXT,
+    textAlign: 'center' as const,
+  },
   footer: {
     alignSelf: 'stretch' as const,
+    alignItems: 'center' as const,
     padding: 20,
   },
   logoutButton: {
-    alignSelf: 'stretch' as const,
+    alignSelf: 'center' as const,
+    minWidth: 220,
+  },
+  emailText: {
+    marginTop: 16,
+    fontSize: 14,
+    color: COLORS.MUTED,
+    textAlign: 'center' as const,
   },
 };
 

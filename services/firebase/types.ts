@@ -18,6 +18,11 @@ export interface AuthContextType {
   login: (email: string, password: string) => Promise<AuthResult>;
   register: (email: string, password: string, displayName: string) => Promise<AuthResult>;
   logout: () => Promise<AuthResult>;
+  // Extensiones para navegación por roles (perfil en Firestore)
+  roles?: import('../../models/Usuario').RolUsuario[];
+  profile?: import('../../models/Usuario').Usuario | null;
+  hasRole?: (role: import('../../models/Usuario').RolUsuario) => boolean;
+  reloadProfile?: () => Promise<void>;
 }
 
 // Tipos simples para CRUD

@@ -1,28 +1,32 @@
 import React, { useEffect } from 'react';
-import { useAuth } from '../services/context/AuthContext';
-import { LoadingScreen } from '../components';
+import { useAuth } from '@/services/context/AuthContext';
+import { LoadingScreen } from '@/components';
 import { useNavigation } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
-import Ingresar from './Ingresar';
-import Registro from './Registro';
-import { AuthFlowParamList } from '@/navigation/types';
+import Ingresar from '@/screens/Ingresar';
+import Registro from '@/screens/Registro';
+import { AuthFlowParamList } from './types';
 
 const Stack = createStackNavigator<AuthFlowParamList>();
 
 const AuthNavigator: React.FC = () => {
-  const { user, loading } = useAuth();
-  const navigation = useNavigation<any>(); // Usar any temporalmente para las pruebas
+  const { user, loading, roles } = useAuth();
+  const navigation = useNavigation<any>(); // TODO: tipar con RootStack
 
   // Efecto para navegar automáticamente cuando hay usuario
   useEffect(() => {
     if (user && !loading) {
-      // Navegar a App (Tab Navigator) cuando hay usuario autenticado
+      // Decidir destino por rol. Si tiene 'dueño' => DuenoApp, sino si 'paseador' => PaseadorApp
+      const isDueno = Array.isArray(roles) && roles.includes('dueño');
+      const isPaseador = Array.isArray(roles) && roles.includes('paseador');
+      const target = isDueno ? 'DuenoApp' : (isPaseador ? 'PaseadorApp' : 'DuenoApp');
+
       navigation.reset({
         index: 0,
-        routes: [{ name: 'App' }],
+        routes: [{ name: target as never }],
       });
     }
-  }, [user, loading, navigation]);
+  }, [user, loading, roles, navigation]);
 
   // Mientras carga, muestra el componente de carga con mensajes de mascotas
   if (loading) {
