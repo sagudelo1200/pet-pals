@@ -39,11 +39,37 @@ const Registro: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [rol, setRol] = useState<RolUsuario>('dueño');
+  const [emailTouched, setEmailTouched] = useState(false);
+  const [passwordTouched, setPasswordTouched] = useState(false);
   const [creatingProfile, setCreatingProfile] = useState(false);
 
+  const emailValid = useMemo(() => {
+    const value = email.trim();
+    if (value.length === 0) return false;
+    // Validación básica de correo
+    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return re.test(value);
+  }, [email]);
+
+  const passwordValid = useMemo(() => password.length >= 6, [password]);
+
+  const emailError = useMemo(() => {
+    if (!emailTouched) return '';
+    if (email.trim().length === 0) return 'El correo es obligatorio.';
+    if (!emailValid) return 'El correo no es válido.';
+    return '';
+  }, [email, emailTouched, emailValid]);
+
+  const passwordError = useMemo(() => {
+    if (!passwordTouched) return '';
+    if (password.length === 0) return 'La contraseña es obligatoria.';
+    if (!passwordValid) return 'Use al menos 6 caracteres.';
+    return '';
+  }, [password, passwordTouched, passwordValid]);
+
   const canSubmit = useMemo(() => {
-    return nombre.trim() !== '' && email.trim() !== '' && password.length >= 6;
-  }, [nombre, email, password]);
+    return nombre.trim() !== '' && emailValid && passwordValid;
+  }, [nombre, emailValid, passwordValid]);
 
   const onSubmit = useCallback(async () => {
     if (!canSubmit) {
@@ -106,21 +132,23 @@ const Registro: React.FC = () => {
               <TextInput
                 label='Correo electrónico'
                 value={email}
-                onChangeText={setEmail}
+                onChangeText={(t) => { setEmail(t); if (!emailTouched) setEmailTouched(true); }}
                 placeholder='tucorreo@dominio.com'
                 keyboardType='email-address'
                 autoCapitalize='none'
                 iconName='envelope'
+                errorText={emailError}
               />
 
               <TextInput
                 label='Contraseña'
                 value={password}
-                onChangeText={setPassword}
+                onChangeText={(t) => { setPassword(t); if (!passwordTouched) setPasswordTouched(true); }}
                 placeholder='••••••••'
                 secureTextEntry
                 autoCapitalize='none'
                 iconName='lock'
+                errorText={passwordError}
               />
 
               <Text style={styles.label}>Soy:</Text>

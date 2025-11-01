@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   StyleSheet,
   ImageBackground,
@@ -10,8 +10,10 @@ import {
 } from 'react-native';
 import { Block, Text } from 'galio-framework';
 
-import { Button, Icon, Input } from '../components';
-import { argonTheme } from '../constants';
+import { Button, Input } from '../components';
+import { Icon } from '@/components/ui';
+import { COLOR } from '@/constants';
+ 
 
 // Imagen local
 const RegisterBackground = require('../assets/imgs/register-bg.png');
@@ -33,20 +35,41 @@ const Login: React.FC = () => {
   const [email, setEmail] = useState<string>('');
   const [password, setPassword] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [emailTouched, setEmailTouched] = useState(false);
+  const [passwordTouched, setPasswordTouched] = useState(false);
   
   const { login } = useAuth();
 
+  const emailValid = useMemo(() => {
+    const value = email.trim();
+    if (value.length === 0) return false;
+    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return re.test(value);
+  }, [email]);
+
+  const passwordValid = useMemo(() => password.trim().length >= 6, [password]);
+
+  const emailError = useMemo(() => {
+    if (!emailTouched) return '';
+    if (email.trim().length === 0) return 'El correo es obligatorio.';
+    if (!emailValid) return 'Ingresa un correo válido (ej. usuario@dominio.com).';
+    return '';
+  }, [email, emailTouched, emailValid]);
+
+  const passwordError = useMemo(() => {
+    if (!passwordTouched) return '';
+    if (password.trim().length === 0) return 'La contraseña es obligatoria.';
+    if (!passwordValid) return 'La contraseña debe tener al menos 6 caracteres.';
+    return '';
+  }, [password, passwordTouched, passwordValid]);
+
+  const canSubmit = useMemo(() => emailValid && passwordValid, [emailValid, passwordValid]);
+
   const handleLogin = async (): Promise<void> => {
-    // Validaciones básicas
-    if (!email.trim()) {
-      Alert.alert('Error', 'Por favor ingresa tu email');
-      return;
-    }
-    
-    if (!password.trim()) {
-      Alert.alert('Error', 'Por favor ingresa tu contraseña');
-      return;
-    }
+    // Marcar como tocados para mostrar feedback si faltan datos
+    if (!emailTouched) setEmailTouched(true);
+    if (!passwordTouched) setPasswordTouched(true);
+    if (!canSubmit) return;
 
     setIsLoading(true);
     
@@ -91,11 +114,11 @@ const Login: React.FC = () => {
                     >
                       <Block row>
                         <Icon
-                          name='logo-google'
-                          family='Ionicon'
-                          size={33}
+                          name='google'
+                          type='brands'
+                          size={28}
                           color={'#DF4930'}
-                          style={{ marginRight: 3 }}
+                          style={{ marginRight: 6 }}
                         />
                         <Text style={styles.socialTextButtons}>GOOGLE</Text>
                       </Block>
@@ -118,28 +141,31 @@ const Login: React.FC = () => {
                   <Block center flex={0.9}>
                     <Block flex center>
                       <Block>
-                        <Block
-                          width={width * 0.8}
-                          style={{ marginBottom: 6 }}
-                        >
+                        <Block width={width * 0.8} style={{ marginBottom: 6 }}>
                           <Input
                             borderless
                             placeholder='Correo'
                             value={email}
-                            onChangeText={setEmail}
+                            onChangeText={(t: string) => { setEmail(t); if (!emailTouched) setEmailTouched(true); }}
+                            color={emailTouched && !emailValid ? COLOR.ERROR : COLOR.TEXTO}
+                            error={emailTouched && !emailValid}
                             keyboardType='email-address'
                             autoCapitalize='none'
                             autoCorrect={false}
                             iconContent={
                               <Icon
-                                size={16}
-                                color='#ADB5BD'
-                                name='ic_mail_24px'
-                                family='ArgonExtra'
+                                name='envelope'
+                                size={18}
+                                color={emailTouched && !emailValid ? COLOR.ERROR : COLOR.SUBTEXTO}
                                 style={styles.inputIcons}
                               />
                             }
                           />
+                          {emailError ? (
+                            <Text size={12} color={COLOR.ERROR}>
+                              {emailError}
+                            </Text>
+                          ) : null}
                         </Block>
                         <Block width={width * 0.8} style={{ marginBottom: 15 }}>
                           <Input
@@ -147,24 +173,30 @@ const Login: React.FC = () => {
                             borderless
                             placeholder='Contraseña'
                             value={password}
-                            onChangeText={setPassword}
+                            onChangeText={(t: string) => { setPassword(t); if (!passwordTouched) setPasswordTouched(true); }}
+                            color={passwordTouched && !passwordValid ? COLOR.ERROR : COLOR.TEXTO}
+                            error={passwordTouched && !passwordValid}
                             iconContent={
                               <Icon
-                                size={16}
-                                color='#ADB5BD'
-                                name='padlock-unlocked'
-                                family='ArgonExtra'
+                                name='lock'
+                                size={18}
+                                color={passwordTouched && !passwordValid ? COLOR.ERROR : COLOR.SUBTEXTO}
                                 style={styles.inputIcons}
                               />
                             }
                           />
+                          {passwordError ? (
+                            <Text size={12} color={COLOR.ERROR}>
+                              {passwordError}
+                            </Text>
+                          ) : null}
                         </Block>
                         
                         {/* <Block row style={styles.forgotPassword}>
                           <Button
                             color='transparent'
                             textStyle={{
-                              color: argonTheme.COLORS.PRIMARY,
+                              color: COLOR.PRIMARIO,
                               fontSize: 14,
                               fontFamily: 'open-sans-regular',
                             }}
@@ -180,11 +212,12 @@ const Login: React.FC = () => {
                           style={styles.loginButton}
                           onPress={handleLogin}
                           loading={isLoading}
+                          disabled={isLoading || !canSubmit}
                         >
                           <Text
                             style={{ fontFamily: 'open-sans-bold' }}
                             size={21}
-                            color={argonTheme.COLORS.WHITE}
+                            color={COLOR.TEXTO}
                           >
                             {isLoading ? 'Ingresando...' : 'Iniciar sesión'}
                           </Text>
@@ -196,7 +229,7 @@ const Login: React.FC = () => {
                             <Text
                               style={{ fontFamily: 'open-sans-regular' }}
                               size={14}
-                              color={argonTheme.COLORS.TEXT}
+                              color={COLOR.TEXTO}
                               >
                               ¿No tienes una cuenta?
                             </Text>
@@ -204,7 +237,7 @@ const Login: React.FC = () => {
                           <Button
                             color='transparent'
                             textStyle={{
-                              color: argonTheme.COLORS.PRIMARY,
+                              color: COLOR.PRIMARIO,
                               fontSize: 14,
                               fontFamily: 'open-sans-bold',
                             }}
@@ -229,9 +262,9 @@ const styles = StyleSheet.create({
   loginContainer: {
     width: width * 0.9,
     height: height < 812 ? height * 0.7 : height * 0.6,
-    backgroundColor: argonTheme.COLORS.SECONDARY,
+  backgroundColor: COLOR.SECUNDARIO,
     borderRadius: 36,
-    shadowColor: argonTheme.COLORS.BLACK,
+  shadowColor: COLOR.BASE,
     shadowOffset: {
       width: 0,
       height: 4,
@@ -242,15 +275,15 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   socialConnect: {
-    backgroundColor: argonTheme.COLORS.DEFAULT,
+  backgroundColor: COLOR.BASE,
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderColor: 'rgba(136, 152, 170, 0.3)',
   },
   socialButtons: {
     width: 132,
     height: 39,
-    backgroundColor: argonTheme.COLORS.SECONDARY,
-    shadowColor: argonTheme.COLORS.BLACK,
+  backgroundColor: COLOR.SECUNDARIO,
+  shadowColor: COLOR.BASE,
     shadowOffset: {
       width: 0,
       height: 4,
@@ -260,7 +293,7 @@ const styles = StyleSheet.create({
     elevation: 1,
   },
   socialTextButtons: {
-    color: argonTheme.COLORS.PRIMARY,
+  color: COLOR.PRIMARIO,
     fontWeight: '900',
     fontSize: 21,
   },

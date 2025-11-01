@@ -1,18 +1,33 @@
 import React from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { NavigationContainer } from '@react-navigation/native';
+import { NavigationContainer, DarkTheme, Theme } from '@react-navigation/native';
 import { GalioProvider } from 'galio-framework';
 import { AuthProvider } from './services/context/AuthContext';
 import { RootNavigator } from './navigation';
-import { argonTheme } from './constants';
+import { argonTheme, COLOR } from './constants';
+import { StatusBar } from 'react-native';
 
 // Componente principal - Solo configuración global
 export default function App(): React.ReactElement {
+  const navTheme: Theme = {
+    ...DarkTheme,
+    colors: {
+      ...DarkTheme.colors,
+      primary: COLOR.PRIMARIO,
+      background: COLOR.BASE,
+      card: COLOR.SECUNDARIO,
+      text: COLOR.TEXTO,
+      border: COLOR.BORDE,
+      notification: COLOR.ENFASIS,
+    },
+  };
+
   return (
     <SafeAreaProvider>
       <AuthProvider>
-          <GalioProvider theme={argonTheme as any}>
-          <NavigationContainer>
+        <GalioProvider theme={argonTheme as any}>
+          <StatusBar barStyle="light-content" backgroundColor={COLOR.BLOQUE} />
+          <NavigationContainer theme={navTheme}>
             <RootNavigator />
           </NavigationContainer>
         </GalioProvider>

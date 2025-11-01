@@ -32,6 +32,19 @@ export default {
         foregroundImage: './assets/splash.png',
         backgroundColor: '#1B5E20',
       },
+      navigationBar: {
+        // Modo Expo prebuild: algunos campos se mapean desde androidNavigationBar en app.json
+      },
+    },
+    androidNavigationBar: {
+      barStyle: 'light-content',
+      backgroundColor: '#0F2521',
+    },
+    androidStatusBar: {
+      barStyle: 'light-content',
+      backgroundColor: '#0F2521',
+      hidden: false,
+      translucent: false,
     },
     plugins: [
       [

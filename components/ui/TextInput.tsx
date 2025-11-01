@@ -42,6 +42,8 @@ const TextInput: React.FC<Props> = ({
     return focused ? COLOR.ENFASIS : COLOR.BORDE;
   }, [errorText, focused]);
 
+  const inputColor = errorText ? COLOR.ERROR : COLOR.TEXTO;
+
   return (
     <View style={containerStyle} testID={testID}>
       {label ? <Text style={styles.label}>{label}</Text> : null}
@@ -55,10 +57,10 @@ const TextInput: React.FC<Props> = ({
         autoCapitalize={autoCapitalize}
         onFocus={() => setFocused(true)}
         onBlur={() => setFocused(false)}
-        color={COLOR.TEXTO}
+        color={inputColor}
         icon={iconName}
         family='FontAwesome5'
-        iconProps={{ size: 18, color: COLOR.SUBTEXTO, solid: true }}
+        iconProps={{ size: 18, color: errorText ? COLOR.ERROR : COLOR.SUBTEXTO, solid: true }}
         style={[styles.input, { borderColor }] as any}
       />
       {errorText ? <Text style={styles.error}>{errorText}</Text> : null}

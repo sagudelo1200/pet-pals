@@ -2,7 +2,6 @@ import React, { useState, useCallback } from 'react';
 import {
   TouchableWithoutFeedback,
   Keyboard,
-  StatusBar,
   StyleSheet,
   KeyboardAvoidingView,
   Platform,
@@ -55,7 +54,6 @@ const Ingresar: React.FC = () => {
   return (
     <DismissKeyboard>
       <View style={styles.container}>
-        <StatusBar hidden />
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
           style={styles.kav}
@@ -133,13 +131,13 @@ const styles = StyleSheet.create({
     marginBottom: 18,
   },
   form: {
-    marginTop: 8,
+    marginTop: 9,
   },
   submit: {
-    marginTop: 10,
+    marginTop: 9,
   },
   secondary: {
-    marginTop: 8,
+    marginTop: 9,
   },
 });
 

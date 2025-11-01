@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { View, Text, ActivityIndicator, StyleSheet } from 'react-native';
-import { argonTheme } from '../constants';
+import { COLOR } from '../constants';
 
 interface LoadingScreenProps {
   /** Mensaje personalizado, si no se proporciona usa uno aleatorio */
@@ -78,7 +78,7 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({
   messageType = 'general',
   customMessages,
   showSpinner = true,
-  spinnerColor = argonTheme.COLORS.PRIMARY,
+  spinnerColor = COLOR.PRIMARIO,
   spinnerSize = 'large',
   containerStyle,
   textStyle
@@ -125,7 +125,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: argonTheme.COLORS.DEFAULT,
+    backgroundColor: COLOR.BASE,
     padding: 20,
   },
   spinner: {
@@ -134,7 +134,7 @@ const styles = StyleSheet.create({
   text: {
     fontSize: 16,
     textAlign: 'center',
-    color: argonTheme.COLORS.TEXT,
+    color: COLOR.TEXTO,
   },
 });
 
