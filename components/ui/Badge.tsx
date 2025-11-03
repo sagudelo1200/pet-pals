@@ -2,6 +2,9 @@ import React from 'react'
 import { StyleSheet, Text, View, ViewStyle, TextStyle } from 'react-native'
 import { COLOR } from '@/constants'
 
+/**
+ * Variantes semánticas para Badge
+ */
 export type BadgeVariant =
   | 'primario'
   | 'secundario'
@@ -14,11 +17,14 @@ export type BadgeVariant =
   | 'inactivo'
   | 'neutral'
 
+/**
+ * Props del Badge (píldora informativa)
+ */
 export interface BadgeProps {
   label: string
   variant?: BadgeVariant
   textColor?: string
-  size?: 'sm' | 'md'
+  size?: 'sm' | 'md' | 'lg'
   style?: ViewStyle | ViewStyle[]
   textStyle?: TextStyle | TextStyle[]
   testID?: string
@@ -63,8 +69,15 @@ const Badge: React.FC<BadgeProps> = ({
   const padding =
     size === 'sm'
       ? { paddingVertical: 4, paddingHorizontal: 8 }
-      : { paddingVertical: 6, paddingHorizontal: 10 }
-  const font = size === 'sm' ? { fontSize: 12 } : { fontSize: 13 }
+      : size === 'lg'
+        ? { paddingVertical: 8, paddingHorizontal: 12 }
+        : { paddingVertical: 6, paddingHorizontal: 10 }
+  const font =
+    size === 'sm'
+      ? { fontSize: 12 }
+      : size === 'lg'
+        ? { fontSize: 14 }
+        : { fontSize: 13 }
 
   return (
     <View

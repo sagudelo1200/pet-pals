@@ -4,6 +4,9 @@ import { COLOR } from '@/constants'
 import Icon from './Icon'
 import Button from './Button'
 
+/**
+ * Props de EmptyState para mostrar pantallas sin contenido
+ */
 export interface EmptyStateProps {
   iconName?: React.ComponentProps<typeof Icon>['name']
   title: string
@@ -14,6 +17,9 @@ export interface EmptyStateProps {
   testID?: string
 }
 
+/**
+ * EmptyState: ícono + título + descripción y acción primaria opcional.
+ */
 const EmptyState: React.FC<EmptyStateProps> = ({
   iconName = 'paw',
   title,

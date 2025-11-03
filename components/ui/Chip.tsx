@@ -3,8 +3,13 @@ import { Pressable, StyleSheet, Text, ViewStyle } from 'react-native'
 import { COLOR } from '@/constants'
 import Icon from './Icon'
 
+/**
+ * Props del Chip: pill seleccionable con ícono opcional y botón de cierre
+ */
 export interface ChipProps {
   label: string
+  /** Tamaño visual del chip */
+  size?: 'sm' | 'md' | 'lg'
   selected?: boolean
   disabled?: boolean
   onPress?: () => void
@@ -14,8 +19,12 @@ export interface ChipProps {
   testID?: string
 }
 
+/**
+ * Chip: etiqueta interactiva con estados de selección/deshabilitado.
+ */
 const Chip: React.FC<ChipProps> = ({
   label,
+  size = 'md',
   selected,
   disabled,
   onPress,
@@ -28,25 +37,41 @@ const Chip: React.FC<ChipProps> = ({
   const text = selected ? COLOR.TEXTO : COLOR.TEXTO
   const opacity = disabled ? 0.5 : 1
 
+  // Tamaños
+  const paddingH = size === 'sm' ? 10 : size === 'lg' ? 14 : 12
+  const paddingV = size === 'sm' ? 6 : size === 'lg' ? 10 : 8
+  const fontSize = size === 'sm' ? 12 : size === 'lg' ? 14 : 13
+  const iconSize = size === 'sm' ? 12 : size === 'lg' ? 16 : 14
+  const closeSize = iconSize
+
   return (
     <Pressable
       testID={testID}
       onPress={onPress}
       disabled={disabled}
-      style={[styles.base, { backgroundColor: bg, opacity }, style]}
+      style={[
+        styles.base,
+        {
+          backgroundColor: bg,
+          opacity,
+          paddingHorizontal: paddingH,
+          paddingVertical: paddingV,
+        },
+        style,
+      ]}
     >
       {leftIconName ? (
         <Icon
           name={leftIconName}
-          size={12}
+          size={iconSize}
           color={COLOR.TEXTO}
           containerStyle={{ marginRight: 6 }}
         />
       ) : null}
-      <Text style={[styles.label, { color: text }]}>{label}</Text>
+      <Text style={[styles.label, { color: text, fontSize }]}>{label}</Text>
       {onClose ? (
         <Pressable onPress={onClose} hitSlop={8} style={styles.close}>
-          <Icon name="times" size={12} color={COLOR.TEXTO} />
+          <Icon name="times" size={closeSize} color={COLOR.TEXTO} />
         </Pressable>
       ) : null}
     </Pressable>
@@ -58,14 +83,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     borderRadius: 999,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
     borderWidth: 1,
     borderColor: COLOR.BORDE,
     alignSelf: 'flex-start',
   },
   label: {
-    fontSize: 12,
     fontWeight: '700',
   },
   close: {

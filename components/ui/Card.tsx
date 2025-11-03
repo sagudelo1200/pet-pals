@@ -9,6 +9,9 @@ import {
 } from 'react-native'
 import { COLOR } from '@/constants'
 
+/**
+ * Props de la tarjeta contenedora
+ */
 export interface CardProps {
   children?: React.ReactNode
   title?: string
@@ -27,6 +30,10 @@ export interface CardProps {
   testID?: string
 }
 
+/**
+ * Card: contenedor con cabecera opcional (título/subtítulo/right) y footer.
+ * - Puede ser clickable (onPress) o estático.
+ */
 const Card: React.FC<CardProps> = ({
   children,
   title,

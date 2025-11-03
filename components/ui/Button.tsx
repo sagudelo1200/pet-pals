@@ -26,6 +26,7 @@ interface Props {
   disabled?: boolean
   loading?: boolean
   variant?: ButtonVariant
+  size?: 'sm' | 'md' | 'lg'
   fullWidth?: boolean
   style?: ViewStyle | ViewStyle[]
   textStyle?: any
@@ -38,6 +39,7 @@ const Button: React.FC<Props> = ({
   disabled,
   loading,
   variant = 'primario',
+  size = 'md',
   fullWidth,
   style,
   textStyle,
@@ -120,8 +122,13 @@ const Button: React.FC<Props> = ({
     return isDark ? lighten(bgColor, delta) : darken(bgColor, delta)
   }, [bgColor])
 
+  // Tamaño visual del botón y del texto según `size`
+  const height = size === 'sm' ? 40 : size === 'lg' ? 56 : 48
+  const fontSize = size === 'sm' ? 14 : size === 'lg' ? 16 : 15
+
   const baseStyles: ViewStyle | ViewStyle[] = [
     styles.button,
+    { height },
     fullWidth ? styles.fullWidth : undefined,
     ...(Array.isArray(style) ? style : style ? [style] : []),
   ]
@@ -147,7 +154,7 @@ const Button: React.FC<Props> = ({
         // Mientras carga, mostramos spinner y ocultamos el texto
         <ActivityIndicator size="small" color={COLOR.TEXTO} />
       ) : (
-        <Text style={[styles.text, textStyle]}>{title}</Text>
+        <Text style={[styles.text, { fontSize }, textStyle]}>{title}</Text>
       )}
     </Pressable>
   )

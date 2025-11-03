@@ -1,12 +1,17 @@
 import React from 'react'
 import { View, StyleSheet, ViewStyle } from 'react-native'
 import { FontAwesome5 } from '@expo/vector-icons'
+import { COLOR } from '@/constants'
 
 export type IconType = 'solid' | 'regular' | 'brands'
 
+/**
+ * Props del Icon unificado
+ */
 export interface IconProps {
   name: React.ComponentProps<typeof FontAwesome5>['name']
   size?: number
+  /** Color del ícono (por defecto usa COLOR.TEXTO) */
   color?: string
   type?: IconType // peso del ícono: solid (default), regular o brands
   style?: any // estilo del ícono
@@ -19,10 +24,15 @@ export interface IconProps {
  * - Base FontAwesome5 (expo)
  * - Por defecto usa estilo 'solid' para consistencia visual
  */
+/**
+ * Icono unificado de Pet Pals
+ * - Base FontAwesome5 (expo)
+ * - Por defecto usa estilo 'solid' y COLOR.TEXTO del tema
+ */
 const Icon: React.FC<IconProps> = ({
   name,
   size = 20,
-  color = '#fff',
+  color = COLOR.TEXTO,
   type = 'solid',
   style,
   containerStyle,

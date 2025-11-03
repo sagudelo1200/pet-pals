@@ -3,6 +3,9 @@ import { StyleSheet, Text, View, ViewStyle } from 'react-native'
 import { COLOR } from '@/constants'
 import { Input } from 'galio-framework'
 
+/**
+ * Props del TextInput unificado (envuelve galio-framework/Input)
+ */
 interface Props {
   label?: string
   value: string
@@ -17,6 +20,10 @@ interface Props {
   autoCapitalize?: any
 }
 
+/**
+ * TextInput: input con label, ícono opcional y estado de error.
+ * - Usa `galio-framework/Input` por debajo para mantener consistencia.
+ */
 const TextInput: React.FC<Props> = ({
   label,
   value,

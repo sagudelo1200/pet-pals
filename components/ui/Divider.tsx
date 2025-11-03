@@ -2,6 +2,9 @@ import React from 'react'
 import { StyleSheet, View, ViewStyle } from 'react-native'
 import { COLOR } from '@/constants'
 
+/**
+ * Props del divisor (línea separadora)
+ */
 export interface DividerProps {
   vertical?: boolean
   color?: string
@@ -14,6 +17,10 @@ export interface DividerProps {
   testID?: string
 }
 
+/**
+ * Divider: línea horizontal/vertical para separar contenido.
+ * - Soporta color, grosor, desplazamientos (inset) y estilo punteado.
+ */
 const Divider: React.FC<DividerProps> = ({
   vertical,
   color = COLOR.BORDE,

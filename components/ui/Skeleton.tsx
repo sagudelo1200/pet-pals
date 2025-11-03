@@ -2,6 +2,9 @@ import React, { useEffect, useRef } from 'react'
 import { Animated, StyleSheet, ViewStyle } from 'react-native'
 import { COLOR } from '@/constants'
 
+/**
+ * Props del Skeleton: placeholders animados para carga
+ */
 export interface SkeletonProps {
   width?: number | `${number}%`
   height?: number
@@ -11,6 +14,9 @@ export interface SkeletonProps {
   testID?: string
 }
 
+/**
+ * Skeleton: bloque animado que simula contenido cargando.
+ */
 const Skeleton: React.FC<SkeletonProps> = ({
   width = '100%',
   height = 14,

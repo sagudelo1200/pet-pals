@@ -1,6 +1,9 @@
 import React from 'react'
 import { View, ViewStyle } from 'react-native'
 
+/**
+ * Espaciador simple para layouts
+ */
 export interface SpacerProps {
   size?: number
   horizontal?: boolean
@@ -9,6 +12,10 @@ export interface SpacerProps {
   testID?: string
 }
 
+/**
+ * Spacer: crea espacio horizontal o vertical.
+ * - Si `flex` es true, ocupa el espacio disponible.
+ */
 const Spacer: React.FC<SpacerProps> = ({
   size = 12,
   horizontal = false,

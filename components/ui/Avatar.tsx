@@ -3,6 +3,9 @@ import { Image, StyleSheet, Text, View, ViewStyle } from 'react-native'
 import { COLOR } from '@/constants'
 import Icon from './Icon'
 
+/**
+ * Props del Avatar: imagen, iniciales o ícono de respaldo
+ */
 export interface AvatarProps {
   uri?: string
   name?: string
@@ -25,6 +28,10 @@ const getInitials = (name?: string) => {
   return (first + second).toUpperCase()
 }
 
+/**
+ * Avatar: muestra imagen si hay uri, iniciales si hay name o un ícono fallback.
+ * - Opción de estado (dot) en la esquina inferior derecha.
+ */
 const Avatar: React.FC<AvatarProps> = ({
   uri,
   name,

@@ -216,11 +216,11 @@ const ColorDemo: React.FC = () => {
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Badge</Text>
           <View style={styles.row}>
-            <Badge label="Primario" variant="primario" />
+            <Badge label="Primario" variant="primario" size="sm" />
             <Spacer horizontal size={8} />
-            <Badge label="Éxito" variant="exito" />
+            <Badge label="Éxito" variant="exito" size="md" />
             <Spacer horizontal size={8} />
-            <Badge label="Error" variant="error" />
+            <Badge label="Error" variant="error" size="lg" />
             <Spacer horizontal size={8} />
             <Badge label="Info" variant="info" />
             <Spacer horizontal size={8} />
@@ -232,11 +232,21 @@ const ColorDemo: React.FC = () => {
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Chip</Text>
           <View style={styles.row}>
-            <Chip label="Filtro" onPress={() => {}} />
+            <Chip label="Filtro (sm)" size="sm" onPress={() => {}} />
             <Spacer horizontal size={8} />
-            <Chip label="Seleccionado" selected onPress={() => {}} />
+            <Chip
+              label="Seleccionado (md)"
+              size="md"
+              selected
+              onPress={() => {}}
+            />
             <Spacer horizontal size={8} />
-            <Chip label="Con icono" leftIconName="paw" onPress={() => {}} />
+            <Chip
+              label="Con icono (lg)"
+              size="lg"
+              leftIconName="paw"
+              onPress={() => {}}
+            />
             <Spacer horizontal size={8} />
             <Chip label="Cerrable" onPress={() => {}} onClose={() => {}} />
           </View>
@@ -301,15 +311,28 @@ const ColorDemo: React.FC = () => {
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Button (UI)</Text>
           <Button
-            title="Primario"
+            title="Primario sm"
+            size="sm"
             variant="primario"
             onPress={() => {}}
             fullWidth
           />
           <Spacer size={8} />
-          <Button title="Éxito" variant="exito" onPress={() => {}} fullWidth />
+          <Button
+            title="Primario md"
+            size="md"
+            variant="primario"
+            onPress={() => {}}
+            fullWidth
+          />
           <Spacer size={8} />
-          <Button title="Error" variant="error" onPress={() => {}} fullWidth />
+          <Button
+            title="Primario lg"
+            size="lg"
+            variant="primario"
+            onPress={() => {}}
+            fullWidth
+          />
         </View>
       </ScrollView>
     </View>
