@@ -1,3 +1,5 @@
+// Polyfills (antes de cualquier otro import)
+import 'intl-pluralrules'
 import 'react-native-gesture-handler'
 
 import { AppRegistry, Platform } from 'react-native'
