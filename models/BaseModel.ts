@@ -24,3 +24,20 @@ export interface BaseModel {
    */
   updatedBy?: string
 }
+
+/**
+ * Nota de persistencia:
+ * - En Firestore los campos de fecha se almacenan como `Timestamp`.
+ * - En la capa de dominio/UI (estos modelos) las fechas son `Date`.
+ * La conversión se hace automáticamente en la capa CRUD con utilidades
+ * que transforman `Timestamp`↔`Date` de forma recursiva.
+ */
+
+// (Opcional, referencia) Tipo equivalente en capa de datos/Firebase
+// export interface BaseModelDb {
+//   id: string
+//   createdAt: import('firebase/firestore').Timestamp
+//   updatedAt: import('firebase/firestore').Timestamp
+//   createdBy?: string
+//   updatedBy?: string
+// }

@@ -13,6 +13,7 @@ import { db } from '../../firebase.config'
 import { BaseModel } from '../../models/BaseModel'
 import { CrudResult } from './types'
 import { AuthService } from './auth'
+import { nowServerTimestamp, toDb, toDomain } from './converters'
 
 export class BaseCrudService {
   /**
@@ -24,22 +25,18 @@ export class BaseCrudService {
   ): Promise<CrudResult<T>> {
     try {
       const currentUser = AuthService.getCurrentUser()
-      const now = new Date()
-
-      const docData = {
-        ...data,
-        createdAt: now,
-        updatedAt: now,
+      const base = {
+        createdAt: nowServerTimestamp(),
+        updatedAt: nowServerTimestamp(),
         createdBy: currentUser?.uid,
         updatedBy: currentUser?.uid,
       }
 
-      const docRef = await addDoc(collection(db, collectionName), docData)
+      const docDataDb = { ...toDb(data), ...base }
+      const docRef = await addDoc(collection(db, collectionName), docDataDb)
 
-      return {
-        success: true,
-        data: { id: docRef.id, ...docData } as T,
-      }
+      // Re-leer para retornar en formato de dominio (Date)
+      return this.getById<T>(collectionName, docRef.id)
     } catch (error: any) {
       return {
         success: false,
@@ -60,15 +57,10 @@ export class BaseCrudService {
       const docSnap = await getDoc(docRef)
 
       if (docSnap.exists()) {
-        const data = docSnap.data()
+        const data = toDomain(docSnap.data())
         return {
           success: true,
-          data: {
-            id: docSnap.id,
-            ...data,
-            createdAt: data.createdAt?.toDate(),
-            updatedAt: data.updatedAt?.toDate(),
-          } as T,
+          data: { id: docSnap.id, ...data } as T,
         }
       }
 
@@ -96,13 +88,13 @@ export class BaseCrudService {
       const currentUser = AuthService.getCurrentUser()
       const docRef = doc(db, collectionName, id)
 
-      const updateData = {
-        ...data,
-        updatedAt: new Date(),
+      const updateDataDb = {
+        ...toDb(data),
+        updatedAt: nowServerTimestamp(),
         updatedBy: currentUser?.uid,
       }
 
-      await updateDoc(docRef, updateData)
+      await updateDoc(docRef, updateDataDb)
 
       // Retornar documento actualizado
       return this.getById<T>(collectionName, id)
@@ -147,14 +139,9 @@ export class BaseCrudService {
       const querySnapshot = await getDocs(collection(db, collectionName))
       const documents: T[] = []
 
-      querySnapshot.forEach(doc => {
-        const data = doc.data()
-        documents.push({
-          id: doc.id,
-          ...data,
-          createdAt: data.createdAt?.toDate(),
-          updatedAt: data.updatedAt?.toDate(),
-        } as T)
+      querySnapshot.forEach(snap => {
+        const data = toDomain(snap.data())
+        documents.push({ id: snap.id, ...data } as T)
       })
 
       return {
@@ -178,18 +165,18 @@ export class BaseCrudService {
     value: any
   ): Promise<CrudResult<T[]>> {
     try {
-      const q = query(collection(db, collectionName), where(field, '==', value))
+      // Asegurar que valores Date vayan como Timestamp a Firestore
+      const valueDb = toDb(value)
+      const q = query(
+        collection(db, collectionName),
+        where(field, '==', valueDb as any)
+      )
       const querySnapshot = await getDocs(q)
       const documents: T[] = []
 
-      querySnapshot.forEach(doc => {
-        const data = doc.data()
-        documents.push({
-          id: doc.id,
-          ...data,
-          createdAt: data.createdAt?.toDate(),
-          updatedAt: data.updatedAt?.toDate(),
-        } as T)
+      querySnapshot.forEach(snap => {
+        const data = toDomain(snap.data())
+        documents.push({ id: snap.id, ...data } as T)
       })
 
       return {
