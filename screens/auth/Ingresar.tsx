@@ -15,6 +15,7 @@ import { useAuth } from '@/services/context/AuthContext'
 import { useNavigation } from '@react-navigation/native'
 import type { AuthFlowParamList } from '@/navigation/types'
 import type { StackNavigationProp } from '@react-navigation/stack'
+import { useTranslation } from 'react-i18next'
 
 interface DismissKeyboardProps {
   children: React.ReactNode
@@ -33,16 +34,20 @@ const Ingresar: React.FC = () => {
   const [password, setPassword] = useState('')
   const navigation = useNavigation<Nav>()
   const { login, loading } = useAuth()
+  const { t } = useTranslation()
   const handleSubmit = useCallback(async () => {
     if (!email || !password) {
-      Alert.alert('Campos incompletos', 'Ingresa tu correo y contraseña.')
+      Alert.alert(
+        t('auth.errors.missingFields.title'),
+        t('auth.errors.missingFields.message')
+      )
       return
     }
     const result = await login(email.trim(), password)
     if (!result.success) {
       Alert.alert(
-        'No se pudo iniciar sesión',
-        result.error || 'Intenta nuevamente.'
+        t('auth.errors.loginFailed.title'),
+        result.error || t('common.tryAgain')
       )
     }
   }, [email, password, login])
@@ -60,33 +65,33 @@ const Ingresar: React.FC = () => {
         >
           <Block style={styles.content}>
             <Text h4 style={styles.title}>
-              Inicia sesión
+              {t('auth.login.title')}
             </Text>
-            <Text style={styles.subtitle}>Bienvenido, ingresa tus datos</Text>
+            <Text style={styles.subtitle}>{t('auth.login.subtitle')}</Text>
 
             <View style={styles.form}>
               <TextInput
-                label="Correo electrónico"
+                label={t('auth.email')}
                 value={email}
                 onChangeText={setEmail}
-                placeholder="tucorreo@dominio.com"
+                placeholder={t('auth.emailPlaceholder')}
                 keyboardType="email-address"
                 autoCapitalize="none"
                 iconName="envelope"
               />
 
               <TextInput
-                label="Contraseña"
+                label={t('auth.password')}
                 value={password}
                 onChangeText={setPassword}
-                placeholder="••••••••"
+                placeholder={t('auth.passwordPlaceholder')}
                 secureTextEntry
                 autoCapitalize="none"
                 iconName="lock"
               />
 
               <Button
-                title={loading ? 'Ingresando…' : 'Ingresar'}
+                title={loading ? t('auth.loggingIn') : t('auth.login.action')}
                 onPress={handleSubmit}
                 variant="primario"
                 fullWidth
@@ -96,7 +101,7 @@ const Ingresar: React.FC = () => {
               />
 
               <Button
-                title="Crear una cuenta"
+                title={t('auth.register.action')}
                 onPress={goToRegistro}
                 variant="bloque"
                 fullWidth

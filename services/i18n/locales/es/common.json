@@ -1,0 +1,29 @@
+{
+  "auth": {
+    "login": {
+      "title": "Inicia sesión",
+      "subtitle": "Bienvenido, ingresa tus datos",
+      "action": "Ingresar"
+    },
+    "loggingIn": "Ingresando…",
+    "register": {
+      "action": "Crear una cuenta"
+    },
+    "email": "Correo electrónico",
+    "emailPlaceholder": "tucorreo@dominio.com",
+    "password": "Contraseña",
+    "passwordPlaceholder": "••••••••",
+    "errors": {
+      "missingFields": {
+        "title": "Campos incompletos",
+        "message": "Ingresa tu correo y contraseña."
+      },
+      "loginFailed": {
+        "title": "No se pudo iniciar sesión"
+      }
+    }
+  },
+  "common": {
+    "tryAgain": "Intenta nuevamente."
+  }
+}

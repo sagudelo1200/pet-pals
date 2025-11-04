@@ -6,6 +6,8 @@ import { AuthProvider } from './services/context/AuthContext'
 import { RootNavigator } from './navigation'
 import { COLOR } from './constants'
 import { StatusBar } from 'react-native'
+// Inicialización i18n (no cambia UI, solo prepara el camino para futuros idiomas)
+import './services/i18n'
 
 // Componente principal - Solo configuración global
 export default function App(): React.ReactElement {
