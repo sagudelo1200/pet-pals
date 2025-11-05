@@ -79,8 +79,8 @@ const Registro: React.FC = () => {
   const onSubmit = useCallback(async () => {
     if (!canSubmit) {
       Alert.alert(
-        t('auth:errores.camposIncompletos.titulo'),
-        t('auth:errores.camposIncompletos.mensaje')
+        t('auth:compartido.errores.camposIncompletos.titulo'),
+        t('auth:compartido.errores.camposIncompletos.mensaje')
       )
       return
     }
@@ -88,7 +88,7 @@ const Registro: React.FC = () => {
     const result = await register(email.trim(), password, nombre.trim())
     if (!result.success || !result.user) {
       Alert.alert(
-        t('auth:errores.registroFallido.titulo'),
+        t('auth:registro.errores.registroFallido.titulo'),
         tErrorMaybe(result.error, t('comun.intentaNuevamente'))
       )
       return
@@ -130,27 +130,29 @@ const Registro: React.FC = () => {
         >
           <Block style={styles.content}>
             <Text h4 style={styles.title}>
-              {t('auth:registro.titulo')}
+              {t('auth:registro.formulario.titulo')}
             </Text>
-            <Text style={styles.subtitle}>{t('auth:registro.subtitulo')}</Text>
+            <Text style={styles.subtitle}>
+              {t('auth:registro.formulario.subtitulo')}
+            </Text>
 
             <View style={styles.form}>
               <TextInput
-                label={t('auth:registro.nombre.label')}
+                label={t('auth:registro.formulario.nombre.label')}
                 value={nombre}
                 onChangeText={setNombre}
-                placeholder={t('auth:registro.nombre.placeholder')}
+                placeholder={t('auth:registro.formulario.nombre.placeholder')}
                 iconName="user"
               />
 
               <TextInput
-                label={t('auth:correo')}
+                label={t('auth:registro.formulario.correo.label')}
                 value={email}
                 onChangeText={tVal => {
                   setEmail(tVal)
                   if (!emailTouched) setEmailTouched(true)
                 }}
-                placeholder={t('auth:correoPlaceholder')}
+                placeholder={t('auth:registro.formulario.correo.placeholder')}
                 keyboardType="email-address"
                 autoCapitalize="none"
                 iconName="envelope"
@@ -158,20 +160,22 @@ const Registro: React.FC = () => {
               />
 
               <TextInput
-                label={t('auth:password')}
+                label={t('auth:registro.formulario.password.label')}
                 value={password}
                 onChangeText={tVal => {
                   setPassword(tVal)
                   if (!passwordTouched) setPasswordTouched(true)
                 }}
-                placeholder={t('auth:passwordPlaceholder')}
+                placeholder={t('auth:registro.formulario.password.placeholder')}
                 secureTextEntry
                 autoCapitalize="none"
                 iconName="lock"
                 errorText={passwordError}
               />
 
-              <Text style={styles.label}>{t('auth:registro.soy')}</Text>
+              <Text style={styles.label}>
+                {t('auth:registro.formulario.soyLabel')}
+              </Text>
               <View style={styles.roleRow}>
                 <Pressable
                   onPress={() => setRol('dueño')}
@@ -181,7 +185,9 @@ const Registro: React.FC = () => {
                     rol === 'dueño' ? styles.roleBtnActive : undefined,
                   ]}
                 >
-                  <Text style={styles.roleText}>{t('auth:rol.dueno')}</Text>
+                  <Text style={styles.roleText}>
+                    {t('auth:compartido.roles.dueno')}
+                  </Text>
                 </Pressable>
                 <Pressable
                   onPress={() => setRol('paseador')}
@@ -190,15 +196,17 @@ const Registro: React.FC = () => {
                     rol === 'paseador' ? styles.roleBtnActive : undefined,
                   ]}
                 >
-                  <Text style={styles.roleText}>{t('auth:rol.paseador')}</Text>
+                  <Text style={styles.roleText}>
+                    {t('auth:compartido.roles.paseador')}
+                  </Text>
                 </Pressable>
               </View>
 
               <Button
                 title={
                   loading || creatingProfile
-                    ? t('auth:registro.creando')
-                    : t('auth:registro.accion')
+                    ? t('auth:registro.formulario.estado.creando')
+                    : t('auth:registro.formulario.accion')
                 }
                 onPress={onSubmit}
                 variant="primario"
@@ -209,7 +217,7 @@ const Registro: React.FC = () => {
               />
 
               <Button
-                title={t('auth:registro.tengoCuenta')}
+                title={t('auth:registro.ui.tengoCuenta')}
                 onPress={goToLogin}
                 variant="bloque"
                 fullWidth

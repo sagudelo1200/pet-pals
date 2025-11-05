@@ -1,38 +1,51 @@
 {
-  "titulo": "Mis Mascotas",
-  "error": {
-    "cargar": "No pudimos cargar tus mascotas"
-  },
-  "vacio": {
-    "titulo": "Aún no tienes mascotas",
-    "descripcion": "Agrega tu primera mascota para empezar a solicitar paseos."
-  },
-  "agregar": "Agregar mascota",
-  "crear": {
-    "exito": "Mascota creada correctamente."
-  },
-  "form": {
-    "titulo": "Nueva mascota",
-    "nombre": "Nombre",
-    "nombrePlaceholder": "Nombre de tu mascota",
-    "especie": "Especie",
-    "tamano": "Tamaño",
-    "foto": "Foto (URL)",
-    "guardar": "Guardar",
-    "cancelar": "Cancelar",
+  "lista": {
+    "ui": {
+      "titulo": "Mis Mascotas",
+      "agregar": "Agregar mascota",
+      "detalles": "Ver detalles",
+      "accion": "Acción"
+    },
     "errores": {
-      "nombreRequerido": "El nombre es obligatorio."
+      "cargar": "No pudimos cargar tus mascotas"
+    },
+    "vacio": {
+      "titulo": "Aún no tienes mascotas",
+      "descripcion": "Agrega tu primera mascota para empezar a solicitar paseos."
+    },
+    "elemento": {
+      "pesoDesconocido": "Sin peso registrado"
     }
   },
-  "detalles": "Ver detalles",
-  "accion": "Acción",
-  "peso": "Peso: {{kg}}kg",
-  "pesoDesconocido": "Sin peso registrado",
-  "insignia": {
-    "vacunasAlDia": "Vacunas al día"
+  "crear": {
+    "formulario": {
+      "titulo": "Nueva mascota",
+      "nombre": {
+        "label": "Nombre",
+        "placeholder": "Nombre de tu mascota"
+      },
+      "foto": {
+        "label": "Foto (URL)"
+      },
+      "acciones": {
+        "guardar": "Guardar",
+        "cancelar": "Cancelar"
+      },
+      "errores": {
+        "nombreRequerido": "El nombre es obligatorio."
+      }
+    },
+    "exito": {
+      "mensaje": "Mascota creada correctamente."
+    }
   },
-  "cualidades": {
-    "energetico": "Enérgico",
-    "sociable": "Sociable"
+  "detalles": {
+    "insignia": {
+      "vacunasAlDia": "Vacunas al día"
+    },
+    "cualidades": {
+      "energetico": "Enérgico",
+      "sociable": "Sociable"
+    }
   }
 }

@@ -2,8 +2,8 @@ import i18n from 'i18next'
 import { initReactI18next } from 'react-i18next'
 
 // Recursos base (ES)
-import esCommon from './locales/es/common.json'
-import esErrors from './locales/es/errors.json'
+import esComun from './locales/es/comun.json'
+import esErrores from './locales/es/errores.json'
 import esAuth from './locales/es/auth.json'
 import esMascotas from './locales/es/mascotas.json'
 import type { ErrorCode } from '@/constants/errors'
@@ -26,14 +26,14 @@ if (!i18n.isInitialized) {
     compatibilityJSON: 'v4',
     resources: {
       es: {
-        common: esCommon,
-        errors: esErrors as any,
+        comun: esComun,
+        errores: esErrores as any,
         auth: esAuth as any,
         mascotas: esMascotas as any,
       },
     },
-    ns: ['common', 'errors', 'auth', 'mascotas'],
-    defaultNS: 'common',
+    ns: ['comun', 'errores', 'auth', 'mascotas'],
+    defaultNS: 'comun',
     fallbackLng: 'es',
     lng: detectDeviceLanguage() || 'es',
     supportedLngs: ['es'],
@@ -58,7 +58,7 @@ export { i18n }
 
 // Helper: traducir códigos de error a mensajes legibles, usando namespace 'errors'
 export function tError(code: ErrorCode, vars?: Record<string, unknown>) {
-  return i18n.t(`errors:${code}`, { defaultValue: code, ...vars })
+  return i18n.t(`errores:${code}`, { defaultValue: code, ...vars })
 }
 
 /**
@@ -70,9 +70,8 @@ export function tErrorMaybe(
   fallback?: string,
   vars?: Record<string, unknown>
 ) {
-  if (!codeOrMessage)
-    return fallback ?? i18n.t('common:comun.intentaNuevamente')
-  const key = `errors:${codeOrMessage}`
-  if (i18n.exists(key)) return i18n.t(key, vars)
+  if (!codeOrMessage) return fallback ?? i18n.t('comun:intentaNuevamente')
+  const keyErrores = `errores:${codeOrMessage}`
+  if (i18n.exists(keyErrores)) return i18n.t(keyErrores, vars)
   return codeOrMessage
 }

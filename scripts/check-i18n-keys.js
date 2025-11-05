@@ -4,7 +4,8 @@ const path = require('path')
 
 const ROOT = path.resolve(__dirname, '..')
 const LOCALES_DIR = path.join(ROOT, 'services', 'i18n', 'locales', 'es')
-const DEFAULT_NS = 'common'
+// Namespace por defecto (usar el namespace en español 'comun')
+const DEFAULT_NS = 'comun'
 
 function readJson(file) {
   try {
