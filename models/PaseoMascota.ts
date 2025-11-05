@@ -16,8 +16,13 @@ export type EstadoMascotaPaseo =
 export interface PaseoMascota extends BaseModel {
   /** ID del paseo al que pertenece esta entrada. */
   id_paseo: string
-  /** ID de la mascota participante. */
+  /**
+   * ID de la mascota participante (denormalizado y además coincide con el documentId del subdoc).
+   * Ruta: paseos/{paseoId}/mascotas/{mascotaId}
+   */
   id_mascota: string
+  /** ID del dueño de la mascota (denormalizado para reglas y consultas). */
+  id_usuario: string
   /** Observaciones hechas por el paseador o dueño durante el servicio. */
   observaciones?: string
   /** Código que verifica la recogida de la mascota. */

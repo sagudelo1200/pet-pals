@@ -1,6 +1,8 @@
 import { BaseCrudService } from './crud'
 import { Mascota } from '../../models/Mascota'
 import { CrudResult } from './types'
+import { AuthService } from './auth'
+import { ERR } from '@/constants'
 
 export class MascotaService {
   private static readonly COLLECTION = 'mascotas'
@@ -11,7 +13,19 @@ export class MascotaService {
       'id' | 'createdAt' | 'updatedAt' | 'createdBy' | 'updatedBy'
     >
   ): Promise<CrudResult<Mascota>> {
-    return BaseCrudService.create<Mascota>(this.COLLECTION, data)
+    const currentUser = AuthService.getCurrentUser()
+    const uid = currentUser?.uid
+    if (!uid) {
+      return { success: false, error: ERR.NO_AUTENTICADO }
+    }
+
+    // Alinear propiedad: id_usuario debe ser el dueño (uid actual)
+    if (data.id_usuario && data.id_usuario !== uid) {
+      return { success: false, error: ERR.DUENO_NO_COINCIDE }
+    }
+
+    const payload = { ...data, id_usuario: uid }
+    return BaseCrudService.create<Mascota>(this.COLLECTION, payload)
   }
 
   static async getById(id: string): Promise<CrudResult<Mascota>> {

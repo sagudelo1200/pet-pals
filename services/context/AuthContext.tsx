@@ -50,17 +50,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           }
           setUser(authUser)
 
-          // Cargar el perfil desde Firestore por correo (campo 'correo' según el modelo Usuario)
-          if (firebaseUser.email) {
-            const res = await UsuarioService.getByEmail(firebaseUser.email)
-            if (res.success && res.data && res.data.length > 0) {
-              const doc = res.data[0]
-              setProfile(doc)
-              setRoles(doc.roles)
-            } else {
-              setProfile(null)
-              setRoles([])
-            }
+          // Cargar el perfil desde Firestore por UID (usuarios/{uid})
+          const res = await UsuarioService.getById(firebaseUser.uid)
+          if (res.success && res.data) {
+            setProfile(res.data)
+            setRoles(res.data.roles)
           } else {
             setProfile(null)
             setRoles([])
@@ -118,12 +112,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   // Recargar perfil/roles bajo demanda (por ejemplo, tras crear el documento de usuario)
   const reloadProfile = async (): Promise<void> => {
     const current = AuthService.getCurrentUser()
-    if (current?.email) {
-      const res = await UsuarioService.getByEmail(current.email)
-      if (res.success && res.data && res.data.length > 0) {
-        const doc = res.data[0]
-        setProfile(doc)
-        setRoles(doc.roles)
+    if (current?.uid) {
+      const res = await UsuarioService.getById(current.uid)
+      if (res.success && res.data) {
+        setProfile(res.data)
+        setRoles(res.data.roles)
       }
     }
   }

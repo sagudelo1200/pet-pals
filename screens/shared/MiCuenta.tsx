@@ -2,6 +2,7 @@ import React, { useCallback } from 'react'
 import { Alert, Platform, Text, View } from 'react-native'
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Button } from '@/components'
+import { tErrorMaybe } from '@/services/i18n'
 import { useAuth } from '@/services/context/AuthContext'
 import { useNavigation } from '@react-navigation/native'
 import { COLOR } from '@/constants'
@@ -25,7 +26,7 @@ const MiCuenta = () => {
     } else {
       Alert.alert(
         'No se pudo cerrar sesión',
-        result.error || 'Intenta nuevamente.'
+        tErrorMaybe(result.error, 'Intenta nuevamente.')
       )
     }
   }, [logout, navigation])

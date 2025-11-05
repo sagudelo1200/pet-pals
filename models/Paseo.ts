@@ -24,10 +24,14 @@ export type EstadoPaseo =
 export interface Paseo extends BaseModel {
   /** ID del dueño que solicitó el paseo. */
   creado_por: string
-  /** ID del paseador asignado al servicio. */
-  id_paseador: string
-  /** ID de la mascota a pasear. */
-  id_mascota: string
+  /** ID del paseador asignado al servicio (puede no estar asignado inicialmente). */
+  id_paseador?: string
+  /** Indica si el paseo admite múltiples mascotas. */
+  es_multiple?: boolean
+  /** Cupo máximo de mascotas para este paseo (no debe superar el límite global). */
+  cupo_maximo_mascotas?: number
+  /** Contador actual de mascotas unidas a este paseo (subcolección). */
+  mascotas_count?: number
   /** Tipo de paseo (a demanda o programado). */
   tipo_paseo: TipoPaseo
   /** Fecha y hora de inicio del paseo. */

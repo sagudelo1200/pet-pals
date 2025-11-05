@@ -1,0 +1,162 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // === Helpers ===
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    // Carga el doc de usuario para roles; listo para claims en el futuro
+    function userDoc() {
+      return get(/databases/$(database)/documents/usuarios/$(request.auth.uid));
+    }
+
+    function isAdmin() {
+      return isSignedIn() && userDoc().data.roles != null && ('admin' in userDoc().data.roles);
+    }
+
+    function isOwner() {
+      return isSignedIn() && resource.data.createdBy == request.auth.uid;
+    }
+
+    function isCreatingOwner() {
+      return isSignedIn() && request.resource.data.createdBy == request.auth.uid;
+    }
+
+    function systemFieldsCreateValid() {
+      // Permitimos que el cliente envíe timestamps para createdAt/updatedAt (esperamos serverTimestamp/timestamp)
+      return request.resource.data.createdAt is timestamp &&
+             request.resource.data.updatedAt is timestamp;
+    }
+
+    function systemFieldsUpdateValid() {
+      // createdAt y createdBy inmutables; updatedAt debe ser timestamp
+      return request.resource.data.createdAt == resource.data.createdAt &&
+             request.resource.data.createdBy == resource.data.createdBy &&
+             request.resource.data.updatedAt is timestamp;
+    }
+
+    // === usuarios ===
+    match /usuarios/{uid} {
+      allow read: if isSignedIn() && (uid == request.auth.uid || isAdmin());
+      allow create: if isSignedIn() && uid == request.auth.uid
+                    && isCreatingOwner() && systemFieldsCreateValid();
+      allow update: if isSignedIn() && (uid == request.auth.uid || isAdmin())
+                    && systemFieldsUpdateValid();
+      allow delete: if isAdmin();
+    }
+
+    // === perfil_publico ===
+    match /perfil_publico/{docId} {
+      allow read: if true; // público
+      // Dueño del perfil (id_usuario) o admin pueden escribir
+      allow create: if isSignedIn() && (
+        request.resource.data.id_usuario == request.auth.uid || isAdmin()
+      ) && systemFieldsCreateValid();
+
+      allow update: if isSignedIn() && (
+        request.resource.data.id_usuario == request.auth.uid || isAdmin()
+      ) && systemFieldsUpdateValid();
+      allow delete: if isAdmin();
+    }
+
+    // === mascotas ===
+    match /mascotas/{id} {
+      // Lectura: sólo dueño o admin (excepciones para paseador se añadirán luego)
+      allow read: if isSignedIn() && (isOwner() || isAdmin());
+
+      allow create: if isSignedIn()
+                    && isCreatingOwner()
+                    && request.resource.data.id_usuario == request.auth.uid
+                    && systemFieldsCreateValid();
+
+      // No permitir cambiar id_usuario ni createdBy/createdAt
+      allow update: if isSignedIn() && isOwner() && systemFieldsUpdateValid()
+                    && request.resource.data.id_usuario == resource.data.id_usuario;
+
+      allow delete: if isSignedIn() && (isOwner() || isAdmin());
+    }
+
+    // === paseos ===
+    match /paseos/{id} {
+      // Lectura: dueño (creado_por), paseador asignado (id_paseador), o admin
+      allow read: if isSignedIn() && (
+        resource.data.creado_por == request.auth.uid ||
+        resource.data.id_paseador == request.auth.uid ||
+        isAdmin()
+      );
+
+      // Dueño o paseador crea. Validaciones finas de estado/transiciones vendrán después
+      allow create: if isSignedIn() && isCreatingOwner()
+        && request.resource.data.creado_por == request.auth.uid
+        && systemFieldsCreateValid();
+
+      // Update mínimo: bloquear inmutables (creado_por) y campos de sistema
+      allow update: if isSignedIn() && (
+        isOwner() || resource.data.id_paseador == request.auth.uid || isAdmin()
+      ) && systemFieldsUpdateValid()
+        && request.resource.data.creado_por == resource.data.creado_por;
+
+      allow delete: if isSignedIn() && (isOwner() || isAdmin());
+    }
+
+    // === Subcolección: paseos/{paseoId}/mascotas/{mascotaId}
+    match /paseos/{paseoId}/mascotas/{mascotaId} {
+      function paseoDoc() {
+        return get(/databases/$(database)/documents/paseos/$(paseoId));
+      }
+      // Dueño de la mascota participante usando datos denormalizados en el subdoc
+      function isMascotaOwner() {
+        return isSignedIn() && resource != null && resource.data.id_usuario == request.auth.uid;
+      }
+      function isInvolved() {
+        return isSignedIn() && (
+          paseoDoc().data.creado_por == request.auth.uid ||
+          paseoDoc().data.id_paseador == request.auth.uid ||
+          isAdmin()
+        );
+      }
+
+      // Permitir lectura a involucrados y al dueño de la mascota (joiner)
+      allow read: if isInvolved() || isMascotaOwner();
+
+      // Crear entrada por mascota (ID = mascotaId)
+      allow create: if systemFieldsCreateValid() && (
+        // Involucrados pueden agregar
+        isInvolved() ||
+        // Joiners: paseo múltiple, estado permite unir, y el usuario es dueño de la mascota
+  (paseoDoc().data.es_multiple == true &&
+   (paseoDoc().data.estado in ['pendiente', 'confirmado']) &&
+   // Usamos el dato denormalizado provisto en el write
+   request.resource.data.id_usuario == request.auth.uid &&
+   // El subdoc declara su id_mascota y coincide con el documentId
+   request.resource.data.id_mascota == mascotaId)
+      );
+
+      // Validaciones adicionales para create: createdBy/updatedBy deben ser del usuario actual
+      allow create: if request.resource.data.createdBy == request.auth.uid && request.resource.data.updatedBy == request.auth.uid;
+
+      // No permitir cambiar campos de sistema
+      allow update: if isInvolved() && systemFieldsUpdateValid()
+        // Mantener inmutables los identificadores denormalizados
+        && request.resource.data.id_mascota == resource.data.id_mascota
+        && request.resource.data.id_usuario == resource.data.id_usuario;
+
+      // Permitir que el dueño de la mascota (joiner) edite exclusivamente 'observaciones'
+      // (más los campos de sistema updatedAt/updatedBy que el servidor/cliente gestionan).
+      allow update: if isMascotaOwner() && systemFieldsUpdateValid()
+        // Identificadores y estado/códigos inmutables por joiner
+        && request.resource.data.id_paseo == resource.data.id_paseo
+        && request.resource.data.id_mascota == resource.data.id_mascota
+        && request.resource.data.id_usuario == resource.data.id_usuario
+        && request.resource.data.estado_mascota == resource.data.estado_mascota
+        && request.resource.data.codigo_recogida == resource.data.codigo_recogida
+        && request.resource.data.codigo_entrega == resource.data.codigo_entrega
+        // Recomendado: updatedBy refleje al usuario que edita
+        && request.resource.data.updatedBy == request.auth.uid;
+
+      allow delete: if isInvolved();
+    }
+  }
+}

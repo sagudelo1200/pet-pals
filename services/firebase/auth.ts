@@ -8,6 +8,35 @@ import {
 } from 'firebase/auth'
 import { auth } from '../../firebase.config'
 import { AuthResult } from './types'
+import { ERR } from '@/constants/errors'
+
+// Mapeo de errores de Firebase Auth a códigos de dominio
+function mapFirebaseAuthError(e: any): string {
+  const code = e?.code as string | undefined
+  switch (code) {
+    case 'auth/invalid-credential':
+    case 'auth/wrong-password':
+      return ERR.AUTH_INVALID_CREDENTIALS
+    case 'auth/user-not-found':
+      return ERR.AUTH_USER_NOT_FOUND
+    case 'auth/invalid-email':
+      return ERR.AUTH_INVALID_EMAIL
+    case 'auth/user-disabled':
+      return ERR.AUTH_USER_DISABLED
+    case 'auth/too-many-requests':
+      return ERR.AUTH_TOO_MANY_REQUESTS
+    case 'auth/email-already-in-use':
+      return ERR.AUTH_EMAIL_IN_USE
+    case 'auth/weak-password':
+      return ERR.AUTH_WEAK_PASSWORD
+    case 'auth/operation-not-allowed':
+      return ERR.AUTH_OPERATION_NOT_ALLOWED
+    case 'auth/network-request-failed':
+      return ERR.AUTH_NETWORK_ERROR
+    default:
+      return ERR.ERROR_DESCONOCIDO
+  }
+}
 
 export class AuthService {
   // Registro con email y contraseña
@@ -43,7 +72,7 @@ export class AuthService {
       console.error('Error en registro:', error)
       return {
         success: false,
-        error: error.message,
+        error: mapFirebaseAuthError(error),
       }
     }
   }
@@ -73,7 +102,7 @@ export class AuthService {
       console.error('Error en login:', error)
       return {
         success: false,
-        error: error.message,
+        error: mapFirebaseAuthError(error),
       }
     }
   }
@@ -87,7 +116,7 @@ export class AuthService {
       console.error('Error en logout:', error)
       return {
         success: false,
-        error: error.message,
+        error: mapFirebaseAuthError(error),
       }
     }
   }

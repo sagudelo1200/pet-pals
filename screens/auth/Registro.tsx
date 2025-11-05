@@ -16,6 +16,7 @@ import { Button, TextInput } from '@/components/ui'
 import { useAuth } from '@/services/context/AuthContext'
 import { UsuarioService } from '@/services/firebase/usuario'
 import type { RolUsuario } from '@/models/Usuario'
+import { tErrorMaybe } from '@/services/i18n'
 import { useNavigation } from '@react-navigation/native'
 import type { StackNavigationProp } from '@react-navigation/stack'
 import type { AuthFlowParamList } from '@/navigation/types'
@@ -81,13 +82,16 @@ const Registro: React.FC = () => {
 
     const result = await register(email.trim(), password, nombre.trim())
     if (!result.success || !result.user) {
-      Alert.alert('No se pudo registrar', result.error || 'Intenta nuevamente.')
+      Alert.alert(
+        'No se pudo registrar',
+        tErrorMaybe(result.error, 'Intenta nuevamente.')
+      )
       return
     }
 
     try {
       setCreatingProfile(true)
-      await UsuarioService.create({
+      await UsuarioService.createForCurrentUser({
         nombre: nombre.trim(),
         correo: email.trim(),
         celular: '',
@@ -98,7 +102,10 @@ const Registro: React.FC = () => {
       } as any)
       await reloadProfile?.()
     } catch (e: any) {
-      Alert.alert('Perfil no creado', e?.message || 'Intenta nuevamente.')
+      Alert.alert(
+        'Perfil no creado',
+        tErrorMaybe(e?.message, 'Intenta nuevamente.')
+      )
     } finally {
       setCreatingProfile(false)
     }

@@ -1,6 +1,10 @@
 import { BaseCrudService } from './crud'
 import { Usuario } from '../../models/Usuario'
 import { CrudResult } from './types'
+import { db } from '@/firebase.config'
+import { doc, setDoc } from 'firebase/firestore'
+import { nowServerTimestamp, toDb } from './converters'
+import { AuthService } from './auth'
 
 export class UsuarioService {
   private static readonly COLLECTION = 'usuarios'
@@ -12,6 +16,38 @@ export class UsuarioService {
     >
   ): Promise<CrudResult<Usuario>> {
     return BaseCrudService.create<Usuario>(this.COLLECTION, data)
+  }
+
+  /**
+   * Crea/actualiza el documento de usuario con ID = uid del usuario autenticado.
+   * Requerido por las reglas de seguridad para `usuarios/{uid}`.
+   */
+  static async createForCurrentUser(
+    data: Omit<
+      Usuario,
+      'id' | 'createdAt' | 'updatedAt' | 'createdBy' | 'updatedBy'
+    >
+  ): Promise<CrudResult<Usuario>> {
+    try {
+      const currentUser = AuthService.getCurrentUser()
+      const uid = currentUser?.uid
+      if (!uid) return { success: false, error: 'NO_AUTENTICADO' }
+
+      const base = {
+        createdAt: nowServerTimestamp(),
+        updatedAt: nowServerTimestamp(),
+        createdBy: uid,
+        updatedBy: uid,
+      }
+
+      const ref = doc(db, this.COLLECTION, uid)
+      await setDoc(ref, toDb({ ...data, ...base }))
+
+      // Leer de vuelta usando el CRUD para convertir a dominio
+      return BaseCrudService.getById<Usuario>(this.COLLECTION, uid)
+    } catch (error: any) {
+      return { success: false, error: error?.message || 'ERROR_DESCONOCIDO' }
+    }
   }
 
   static async getById(id: string): Promise<CrudResult<Usuario>> {

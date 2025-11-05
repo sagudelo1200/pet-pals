@@ -16,6 +16,7 @@ import { useNavigation } from '@react-navigation/native'
 import type { AuthFlowParamList } from '@/navigation/types'
 import type { StackNavigationProp } from '@react-navigation/stack'
 import { useTranslation } from 'react-i18next'
+import { tErrorMaybe } from '@/services/i18n'
 
 interface DismissKeyboardProps {
   children: React.ReactNode
@@ -47,7 +48,7 @@ const Ingresar: React.FC = () => {
     if (!result.success) {
       Alert.alert(
         t('auth.errors.loginFailed.title'),
-        result.error || t('common.tryAgain')
+        tErrorMaybe(result.error, t('common.tryAgain'))
       )
     }
   }, [email, password, login])
