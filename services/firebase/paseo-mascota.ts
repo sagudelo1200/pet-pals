@@ -11,6 +11,7 @@ import { AuthService } from './auth'
 import type { Mascota } from '@/models/Mascota'
 import { BaseCrudService } from './crud'
 import { MAX_MASCOTAS_POR_PASEO, ERR } from '@/constants'
+import { mapFirebaseError } from './errors'
 
 // Subcolección: paseos/{paseoId}/mascotas/{mascotaId}
 export async function addMascotasAlPaseo(
@@ -49,17 +50,7 @@ export async function addMascotasAlPaseo(
     await batch.commit()
     return { success: true }
   } catch (e: any) {
-    const code = e?.code as string | undefined
-    if (code === 'permission-denied')
-      return { success: false, error: ERR.PERMISOS_INSUFICIENTES }
-    if (code === 'unauthenticated')
-      return { success: false, error: ERR.NO_AUTENTICADO }
-    const msg = e?.message as string | undefined
-    const isErrCode = msg && (Object as any).values(ERR).includes(msg)
-    return {
-      success: false,
-      error: isErrCode ? (msg as any) : ERR.ERROR_DESCONOCIDO,
-    }
+    return { success: false, error: mapFirebaseError(e) }
   }
 }
 
@@ -130,16 +121,6 @@ export async function addMascotaAlPaseo(
 
     return { success: true }
   } catch (e: any) {
-    const code = e?.code as string | undefined
-    if (code === 'permission-denied')
-      return { success: false, error: ERR.PERMISOS_INSUFICIENTES }
-    if (code === 'unauthenticated')
-      return { success: false, error: ERR.NO_AUTENTICADO }
-    const msg = e?.message as string | undefined
-    const isErrCode = msg && (Object as any).values(ERR).includes(msg)
-    return {
-      success: false,
-      error: isErrCode ? (msg as any) : ERR.ERROR_DESCONOCIDO,
-    }
+    return { success: false, error: mapFirebaseError(e) }
   }
 }

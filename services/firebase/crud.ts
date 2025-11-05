@@ -15,6 +15,7 @@ import { CrudResult } from './types'
 import { AuthService } from './auth'
 import { nowServerTimestamp, toDb, toDomain } from './converters'
 import { ERR } from '@/constants'
+import { mapFirebaseError } from './errors'
 
 export class BaseCrudService {
   /**
@@ -39,15 +40,7 @@ export class BaseCrudService {
       // Re-leer para retornar en formato de dominio (Date)
       return this.getById<T>(collectionName, docRef.id)
     } catch (error: any) {
-      return {
-        success: false,
-        error:
-          error?.code === 'permission-denied'
-            ? ERR.PERMISOS_INSUFICIENTES
-            : error?.code === 'unauthenticated'
-              ? ERR.NO_AUTENTICADO
-              : ERR.ERROR_DESCONOCIDO,
-      }
+      return { success: false, error: mapFirebaseError(error) }
     }
   }
 
@@ -75,13 +68,7 @@ export class BaseCrudService {
         error: ERR.DOCUMENTO_NO_ENCONTRADO,
       }
     } catch (error: any) {
-      return {
-        success: false,
-        error:
-          error?.code === 'permission-denied'
-            ? ERR.PERMISOS_INSUFICIENTES
-            : error.message,
-      }
+      return { success: false, error: mapFirebaseError(error) }
     }
   }
 
@@ -108,15 +95,7 @@ export class BaseCrudService {
       // Retornar documento actualizado
       return this.getById<T>(collectionName, id)
     } catch (error: any) {
-      return {
-        success: false,
-        error:
-          error?.code === 'permission-denied'
-            ? ERR.PERMISOS_INSUFICIENTES
-            : error?.code === 'unauthenticated'
-              ? ERR.NO_AUTENTICADO
-              : ERR.ERROR_DESCONOCIDO,
-      }
+      return { success: false, error: mapFirebaseError(error) }
     }
   }
 
@@ -136,15 +115,7 @@ export class BaseCrudService {
         data: true,
       }
     } catch (error: any) {
-      return {
-        success: false,
-        error:
-          error?.code === 'permission-denied'
-            ? ERR.PERMISOS_INSUFICIENTES
-            : error?.code === 'unauthenticated'
-              ? ERR.NO_AUTENTICADO
-              : ERR.ERROR_DESCONOCIDO,
-      }
+      return { success: false, error: mapFirebaseError(error) }
     }
   }
 
@@ -168,15 +139,7 @@ export class BaseCrudService {
         data: documents,
       }
     } catch (error: any) {
-      return {
-        success: false,
-        error:
-          error?.code === 'permission-denied'
-            ? ERR.PERMISOS_INSUFICIENTES
-            : error?.code === 'unauthenticated'
-              ? ERR.NO_AUTENTICADO
-              : ERR.ERROR_DESCONOCIDO,
-      }
+      return { success: false, error: mapFirebaseError(error) }
     }
   }
 
@@ -208,15 +171,7 @@ export class BaseCrudService {
         data: documents,
       }
     } catch (error: any) {
-      return {
-        success: false,
-        error:
-          error?.code === 'permission-denied'
-            ? ERR.PERMISOS_INSUFICIENTES
-            : error?.code === 'unauthenticated'
-              ? ERR.NO_AUTENTICADO
-              : ERR.ERROR_DESCONOCIDO,
-      }
+      return { success: false, error: mapFirebaseError(error) }
     }
   }
 }

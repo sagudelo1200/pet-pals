@@ -2,6 +2,7 @@ import { useCallback, useMemo, useState } from 'react'
 import { BaseCrudService } from '@/services/firebase'
 import type { BaseModel } from '@/models/BaseModel'
 import type { CrudResult } from '@/services/firebase/types'
+import { mapFirebaseError } from '@/services/firebase/errors'
 
 /**
  * Hook fino para exponer un CRUD por colección basado en BaseCrudService.
@@ -18,7 +19,7 @@ export function useCrud<T extends BaseModel = any>(collectionName: string) {
     try {
       return await fn()
     } catch (e: any) {
-      setError(e?.message || 'UNKNOWN')
+      setError(mapFirebaseError(e))
       throw e
     } finally {
       setLoading(false)

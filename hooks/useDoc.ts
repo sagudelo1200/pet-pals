@@ -9,6 +9,7 @@ import {
 import { db } from '@/firebase.config'
 import { toDomain } from '@/services/firebase/converters'
 import { ERR } from '@/constants'
+import { mapFirebaseError } from '@/services/firebase/errors'
 import type { BaseModel } from '@/models/BaseModel'
 
 /**
@@ -46,9 +47,7 @@ export function useDoc<T extends BaseModel = any>(
         setError(ERR.DOCUMENTO_NO_ENCONTRADO)
       }
     } catch (e: any) {
-      const code = e?.code as string | undefined
-      if (code === 'permission-denied') setError(ERR.PERMISOS_INSUFICIENTES)
-      else setError(e?.message || ERR.ERROR_DESCONOCIDO)
+      setError(mapFirebaseError(e))
     } finally {
       setLoading(false)
     }
@@ -74,9 +73,7 @@ export function useDoc<T extends BaseModel = any>(
         }
       },
       err => {
-        const code = (err as any)?.code as string | undefined
-        if (code === 'permission-denied') setError(ERR.PERMISOS_INSUFICIENTES)
-        else setError(err?.message || ERR.ERROR_DESCONOCIDO)
+        setError(mapFirebaseError(err))
         setLoading(false)
       }
     )

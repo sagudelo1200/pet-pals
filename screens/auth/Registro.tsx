@@ -17,6 +17,7 @@ import { useAuth } from '@/services/context/AuthContext'
 import { UsuarioService } from '@/services/firebase/usuario'
 import type { RolUsuario } from '@/models/Usuario'
 import { tErrorMaybe } from '@/services/i18n'
+import { mapFirebaseError } from '@/services/firebase/errors'
 import { useNavigation } from '@react-navigation/native'
 import type { StackNavigationProp } from '@react-navigation/stack'
 import type { AuthFlowParamList } from '@/navigation/types'
@@ -104,7 +105,7 @@ const Registro: React.FC = () => {
     } catch (e: any) {
       Alert.alert(
         'Perfil no creado',
-        tErrorMaybe(e?.message, 'Intenta nuevamente.')
+        tErrorMaybe(mapFirebaseError(e), 'Intenta nuevamente.')
       )
     } finally {
       setCreatingProfile(false)

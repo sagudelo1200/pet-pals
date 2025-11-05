@@ -6,7 +6,8 @@ import {
   type Unsubscribe,
 } from 'firebase/firestore'
 import { toDomain } from '@/services/firebase/converters'
-import { ERR } from '@/constants'
+// ERR codes are produced via mapFirebaseError
+import { mapFirebaseError } from '@/services/firebase/errors'
 import type { BaseModel } from '@/models/BaseModel'
 
 /**
@@ -36,9 +37,7 @@ export function useCollection<T extends BaseModel = any>(
       })
       setData(items)
     } catch (e: any) {
-      const code = e?.code as string | undefined
-      if (code === 'permission-denied') setError(ERR.PERMISOS_INSUFICIENTES)
-      else setError(e?.message || ERR.ERROR_DESCONOCIDO)
+      setError(mapFirebaseError(e))
     } finally {
       setLoading(false)
     }
@@ -63,9 +62,7 @@ export function useCollection<T extends BaseModel = any>(
         setLoading(false)
       },
       err => {
-        const code = (err as any)?.code as string | undefined
-        if (code === 'permission-denied') setError(ERR.PERMISOS_INSUFICIENTES)
-        else setError(err?.message || ERR.ERROR_DESCONOCIDO)
+        setError(mapFirebaseError(err))
         setLoading(false)
       }
     )
