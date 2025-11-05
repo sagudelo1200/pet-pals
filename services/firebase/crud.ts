@@ -41,7 +41,12 @@ export class BaseCrudService {
     } catch (error: any) {
       return {
         success: false,
-        error: error.message,
+        error:
+          error?.code === 'permission-denied'
+            ? ERR.PERMISOS_INSUFICIENTES
+            : error?.code === 'unauthenticated'
+              ? ERR.NO_AUTENTICADO
+              : ERR.ERROR_DESCONOCIDO,
       }
     }
   }
@@ -105,7 +110,12 @@ export class BaseCrudService {
     } catch (error: any) {
       return {
         success: false,
-        error: error.message,
+        error:
+          error?.code === 'permission-denied'
+            ? ERR.PERMISOS_INSUFICIENTES
+            : error?.code === 'unauthenticated'
+              ? ERR.NO_AUTENTICADO
+              : ERR.ERROR_DESCONOCIDO,
       }
     }
   }
@@ -128,7 +138,12 @@ export class BaseCrudService {
     } catch (error: any) {
       return {
         success: false,
-        error: error.message,
+        error:
+          error?.code === 'permission-denied'
+            ? ERR.PERMISOS_INSUFICIENTES
+            : error?.code === 'unauthenticated'
+              ? ERR.NO_AUTENTICADO
+              : ERR.ERROR_DESCONOCIDO,
       }
     }
   }
@@ -155,7 +170,12 @@ export class BaseCrudService {
     } catch (error: any) {
       return {
         success: false,
-        error: error.message,
+        error:
+          error?.code === 'permission-denied'
+            ? ERR.PERMISOS_INSUFICIENTES
+            : error?.code === 'unauthenticated'
+              ? ERR.NO_AUTENTICADO
+              : ERR.ERROR_DESCONOCIDO,
       }
     }
   }
@@ -190,7 +210,12 @@ export class BaseCrudService {
     } catch (error: any) {
       return {
         success: false,
-        error: error.message,
+        error:
+          error?.code === 'permission-denied'
+            ? ERR.PERMISOS_INSUFICIENTES
+            : error?.code === 'unauthenticated'
+              ? ERR.NO_AUTENTICADO
+              : ERR.ERROR_DESCONOCIDO,
       }
     }
   }

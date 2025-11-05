@@ -2,6 +2,7 @@ import { useCallback, useState } from 'react'
 import { Mascota } from '@/models/Mascota'
 import { MascotaService } from '@/services/firebase/mascota'
 import type { CrudResult } from '@/services/firebase/types'
+import { ERR } from '@/constants'
 
 // Entrada mínima para crear una mascota desde la UI
 export type MascotaCreateInput = Pick<
@@ -19,7 +20,10 @@ export function useMascotaActions() {
     try {
       return await fn()
     } catch (e: any) {
-      setError(e?.message || 'ERROR_DESCONOCIDO')
+      const code = e?.code as string | undefined
+      if (code === 'permission-denied') setError(ERR.PERMISOS_INSUFICIENTES)
+      else if (code === 'unauthenticated') setError(ERR.NO_AUTENTICADO)
+      else setError(ERR.ERROR_DESCONOCIDO)
       throw e
     } finally {
       setLoading(false)

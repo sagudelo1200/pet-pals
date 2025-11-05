@@ -5,6 +5,7 @@ import { db } from '@/firebase.config'
 import { doc, setDoc } from 'firebase/firestore'
 import { nowServerTimestamp, toDb } from './converters'
 import { AuthService } from './auth'
+import { ERR } from '@/constants'
 
 export class UsuarioService {
   private static readonly COLLECTION = 'usuarios'
@@ -31,7 +32,7 @@ export class UsuarioService {
     try {
       const currentUser = AuthService.getCurrentUser()
       const uid = currentUser?.uid
-      if (!uid) return { success: false, error: 'NO_AUTENTICADO' }
+      if (!uid) return { success: false, error: ERR.NO_AUTENTICADO }
 
       const base = {
         createdAt: nowServerTimestamp(),
@@ -46,7 +47,15 @@ export class UsuarioService {
       // Leer de vuelta usando el CRUD para convertir a dominio
       return BaseCrudService.getById<Usuario>(this.COLLECTION, uid)
     } catch (error: any) {
-      return { success: false, error: error?.message || 'ERROR_DESCONOCIDO' }
+      return {
+        success: false,
+        error:
+          error?.code === 'permission-denied'
+            ? ERR.PERMISOS_INSUFICIENTES
+            : error?.code === 'unauthenticated'
+              ? ERR.NO_AUTENTICADO
+              : ERR.ERROR_DESCONOCIDO,
+      }
     }
   }
 

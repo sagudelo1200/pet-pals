@@ -49,7 +49,17 @@ export async function addMascotasAlPaseo(
     await batch.commit()
     return { success: true }
   } catch (e: any) {
-    return { success: false, error: e?.message || ERR.ERROR_DESCONOCIDO }
+    const code = e?.code as string | undefined
+    if (code === 'permission-denied')
+      return { success: false, error: ERR.PERMISOS_INSUFICIENTES }
+    if (code === 'unauthenticated')
+      return { success: false, error: ERR.NO_AUTENTICADO }
+    const msg = e?.message as string | undefined
+    const isErrCode = msg && (Object as any).values(ERR).includes(msg)
+    return {
+      success: false,
+      error: isErrCode ? (msg as any) : ERR.ERROR_DESCONOCIDO,
+    }
   }
 }
 
@@ -120,6 +130,16 @@ export async function addMascotaAlPaseo(
 
     return { success: true }
   } catch (e: any) {
-    return { success: false, error: e?.message || ERR.ERROR_DESCONOCIDO }
+    const code = e?.code as string | undefined
+    if (code === 'permission-denied')
+      return { success: false, error: ERR.PERMISOS_INSUFICIENTES }
+    if (code === 'unauthenticated')
+      return { success: false, error: ERR.NO_AUTENTICADO }
+    const msg = e?.message as string | undefined
+    const isErrCode = msg && (Object as any).values(ERR).includes(msg)
+    return {
+      success: false,
+      error: isErrCode ? (msg as any) : ERR.ERROR_DESCONOCIDO,
+    }
   }
 }
