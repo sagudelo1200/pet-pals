@@ -1,9 +1,11 @@
 import i18n from 'i18next'
 import { initReactI18next } from 'react-i18next'
 
-// Recursos base (solo ES por ahora)
+// Recursos base (ES)
 import esCommon from './locales/es/common.json'
 import esErrors from './locales/es/errors.json'
+import esAuth from './locales/es/auth.json'
+import esMascotas from './locales/es/mascotas.json'
 import type { ErrorCode } from '@/constants/errors'
 
 // Detección opcional del idioma del dispositivo sin forzar dependencia inmediata
@@ -26,9 +28,11 @@ if (!i18n.isInitialized) {
       es: {
         common: esCommon,
         errors: esErrors as any,
+        auth: esAuth as any,
+        mascotas: esMascotas as any,
       },
     },
-    ns: ['common', 'errors'],
+    ns: ['common', 'errors', 'auth', 'mascotas'],
     defaultNS: 'common',
     fallbackLng: 'es',
     lng: detectDeviceLanguage() || 'es',

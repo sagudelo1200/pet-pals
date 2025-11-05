@@ -31,10 +31,10 @@ const Mascotas: React.FC = () => {
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.headerRow}>
-          <Text style={styles.title}>{t('mascotas.titulo')}</Text>
+          <Text style={styles.title}>{t('mascotas:titulo')}</Text>
           <Spacer horizontal size={8} />
           <Button
-            title={t('mascotas.agregar')}
+            title={t('mascotas:agregar')}
             onPress={() => setAdding(true)}
             size="sm"
           />
@@ -42,17 +42,17 @@ const Mascotas: React.FC = () => {
         <Spacer size={12} />
 
         {adding ? (
-          <Card title={t('mascotas.form.titulo')} style={styles.section}>
+          <Card title={t('mascotas:form.titulo')} style={styles.section}>
             <TextInput
-              label={t('mascotas.form.nombre')}
-              placeholder={t('mascotas.form.nombrePlaceholder')}
+              label={t('mascotas:form.nombre')}
+              placeholder={t('mascotas:form.nombrePlaceholder')}
               value={nombre}
               onChangeText={setNombre}
               iconName="paw"
             />
             <Spacer size={8} />
             <TextInput
-              label={t('mascotas.form.foto')}
+              label={t('mascotas:form.foto')}
               placeholder="https://..."
               value={foto}
               onChangeText={setFoto}
@@ -61,7 +61,7 @@ const Mascotas: React.FC = () => {
             <Spacer size={8} />
             <View style={{ flexDirection: 'row' }}>
               <Button
-                title={t('mascotas.form.cancelar')}
+                title={t('mascotas:form.cancelar')}
                 variant="bloque"
                 onPress={() => {
                   setAdding(false)
@@ -72,12 +72,12 @@ const Mascotas: React.FC = () => {
               />
               <Spacer horizontal size={8} />
               <Button
-                title={t('mascotas.form.guardar')}
+                title={t('mascotas:form.guardar')}
                 onPress={async () => {
                   if (!nombre.trim()) {
                     Alert.alert(
-                      t('mascotas.form.titulo'),
-                      t('mascotas.form.errores.nombreRequerido')
+                      t('mascotas:form.titulo'),
+                      t('mascotas:form.errores.nombreRequerido')
                     )
                     return
                   }
@@ -88,14 +88,14 @@ const Mascotas: React.FC = () => {
                   })
                   if (!res.success) {
                     Alert.alert(
-                      t('mascotas.form.titulo'),
+                      t('mascotas:form.titulo'),
                       tErrorMaybe(res.error, t('comun.intentaNuevamente'))
                     )
                     return
                   }
                   Alert.alert(
-                    t('mascotas.form.titulo'),
-                    t('mascotas.crear.exito')
+                    t('mascotas:form.titulo'),
+                    t('mascotas:crear.exito')
                   )
                   setAdding(false)
                   setNombre('')
@@ -112,7 +112,7 @@ const Mascotas: React.FC = () => {
 
         {error ? (
           <EmptyState
-            title={t('mascotas.error.cargar')}
+            title={t('mascotas:error.cargar')}
             description={tErrorMaybe(error)}
             iconName="exclamation-triangle"
           />
@@ -120,8 +120,8 @@ const Mascotas: React.FC = () => {
 
         {!error && mascotas.length === 0 ? (
           <EmptyState
-            title={t('mascotas.vacio.titulo')}
-            description={t('mascotas.vacio.descripcion')}
+            title={t('mascotas:vacio.titulo')}
+            description={t('mascotas:vacio.descripcion')}
             iconName="paw"
           />
         ) : null}
@@ -150,12 +150,12 @@ const Mascotas: React.FC = () => {
                 <View style={{ flex: 1 }}>
                   <Text style={{ color: COLOR.SUBTEXTO }}>
                     {m.peso
-                      ? t('mascotas.peso', { kg: m.peso })
-                      : t('mascotas.pesoDesconocido')}
+                      ? t('mascotas:peso', { kg: m.peso })
+                      : t('mascotas:pesoDesconocido')}
                   </Text>
                   <Spacer size={6} />
                   <Badge
-                    label={t('mascotas.insignia.vacunasAlDia')}
+                    label={t('mascotas:insignia.vacunasAlDia')}
                     variant="exito"
                     size="sm"
                   />
@@ -169,26 +169,26 @@ const Mascotas: React.FC = () => {
                 }}
               >
                 <Chip
-                  label={t('mascotas.cualidades.energetico')}
+                  label={t('mascotas:cualidades.energetico')}
                   size="sm"
                   leftIconName="bolt"
                 />
                 <Spacer horizontal size={6} />
                 <Chip
-                  label={t('mascotas.cualidades.sociable')}
+                  label={t('mascotas:cualidades.sociable')}
                   size="sm"
                   leftIconName="users"
                 />
               </View>
               <View style={{ flexDirection: 'row' }}>
                 <Button
-                  title={t('mascotas.detalles')}
+                  title={t('mascotas:detalles')}
                   size="sm"
                   onPress={() => Alert.alert('Detalles', m.nombre)}
                 />
                 <Spacer horizontal size={8} />
                 <Button
-                  title={t('mascotas.accion')}
+                  title={t('mascotas:accion')}
                   size="sm"
                   variant="info"
                   onPress={() => {}}

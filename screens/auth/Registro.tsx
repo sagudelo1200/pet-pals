@@ -18,6 +18,7 @@ import { UsuarioService } from '@/services/firebase/usuario'
 import type { RolUsuario } from '@/models/Usuario'
 import { tErrorMaybe } from '@/services/i18n'
 import { mapFirebaseError } from '@/services/firebase/errors'
+import { useTranslation } from 'react-i18next'
 import { useNavigation } from '@react-navigation/native'
 import type { StackNavigationProp } from '@react-navigation/stack'
 import type { AuthFlowParamList } from '@/navigation/types'
@@ -37,6 +38,7 @@ type Nav = StackNavigationProp<AuthFlowParamList>
 const Registro: React.FC = () => {
   const navigation = useNavigation<Nav>()
   const { register, loading, reloadProfile } = useAuth()
+  const { t } = useTranslation()
   const [nombre, setNombre] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -56,17 +58,19 @@ const Registro: React.FC = () => {
 
   const emailError = useMemo(() => {
     if (!emailTouched) return ''
-    if (email.trim().length === 0) return 'El correo es obligatorio.'
-    if (!emailValid) return 'El correo no es válido.'
+    if (email.trim().length === 0)
+      return t('auth:registro.errores.correo.obligatorio')
+    if (!emailValid) return t('auth:registro.errores.correo.invalido')
     return ''
-  }, [email, emailTouched, emailValid])
+  }, [email, emailTouched, emailValid, t])
 
   const passwordError = useMemo(() => {
     if (!passwordTouched) return ''
-    if (password.length === 0) return 'La contraseña es obligatoria.'
-    if (!passwordValid) return 'Use al menos 6 caracteres.'
+    if (password.length === 0)
+      return t('auth:registro.errores.password.obligatoria')
+    if (!passwordValid) return t('auth:registro.errores.password.minimo')
     return ''
-  }, [password, passwordTouched, passwordValid])
+  }, [password, passwordTouched, passwordValid, t])
 
   const canSubmit = useMemo(() => {
     return nombre.trim() !== '' && emailValid && passwordValid
@@ -75,8 +79,8 @@ const Registro: React.FC = () => {
   const onSubmit = useCallback(async () => {
     if (!canSubmit) {
       Alert.alert(
-        'Datos incompletos',
-        'Completa nombre, correo y una contraseña de al menos 6 caracteres.'
+        t('auth:errores.camposIncompletos.titulo'),
+        t('auth:errores.camposIncompletos.mensaje')
       )
       return
     }
@@ -84,8 +88,8 @@ const Registro: React.FC = () => {
     const result = await register(email.trim(), password, nombre.trim())
     if (!result.success || !result.user) {
       Alert.alert(
-        'No se pudo registrar',
-        tErrorMaybe(result.error, 'Intenta nuevamente.')
+        t('auth:errores.registroFallido.titulo'),
+        tErrorMaybe(result.error, t('comun.intentaNuevamente'))
       )
       return
     }
@@ -126,27 +130,27 @@ const Registro: React.FC = () => {
         >
           <Block style={styles.content}>
             <Text h4 style={styles.title}>
-              Crear cuenta
+              {t('auth:registro.titulo')}
             </Text>
-            <Text style={styles.subtitle}>Regístrate para empezar</Text>
+            <Text style={styles.subtitle}>{t('auth:registro.subtitulo')}</Text>
 
             <View style={styles.form}>
               <TextInput
-                label="Nombre completo"
+                label={t('auth:registro.nombre.label')}
                 value={nombre}
                 onChangeText={setNombre}
-                placeholder="Tu nombre"
+                placeholder={t('auth:registro.nombre.placeholder')}
                 iconName="user"
               />
 
               <TextInput
-                label="Correo electrónico"
+                label={t('auth:correo')}
                 value={email}
-                onChangeText={t => {
-                  setEmail(t)
+                onChangeText={tVal => {
+                  setEmail(tVal)
                   if (!emailTouched) setEmailTouched(true)
                 }}
-                placeholder="tucorreo@dominio.com"
+                placeholder={t('auth:correoPlaceholder')}
                 keyboardType="email-address"
                 autoCapitalize="none"
                 iconName="envelope"
@@ -154,20 +158,20 @@ const Registro: React.FC = () => {
               />
 
               <TextInput
-                label="Contraseña"
+                label={t('auth:password')}
                 value={password}
-                onChangeText={t => {
-                  setPassword(t)
+                onChangeText={tVal => {
+                  setPassword(tVal)
                   if (!passwordTouched) setPasswordTouched(true)
                 }}
-                placeholder="••••••••"
+                placeholder={t('auth:passwordPlaceholder')}
                 secureTextEntry
                 autoCapitalize="none"
                 iconName="lock"
                 errorText={passwordError}
               />
 
-              <Text style={styles.label}>Soy:</Text>
+              <Text style={styles.label}>{t('auth:registro.soy')}</Text>
               <View style={styles.roleRow}>
                 <Pressable
                   onPress={() => setRol('dueño')}
@@ -177,7 +181,7 @@ const Registro: React.FC = () => {
                     rol === 'dueño' ? styles.roleBtnActive : undefined,
                   ]}
                 >
-                  <Text style={styles.roleText}>Dueño</Text>
+                  <Text style={styles.roleText}>{t('auth:rol.dueno')}</Text>
                 </Pressable>
                 <Pressable
                   onPress={() => setRol('paseador')}
@@ -186,13 +190,15 @@ const Registro: React.FC = () => {
                     rol === 'paseador' ? styles.roleBtnActive : undefined,
                   ]}
                 >
-                  <Text style={styles.roleText}>Paseador</Text>
+                  <Text style={styles.roleText}>{t('auth:rol.paseador')}</Text>
                 </Pressable>
               </View>
 
               <Button
                 title={
-                  loading || creatingProfile ? 'Creando cuenta…' : 'Registrarme'
+                  loading || creatingProfile
+                    ? t('auth:registro.creando')
+                    : t('auth:registro.accion')
                 }
                 onPress={onSubmit}
                 variant="primario"
@@ -203,7 +209,7 @@ const Registro: React.FC = () => {
               />
 
               <Button
-                title="Ya tengo cuenta"
+                title={t('auth:registro.tengoCuenta')}
                 onPress={goToLogin}
                 variant="bloque"
                 fullWidth
