@@ -24,7 +24,8 @@ export class MascotaService {
       return { success: false, error: ERR.DUENO_NO_COINCIDE }
     }
 
-    const payload = { ...data, id_usuario: uid }
+    // Ensure new mascotas are active by default unless explicitly set otherwise
+    const payload = { ...data, id_usuario: uid, activo: data.activo ?? true }
     return BaseCrudService.create<Mascota>(this.COLLECTION, payload)
   }
 

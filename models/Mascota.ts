@@ -74,6 +74,8 @@ export interface Mascota extends BaseModel {
 
   /** Nivel de energía para recomendaciones de paseo. */
   nivel_energia?: NivelEnergia
+  /** Indica si la mascota está activa (visible/usable) o inactiva (no eliminada, solo deshabilitada). */
+  activo?: boolean
   /** Preferencias específicas de la mascota durante el paseo. */
   preferencias_paseo?: string[]
 

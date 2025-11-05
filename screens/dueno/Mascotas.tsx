@@ -1,7 +1,15 @@
 import React, { useMemo, useState } from 'react'
-import { StyleSheet, ScrollView, View, Text, Alert, Image } from 'react-native'
+import {
+  StyleSheet,
+  ScrollView,
+  View,
+  Text,
+  Alert,
+  Image,
+  TouchableOpacity,
+} from 'react-native'
 import { COLOR } from '@/constants'
-import { Card, Button, Spacer, Badge, Chip } from '@/components/ui'
+import { Card, Button, Spacer, Badge, Chip, Icon } from '@/components/ui'
 import EmptyState from '@/components/ui/EmptyState'
 import LoadingScreen from '@/components/LoadingScreen'
 import { useMascotasDelUsuario, useMascotaActions } from '@/hooks'
@@ -12,7 +20,8 @@ import TextInput from '@/components/ui/TextInput'
 const Mascotas: React.FC = () => {
   const { t } = useTranslation()
   const { mascotas, loading, error } = useMascotasDelUsuario({ listen: true })
-  const { create, loading: creating } = useMascotaActions()
+  // Usamos un único hook para acciones sobre mascotas (create/update/remove).
+  const { create, update, loading: actionsLoading } = useMascotaActions()
 
   const [adding, setAdding] = useState(false)
   const [nombre, setNombre] = useState('')
@@ -92,7 +101,7 @@ const Mascotas: React.FC = () => {
                   if (!res.success) {
                     Alert.alert(
                       t('mascotas:crear.formulario.titulo'),
-                      tErrorMaybe(res.error, t('comun.intentaNuevamente'))
+                      tErrorMaybe(res.error, t('comun:intentaNuevamente'))
                     )
                     return
                   }
@@ -105,8 +114,8 @@ const Mascotas: React.FC = () => {
                   setFoto('')
                 }}
                 size="sm"
-                loading={creating}
-                disabled={creating}
+                loading={actionsLoading}
+                disabled={actionsLoading}
                 variant="primario"
               />
             </View>
@@ -130,75 +139,140 @@ const Mascotas: React.FC = () => {
         ) : null}
 
         <View style={styles.grid}>
-          {mascotas.map(m => (
-            <Card
-              key={m.id}
-              title={m.nombre}
-              subtitle={m.raza}
-              style={styles.card}
-            >
-              <View style={styles.itemRow}>
-                {m.foto ? (
-                  <Image source={{ uri: m.foto }} style={styles.dogThumb} />
-                ) : (
-                  <View
-                    style={[
-                      styles.dogThumb,
-                      { alignItems: 'center', justifyContent: 'center' },
-                    ]}
-                  >
-                    <Text style={{ color: COLOR.SUBTEXTO }}>🐶</Text>
+          {mascotas.map(m => {
+            const isActive = m.activo !== false // por defecto activo
+
+            const rightNode = (
+              <TouchableOpacity
+                onPress={() =>
+                  Alert.alert(
+                    isActive
+                      ? t('mascotas:lista.ui.confirmar.desactivar')
+                      : t('mascotas:lista.ui.confirmar.activar'),
+                    isActive
+                      ? t('mascotas:lista.ui.confirmar.desactivarTexto', {
+                          nombre: m.nombre,
+                        })
+                      : t('mascotas:lista.ui.confirmar.activarTexto', {
+                          nombre: m.nombre,
+                        }),
+                    [
+                      {
+                        text: t('comun:cancelar'),
+                        style: 'cancel',
+                      },
+                      {
+                        text: isActive
+                          ? t('mascotas:lista.ui.desactivar')
+                          : t('mascotas:lista.ui.activar'),
+                        onPress: async () => {
+                          const res = await update(m.id, {
+                            activo: !isActive,
+                          })
+                          if (!res.success) {
+                            Alert.alert(
+                              t('mascotas:lista.ui.error'),
+                              tErrorMaybe(
+                                res.error,
+                                t('comun:intentaNuevamente')
+                              )
+                            )
+                          }
+                        },
+                      },
+                    ]
+                  )
+                }
+                style={[styles.iconButton, { padding: 8 }]}
+              >
+                <Icon
+                  name="trash"
+                  size={16}
+                  color={isActive ? COLOR.ERROR : COLOR.SUBTEXTO}
+                  containerStyle={{ width: 24, height: 24 }}
+                />
+              </TouchableOpacity>
+            )
+
+            return (
+              <Card
+                key={m.id}
+                title={m.nombre}
+                subtitle={m.raza}
+                right={rightNode}
+                style={[styles.card, !isActive ? styles.cardInactive : null]}
+              >
+                {/* top actions row: foto + info */}
+                <View style={styles.cardTopRow}>
+                  <View style={styles.itemRow}>
+                    {m.foto ? (
+                      <Image source={{ uri: m.foto }} style={styles.dogThumb} />
+                    ) : (
+                      <View
+                        style={[
+                          styles.dogThumb,
+                          { alignItems: 'center', justifyContent: 'center' },
+                        ]}
+                      >
+                        <Text style={{ color: COLOR.SUBTEXTO }}>🐶</Text>
+                      </View>
+                    )}
+                    <View style={{ flex: 1 }}>
+                      <Text style={{ color: COLOR.SUBTEXTO }}>
+                        {m.peso
+                          ? t('mascotas:lista.elemento.peso', { kg: m.peso })
+                          : t('mascotas:lista.elemento.pesoDesconocido')}
+                      </Text>
+                      <Spacer size={6} />
+                      <Badge
+                        label={t('mascotas:detalles.insignia.vacunasAlDia')}
+                        variant="exito"
+                        size="sm"
+                      />
+                    </View>
                   </View>
-                )}
-                <View style={{ flex: 1 }}>
-                  <Text style={{ color: COLOR.SUBTEXTO }}>
-                    {m.peso
-                      ? t('mascotas:lista.elemento.peso', { kg: m.peso })
-                      : t('mascotas:lista.elemento.pesoDesconocido')}
-                  </Text>
-                  <Spacer size={6} />
-                  <Badge
-                    label={t('mascotas:detalles.insignia.vacunasAlDia')}
-                    variant="exito"
+
+                  {/* icon moved to Card header via `right` prop */}
+                </View>
+
+                <View
+                  style={{
+                    flexDirection: 'row',
+                    flexWrap: 'wrap',
+                    marginBottom: 8,
+                  }}
+                >
+                  <Chip
+                    label={t('mascotas:detalles.cualidades.energetico')}
                     size="sm"
+                    leftIconName="bolt"
+                  />
+                  <Spacer horizontal size={6} />
+                  <Chip
+                    label={t('mascotas:detalles.cualidades.sociable')}
+                    size="sm"
+                    leftIconName="users"
                   />
                 </View>
-              </View>
-              <View
-                style={{
-                  flexDirection: 'row',
-                  flexWrap: 'wrap',
-                  marginBottom: 8,
-                }}
-              >
-                <Chip
-                  label={t('mascotas:detalles.cualidades.energetico')}
-                  size="sm"
-                  leftIconName="bolt"
-                />
-                <Spacer horizontal size={6} />
-                <Chip
-                  label={t('mascotas:detalles.cualidades.sociable')}
-                  size="sm"
-                  leftIconName="users"
-                />
-              </View>
-              <View style={{ flexDirection: 'row' }}>
-                <Button
-                  title={t('mascotas:lista.ui.detalles')}
-                  size="sm"
-                  onPress={() => Alert.alert('Detalles', m.nombre)}
-                />
-                <Spacer horizontal size={8} />
-                <Button
-                  title={t('mascotas:lista.ui.accion')}
-                  size="sm"
-                  variant="info"
-                  onPress={() => {}}
-                />
-              </View>
-            </Card>
-          ))}
+                <View style={{ flexDirection: 'row' }}>
+                  <Button
+                    title={t('mascotas:lista.ui.detalles')}
+                    size="sm"
+                    onPress={() => Alert.alert('Detalles', m.nombre)}
+                    disabled={!isActive}
+                  />
+                  <Spacer horizontal size={8} />
+                  <Button
+                    title={t('mascotas:lista.ui.accion')}
+                    size="sm"
+                    variant="info"
+                    onPress={() => {}}
+                    disabled={!isActive}
+                  />
+                </View>
+              </Card>
+            )
+          })}
         </View>
       </ScrollView>
     </View>
@@ -254,6 +328,25 @@ const styles = StyleSheet.create({
   cardEmoji: {
     fontSize: 28,
     marginBottom: 8,
+  },
+  /* nuevos estilos para acciones del card */
+  cardTopRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 8,
+  },
+  iconActions: {
+    marginLeft: 8,
+    alignItems: 'flex-end',
+    justifyContent: 'flex-start',
+  },
+  iconButton: {
+    padding: 6,
+    borderRadius: 20,
+  },
+  cardInactive: {
+    opacity: 0.55,
   },
 })
 

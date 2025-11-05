@@ -47,8 +47,8 @@ const Icon: React.FC<IconProps> = ({
   const brands = normalizedType === 'brands' ? true : undefined
 
   const box: ViewStyle = {
-    width: size,
-    height: size,
+    width: size + 3,
+    height: size + 3,
     alignItems: 'center',
     justifyContent: 'center',
   }
@@ -72,6 +72,8 @@ const Icon: React.FC<IconProps> = ({
 const styles = StyleSheet.create({
   box: {
     minWidth: 1,
+    // Allow the icon to render slightly outside its bounds if needed
+    overflow: 'visible',
   },
 })
 

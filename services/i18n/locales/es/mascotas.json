@@ -4,7 +4,16 @@
       "titulo": "Mis Mascotas",
       "agregar": "Agregar mascota",
       "detalles": "Ver detalles",
-      "accion": "Acción"
+      "accion": "Acción",
+      "desactivar": "Desactivar",
+      "activar": "Activar",
+      "error": "Error",
+      "confirmar": {
+        "desactivar": "Confirmar desactivación",
+        "activar": "Confirmar activación",
+        "desactivarTexto": "¿Deseas desactivar a {{nombre}}? La mascota quedará inactiva y no estará disponible para solicitudes.",
+        "activarTexto": "¿Deseas reactivar a {{nombre}}? La mascota estará disponible nuevamente."
+      }
     },
     "errores": {
       "cargar": "No pudimos cargar tus mascotas"
@@ -14,6 +23,7 @@
       "descripcion": "Agrega tu primera mascota para empezar a solicitar paseos."
     },
     "elemento": {
+      "peso": "Peso: {{kg}} kg",
       "pesoDesconocido": "Sin peso registrado"
     }
   },

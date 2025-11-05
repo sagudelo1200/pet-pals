@@ -126,9 +126,14 @@ const Button: React.FC<Props> = ({
   const height = size === 'sm' ? 40 : size === 'lg' ? 56 : 48
   const fontSize = size === 'sm' ? 14 : size === 'lg' ? 16 : 15
 
+  // Padding horizontal y minWidth por tamaño para que los botones pequeños
+  // no se vean comprimidos y respeten espacio visual en filas.
+  const paddingHorizontal = size === 'sm' ? 12 : size === 'lg' ? 20 : 16
+  const minWidth = size === 'sm' ? 92 : size === 'lg' ? 140 : 110
+
   const baseStyles: ViewStyle | ViewStyle[] = [
     styles.button,
-    { height },
+    { height, paddingHorizontal, minWidth },
     fullWidth ? styles.fullWidth : undefined,
     ...(Array.isArray(style) ? style : style ? [style] : []),
   ]

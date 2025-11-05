@@ -126,6 +126,8 @@ const styles = StyleSheet.create({
   },
   right: {
     marginLeft: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   footer: {
     marginTop: 12,
