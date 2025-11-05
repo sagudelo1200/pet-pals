@@ -16,7 +16,7 @@ import type { BaseModel } from '@/models/BaseModel'
  * - `listen=true` para realtime; `false` para fetch único.
  */
 export function useCollection<T extends BaseModel = any>(
-  q: Query,
+  q: Query | null,
   options?: { listen?: boolean }
 ) {
   const { listen = false } = options || {}
@@ -30,10 +30,18 @@ export function useCollection<T extends BaseModel = any>(
     setLoading(true)
     setError(undefined)
     try {
+      if (!q) {
+        // No query: expose empty result
+        setData([])
+        setLoading(false)
+        return
+      }
+
       const snap = await getDocs(q)
       const items: T[] = []
       snap.forEach(doc => {
-        items.push({ id: doc.id, ...(toDomain(doc.data()) as T) })
+        const domainData = toDomain(doc.data()) as T | undefined | null
+        items.push({ id: doc.id, ...(domainData ?? {}) } as unknown as T)
       })
       setData(items)
     } catch (e: any) {
@@ -44,8 +52,17 @@ export function useCollection<T extends BaseModel = any>(
   }, [q])
 
   useEffect(() => {
+    // If not in realtime mode, just fetch once (fetchOnce handles q==null)
     if (!listen) {
       void fetchOnce()
+      return () => {}
+    }
+
+    // Realtime mode: if q is null, expose empty data and avoid subscribing
+    if (!q) {
+      setData([])
+      setLoading(false)
+      setError(undefined)
       return () => {}
     }
 
@@ -56,7 +73,8 @@ export function useCollection<T extends BaseModel = any>(
       snap => {
         const items: T[] = []
         snap.forEach(doc => {
-          items.push({ id: doc.id, ...(toDomain(doc.data()) as T) })
+          const domainData = toDomain(doc.data()) as T | undefined | null
+          items.push({ id: doc.id, ...(domainData ?? {}) } as unknown as T)
         })
         setData(items)
         setLoading(false)

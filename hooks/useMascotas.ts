@@ -19,20 +19,23 @@ export function useMascotasDelUsuario(options?: { listen?: boolean }) {
     if (!user?.uid) return null
     return query(collection(db, 'mascotas'), where('createdBy', '==', user.uid))
   }, [user?.uid])
-
-  // Cuando aún carga el estado de auth, devolvemos loading.
-  if (!q) {
-    return {
-      mascotas: [] as Mascota[],
-      loading: authLoading,
-      error: authLoading ? undefined : ERR.NO_AUTENTICADO,
-      refetch: async () => {},
-    }
-  }
-
   const { data, loading, error, refetch } = useCollection<Mascota>(q, {
     listen,
   })
 
-  return { mascotas: data, loading, error, refetch }
+  // When auth is still loading, surface that as loading; when there's no query (no user)
+  // expose NO_AUTENTICADO once auth finished.
+  const effectiveLoading = authLoading || loading
+  const effectiveError = q
+    ? error
+    : authLoading
+      ? undefined
+      : ERR.NO_AUTENTICADO
+
+  return {
+    mascotas: data,
+    loading: effectiveLoading,
+    error: effectiveError,
+    refetch,
+  }
 }

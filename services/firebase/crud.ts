@@ -56,10 +56,10 @@ export class BaseCrudService {
       const docSnap = await getDoc(docRef)
 
       if (docSnap.exists()) {
-        const data = toDomain(docSnap.data())
+        const domainData = toDomain(docSnap.data()) as T | undefined | null
         return {
           success: true,
-          data: { id: docSnap.id, ...data } as T,
+          data: { id: docSnap.id, ...(domainData ?? {}) } as unknown as T,
         }
       }
 
@@ -130,8 +130,8 @@ export class BaseCrudService {
       const documents: T[] = []
 
       querySnapshot.forEach(snap => {
-        const data = toDomain(snap.data())
-        documents.push({ id: snap.id, ...data } as T)
+        const domainData = toDomain(snap.data()) as T | undefined | null
+        documents.push({ id: snap.id, ...(domainData ?? {}) } as unknown as T)
       })
 
       return {
@@ -162,8 +162,8 @@ export class BaseCrudService {
       const documents: T[] = []
 
       querySnapshot.forEach(snap => {
-        const data = toDomain(snap.data())
-        documents.push({ id: snap.id, ...data } as T)
+        const domainData = toDomain(snap.data()) as T | undefined | null
+        documents.push({ id: snap.id, ...(domainData ?? {}) } as unknown as T)
       })
 
       return {

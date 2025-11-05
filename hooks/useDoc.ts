@@ -41,7 +41,8 @@ export function useDoc<T extends BaseModel = any>(
     try {
       const snap = await getDoc(ref)
       if (snap.exists()) {
-        setData({ id: snap.id, ...(toDomain(snap.data()) as T) })
+        const domainData = toDomain(snap.data()) as T | undefined | null
+        setData({ id: snap.id, ...(domainData ?? {}) } as unknown as T)
       } else {
         setData(undefined)
         setError(ERR.DOCUMENTO_NO_ENCONTRADO)
@@ -64,7 +65,8 @@ export function useDoc<T extends BaseModel = any>(
       ref,
       snap => {
         if (snap.exists()) {
-          setData({ id: snap.id, ...(toDomain(snap.data()) as T) })
+          const domainData = toDomain(snap.data()) as T | undefined | null
+          setData({ id: snap.id, ...(domainData ?? {}) } as unknown as T)
           setLoading(false)
         } else {
           setData(undefined)
