@@ -1,13 +1,13 @@
 import { COLOR } from '@/constants'
 import React from 'react'
-import { Text, ScrollView, Alert } from 'react-native'
+import { Text, Alert } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { Card, Button, Spacer } from '@/components/ui'
+import { Card, Button, Spacer, ScreenScrollView } from '@/components/ui'
 
 const Placeholder = () => {
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 32 }}>
+      <ScreenScrollView contentContainerStyle={{ padding: 16 }}>
         <Text style={styles.text}>¡Próximamente!</Text>
         <Text style={styles.subText}>
           Esta sección está en desarrollo. ¡Mantente atento a las
@@ -29,7 +29,7 @@ const Placeholder = () => {
             fullWidth
           />
         </Card>
-      </ScrollView>
+      </ScreenScrollView>
     </SafeAreaView>
   )
 }

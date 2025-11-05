@@ -1,5 +1,5 @@
 import React from 'react'
-import { StyleSheet, ScrollView, View, Platform, Alert } from 'react-native'
+import { StyleSheet, View, Platform, Alert } from 'react-native'
 import { theme, Text } from 'galio-framework'
 import { useNavigation } from '@react-navigation/native'
 import { BottomTabNavigationProp } from '@react-navigation/bottom-tabs'
@@ -14,6 +14,7 @@ import {
   Avatar,
   Badge,
   Icon,
+  ScreenScrollView,
 } from '@/components/ui'
 
 type DashboardNavigationProp = BottomTabNavigationProp<DuenoTabParamList>
@@ -31,7 +32,7 @@ const Dashboard: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <ScrollView
+      <ScreenScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
@@ -120,7 +121,7 @@ const Dashboard: React.FC = () => {
             </View>
           </View>
         </Card>
-      </ScrollView>
+      </ScreenScrollView>
     </View>
   )
 }

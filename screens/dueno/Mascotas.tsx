@@ -1,7 +1,6 @@
 import React, { useMemo, useState } from 'react'
 import {
   StyleSheet,
-  ScrollView,
   View,
   Text,
   Alert,
@@ -9,7 +8,15 @@ import {
   TouchableOpacity,
 } from 'react-native'
 import { COLOR } from '@/constants'
-import { Card, Button, Spacer, Badge, Chip, Icon } from '@/components/ui'
+import {
+  Card,
+  Button,
+  Spacer,
+  Badge,
+  Chip,
+  Icon,
+  ScreenScrollView,
+} from '@/components/ui'
 import EmptyState from '@/components/ui/EmptyState'
 import LoadingScreen from '@/components/LoadingScreen'
 import { useMascotasDelUsuario, useMascotaActions } from '@/hooks'
@@ -34,7 +41,7 @@ const Mascotas: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <ScrollView
+      <ScreenScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
@@ -274,7 +281,7 @@ const Mascotas: React.FC = () => {
             )
           })}
         </View>
-      </ScrollView>
+      </ScreenScrollView>
     </View>
   )
 }

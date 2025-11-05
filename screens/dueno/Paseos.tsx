@@ -1,7 +1,14 @@
 import { COLOR } from '@/constants'
 import React, { useState } from 'react'
-import { StyleSheet, ScrollView, View, Text, Alert } from 'react-native'
-import { Card, Button, Spacer, Chip, Badge } from '@/components/ui'
+import { StyleSheet, View, Text, Alert } from 'react-native'
+import {
+  Card,
+  Button,
+  Spacer,
+  Chip,
+  Badge,
+  ScreenScrollView,
+} from '@/components/ui'
 
 const Paseos: React.FC = () => {
   const [solicitando, setSolicitando] = useState(false)
@@ -22,7 +29,7 @@ const Paseos: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <ScrollView
+      <ScreenScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
@@ -143,7 +150,7 @@ const Paseos: React.FC = () => {
             ))}
           </View>
         </Card>
-      </ScrollView>
+      </ScreenScrollView>
     </View>
   )
 }

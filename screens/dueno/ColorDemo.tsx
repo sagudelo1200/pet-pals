@@ -1,12 +1,6 @@
 // screens/dueno/ColorDemo.tsx
 import React from 'react'
-import {
-  View,
-  ScrollView,
-  StyleSheet,
-  TouchableOpacity,
-  Platform,
-} from 'react-native'
+import { View, StyleSheet, TouchableOpacity, Platform } from 'react-native'
 import { Text, theme } from 'galio-framework'
 import { COLOR } from '@/constants'
 import {
@@ -20,6 +14,7 @@ import {
   Skeleton,
   Icon,
   Button,
+  ScreenScrollView,
 } from '@/components/ui'
 
 type ColorKey = keyof typeof COLOR
@@ -29,7 +24,7 @@ const ColorDemo: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <ScrollView
+      <ScreenScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
@@ -222,7 +217,7 @@ const ColorDemo: React.FC = () => {
             <Spacer horizontal size={8} />
             <Badge label="Error" variant="error" size="lg" />
             <Spacer horizontal size={8} />
-            <Badge label="Info" variant="info" />
+            <Badge label="Info" variant="info" size="md" />
             <Spacer horizontal size={8} />
             <Badge label="Enfasis" variant="enfasis" />
           </View>
@@ -334,7 +329,7 @@ const ColorDemo: React.FC = () => {
             fullWidth
           />
         </View>
-      </ScrollView>
+      </ScreenScrollView>
     </View>
   )
 }

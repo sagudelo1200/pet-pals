@@ -97,7 +97,7 @@ const Ingresar: React.FC = () => {
                 title={
                   loading
                     ? t('auth:ingresar.formulario.estado.ingresando')
-                    : t('auth:registro.formulario.accion')
+                    : t('auth:ingresar.formulario.accion')
                 }
                 onPress={handleSubmit}
                 variant="primario"

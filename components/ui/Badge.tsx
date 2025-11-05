@@ -96,7 +96,8 @@ const styles = StyleSheet.create({
     borderRadius: 999,
     borderWidth: 1,
     borderColor: COLOR.BORDE,
-    alignSelf: 'flex-start',
+    alignSelf: 'center',
+    marginVertical: 3,
   },
   text: {
     fontWeight: '700',
