@@ -1,29 +1,50 @@
 {
+  "comun": {
+    "intentaNuevamente": "Intenta nuevamente."
+  },
   "auth": {
-    "login": {
-      "title": "Inicia sesión",
-      "subtitle": "Bienvenido, ingresa tus datos",
-      "action": "Ingresar"
+    "ingresar": {
+      "titulo": "Inicia sesión",
+      "subtitulo": "Bienvenido, ingresa tus datos",
+      "accion": "Ingresar"
     },
-    "loggingIn": "Ingresando…",
-    "register": {
-      "action": "Crear una cuenta"
+    "ingresando": "Ingresando…",
+    "registro": {
+      "accion": "Crear una cuenta"
     },
-    "email": "Correo electrónico",
-    "emailPlaceholder": "tucorreo@dominio.com",
+    "correo": "Correo electrónico",
+    "correoPlaceholder": "tucorreo@dominio.com",
     "password": "Contraseña",
     "passwordPlaceholder": "••••••••",
-    "errors": {
-      "missingFields": {
-        "title": "Campos incompletos",
-        "message": "Ingresa tu correo y contraseña."
+    "errores": {
+      "camposIncompletos": {
+        "titulo": "Campos incompletos",
+        "mensaje": "Ingresa tu correo y contraseña."
       },
-      "loginFailed": {
-        "title": "No se pudo iniciar sesión"
+      "loginFallido": {
+        "titulo": "No se pudo iniciar sesión"
       }
     }
   },
-  "common": {
-    "tryAgain": "Intenta nuevamente."
+  "mascotas": {
+    "titulo": "Mis Mascotas",
+    "error": {
+      "cargar": "No pudimos cargar tus mascotas"
+    },
+    "vacio": {
+      "titulo": "Aún no tienes mascotas",
+      "descripcion": "Agrega tu primera mascota para empezar a solicitar paseos."
+    },
+    "detalles": "Ver detalles",
+    "accion": "Acción",
+    "peso": "Peso: {{kg}}kg",
+    "pesoDesconocido": "Sin peso registrado",
+    "insignia": {
+      "vacunasAlDia": "Vacunas al día"
+    },
+    "cualidades": {
+      "energetico": "Enérgico",
+      "sociable": "Sociable"
+    }
   }
 }

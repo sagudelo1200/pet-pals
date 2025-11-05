@@ -39,16 +39,16 @@ const Ingresar: React.FC = () => {
   const handleSubmit = useCallback(async () => {
     if (!email || !password) {
       Alert.alert(
-        t('auth.errors.missingFields.title'),
-        t('auth.errors.missingFields.message')
+        t('auth.errores.camposIncompletos.titulo'),
+        t('auth.errores.camposIncompletos.mensaje')
       )
       return
     }
     const result = await login(email.trim(), password)
     if (!result.success) {
       Alert.alert(
-        t('auth.errors.loginFailed.title'),
-        tErrorMaybe(result.error, t('common.tryAgain'))
+        t('auth.errores.loginFallido.titulo'),
+        tErrorMaybe(result.error, t('comun.intentaNuevamente'))
       )
     }
   }, [email, password, login])
@@ -66,16 +66,16 @@ const Ingresar: React.FC = () => {
         >
           <Block style={styles.content}>
             <Text h4 style={styles.title}>
-              {t('auth.login.title')}
+              {t('auth.ingresar.titulo')}
             </Text>
-            <Text style={styles.subtitle}>{t('auth.login.subtitle')}</Text>
+            <Text style={styles.subtitle}>{t('auth.ingresar.subtitulo')}</Text>
 
             <View style={styles.form}>
               <TextInput
-                label={t('auth.email')}
+                label={t('auth.correo')}
                 value={email}
                 onChangeText={setEmail}
-                placeholder={t('auth.emailPlaceholder')}
+                placeholder={t('auth.correoPlaceholder')}
                 keyboardType="email-address"
                 autoCapitalize="none"
                 iconName="envelope"
@@ -92,7 +92,9 @@ const Ingresar: React.FC = () => {
               />
 
               <Button
-                title={loading ? t('auth.loggingIn') : t('auth.login.action')}
+                title={
+                  loading ? t('auth.ingresando') : t('auth.ingresar.accion')
+                }
                 onPress={handleSubmit}
                 variant="primario"
                 fullWidth
@@ -102,7 +104,7 @@ const Ingresar: React.FC = () => {
               />
 
               <Button
-                title={t('auth.register.action')}
+                title={t('auth.registro.accion')}
                 onPress={goToRegistro}
                 variant="bloque"
                 fullWidth

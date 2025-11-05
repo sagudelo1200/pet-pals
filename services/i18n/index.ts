@@ -66,7 +66,8 @@ export function tErrorMaybe(
   fallback?: string,
   vars?: Record<string, unknown>
 ) {
-  if (!codeOrMessage) return fallback ?? i18n.t('common:common.tryAgain')
+  if (!codeOrMessage)
+    return fallback ?? i18n.t('common:comun.intentaNuevamente')
   const key = `errors:${codeOrMessage}`
   if (i18n.exists(key)) return i18n.t(key, vars)
   return codeOrMessage
