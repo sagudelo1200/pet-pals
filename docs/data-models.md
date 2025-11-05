@@ -184,8 +184,7 @@ Ejemplo JSON:
 Servicio solicitado/asignado para una mascota.
 
 - creado_por: string (req, dueño)
-- id_paseador: string (req)
-- id_mascota: string (req)
+- id_paseador: string (opt)
 - tipo_paseo: 'solicitado' | 'programado' (req)
 - fecha_hora_inicio: Date (req)
 - duracion_estimada: number (req, minutos)
@@ -206,11 +205,14 @@ Servicio solicitado/asignado para una mascota.
 Vinculación de una mascota con un paseo, con estado por mascota.
 
 - id_paseo: string (req)
-- id_mascota: string (req)
+- id_mascota: string (req, debe coincidir con el docId)
+- id_usuario: string (req, dueño de la mascota)
 - observaciones: string (opt)
 - codigo_recogida: string (opt)
 - codigo_entrega: string (opt)
 - estado_mascota: 'pendiente' | 'en_paseo' | 'entregada' | 'cancelada' (req)
+
+Ruta de almacenamiento: subcolección `paseos/{paseoId}/mascotas/{mascotaId}` donde `mascotaId` es el ID de la mascota y coincide con el campo `id_mascota`.
 
 <!-- Reglas e invariantes operativas retiradas para mantener una descripción estrictamente estructural. -->
 
