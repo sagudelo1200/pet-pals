@@ -2,28 +2,19 @@ import React from 'react'
 import { StyleSheet, ScrollView, View, Text, Alert, Image } from 'react-native'
 import { COLOR } from '@/constants'
 import { Card, Button, Spacer, Badge, Chip } from '@/components/ui'
+import EmptyState from '@/components/ui/EmptyState'
+import LoadingScreen from '@/components/LoadingScreen'
+import { useMascotasDelUsuario } from '@/hooks'
+import { useTranslation } from 'react-i18next'
+import { tErrorMaybe } from '@/services/i18n'
 
 const Mascotas: React.FC = () => {
-  const mockMascotas = [
-    {
-      id: '1',
-      nombre: 'Luna',
-      raza: 'Mestiza',
-      foto: 'https://cdn.pixabay.com/photo/2018/08/20/22/37/dog-3620181_1280.jpg',
-    },
-    {
-      id: '2',
-      nombre: 'Max',
-      raza: 'Labrador',
-      foto: 'https://cdn.pixabay.com/photo/2016/02/11/16/59/dog-1194083_1280.jpg',
-    },
-    {
-      id: '3',
-      nombre: 'Nala',
-      raza: 'Golden Retriever',
-      foto: 'https://cdn.pixabay.com/photo/2024/06/19/21/54/animal-8840824_1280.jpg',
-    },
-  ]
+  const { t } = useTranslation()
+  const { mascotas, loading, error } = useMascotasDelUsuario({ listen: true })
+
+  if (loading) {
+    return <LoadingScreen messageType="pets" />
+  }
 
   return (
     <View style={styles.container}>
@@ -32,11 +23,27 @@ const Mascotas: React.FC = () => {
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
       >
-        <Text style={styles.title}>Mis Mascotas</Text>
+        <Text style={styles.title}>{t('mascotas.titulo')}</Text>
         <Spacer size={12} />
 
+        {error ? (
+          <EmptyState
+            title={t('mascotas.error.cargar')}
+            description={tErrorMaybe(error)}
+            iconName="exclamation-triangle"
+          />
+        ) : null}
+
+        {!error && mascotas.length === 0 ? (
+          <EmptyState
+            title={t('mascotas.vacio.titulo')}
+            description={t('mascotas.vacio.descripcion')}
+            iconName="paw"
+          />
+        ) : null}
+
         <View style={styles.grid}>
-          {mockMascotas.map(m => (
+          {mascotas.map(m => (
             <Card
               key={m.id}
               title={m.nombre}
@@ -44,13 +51,30 @@ const Mascotas: React.FC = () => {
               style={styles.card}
             >
               <View style={styles.itemRow}>
-                <Image source={{ uri: m.foto }} style={styles.dogThumb} />
+                {m.foto ? (
+                  <Image source={{ uri: m.foto }} style={styles.dogThumb} />
+                ) : (
+                  <View
+                    style={[
+                      styles.dogThumb,
+                      { alignItems: 'center', justifyContent: 'center' },
+                    ]}
+                  >
+                    <Text style={{ color: COLOR.SUBTEXTO }}>🐶</Text>
+                  </View>
+                )}
                 <View style={{ flex: 1 }}>
                   <Text style={{ color: COLOR.SUBTEXTO }}>
-                    Edad: 2 años • Peso: 12kg
+                    {m.peso
+                      ? t('mascotas.peso', { kg: m.peso })
+                      : t('mascotas.pesoDesconocido')}
                   </Text>
                   <Spacer size={6} />
-                  <Badge label="Vacunas al día" variant="exito" size="sm" />
+                  <Badge
+                    label={t('mascotas.insignia.vacunasAlDia')}
+                    variant="exito"
+                    size="sm"
+                  />
                 </View>
               </View>
               <View
@@ -60,19 +84,27 @@ const Mascotas: React.FC = () => {
                   marginBottom: 8,
                 }}
               >
-                <Chip label="Enérgico" size="sm" leftIconName="bolt" />
+                <Chip
+                  label={t('mascotas.cualidades.energetico')}
+                  size="sm"
+                  leftIconName="bolt"
+                />
                 <Spacer horizontal size={6} />
-                <Chip label="Sociable" size="sm" leftIconName="users" />
+                <Chip
+                  label={t('mascotas.cualidades.sociable')}
+                  size="sm"
+                  leftIconName="users"
+                />
               </View>
               <View style={{ flexDirection: 'row' }}>
                 <Button
-                  title="Ver detalles"
+                  title={t('mascotas.detalles')}
                   size="sm"
                   onPress={() => Alert.alert('Detalles', m.nombre)}
                 />
                 <Spacer horizontal size={8} />
                 <Button
-                  title="Acción"
+                  title={t('mascotas.accion')}
                   size="sm"
                   variant="info"
                   onPress={() => {}}
