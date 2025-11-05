@@ -1,4 +1,6 @@
 {
+  "PERMISOS_INSUFICIENTES": "No tienes permisos para realizar esta acción.",
+  "DOCUMENTO_NO_ENCONTRADO": "El recurso solicitado no existe o no está disponible.",
   "NO_AUTENTICADO": "Debes iniciar sesión para continuar.",
   "MASCOTA_REQUERIDA": "Debes seleccionar una mascota.",
   "MASCOTAS_REQUERIDAS": "Debes seleccionar al menos una mascota.",

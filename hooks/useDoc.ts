@@ -8,6 +8,7 @@ import {
 } from 'firebase/firestore'
 import { db } from '@/firebase.config'
 import { toDomain } from '@/services/firebase/converters'
+import { ERR } from '@/constants'
 import type { BaseModel } from '@/models/BaseModel'
 
 /**
@@ -42,10 +43,12 @@ export function useDoc<T extends BaseModel = any>(
         setData({ id: snap.id, ...(toDomain(snap.data()) as T) })
       } else {
         setData(undefined)
-        setError('NOT_FOUND')
+        setError(ERR.DOCUMENTO_NO_ENCONTRADO)
       }
     } catch (e: any) {
-      setError(e?.message || 'UNKNOWN')
+      const code = e?.code as string | undefined
+      if (code === 'permission-denied') setError(ERR.PERMISOS_INSUFICIENTES)
+      else setError(e?.message || ERR.ERROR_DESCONOCIDO)
     } finally {
       setLoading(false)
     }
@@ -66,12 +69,14 @@ export function useDoc<T extends BaseModel = any>(
           setLoading(false)
         } else {
           setData(undefined)
-          setError('NOT_FOUND')
+          setError(ERR.DOCUMENTO_NO_ENCONTRADO)
           setLoading(false)
         }
       },
       err => {
-        setError(err?.message || 'UNKNOWN')
+        const code = (err as any)?.code as string | undefined
+        if (code === 'permission-denied') setError(ERR.PERMISOS_INSUFICIENTES)
+        else setError(err?.message || ERR.ERROR_DESCONOCIDO)
         setLoading(false)
       }
     )

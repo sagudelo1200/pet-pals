@@ -14,6 +14,7 @@ import { BaseModel } from '../../models/BaseModel'
 import { CrudResult } from './types'
 import { AuthService } from './auth'
 import { nowServerTimestamp, toDb, toDomain } from './converters'
+import { ERR } from '@/constants'
 
 export class BaseCrudService {
   /**
@@ -66,12 +67,15 @@ export class BaseCrudService {
 
       return {
         success: false,
-        error: 'Documento no encontrado',
+        error: ERR.DOCUMENTO_NO_ENCONTRADO,
       }
     } catch (error: any) {
       return {
         success: false,
-        error: error.message,
+        error:
+          error?.code === 'permission-denied'
+            ? ERR.PERMISOS_INSUFICIENTES
+            : error.message,
       }
     }
   }

@@ -1,16 +1,23 @@
-import React from 'react'
+import React, { useMemo, useState } from 'react'
 import { StyleSheet, ScrollView, View, Text, Alert, Image } from 'react-native'
 import { COLOR } from '@/constants'
 import { Card, Button, Spacer, Badge, Chip } from '@/components/ui'
 import EmptyState from '@/components/ui/EmptyState'
 import LoadingScreen from '@/components/LoadingScreen'
-import { useMascotasDelUsuario } from '@/hooks'
+import { useMascotasDelUsuario, useMascotaActions } from '@/hooks'
 import { useTranslation } from 'react-i18next'
 import { tErrorMaybe } from '@/services/i18n'
+import TextInput from '@/components/ui/TextInput'
 
 const Mascotas: React.FC = () => {
   const { t } = useTranslation()
   const { mascotas, loading, error } = useMascotasDelUsuario({ listen: true })
+  const { create, loading: creating } = useMascotaActions()
+
+  const [adding, setAdding] = useState(false)
+  const [nombre, setNombre] = useState('')
+  const [foto, setFoto] = useState('')
+  const especie = useMemo(() => 'perro' as const, [])
 
   if (loading) {
     return <LoadingScreen messageType="pets" />
@@ -23,8 +30,85 @@ const Mascotas: React.FC = () => {
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
       >
-        <Text style={styles.title}>{t('mascotas.titulo')}</Text>
+        <View style={styles.headerRow}>
+          <Text style={styles.title}>{t('mascotas.titulo')}</Text>
+          <Spacer horizontal size={8} />
+          <Button
+            title={t('mascotas.agregar')}
+            onPress={() => setAdding(true)}
+            size="sm"
+          />
+        </View>
         <Spacer size={12} />
+
+        {adding ? (
+          <Card title={t('mascotas.form.titulo')} style={styles.section}>
+            <TextInput
+              label={t('mascotas.form.nombre')}
+              placeholder={t('mascotas.form.nombrePlaceholder')}
+              value={nombre}
+              onChangeText={setNombre}
+              iconName="paw"
+            />
+            <Spacer size={8} />
+            <TextInput
+              label={t('mascotas.form.foto')}
+              placeholder="https://..."
+              value={foto}
+              onChangeText={setFoto}
+              iconName="image"
+            />
+            <Spacer size={8} />
+            <View style={{ flexDirection: 'row' }}>
+              <Button
+                title={t('mascotas.form.cancelar')}
+                variant="bloque"
+                onPress={() => {
+                  setAdding(false)
+                  setNombre('')
+                  setFoto('')
+                }}
+                size="sm"
+              />
+              <Spacer horizontal size={8} />
+              <Button
+                title={t('mascotas.form.guardar')}
+                onPress={async () => {
+                  if (!nombre.trim()) {
+                    Alert.alert(
+                      t('mascotas.form.titulo'),
+                      t('mascotas.form.errores.nombreRequerido')
+                    )
+                    return
+                  }
+                  const res = await create({
+                    nombre: nombre.trim(),
+                    especie,
+                    foto: foto.trim() || undefined,
+                  })
+                  if (!res.success) {
+                    Alert.alert(
+                      t('mascotas.form.titulo'),
+                      tErrorMaybe(res.error, t('comun.intentaNuevamente'))
+                    )
+                    return
+                  }
+                  Alert.alert(
+                    t('mascotas.form.titulo'),
+                    t('mascotas.crear.exito')
+                  )
+                  setAdding(false)
+                  setNombre('')
+                  setFoto('')
+                }}
+                size="sm"
+                loading={creating}
+                disabled={creating}
+                variant="primario"
+              />
+            </View>
+          </Card>
+        ) : null}
 
         {error ? (
           <EmptyState
@@ -138,6 +222,10 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: COLOR.TEXTO,
     marginBottom: 12,
+  },
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   grid: {
     flexDirection: 'row',
