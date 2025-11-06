@@ -4,8 +4,7 @@ import { CrudResult } from './types'
 import { db } from '@/firebase.config'
 import { doc, setDoc } from 'firebase/firestore'
 import { toDb } from './converters'
-import { AuthService } from './auth'
-import { ERR } from '@/constants'
+// AuthService removed: profile creation should happen at registration via AuthService
 import { mapFirebaseError } from './errors'
 
 export class UsuarioService {
@@ -20,49 +19,8 @@ export class UsuarioService {
     return BaseCrudService.create<Usuario>(this.COLLECTION, data)
   }
 
-  /**
-   * Crea/actualiza el documento de usuario con ID = uid del usuario autenticado.
-   * Requerido por las reglas de seguridad para `usuarios/{uid}`.
-   */
-  static async createForCurrentUser(
-    data: Omit<
-      Usuario,
-      'id' | 'creado_en' | 'actualizado_en' | 'creado_por' | 'actualizado_por'
-    >
-  ): Promise<CrudResult<Usuario>> {
-    try {
-      const currentUser = AuthService.getCurrentUser()
-      const uid = currentUser?.uid
-      if (!uid) return { success: false, error: ERR.NO_AUTENTICADO }
-
-      const base = {
-        // use client timestamp here to satisfy security rules that expect a
-        // timestamp value (some environments send serverTimestamp sentinel
-        // which may be rejected by strict rules). Using Date ensures the
-        // request.resource contains an actual timestamp.
-        creado_en: new Date(),
-        actualizado_en: new Date(),
-        creado_por: uid,
-        actualizado_por: uid,
-      }
-
-      const ref = doc(db, this.COLLECTION, uid)
-      await setDoc(ref, toDb({ ...data, ...base }))
-
-      // Leer de vuelta usando el CRUD para convertir a dominio
-      return BaseCrudService.getById<Usuario>(this.COLLECTION, uid)
-    } catch (error: any) {
-      return {
-        success: false,
-        error:
-          error?.code === 'permission-denied'
-            ? ERR.PERMISOS_INSUFICIENTES
-            : error?.code === 'unauthenticated'
-              ? ERR.NO_AUTENTICADO
-              : ERR.ERROR_DESCONOCIDO,
-      }
-    }
-  }
+  // Nota: la creación del documento `usuarios/{uid}` se realiza ahora
+  // durante el flujo de registro en `AuthService.registerWithEmail`.
 
   /**
    * Crear documento de usuario usando un UID explícito.

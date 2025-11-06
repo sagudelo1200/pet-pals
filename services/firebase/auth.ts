@@ -5,10 +5,12 @@ import {
   onAuthStateChanged,
   User,
   updateProfile,
+  deleteUser,
 } from 'firebase/auth'
 import { auth } from '../../firebase.config'
 import { AuthResult } from './types'
 import { ERR } from '@/constants/errors'
+import { UsuarioService } from './usuario'
 
 // Mapeo de errores de Firebase Auth a códigos de dominio
 function mapFirebaseAuthError(e: any): string {
@@ -57,6 +59,46 @@ export class AuthService {
         await updateProfile(userCredential.user, {
           displayName: displayName,
         })
+      }
+
+      // Crear documento de usuario en Firestore inmediatamente.
+      // Usamos createWithUid para asegurar uso del UID retornado.
+      try {
+        const uid = userCredential.user.uid
+        const res = await UsuarioService.createWithUid(uid, {
+          nombre: displayName,
+          correo: email,
+          celular: '',
+          roles: ['dueño'],
+          verificado: false,
+          fecha_registro: new Date(),
+          estado: 'activo',
+        } as any)
+
+        if (!res.success) {
+          // Si falla la creación del doc, hacemos rollback eliminando el usuario de Auth
+          try {
+            await deleteUser(userCredential.user)
+          } catch (delErr) {
+            console.error('Rollback: error eliminando usuario en Auth', delErr)
+          }
+          return {
+            success: false,
+            error: res.error || ERR.ERROR_DESCONOCIDO,
+          }
+        }
+      } catch (e) {
+        // En caso de cualquier excepción intentar rollback
+        try {
+          await deleteUser(userCredential.user)
+        } catch (delErr) {
+          console.error('Rollback: error eliminando usuario en Auth', delErr)
+        }
+        console.error('Error creando doc usuario tras registro:', e)
+        return {
+          success: false,
+          error: ERR.ERROR_DESCONOCIDO,
+        }
       }
 
       return {

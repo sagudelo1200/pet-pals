@@ -14,10 +14,8 @@ import { Block, Text } from 'galio-framework'
 import { COLOR } from '@/constants'
 import { Button, TextInput } from '@/components/ui'
 import { useAuth } from '@/services/context/AuthContext'
-import { UsuarioService } from '@/services/firebase/usuario'
 import type { RolUsuario } from '@/models/Usuario'
 import { tErrorMaybe } from '@/services/i18n'
-import { mapFirebaseError } from '@/services/firebase/errors'
 import { useTranslation } from 'react-i18next'
 import { useNavigation } from '@react-navigation/native'
 import type { StackNavigationProp } from '@react-navigation/stack'
@@ -45,7 +43,6 @@ const Registro: React.FC = () => {
   const [rol, setRol] = useState<RolUsuario>('dueño')
   const [emailTouched, setEmailTouched] = useState(false)
   const [passwordTouched, setPasswordTouched] = useState(false)
-  const [creatingProfile, setCreatingProfile] = useState(false)
 
   const emailValid = useMemo(() => {
     const value = email.trim()
@@ -94,46 +91,9 @@ const Registro: React.FC = () => {
       return
     }
 
-    try {
-      setCreatingProfile(true)
-      let res = await UsuarioService.createForCurrentUser({
-        nombre: nombre.trim(),
-        correo: email.trim(),
-        celular: '',
-        roles: [rol],
-        verificado: false,
-        fecha_registro: new Date(),
-        estado: 'activo',
-      } as any)
-
-      // Fallback: en algunos entornos `auth.currentUser` puede no estar
-      // disponible inmediatamente tras el register; si la creación falló
-      // intentamos crear usando el UID devuelto por register.
-      if (!res.success && result.user?.uid) {
-        res = await UsuarioService.createWithUid(result.user.uid, {
-          nombre: nombre.trim(),
-          correo: email.trim(),
-          celular: '',
-          roles: [rol],
-          verificado: false,
-          fecha_registro: new Date(),
-          estado: 'activo',
-        } as any)
-      }
-
-      if (!res.success) {
-        throw res.error || new Error('Perfil no creado')
-      }
-
-      await reloadProfile?.()
-    } catch (e: any) {
-      Alert.alert(
-        'Perfil no creado',
-        tErrorMaybe(mapFirebaseError(e), 'Intenta nuevamente.')
-      )
-    } finally {
-      setCreatingProfile(false)
-    }
+    // El perfil/usuario en Firestore se crea ahora dentro de
+    // AuthService.registerWithEmail. Solo recargamos el perfil local.
+    await reloadProfile?.()
   }, [canSubmit, email, nombre, password, register, rol])
 
   const goToLogin = useCallback(() => {
@@ -224,7 +184,7 @@ const Registro: React.FC = () => {
 
               <Button
                 title={
-                  loading || creatingProfile
+                  loading
                     ? t('auth:registro.formulario.estado.creando')
                     : t('auth:registro.formulario.accion')
                 }
@@ -232,8 +192,8 @@ const Registro: React.FC = () => {
                 variant="primario"
                 fullWidth
                 style={styles.submit}
-                disabled={!canSubmit || creatingProfile}
-                loading={loading || creatingProfile}
+                disabled={!canSubmit}
+                loading={loading}
               />
 
               <Button

@@ -18,7 +18,8 @@ Este proyecto usa un enfoque centralizado para manejar fechas y conversiones ent
 
 Las reglas de seguridad requieren que el documento de usuario viva en `usuarios/{uid}`. Usa el helper:
 
-- `UsuarioService.createForCurrentUser(data)` crea/actualiza el perfil con `docId = uid` y completa los campos de sistema con `serverTimestamp()`.
+- `UsuarioService.createWithUid(uid, data)` crea/actualiza el perfil con `docId = uid` y completa los campos de sistema con `serverTimestamp()`.
+  - Nota: la creación del documento `usuarios/{uid}` se realiza normalmente durante el flujo de registro en `AuthService.registerWithEmail`.
 - En el contexto de autenticación (`AuthContext`) la carga de perfil se hace con `UsuarioService.getById(uid)`.
 
 ## Hooks
