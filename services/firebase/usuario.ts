@@ -3,9 +3,10 @@ import { Usuario } from '../../models/Usuario'
 import { CrudResult } from './types'
 import { db } from '@/firebase.config'
 import { doc, setDoc } from 'firebase/firestore'
-import { nowServerTimestamp, toDb } from './converters'
+import { toDb } from './converters'
 import { AuthService } from './auth'
 import { ERR } from '@/constants'
+import { mapFirebaseError } from './errors'
 
 export class UsuarioService {
   private static readonly COLLECTION = 'usuarios'
@@ -35,8 +36,12 @@ export class UsuarioService {
       if (!uid) return { success: false, error: ERR.NO_AUTENTICADO }
 
       const base = {
-        createdAt: nowServerTimestamp(),
-        updatedAt: nowServerTimestamp(),
+        // use client timestamp here to satisfy security rules that expect a
+        // timestamp value (some environments send serverTimestamp sentinel
+        // which may be rejected by strict rules). Using Date ensures the
+        // request.resource contains an actual timestamp.
+        createdAt: new Date(),
+        updatedAt: new Date(),
         createdBy: uid,
         updatedBy: uid,
       }
@@ -55,6 +60,39 @@ export class UsuarioService {
             : error?.code === 'unauthenticated'
               ? ERR.NO_AUTENTICADO
               : ERR.ERROR_DESCONOCIDO,
+      }
+    }
+  }
+
+  /**
+   * Crear documento de usuario usando un UID explícito.
+   * Útil como fallback justo después de registro cuando `auth.currentUser` puede
+   * no estar todavía disponible en algunos entornos.
+   */
+  static async createWithUid(
+    uid: string,
+    data: Omit<
+      Usuario,
+      'id' | 'createdAt' | 'updatedAt' | 'createdBy' | 'updatedBy'
+    >
+  ): Promise<CrudResult<Usuario>> {
+    try {
+      const base = {
+        // use client timestamp as above for consistency with security rules
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        createdBy: uid,
+        updatedBy: uid,
+      }
+
+      const ref = doc(db, this.COLLECTION, uid)
+      await setDoc(ref, toDb({ ...data, ...base }))
+
+      return BaseCrudService.getById<Usuario>(this.COLLECTION, uid)
+    } catch (error: any) {
+      return {
+        success: false,
+        error: mapFirebaseError(error),
       }
     }
   }

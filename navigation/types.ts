@@ -5,6 +5,7 @@ export type AuthStackParamList = {
   Auth: undefined
   DuenoApp: undefined
   PaseadorApp: undefined
+  AdminApp: undefined
 }
 
 // Flujo interno de autenticación (pantallas del stack de Auth)

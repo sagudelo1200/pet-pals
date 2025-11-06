@@ -96,7 +96,7 @@ const Registro: React.FC = () => {
 
     try {
       setCreatingProfile(true)
-      await UsuarioService.createForCurrentUser({
+      let res = await UsuarioService.createForCurrentUser({
         nombre: nombre.trim(),
         correo: email.trim(),
         celular: '',
@@ -105,6 +105,26 @@ const Registro: React.FC = () => {
         fecha_registro: new Date(),
         estado: 'activo',
       } as any)
+
+      // Fallback: en algunos entornos `auth.currentUser` puede no estar
+      // disponible inmediatamente tras el register; si la creación falló
+      // intentamos crear usando el UID devuelto por register.
+      if (!res.success && result.user?.uid) {
+        res = await UsuarioService.createWithUid(result.user.uid, {
+          nombre: nombre.trim(),
+          correo: email.trim(),
+          celular: '',
+          roles: [rol],
+          verificado: false,
+          fecha_registro: new Date(),
+          estado: 'activo',
+        } as any)
+      }
+
+      if (!res.success) {
+        throw res.error || new Error('Perfil no creado')
+      }
+
       await reloadProfile?.()
     } catch (e: any) {
       Alert.alert(

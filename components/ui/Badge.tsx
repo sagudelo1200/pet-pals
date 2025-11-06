@@ -68,10 +68,10 @@ const Badge: React.FC<BadgeProps> = ({
   const bg = variantToColor(variant)
   const padding =
     size === 'sm'
-      ? { paddingVertical: 4, paddingHorizontal: 8 }
+      ? { paddingVertical: 4, paddingHorizontal: 10 }
       : size === 'lg'
-        ? { paddingVertical: 8, paddingHorizontal: 12 }
-        : { paddingVertical: 6, paddingHorizontal: 10 }
+        ? { paddingVertical: 8, paddingHorizontal: 14 }
+        : { paddingVertical: 6, paddingHorizontal: 12 }
   const font =
     size === 'sm'
       ? { fontSize: 12 }
@@ -98,6 +98,7 @@ const styles = StyleSheet.create({
     borderColor: COLOR.BORDE,
     alignSelf: 'center',
     marginVertical: 3,
+    overflow: 'visible',
   },
   text: {
     fontWeight: '700',

@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react'
 import { useAuth } from '@/services/context/AuthContext'
 import { LoadingScreen } from '@/components'
-import { useNavigation } from '@react-navigation/native'
+import { useNavigation, CommonActions } from '@react-navigation/native'
 import { createStackNavigator } from '@react-navigation/stack'
 import Ingresar from '@/screens/auth/Ingresar'
 import Registro from '@/screens/auth/Registro'
@@ -10,25 +10,71 @@ import { AuthFlowParamList } from './types'
 const Stack = createStackNavigator<AuthFlowParamList>()
 
 const AuthNavigator: React.FC = () => {
-  const { user, loading, roles } = useAuth()
+  const { user, loading, roles, reloadProfile } = useAuth()
+  const retriedRef = React.useRef(false)
   const navigation = useNavigation<any>() // TODO: tipar con RootStack
+  // Helper: prefer reset on parent (root) navigator if available
+  const getRootNavigation = () => {
+    // Prefer parent navigator (root) when available, otherwise current navigation
+    return navigation && typeof navigation.getParent === 'function'
+      ? (navigation.getParent() ?? navigation)
+      : navigation
+  }
 
   // Efecto para navegar automáticamente cuando hay usuario
   useEffect(() => {
     if (user && !loading) {
-      // Decidir destino por rol. Si tiene 'dueño' => DuenoApp, sino si 'paseador' => PaseadorApp
-      const isDueno = Array.isArray(roles) && roles.includes('dueño')
-      const isPaseador = Array.isArray(roles) && roles.includes('paseador')
-      const target = isDueno
-        ? 'DuenoApp'
-        : isPaseador
-          ? 'PaseadorApp'
-          : 'DuenoApp'
+      // Esperar a que `roles` esté cargado (no undefined). Evita navegar por defecto
+      // a `DuenoApp` antes de que el perfil/roles se hayan recuperado.
+      if (!Array.isArray(roles)) return
 
-      navigation.reset({
-        index: 0,
-        routes: [{ name: target as never }],
-      })
+      // Si roles es un array vacío, intentar recargar perfil una vez (posible eventual
+      // retraso en la escritura/lectura de Firestore). Si ya reintentamos, seguimos
+      // con la navegación por defecto.
+      if (Array.isArray(roles) && roles.length === 0) {
+        if (!retriedRef.current) {
+          retriedRef.current = true
+          void reloadProfile?.()
+          return
+        }
+      }
+
+      // Decidir destino por rol. Priorizar admin si existe.
+      const isAdmin = roles.includes('admin')
+      const isDueno = roles.includes('dueño')
+      const isPaseador = roles.includes('paseador')
+      const target = isAdmin
+        ? 'AdminApp'
+        : isDueno
+          ? 'DuenoApp'
+          : isPaseador
+            ? 'PaseadorApp'
+            : 'DuenoApp'
+
+      const rootNav = getRootNavigation()
+      // Prefer using reset if available on the nav object, otherwise dispatch CommonActions.reset
+      try {
+        if (rootNav && typeof rootNav.reset === 'function') {
+          rootNav.reset({ index: 0, routes: [{ name: target as never }] })
+        } else if (rootNav && typeof rootNav.dispatch === 'function') {
+          rootNav.dispatch(
+            CommonActions.reset({
+              index: 0,
+              routes: [{ name: target as never }],
+            })
+          )
+        } else {
+          // As a last resort, try current navigation
+          navigation.dispatch(
+            CommonActions.reset({
+              index: 0,
+              routes: [{ name: target as never }],
+            })
+          )
+        }
+      } catch (e) {
+        console.error('AuthNavigator: error resetting navigation', e)
+      }
     }
   }, [user, loading, roles, navigation])
 

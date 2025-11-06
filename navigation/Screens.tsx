@@ -2,6 +2,7 @@ import React from 'react'
 import { createStackNavigator } from '@react-navigation/stack'
 import DuenoTabNavigator from '@/navigation/DuenoTabNavigator'
 import PaseadorTabNavigator from '@/navigation/PaseadorTabNavigator'
+import AdminTabNavigator from '@/navigation/AdminTabNavigator'
 import AuthNavigator from './AuthNavigator'
 import { AuthStackParamList } from './types'
 
@@ -15,6 +16,7 @@ export default function RootNavigator(): React.ReactElement {
       <Stack.Screen name="Auth" component={AuthNavigator} />
       <Stack.Screen name="DuenoApp" component={DuenoTabNavigator} />
       <Stack.Screen name="PaseadorApp" component={PaseadorTabNavigator} />
+      <Stack.Screen name="AdminApp" component={AdminTabNavigator} />
     </Stack.Navigator>
   )
 }

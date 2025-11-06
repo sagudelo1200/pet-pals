@@ -92,48 +92,6 @@ const ColorDemo: React.FC = () => {
         </View>
 
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>Alertas / Mensajes</Text>
-
-          <View
-            style={[
-              styles.alert,
-              { backgroundColor: COLOR.EXITO, borderColor: COLOR.BORDE },
-            ]}
-          >
-            <Text style={styles.alertText}>✔ Acción completada</Text>
-          </View>
-
-          <View
-            style={[
-              styles.alert,
-              { backgroundColor: COLOR.ERROR, borderColor: COLOR.BORDE },
-            ]}
-          >
-            <Text style={styles.alertText}>✖ Ha ocurrido un error</Text>
-          </View>
-
-          <View
-            style={[
-              styles.alert,
-              { backgroundColor: COLOR.INFO, borderColor: COLOR.BORDE },
-            ]}
-          >
-            <Text style={styles.alertText}>ℹ Información importante</Text>
-          </View>
-
-          <View
-            style={[
-              styles.alert,
-              { backgroundColor: COLOR.ALERTA, borderColor: COLOR.BORDE },
-            ]}
-          >
-            <Text style={[styles.alertText, { color: COLOR.BASE }]}>
-              ⚠ Advertencia
-            </Text>
-          </View>
-        </View>
-
-        <View style={styles.card}>
           <Text style={styles.cardTitle}>Tarjetas / Borde</Text>
 
           <View
@@ -329,6 +287,8 @@ const ColorDemo: React.FC = () => {
             fullWidth
           />
         </View>
+
+        {/* Notificaciones demo eliminado en esta rama */}
       </ScreenScrollView>
     </View>
   )
