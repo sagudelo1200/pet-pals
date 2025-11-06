@@ -83,12 +83,23 @@ export class AuthService {
     password: string
   ): Promise<AuthResult> {
     try {
-      await new Promise(resolve => setTimeout(resolve, 3000))
+      const startTime = Date.now()
+
       const userCredential = await signInWithEmailAndPassword(
         auth,
         email,
         password
       )
+
+      const endTime = Date.now()
+      const elapsedTime = endTime - startTime
+      const minResponseTime = 3000
+      if (elapsedTime < minResponseTime) {
+        await new Promise(resolve =>
+          setTimeout(resolve, minResponseTime - elapsedTime)
+        )
+      }
+
       return {
         success: true,
         user: {
