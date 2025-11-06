@@ -13,7 +13,7 @@ export class PaseoService {
   static async create(
     data: Omit<
       Paseo,
-      'id' | 'createdAt' | 'updatedAt' | 'createdBy' | 'updatedBy'
+      'id' | 'creado_en' | 'actualizado_en' | 'creado_por' | 'actualizado_por'
     >
   ): Promise<CrudResult<Paseo>> {
     const currentUser = AuthService.getCurrentUser()
@@ -37,10 +37,10 @@ export class PaseoService {
     data: Omit<
       Paseo,
       | 'id'
-      | 'createdAt'
-      | 'updatedAt'
-      | 'createdBy'
-      | 'updatedBy'
+      | 'creado_en'
+      | 'actualizado_en'
+      | 'creado_por'
+      | 'actualizado_por'
       | 'mascotas_count'
     >,
     mascotaIds: string[]
@@ -66,7 +66,7 @@ export class PaseoService {
         const m = await BaseCrudService.getById<Mascota>('mascotas', mid)
         if (!m.success || !m.data)
           return { success: false, error: ERR.MASCOTA_NO_ENCONTRADA }
-        const ownerOk = m.data.id_usuario === uid || m.data.createdBy === uid
+        const ownerOk = (m.data as any).creado_por === uid
         if (!ownerOk)
           return { success: false, error: ERR.MASCOTA_NO_PERTENECE_AL_USUARIO }
       }
@@ -100,7 +100,7 @@ export class PaseoService {
 
   static async update(
     id: string,
-    data: Partial<Omit<Paseo, 'id' | 'createdAt' | 'createdBy'>>
+    data: Partial<Omit<Paseo, 'id' | 'creado_en' | 'creado_por'>>
   ): Promise<CrudResult<Paseo>> {
     return BaseCrudService.update<Paseo>(this.COLLECTION, id, data)
   }

@@ -7,8 +7,6 @@ import { BaseModel } from './BaseModel'
 export interface Valoracion extends BaseModel {
   /** ID del paseo valorado. */
   id_paseo: string
-  /** ID del usuario que realiza la valoración. */
-  id_usuario: string
   /** ID del paseador que recibe la valoración. */
   id_paseador: string
 

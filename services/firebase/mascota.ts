@@ -10,7 +10,7 @@ export class MascotaService {
   static async create(
     data: Omit<
       Mascota,
-      'id' | 'createdAt' | 'updatedAt' | 'createdBy' | 'updatedBy'
+      'id' | 'creado_en' | 'actualizado_en' | 'creado_por' | 'actualizado_por'
     >
   ): Promise<CrudResult<Mascota>> {
     const currentUser = AuthService.getCurrentUser()
@@ -19,13 +19,13 @@ export class MascotaService {
       return { success: false, error: ERR.NO_AUTENTICADO }
     }
 
-    // Alinear propiedad: id_usuario debe ser el dueño (uid actual)
-    if (data.id_usuario && data.id_usuario !== uid) {
+    // Alinear propiedad de ownership: creado_por debe ser el dueño (uid actual)
+    if ((data as any).creado_por && (data as any).creado_por !== uid) {
       return { success: false, error: ERR.DUENO_NO_COINCIDE }
     }
 
     // Ensure new mascotas are active by default unless explicitly set otherwise
-    const payload = { ...data, id_usuario: uid, activo: data.activo ?? true }
+    const payload = { ...data, creado_por: uid, activo: data.activo ?? true }
     return BaseCrudService.create<Mascota>(this.COLLECTION, payload)
   }
 
@@ -35,7 +35,7 @@ export class MascotaService {
 
   static async update(
     id: string,
-    data: Partial<Omit<Mascota, 'id' | 'createdAt' | 'createdBy'>>
+    data: Partial<Omit<Mascota, 'id' | 'creado_en' | 'creado_por'>>
   ): Promise<CrudResult<Mascota>> {
     return BaseCrudService.update<Mascota>(this.COLLECTION, id, data)
   }
@@ -52,7 +52,7 @@ export class MascotaService {
   static async getByUsuario(userId: string): Promise<CrudResult<Mascota[]>> {
     return BaseCrudService.getWhere<Mascota>(
       this.COLLECTION,
-      'id_usuario',
+      'creado_por',
       userId
     )
   }

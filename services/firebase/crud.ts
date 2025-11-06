@@ -23,15 +23,18 @@ export class BaseCrudService {
    */
   static async create<T extends BaseModel>(
     collectionName: string,
-    data: Omit<T, 'id' | 'createdAt' | 'updatedAt' | 'createdBy' | 'updatedBy'>
+    data: Omit<
+      T,
+      'id' | 'creado_en' | 'actualizado_en' | 'creado_por' | 'actualizado_por'
+    >
   ): Promise<CrudResult<T>> {
     try {
       const currentUser = AuthService.getCurrentUser()
       const base = {
-        createdAt: nowServerTimestamp(),
-        updatedAt: nowServerTimestamp(),
-        createdBy: currentUser?.uid,
-        updatedBy: currentUser?.uid,
+        creado_en: nowServerTimestamp(),
+        actualizado_en: nowServerTimestamp(),
+        creado_por: currentUser?.uid,
+        actualizado_por: currentUser?.uid,
       }
 
       const docDataDb = { ...toDb(data), ...base }
@@ -78,7 +81,7 @@ export class BaseCrudService {
   static async update<T extends BaseModel>(
     collectionName: string,
     id: string,
-    data: Partial<Omit<T, 'id' | 'createdAt' | 'createdBy'>>
+    data: Partial<Omit<T, 'id' | 'creado_en' | 'creado_por'>>
   ): Promise<CrudResult<T>> {
     try {
       const currentUser = AuthService.getCurrentUser()
@@ -86,8 +89,8 @@ export class BaseCrudService {
 
       const updateDataDb = {
         ...toDb(data),
-        updatedAt: nowServerTimestamp(),
-        updatedBy: currentUser?.uid,
+        actualizado_en: nowServerTimestamp(),
+        actualizado_por: currentUser?.uid,
       }
 
       await updateDoc(docRef, updateDataDb)

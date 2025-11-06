@@ -41,8 +41,8 @@ export interface VacunaMascota {
  * Incluye información de identificación, características físicas, salud, historial médico y preferencias de paseo.
  */
 export interface Mascota extends BaseModel {
-  /** ID del usuario propietario de la mascota. */
-  id_usuario: string
+  /** El dueño de la mascota queda reflejado en `creado_por` del BaseModel. */
+  // Nota: ya no usamos `id_usuario` para evitar duplicados; usar `creado_por`.
   /** Nombre dado a la mascota. */
   nombre: string
   /** URL o ruta de la imagen de la mascota. */

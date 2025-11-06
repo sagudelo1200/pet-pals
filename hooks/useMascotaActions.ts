@@ -30,7 +30,7 @@ export function useMascotaActions() {
   const create = useCallback(
     async (data: MascotaCreateInput): Promise<CrudResult<Mascota>> => {
       return wrap(() =>
-        // id_usuario lo fija el servicio con el UID actual; aquí no lo pedimos a la UI
+        // creado_por lo fija el servicio con el UID actual; aquí no lo pedimos a la UI
         MascotaService.create(data as any)
       )
     },

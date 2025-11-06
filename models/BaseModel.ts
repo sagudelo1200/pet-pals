@@ -8,21 +8,21 @@ export interface BaseModel {
    */
   id: string
   /**
-   * Fecha y hora en que se creó el registro.
+   * Fecha y hora en que se creó el registro (snake_case en Firestore: `creado_en`).
    */
-  createdAt: Date
+  creado_en: Date
   /**
-   * Fecha y hora de la última actualización del registro.
+   * Fecha y hora de la última actualización del registro (snake_case en Firestore: `actualizado_en`).
    */
-  updatedAt: Date
+  actualizado_en: Date
   /**
-   * ID del usuario que creó originalmente el registro.
+   * ID del usuario que creó originalmente el registro (snake_case en Firestore: `creado_por`).
    */
-  createdBy?: string
+  creado_por?: string
   /**
-   * ID del usuario que realizó la última modificación.
+   * ID del usuario que realizó la última modificación (snake_case en Firestore: `actualizado_por`).
    */
-  updatedBy?: string
+  actualizado_por?: string
 }
 
 /**
@@ -36,8 +36,8 @@ export interface BaseModel {
 // (Opcional, referencia) Tipo equivalente en capa de datos/Firebase
 // export interface BaseModelDb {
 //   id: string
-//   createdAt: import('firebase/firestore').Timestamp
-//   updatedAt: import('firebase/firestore').Timestamp
-//   createdBy?: string
-//   updatedBy?: string
+//   creado_en: import('firebase/firestore').Timestamp
+//   actualizado_en: import('firebase/firestore').Timestamp
+//   creado_por?: string
+//   actualizado_por?: string
 // }

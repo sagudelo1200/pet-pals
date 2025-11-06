@@ -14,7 +14,7 @@ export class UsuarioService {
   static async create(
     data: Omit<
       Usuario,
-      'id' | 'createdAt' | 'updatedAt' | 'createdBy' | 'updatedBy'
+      'id' | 'creado_en' | 'actualizado_en' | 'creado_por' | 'actualizado_por'
     >
   ): Promise<CrudResult<Usuario>> {
     return BaseCrudService.create<Usuario>(this.COLLECTION, data)
@@ -27,7 +27,7 @@ export class UsuarioService {
   static async createForCurrentUser(
     data: Omit<
       Usuario,
-      'id' | 'createdAt' | 'updatedAt' | 'createdBy' | 'updatedBy'
+      'id' | 'creado_en' | 'actualizado_en' | 'creado_por' | 'actualizado_por'
     >
   ): Promise<CrudResult<Usuario>> {
     try {
@@ -40,10 +40,10 @@ export class UsuarioService {
         // timestamp value (some environments send serverTimestamp sentinel
         // which may be rejected by strict rules). Using Date ensures the
         // request.resource contains an actual timestamp.
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        createdBy: uid,
-        updatedBy: uid,
+        creado_en: new Date(),
+        actualizado_en: new Date(),
+        creado_por: uid,
+        actualizado_por: uid,
       }
 
       const ref = doc(db, this.COLLECTION, uid)
@@ -73,16 +73,16 @@ export class UsuarioService {
     uid: string,
     data: Omit<
       Usuario,
-      'id' | 'createdAt' | 'updatedAt' | 'createdBy' | 'updatedBy'
+      'id' | 'creado_en' | 'actualizado_en' | 'creado_por' | 'actualizado_por'
     >
   ): Promise<CrudResult<Usuario>> {
     try {
       const base = {
         // use client timestamp as above for consistency with security rules
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        createdBy: uid,
-        updatedBy: uid,
+        creado_en: new Date(),
+        actualizado_en: new Date(),
+        creado_por: uid,
+        actualizado_por: uid,
       }
 
       const ref = doc(db, this.COLLECTION, uid)
@@ -103,7 +103,7 @@ export class UsuarioService {
 
   static async update(
     id: string,
-    data: Partial<Omit<Usuario, 'id' | 'createdAt' | 'createdBy'>>
+    data: Partial<Omit<Usuario, 'id' | 'creado_en' | 'creado_por'>>
   ): Promise<CrudResult<Usuario>> {
     return BaseCrudService.update<Usuario>(this.COLLECTION, id, data)
   }

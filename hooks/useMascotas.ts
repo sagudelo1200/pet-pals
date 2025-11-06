@@ -17,7 +17,10 @@ export function useMascotasDelUsuario(options?: { listen?: boolean }) {
 
   const q = useMemo<Query | null>(() => {
     if (!user?.uid) return null
-    return query(collection(db, 'mascotas'), where('createdBy', '==', user.uid))
+    return query(
+      collection(db, 'mascotas'),
+      where('creado_por', '==', user.uid)
+    )
   }, [user?.uid])
   const { data, loading, error, refetch } = useCollection<Mascota>(q, {
     listen,

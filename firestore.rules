@@ -2,161 +2,216 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // === Helpers ===
-    function isSignedIn() {
+    // HELPERS GLOBALES
+
+    // Indica si la peticion proviene de un usuario autenticado
+    function autenticado() {
       return request.auth != null;
     }
 
-    // Carga el doc de usuario para roles; listo para claims en el futuro
-    function userDoc() {
+    // Devuelve documento usuarios del uid autenticado
+    function doc_usuario() {
       return get(/databases/$(database)/documents/usuarios/$(request.auth.uid));
     }
 
-    function isAdmin() {
-      return isSignedIn() && userDoc().data.roles != null && ('admin' in userDoc().data.roles);
+    // Comprueba si el usuario u tiene el rol rol
+    function tiene_rol(u, rol) {
+      if (!autenticado()) return false;
+      // Si es el usuario autenticado primero probar Custom Claims
+      if (u == request.auth.uid) {
+      if (request.auth != null && request.auth.token != null && request.auth.token.roles != null) {
+      let roles = request.auth.token.roles;
+      return (roles is list && roles.hasAny([rol])) ||
+      (roles is map && roles[rol] == true);
     }
 
-    function isOwner() {
-      return isSignedIn() && resource.data.createdBy == request.auth.uid;
-    }
+    // Si no hay claims usar doc_usuario
+    let d = doc_usuario();
+    return d.exists() && d.data.roles != null && (
+    (d.data.roles is list && d.data.roles.hasAny([rol])) ||
+    (d.data.roles is map && d.data.roles[rol] == true)
+    );
+  }
 
-    function isCreatingOwner() {
-      return isSignedIn() && request.resource.data.createdBy == request.auth.uid;
-    }
+  // Caso general leer doc del usuario u
+  let doc = get(/databases/$(database)/documents/usuarios/$(u));
+  return doc.exists() && doc.data.roles != null && (
+  (doc.data.roles is list && doc.data.roles.hasAny([rol])) ||
+  (doc.data.roles is map && doc.data.roles[rol] == true)
+  );
+}
 
-    function systemFieldsCreateValid() {
-      // Permitimos que el cliente envíe timestamps para createdAt/updatedAt (esperamos serverTimestamp/timestamp)
-      return request.resource.data.createdAt is timestamp &&
-             request.resource.data.updatedAt is timestamp;
-    }
+// Verifica si el usuario autenticado tiene un rol especifico
+function tiene_rol_actual(rol) {
+  return autenticado() && tiene_rol(request.auth.uid, rol);
+}
 
-    function systemFieldsUpdateValid() {
-      // createdAt y createdBy inmutables; updatedAt debe ser timestamp
-      return request.resource.data.createdAt == resource.data.createdAt &&
-             request.resource.data.createdBy == resource.data.createdBy &&
-             request.resource.data.updatedAt is timestamp;
-    }
+// Verifica si el usuario autenticado es administrador
+function es_admin() {
+  return autenticado() && tiene_rol_actual('admin');
+}
 
-    // === usuarios ===
+// Comprueba si el UID corresponde al usuario autenticado
+function es_mismo_uid(u) {
+  return autenticado() && u == request.auth.uid;
+}
+
+// Comprueba si el documento pertenece al usuario autenticado
+function es_dueno() {
+  return autenticado() &&
+  resource != null &&
+  resource.data.creado_por == request.auth.uid;
+}
+
+// Verifica que el payload declara correctamente el creador
+function es_creador() {
+  return autenticado() &&
+  request.resource.data.creado_por == request.auth.uid;
+}
+
+// CAMPOS SISTEMA VALIDACIONES
+
+function tiene_campos_sistema_basicos() {
+  return request.resource.data.keys().hasAll([
+  'id', 'creado_por', 'actualizado_por', 'creado_en', 'actualizado_en'
+  ]);
+}
+
+function campos_sistema_validos_crear() {
+  return request.resource.data.creado_en == request.time &&
+  request.resource.data.actualizado_en == request.time &&
+  request.resource.data.creado_por == request.auth.uid &&
+  request.resource.data.actualizado_por == request.auth.uid;
+}
+
+function campos_sistema_validos_actualizar() {
+  return request.resource.data.creado_en == resource.data.creado_en &&
+  request.resource.data.creado_por == resource.data.creado_por &&
+  request.resource.data.actualizado_en == request.time &&
+  request.resource.data.actualizado_por == request.auth.uid;
+}
+
+function solo_campos_permitidos(camposPermitidos) {
+  return request.resource.data.keys().hasOnly(camposPermitidos);
+}
+
+// PASEOS HELPERS ESPECIFICOS
+
+function estado_permite_unirse(estado) {
+  return estado in ['pendiente', 'confirmado'];
+}
+
+function es_actor_paseo_doc(p) {
+  if (!autenticado() || !p.exists()) return false;
+  if (p.data.creado_por == request.auth.uid) return true;
+  if (p.data.id_paseador == request.auth.uid) return true;
+  return es_admin();
+}
+
+function puede_unirse_a_paseo_doc(p) {
+  return p.exists() && p.data.es_multiple == true && estado_permite_unirse(p.data.estado);
+}
+
+// USUARIOS
     match /usuarios/{uid} {
-      allow read: if isSignedIn() && (uid == request.auth.uid || isAdmin());
-      allow create: if isSignedIn() && uid == request.auth.uid
-                    && isCreatingOwner() && systemFieldsCreateValid();
-      allow update: if isSignedIn() && (uid == request.auth.uid || isAdmin())
-                    && systemFieldsUpdateValid();
-      allow delete: if isAdmin();
+      allow read: if autenticado() && (es_mismo_uid(uid) || es_admin());
+      allow create: if autenticado() && es_mismo_uid(uid)
+        && es_creador()
+        && tiene_campos_sistema_basicos()
+        && campos_sistema_validos_crear();
+      allow update: if autenticado() && (es_mismo_uid(uid) || es_admin())
+        && campos_sistema_validos_actualizar();
+      allow delete: if es_admin();
     }
 
-    // === perfil_publico ===
+  // PERFIL PUBLICO
     match /perfil_publico/{docId} {
-      allow read: if true; // público
-      // Dueño del perfil (id_usuario) o admin pueden escribir
-      allow create: if isSignedIn() && (
-        request.resource.data.id_usuario == request.auth.uid || isAdmin()
-      ) && systemFieldsCreateValid();
-
-      allow update: if isSignedIn() && (
-        request.resource.data.id_usuario == request.auth.uid || isAdmin()
-      ) && systemFieldsUpdateValid();
-      allow delete: if isAdmin();
+      allow read: if true;
+      allow create: if autenticado()
+        && (request.resource.data.creado_por == request.auth.uid || es_admin())
+        && tiene_campos_sistema_basicos()
+        && campos_sistema_validos_crear();
+      allow update: if autenticado()
+        && (resource.data.creado_por == request.auth.uid || es_admin())
+        && campos_sistema_validos_actualizar();
+      allow delete: if es_admin();
     }
 
-    // === mascotas ===
+  // MASCOTAS
     match /mascotas/{id} {
-      // Lectura: sólo dueño o admin (excepciones para paseador se añadirán luego)
-      allow read: if isSignedIn() && (isOwner() || isAdmin());
-
-      allow create: if isSignedIn()
-                    && isCreatingOwner()
-                    && request.resource.data.id_usuario == request.auth.uid
-                    && systemFieldsCreateValid();
-
-      // No permitir cambiar id_usuario ni createdBy/createdAt
-      allow update: if isSignedIn() && isOwner() && systemFieldsUpdateValid()
-                    && request.resource.data.id_usuario == resource.data.id_usuario;
-
-      allow delete: if isSignedIn() && (isOwner() || isAdmin());
+      allow read: if autenticado() && (es_dueno() || es_admin());
+      allow create: if autenticado()
+        && es_creador()
+        && tiene_campos_sistema_basicos()
+        && campos_sistema_validos_crear();
+      allow update: if autenticado()
+        && es_dueno()
+        && campos_sistema_validos_actualizar()
+        && request.resource.data.creado_por == resource.data.creado_por
+        && solo_campos_permitidos([
+          'nombre', 'raza', 'edad', 'descripcion',
+          'creado_por', 'creado_en', 'actualizado_en', 'actualizado_por'
+        ]);
+      allow delete: if autenticado() && (es_dueno() || es_admin());
     }
 
-    // === paseos ===
+  // PASEOS
     match /paseos/{id} {
-      // Lectura: dueño (creado_por), paseador asignado (id_paseador), o admin
-      allow read: if isSignedIn() && (
-        resource.data.creado_por == request.auth.uid ||
-        resource.data.id_paseador == request.auth.uid ||
-        isAdmin()
-      );
-
-      // Dueño o paseador crea. Validaciones finas de estado/transiciones vendrán después
-      allow create: if isSignedIn() && isCreatingOwner()
-        && request.resource.data.creado_por == request.auth.uid
-        && systemFieldsCreateValid();
-
-      // Update mínimo: bloquear inmutables (creado_por) y campos de sistema
-      allow update: if isSignedIn() && (
-        isOwner() || resource.data.id_paseador == request.auth.uid || isAdmin()
-      ) && systemFieldsUpdateValid()
+      allow read: if es_actor_paseo_doc(resource);
+      allow create: if autenticado()
+        && es_creador()
+        && tiene_campos_sistema_basicos()
+        && campos_sistema_validos_crear();
+      allow update: if es_actor_paseo_doc(resource)
+        && campos_sistema_validos_actualizar()
         && request.resource.data.creado_por == resource.data.creado_por;
-
-      allow delete: if isSignedIn() && (isOwner() || isAdmin());
+      allow delete: if es_actor_paseo_doc(resource);
     }
 
-    // === Subcolección: paseos/{paseoId}/mascotas/{mascotaId}
+  // SUBCOLECCION PASEOS MASCOTAS
     match /paseos/{paseoId}/mascotas/{mascotaId} {
+
       function paseoDoc() {
         return get(/databases/$(database)/documents/paseos/$(paseoId));
       }
-      // Dueño de la mascota participante usando datos denormalizados en el subdoc
-      function isMascotaOwner() {
-        return isSignedIn() && resource != null && resource.data.id_usuario == request.auth.uid;
+
+      function es_dueno_mascota() {
+        return autenticado() &&
+               resource != null &&
+               resource.data.id_usuario == request.auth.uid;
       }
-      function isInvolved() {
-        return isSignedIn() && (
-          paseoDoc().data.creado_por == request.auth.uid ||
-          paseoDoc().data.id_paseador == request.auth.uid ||
-          isAdmin()
+
+      allow read: if es_actor_paseo_doc(paseoDoc()) || es_dueno_mascota();
+
+      allow create: if autenticado()
+        && tiene_campos_sistema_basicos()
+        && campos_sistema_validos_crear()
+        && (
+          es_actor_paseo_doc(paseoDoc()) ||
+          (puede_unirse_a_paseo_doc(paseoDoc())
+            && request.resource.data.id_usuario == request.auth.uid
+            && request.resource.data.id_mascota == mascotaId)
         );
-      }
 
-      // Permitir lectura a involucrados y al dueño de la mascota (joiner)
-      allow read: if isInvolved() || isMascotaOwner();
-
-      // Crear entrada por mascota (ID = mascotaId)
-      allow create: if systemFieldsCreateValid() && (
-        // Involucrados pueden agregar
-        isInvolved() ||
-        // Joiners: paseo múltiple, estado permite unir, y el usuario es dueño de la mascota
-  (paseoDoc().data.es_multiple == true &&
-   (paseoDoc().data.estado in ['pendiente', 'confirmado']) &&
-   // Usamos el dato denormalizado provisto en el write
-   request.resource.data.id_usuario == request.auth.uid &&
-   // El subdoc declara su id_mascota y coincide con el documentId
-   request.resource.data.id_mascota == mascotaId)
+      // Actor o dueño puede actualizar observaciones
+      allow update: if (
+        (es_actor_paseo_doc(paseoDoc())
+          && campos_sistema_validos_actualizar()
+          && request.resource.data.id_mascota == resource.data.id_mascota
+          && request.resource.data.id_usuario == resource.data.id_usuario)
+        ||
+        (es_dueno_mascota()
+          && campos_sistema_validos_actualizar()
+          && request.resource.data.id_paseo == resource.data.id_paseo
+          && request.resource.data.id_mascota == resource.data.id_mascota
+          && request.resource.data.id_usuario == resource.data.id_usuario
+          && request.resource.data.estado_mascota == resource.data.estado_mascota
+          && request.resource.data.codigo_recogida == resource.data.codigo_recogida
+          && request.resource.data.codigo_entrega == resource.data.codigo_entrega
+          && request.resource.data.actualizado_por == request.auth.uid)
       );
 
-      // Validaciones adicionales para create: createdBy/updatedBy deben ser del usuario actual
-      allow create: if request.resource.data.createdBy == request.auth.uid && request.resource.data.updatedBy == request.auth.uid;
-
-      // No permitir cambiar campos de sistema
-      allow update: if isInvolved() && systemFieldsUpdateValid()
-        // Mantener inmutables los identificadores denormalizados
-        && request.resource.data.id_mascota == resource.data.id_mascota
-        && request.resource.data.id_usuario == resource.data.id_usuario;
-
-      // Permitir que el dueño de la mascota (joiner) edite exclusivamente 'observaciones'
-      // (más los campos de sistema updatedAt/updatedBy que el servidor/cliente gestionan).
-      allow update: if isMascotaOwner() && systemFieldsUpdateValid()
-        // Identificadores y estado/códigos inmutables por joiner
-        && request.resource.data.id_paseo == resource.data.id_paseo
-        && request.resource.data.id_mascota == resource.data.id_mascota
-        && request.resource.data.id_usuario == resource.data.id_usuario
-        && request.resource.data.estado_mascota == resource.data.estado_mascota
-        && request.resource.data.codigo_recogida == resource.data.codigo_recogida
-        && request.resource.data.codigo_entrega == resource.data.codigo_entrega
-        // Recomendado: updatedBy refleje al usuario que edita
-        && request.resource.data.updatedBy == request.auth.uid;
-
-      allow delete: if isInvolved();
+      allow delete: if es_actor_paseo_doc(paseoDoc());
     }
   }
 }

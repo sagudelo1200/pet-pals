@@ -30,7 +30,7 @@ export async function addMascotasAlPaseo(
       const m = await BaseCrudService.getById<Mascota>('mascotas', mascotaId)
       if (!m.success || !m.data)
         return { success: false, error: ERR.MASCOTA_NO_ENCONTRADA }
-      const ownerId = m.data.id_usuario || m.data.createdBy || uid
+      const ownerId = (m.data as any).creado_por || uid
 
       const ref = doc(col, mascotaId)
       const base = {
@@ -38,10 +38,10 @@ export async function addMascotasAlPaseo(
         id_mascota: mascotaId,
         id_usuario: ownerId,
         estado_mascota: 'pendiente',
-        createdAt: nowServerTimestamp(),
-        updatedAt: nowServerTimestamp(),
-        createdBy: uid,
-        updatedBy: uid,
+        creado_en: nowServerTimestamp(),
+        actualizado_en: nowServerTimestamp(),
+        creado_por: uid,
+        actualizado_por: uid,
       }
       // Importante: no envolver FieldValue (serverTimestamp) con toDb
       batch.set(ref, base)
@@ -67,7 +67,7 @@ export async function addMascotaAlPaseo(
   const m = await BaseCrudService.getById<Mascota>('mascotas', mascotaId)
   if (!m.success || !m.data)
     return { success: false, error: ERR.MASCOTA_NO_ENCONTRADA }
-  const ownerOk = m.data.id_usuario === uid || m.data.createdBy === uid
+  const ownerOk = (m.data as any).creado_por === uid
   if (!ownerOk)
     return { success: false, error: ERR.MASCOTA_NO_PERTENECE_AL_USUARIO }
 
@@ -109,12 +109,12 @@ export async function addMascotaAlPaseo(
       tx.set(subRef, {
         id_paseo: paseoId,
         id_mascota: mascotaId,
-        id_usuario: m.data.id_usuario || m.data.createdBy || uid,
+        id_usuario: (m.data as any).creado_por || uid,
         estado_mascota: 'pendiente',
-        createdAt: nowServerTimestamp(),
-        updatedAt: nowServerTimestamp(),
-        createdBy: uid,
-        updatedBy: uid,
+        creado_en: nowServerTimestamp(),
+        actualizado_en: nowServerTimestamp(),
+        creado_por: uid,
+        actualizado_por: uid,
       })
       tx.update(paseoRef, { mascotas_count: increment(1) })
     })

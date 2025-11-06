@@ -3,14 +3,14 @@
 Este proyecto usa un enfoque centralizado para manejar fechas y conversiones entre UI y Firestore.
 
 - Dominio/UI: usa `Date` en los modelos (`models/*`).
-- Persistencia (Firestore): guarda `Timestamp` y `serverTimestamp()` para `createdAt`/`updatedAt`.
+- Persistencia (Firestore): guarda `Timestamp` y `serverTimestamp()` para `creado_en`/`actualizado_en`.
 - Conversión recursiva centralizada: `services/firebase/converters.ts` expone `toDb` (Date→Timestamp) y `toDomain` (Timestamp→Date).
 
 ## CRUD genérico
 
 `services/firebase/crud.ts` implementa operaciones CRUD y aplica las conversiones automáticamente.
 
-- `create`: usa `serverTimestamp()` para `createdAt/updatedAt` y devuelve el documento formateado a dominio (`Date`).
+- `create`: usa `serverTimestamp()` para `creado_en/actualizado_en` y devuelve el documento formateado a dominio (`Date`).
 - `update`: usa `serverTimestamp()` para `updatedAt` y convierte el payload con `toDb`.
 - `getById`, `getAll`, `getWhere`: convierten los datos leídos a `Date`.
 
@@ -59,7 +59,7 @@ import { useCollection } from '@/hooks'
 const q = query(
   collection(db, 'paseos'),
   where('estado', '==', 'pendiente'),
-  orderBy('createdAt', 'desc'),
+  orderBy('creado_en', 'desc'),
   limit(20)
 )
 
@@ -88,7 +88,7 @@ import { useCrud } from '@/hooks'
 const { create, update, remove, getById, getAll, getWhere, loading, error } =
   useCrud<Mascota>('mascotas')
 
-await create({ id_usuario: uid, nombre: 'Fido', especie: 'perro' })
+await create({ nombre: 'Fido', especie: 'perro' })
 const lista = await getAll()
 ```
 
@@ -109,7 +109,7 @@ Si necesitas rangos, preferimos construir un `Query` y usar `useCollection` o ag
 
 ## Buenas prácticas
 
-- `createdAt`/`updatedAt`: siempre con `serverTimestamp()`.
+- `creado_en`/`actualizado_en`: siempre con `serverTimestamp()`.
 - Evita llamar `.toDate()` en UI; la conversión es centralizada.
 - Cancela listeners (`onSnapshot`) en unmount (los hooks ya lo hacen).
 - Pagina con `limit`/`startAfter` cuando la colección crezca.

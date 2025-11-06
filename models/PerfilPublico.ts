@@ -3,9 +3,6 @@ import { BaseModel } from './BaseModel'
 export type EstadoVerificacion = 'pendiente' | 'verificado' | 'rechazado'
 
 export interface PerfilPublico extends BaseModel {
-  // Identificación
-  id_usuario: string
-
   // Datos básicos
   nombre: string
   foto?: string

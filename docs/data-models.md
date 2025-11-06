@@ -30,7 +30,7 @@ El dominio de Pet Pals está modelado con entidades claras, estados explícitos 
 
 - Tipado fuerte de dominio: enums para estados, tamaños y especies.
 - Estados como primera clase: flujos definidos y validados (ver máquinas de estado).
-- Auditoría consistente: `id`, `createdAt`, `updatedAt`, `createdBy`, `updatedBy` en todas las entidades.
+- Auditoría consistente: `id`, `creado_en`, `actualizado_en`, `creado_por`, `actualizado_por` en todas las entidades.
 - Normalización pragmática: referencias por ID; agregaciones se resuelven en la capa de servicios.
 - Preparado para Firestore: diseño optimizado para consultas por filtros y ordenamientos comunes.
 
@@ -68,10 +68,10 @@ Estrategias actuales evidenciadas en el repositorio:
 Campos comunes presentes en todas las entidades.
 
 - id: string (requerido)
-- createdAt: Date (requerido)
-- updatedAt: Date (requerido)
-- createdBy: string (opcional)
-- updatedBy: string (opcional)
+- creado_en: Date (requerido)
+- actualizado_en: Date (requerido)
+- creado_por: string (opcional)
+- actualizado_por: string (opcional)
 
 <!-- Reglas operativas retiradas para mantener una descripción estrictamente estructural. -->
 
@@ -102,8 +102,8 @@ Ejemplo JSON:
 ```json
 {
   "id": "usr_123",
-  "createdAt": "2025-10-01T12:30:00Z",
-  "updatedAt": "2025-10-10T08:00:00Z",
+  "creado_en": "2025-10-01T12:30:00Z",
+  "actualizado_en": "2025-10-10T08:00:00Z",
   "nombre": "Ana Pérez",
   "correo": "ana@example.com",
   "celular": "+57 3001234567",

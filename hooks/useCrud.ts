@@ -31,13 +31,17 @@ export function useCrud<T extends BaseModel = any>(collectionName: string) {
       create: (
         data: Omit<
           T,
-          'id' | 'createdAt' | 'updatedAt' | 'createdBy' | 'updatedBy'
+          | 'id'
+          | 'creado_en'
+          | 'actualizado_en'
+          | 'creado_por'
+          | 'actualizado_por'
         >
       ): Promise<CrudResult<T>> =>
         wrap(() => BaseCrudService.create<T>(collectionName, data)),
       update: (
         id: string,
-        data: Partial<Omit<T, 'id' | 'createdAt' | 'createdBy'>>
+        data: Partial<Omit<T, 'id' | 'creado_en' | 'creado_por'>>
       ): Promise<CrudResult<T>> =>
         wrap(() => BaseCrudService.update<T>(collectionName, id, data)),
       remove: (id: string): Promise<CrudResult<boolean>> =>

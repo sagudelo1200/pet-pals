@@ -4,16 +4,16 @@ Este documento describe un plan incremental para reglas de seguridad, alineado c
 
 ## Principios
 
-- Propiedad: todo documento tiene `createdBy = uid` del autor.
-- Fechas del sistema: `createdAt`, `updatedAt` son `timestamp` (el cliente usa `serverTimestamp()`).
+- Propiedad: todo documento tiene `creado_por = uid` del autor.
+- Fechas del sistema: `creado_en`, `actualizado_en` son `timestamp` (el cliente usa `serverTimestamp()`).
 - Dominio/UI trabaja con `Date` y la capa de datos convierte (ver `services/firebase/converters.ts`).
 
 ## Fase 1 (incluida en `firestore.rules`)
 
 - Helpers: `isSignedIn`, `isAdmin` (vía doc `usuarios/{uid}`), `isOwner`.
-- `usuarios/{uid}`: lectura propia y admin; create/update propias; `createdAt/By` inmutables.
-- `perfil_publico/*`: lectura pública; create propia o admin (campos de sistema requeridos). En update se aplican reglas de inmutabilidad para `createdAt/createdBy`.
-- `mascotas/*`: lectura del dueño; create forzando `id_usuario == uid`; inmutables `createdAt/By` e `id_usuario`.
+- `usuarios/{uid}`: lectura propia y admin; create/update propias; `creado_en/por` inmutables.
+- `perfil_publico/*`: lectura pública; create propia o admin (campos de sistema requeridos). En update se aplican reglas de inmutabilidad para `creado_en/creado_por`.
+- `mascotas/*`: lectura del dueño; create forzando `id_usuario == uid`; inmutables `creado_en/creado_por` e `id_usuario`.
 - `paseos/*`: lectura dueño, paseador asignado, admin; create dueño; bloquear cambios a `creado_por` (inmutable).
 
 ## Fase 2 (siguiente)
