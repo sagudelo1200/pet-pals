@@ -12,7 +12,6 @@ import {
 import { db } from '../../firebase.config'
 import { BaseModel } from '../../models/BaseModel'
 import { CrudResult } from './types'
-import { AuthService } from './auth'
 import { nowServerTimestamp, toDb, toDomain } from './converters'
 import { ERR } from '@/constants'
 import { mapFirebaseError } from './errors'
@@ -29,6 +28,7 @@ export class ServicioCrudBase {
     >
   ): Promise<CrudResult<T>> {
     try {
+      const { AuthService } = await import('./auth')
       const currentUser = AuthService.getCurrentUser()
       const base = {
         creado_en: nowServerTimestamp(),
@@ -84,6 +84,7 @@ export class ServicioCrudBase {
     data: Partial<Omit<T, 'id' | 'creado_en' | 'creado_por'>>
   ): Promise<CrudResult<T>> {
     try {
+      const { AuthService } = await import('./auth')
       const currentUser = AuthService.getCurrentUser()
       const docRef = doc(db, collectionName, id)
 
