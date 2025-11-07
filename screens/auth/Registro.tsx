@@ -35,7 +35,7 @@ type Nav = StackNavigationProp<AuthFlowParamList>
 
 const Registro: React.FC = () => {
   const navigation = useNavigation<Nav>()
-  const { register, loading, reloadProfile } = useAuth()
+  const { register, cargando, reloadProfile } = useAuth()
   const { t } = useTranslation()
   const [nombre, setNombre] = useState('')
   const [email, setEmail] = useState('')
@@ -184,7 +184,7 @@ const Registro: React.FC = () => {
 
               <Button
                 title={
-                  loading
+                  cargando
                     ? t('auth:registro.formulario.estado.creando')
                     : t('auth:registro.formulario.accion')
                 }
@@ -193,7 +193,7 @@ const Registro: React.FC = () => {
                 fullWidth
                 style={styles.submit}
                 disabled={!canSubmit}
-                loading={loading}
+                loading={cargando}
               />
 
               <Button

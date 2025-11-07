@@ -9,7 +9,7 @@ import {
 import { nowServerTimestamp } from './converters'
 import { AuthService } from './auth'
 import type { Mascota } from '@/models/Mascota'
-import { BaseCrudService } from './crud'
+import { ServicioCrudBase } from './crud'
 import { MAX_MASCOTAS_POR_PASEO, ERR } from '@/constants'
 import { mapFirebaseError } from './errors'
 
@@ -27,7 +27,10 @@ export async function addMascotasAlPaseo(
 
     for (const mascotaId of mascotaIds) {
       // Obtener dueño real de la mascota para denormalizar
-      const m = await BaseCrudService.getById<Mascota>('mascotas', mascotaId)
+      const m = await ServicioCrudBase.obtenerPorId<Mascota>(
+        'mascotas',
+        mascotaId
+      )
       if (!m.success || !m.data)
         return { success: false, error: ERR.MASCOTA_NO_ENCONTRADA }
       const ownerId = (m.data as any).creado_por || uid
@@ -64,7 +67,7 @@ export async function addMascotaAlPaseo(
   if (!mascotaId) return { success: false, error: ERR.MASCOTA_REQUERIDA }
 
   // Validar que la mascota exista y sea del usuario actual
-  const m = await BaseCrudService.getById<Mascota>('mascotas', mascotaId)
+  const m = await ServicioCrudBase.obtenerPorId<Mascota>('mascotas', mascotaId)
   if (!m.success || !m.data)
     return { success: false, error: ERR.MASCOTA_NO_ENCONTRADA }
   const ownerOk = (m.data as any).creado_por === uid

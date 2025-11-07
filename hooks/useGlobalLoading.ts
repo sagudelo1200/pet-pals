@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react'
 
 interface LoadingState {
-  isLoading: boolean
+  cargando: boolean
   message?: string
   messageType?: 'general' | 'pets' | 'auth' | 'walks' | 'custom'
 }
@@ -11,17 +11,17 @@ interface LoadingState {
  */
 export const useGlobalLoading = () => {
   const [loadingState, setLoadingState] = useState<LoadingState>({
-    isLoading: false,
+    cargando: false,
   })
 
-  // Mostrar loading con opciones
+  // Mostrar cargando con opciones
   const showLoading = useCallback(
     (options?: {
       message?: string
       messageType?: 'general' | 'pets' | 'auth' | 'walks' | 'custom'
     }) => {
       setLoadingState({
-        isLoading: true,
+        cargando: true,
         message: options?.message,
         messageType: options?.messageType || 'general',
       })
@@ -29,14 +29,14 @@ export const useGlobalLoading = () => {
     []
   )
 
-  // Ocultar loading
+  // Ocultar cargando
   const hideLoading = useCallback(() => {
     setLoadingState({
-      isLoading: false,
+      cargando: false,
     })
   }, [])
 
-  // Ejecutar función con loading automático
+  // Ejecutar función con manejo automático de cargando
   const withLoading = useCallback(
     async <T>(
       fn: () => Promise<T>,
@@ -58,7 +58,7 @@ export const useGlobalLoading = () => {
 
   return {
     // Estado
-    isLoading: loadingState.isLoading,
+    cargando: loadingState.cargando,
     message: loadingState.message,
     messageType: loadingState.messageType,
 

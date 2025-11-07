@@ -34,7 +34,7 @@ const Ingresar: React.FC = () => {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const navigation = useNavigation<Nav>()
-  const { login, loading } = useAuth()
+  const { login, cargando } = useAuth()
   const { t } = useTranslation()
   const handleSubmit = useCallback(async () => {
     if (!email || !password) {
@@ -95,7 +95,7 @@ const Ingresar: React.FC = () => {
 
               <Button
                 title={
-                  loading
+                  cargando
                     ? t('auth:ingresar.formulario.estado.ingresando')
                     : t('auth:ingresar.formulario.accion')
                 }
@@ -103,8 +103,8 @@ const Ingresar: React.FC = () => {
                 variant="primario"
                 fullWidth
                 style={styles.submit}
-                disabled={loading}
-                loading={loading}
+                disabled={cargando}
+                loading={cargando}
               />
 
               <Button

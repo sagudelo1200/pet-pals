@@ -12,7 +12,7 @@ import { ERR } from '@/constants'
  * - Si no hay usuario (y auth ya resolvió), expone error 'NO_AUTENTICADO'.
  */
 export function useMascotasDelUsuario(options?: { listen?: boolean }) {
-  const { user, loading: authLoading } = useAuth()
+  const { user, cargando: authCargando } = useAuth()
   const { listen = true } = options || {}
 
   const q = useMemo<Query | null>(() => {
@@ -22,22 +22,20 @@ export function useMascotasDelUsuario(options?: { listen?: boolean }) {
       where('creado_por', '==', user.uid)
     )
   }, [user?.uid])
-  const { data, loading, error, refetch } = useCollection<Mascota>(q, {
+  const { data, cargando, error, refetch } = useCollection<Mascota>(q, {
     listen,
   })
 
-  // When auth is still loading, surface that as loading; when there's no query (no user)
-  // expose NO_AUTENTICADO once auth finished.
-  const effectiveLoading = authLoading || loading
+  const effectiveLoading = authCargando || cargando
   const effectiveError = q
     ? error
-    : authLoading
+    : authCargando
       ? undefined
       : ERR.NO_AUTENTICADO
 
   return {
     mascotas: data,
-    loading: effectiveLoading,
+    cargando: effectiveLoading,
     error: effectiveError,
     refetch,
   }

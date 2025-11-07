@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react'
-import { Mascota } from '@/models/Mascota'
-import { MascotaService } from '@/services/firebase/mascota'
+import type { Mascota } from '@/models/Mascota'
+import { ServicioMascota } from '@/services/firebase'
 import type { CrudResult } from '@/services/firebase/types'
 import { mapFirebaseError } from '@/services/firebase/errors'
 
@@ -11,11 +11,11 @@ export type MascotaCreateInput = Pick<
 >
 
 export function useMascotaActions() {
-  const [loading, setLoading] = useState(false)
+  const [cargando, setCargando] = useState(false)
   const [error, setError] = useState<string | undefined>(undefined)
 
   const wrap = useCallback(async <R>(fn: () => Promise<R>): Promise<R> => {
-    setLoading(true)
+    setCargando(true)
     setError(undefined)
     try {
       return await fn()
@@ -23,36 +23,33 @@ export function useMascotaActions() {
       setError(mapFirebaseError(e))
       throw e
     } finally {
-      setLoading(false)
+      setCargando(false)
     }
   }, [])
 
-  const create = useCallback(
+  const crear = useCallback(
     async (data: MascotaCreateInput): Promise<CrudResult<Mascota>> => {
-      return wrap(() =>
-        // creado_por lo fija el servicio con el UID actual; aquí no lo pedimos a la UI
-        MascotaService.create(data as any)
-      )
+      return wrap(() => ServicioMascota.crear(data as any))
     },
     [wrap]
   )
 
-  const update = useCallback(
+  const actualizar = useCallback(
     async (
       id: string,
       data: Partial<Mascota>
     ): Promise<CrudResult<Mascota>> => {
-      return wrap(() => MascotaService.update(id, data as any))
+      return wrap(() => ServicioMascota.actualizar(id, data as any))
     },
     [wrap]
   )
 
-  const remove = useCallback(
+  const eliminar = useCallback(
     async (id: string): Promise<CrudResult<boolean>> => {
-      return wrap(() => MascotaService.delete(id))
+      return wrap(() => ServicioMascota.eliminar(id))
     },
     [wrap]
   )
 
-  return { create, update, remove, loading, error }
+  return { crear, actualizar, eliminar, cargando, error }
 }

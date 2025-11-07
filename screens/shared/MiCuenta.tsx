@@ -10,7 +10,7 @@ import { COLOR } from '@/constants'
 const MiCuenta = () => {
   const navigation = useNavigation<any>()
   const insets = useSafeAreaInsets()
-  const { logout, loading, user, profile } = useAuth()
+  const { logout, cargando, user, profile } = useAuth()
   const correo = user?.email ?? (profile as any)?.correo ?? '—'
   const nombre = user?.displayName ?? (profile as any)?.nombre ?? '—'
 
@@ -47,10 +47,10 @@ const MiCuenta = () => {
         <Button
           style={styles.logoutButton as any}
           onPress={handleLogout}
-          disabled={loading}
+          disabled={cargando}
           color={'secondary'}
         >
-          {loading ? 'Cerrando sesión…' : 'Cerrar sesión'}
+          {cargando ? 'Cerrando sesión…' : 'Cerrar sesión'}
         </Button>
       </View>
     </SafeAreaView>

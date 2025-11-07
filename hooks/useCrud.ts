@@ -1,20 +1,20 @@
 import { useCallback, useMemo, useState } from 'react'
-import { BaseCrudService } from '@/services/firebase'
+import { ServicioCrudBase } from '@/services/firebase'
 import type { BaseModel } from '@/models/BaseModel'
 import type { CrudResult } from '@/services/firebase/types'
 import { mapFirebaseError } from '@/services/firebase/errors'
 
 /**
- * Hook fino para exponer un CRUD por colección basado en BaseCrudService.
- * - Centraliza loading y error.
+ * Hook fino para exponer un CRUD por colección basado en ServicioCrudBase.
+ * - Centraliza cargando y error.
  * - Devuelve helpers tipados.
  */
 export function useCrud<T extends BaseModel = any>(collectionName: string) {
-  const [loading, setLoading] = useState(false)
+  const [cargando, setCargando] = useState(false)
   const [error, setError] = useState<string | undefined>(undefined)
 
   const wrap = useCallback(async <R>(fn: () => Promise<R>): Promise<R> => {
-    setLoading(true)
+    setCargando(true)
     setError(undefined)
     try {
       return await fn()
@@ -22,13 +22,13 @@ export function useCrud<T extends BaseModel = any>(collectionName: string) {
       setError(mapFirebaseError(e))
       throw e
     } finally {
-      setLoading(false)
+      setCargando(false)
     }
   }, [])
 
-  const actions = useMemo(() => {
+  const acciones = useMemo(() => {
     return {
-      create: (
+      crear: (
         data: Omit<
           T,
           | 'id'
@@ -38,22 +38,22 @@ export function useCrud<T extends BaseModel = any>(collectionName: string) {
           | 'actualizado_por'
         >
       ): Promise<CrudResult<T>> =>
-        wrap(() => BaseCrudService.create<T>(collectionName, data)),
-      update: (
+        wrap(() => ServicioCrudBase.crear<T>(collectionName, data)),
+      actualizar: (
         id: string,
         data: Partial<Omit<T, 'id' | 'creado_en' | 'creado_por'>>
       ): Promise<CrudResult<T>> =>
-        wrap(() => BaseCrudService.update<T>(collectionName, id, data)),
-      remove: (id: string): Promise<CrudResult<boolean>> =>
-        wrap(() => BaseCrudService.delete(collectionName, id)),
-      getById: (id: string): Promise<CrudResult<T>> =>
-        wrap(() => BaseCrudService.getById<T>(collectionName, id)),
-      getAll: (): Promise<CrudResult<T[]>> =>
-        wrap(() => BaseCrudService.getAll<T>(collectionName)),
-      getWhere: (field: string, value: any): Promise<CrudResult<T[]>> =>
-        wrap(() => BaseCrudService.getWhere<T>(collectionName, field, value)),
+        wrap(() => ServicioCrudBase.actualizar<T>(collectionName, id, data)),
+      eliminar: (id: string): Promise<CrudResult<boolean>> =>
+        wrap(() => ServicioCrudBase.eliminar(collectionName, id)),
+      obtenerPorId: (id: string): Promise<CrudResult<T>> =>
+        wrap(() => ServicioCrudBase.obtenerPorId<T>(collectionName, id)),
+      obtenerTodos: (): Promise<CrudResult<T[]>> =>
+        wrap(() => ServicioCrudBase.obtenerTodos<T>(collectionName)),
+      buscar: (field: string, value: any): Promise<CrudResult<T[]>> =>
+        wrap(() => ServicioCrudBase.buscar<T>(collectionName, field, value)),
     }
   }, [collectionName, wrap])
 
-  return { ...actions, loading, error }
+  return { ...acciones, cargando, error }
 }

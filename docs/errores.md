@@ -6,23 +6,23 @@ Traducciones: `services/i18n/locales/es/errors.json`. Helpers y setup: `services
 
 - NO_AUTENTICADO
   - Cuándo: Cuando no hay un usuario autenticado al intentar crear recursos o unirse a un paseo.
-  - Origen: `MascotaService.create`, `PaseoService.create`, `PaseoService.createConMascotas`, `addMascotasAlPaseo`, `addMascotaAlPaseo`.
+  - Origen: `ServicioMascota.crear`, `ServicioPaseo.crear`, `ServicioPaseo.crearConMascotas`, `addMascotasAlPaseo`, `addMascotaAlPaseo`.
 
 - MASCOTA_REQUERIDA
   - Cuándo: Al intentar crear/agregar una mascota a un paseo cuando falta el identificador de mascota.
-  - Origen: `PaseoService.create`, `addMascotaAlPaseo`.
+  - Origen: `ServicioPaseo.create`, `addMascotaAlPaseo`.
 
 - MASCOTAS_REQUERIDAS
   - Cuándo: Al crear un paseo múltiple sin pasar al menos una mascota.
-  - Origen: `PaseoService.createConMascotas`.
+  - Origen: `ServicioPaseo.createConMascotas`.
 
 - MASCOTA_NO_ENCONTRADA
   - Cuándo: El id de la mascota no corresponde a un documento existente.
-  - Origen: `PaseoService.create`, `PaseoService.createConMascotas`, `addMascotaAlPaseo`.
+  - Origen: `ServicioPaseo.create`, `ServicioPaseo.createConMascotas`, `addMascotaAlPaseo`.
 
 - MASCOTA_NO_PERTENECE_AL_USUARIO
   - Cuándo: La mascota no es propiedad del usuario autenticado.
-  - Origen: `PaseoService.create`, `PaseoService.createConMascotas`, `addMascotaAlPaseo`.
+  - Origen: `ServicioPaseo.create`, `ServicioPaseo.createConMascotas`, `addMascotaAlPaseo`.
 
 - PASEO_NO_ENCONTRADO
   - Cuándo: Se intenta unirse a un paseo inexistente.
@@ -38,7 +38,7 @@ Traducciones: `services/i18n/locales/es/errors.json`. Helpers y setup: `services
 
 - LIMITE_DE_MASCOTAS_SUPERADO
   - Cuándo: Se alcanza el límite máximo de mascotas permitidas para el paseo (mínimo entre el global y el por paseo).
-  - Origen: `PaseoService.createConMascotas`, `addMascotaAlPaseo`.
+  - Origen: `ServicioPaseo.createConMascotas`, `addMascotaAlPaseo`.
 
 - MASCOTA_YA_AGREGADA
   - Cuándo: Se intenta agregar una mascota que ya participa en el paseo.
@@ -46,7 +46,7 @@ Traducciones: `services/i18n/locales/es/errors.json`. Helpers y setup: `services
 
 - DUENO_NO_COINCIDE
   - Cuándo: Al crear una mascota con `id_usuario` distinto del usuario autenticado.
-  - Origen: `MascotaService.create`.
+  - Origen: `ServicioMascota.crear`.
 
 - ERROR_DESCONOCIDO
   - Cuándo: Fallback genérico cuando no se dispone de un mensaje específico del error capturado.

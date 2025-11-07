@@ -10,7 +10,7 @@ import {
 import { auth } from '../../firebase.config'
 import { AuthResult } from './types'
 import { ERR } from '@/constants/errors'
-import { UsuarioService } from './usuario'
+import { ServicioUsuario } from './usuario'
 
 // Mapeo de errores de Firebase Auth a códigos de dominio
 function mapFirebaseAuthError(e: any): string {
@@ -65,7 +65,7 @@ export class AuthService {
       // Usamos createWithUid para asegurar uso del UID retornado.
       try {
         const uid = userCredential.user.uid
-        const res = await UsuarioService.createWithUid(uid, {
+        const res = await ServicioUsuario.crearConUid(uid, {
           nombre: displayName,
           correo: email,
           celular: '',

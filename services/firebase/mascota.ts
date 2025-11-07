@@ -1,13 +1,13 @@
-import { BaseCrudService } from './crud'
+import { ServicioCrudBase } from './crud'
 import { Mascota } from '../../models/Mascota'
 import { CrudResult } from './types'
 import { AuthService } from './auth'
 import { ERR } from '@/constants'
 
-export class MascotaService {
+export class ServicioMascota {
   private static readonly COLLECTION = 'mascotas'
 
-  static async create(
+  static async crear(
     data: Omit<
       Mascota,
       'id' | 'creado_en' | 'actualizado_en' | 'creado_por' | 'actualizado_por'
@@ -26,38 +26,41 @@ export class MascotaService {
 
     // Ensure new mascotas are active by default unless explicitly set otherwise
     const payload = { ...data, creado_por: uid, activo: data.activo ?? true }
-    return BaseCrudService.create<Mascota>(this.COLLECTION, payload)
+    return ServicioCrudBase.crear<Mascota>(this.COLLECTION, payload)
   }
 
-  static async getById(id: string): Promise<CrudResult<Mascota>> {
-    return BaseCrudService.getById<Mascota>(this.COLLECTION, id)
+  static async obtenerPorId(id: string): Promise<CrudResult<Mascota>> {
+    return ServicioCrudBase.obtenerPorId<Mascota>(this.COLLECTION, id)
   }
 
-  static async update(
+  static async actualizar(
     id: string,
     data: Partial<Omit<Mascota, 'id' | 'creado_en' | 'creado_por'>>
   ): Promise<CrudResult<Mascota>> {
-    return BaseCrudService.update<Mascota>(this.COLLECTION, id, data)
+    return ServicioCrudBase.actualizar<Mascota>(this.COLLECTION, id, data)
+  }
+  static async eliminar(id: string): Promise<CrudResult<boolean>> {
+    return ServicioCrudBase.eliminar(this.COLLECTION, id)
   }
 
-  static async delete(id: string): Promise<CrudResult<boolean>> {
-    return BaseCrudService.delete(this.COLLECTION, id)
-  }
-
-  static async getAll(): Promise<CrudResult<Mascota[]>> {
-    return BaseCrudService.getAll<Mascota>(this.COLLECTION)
+  static async obtenerTodos(): Promise<CrudResult<Mascota[]>> {
+    return ServicioCrudBase.obtenerTodos<Mascota>(this.COLLECTION)
   }
 
   // Métodos específicos
-  static async getByUsuario(userId: string): Promise<CrudResult<Mascota[]>> {
-    return BaseCrudService.getWhere<Mascota>(
+  static async obtenerPorUsuario(
+    userId: string
+  ): Promise<CrudResult<Mascota[]>> {
+    return ServicioCrudBase.buscar<Mascota>(
       this.COLLECTION,
       'creado_por',
       userId
     )
   }
 
-  static async getByTamano(tamano: string): Promise<CrudResult<Mascota[]>> {
-    return BaseCrudService.getWhere<Mascota>(this.COLLECTION, 'tamano', tamano)
+  static async obtenerPorTamano(
+    tamano: string
+  ): Promise<CrudResult<Mascota[]>> {
+    return ServicioCrudBase.buscar<Mascota>(this.COLLECTION, 'tamano', tamano)
   }
 }

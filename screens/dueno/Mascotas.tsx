@@ -20,22 +20,23 @@ import {
 import EmptyState from '@/components/ui/EmptyState'
 import LoadingScreen from '@/components/LoadingScreen'
 import { useMascotasDelUsuario, useMascotaActions } from '@/hooks'
+import type { Mascota } from '@/models/Mascota'
 import { useTranslation } from 'react-i18next'
 import { tErrorMaybe } from '@/services/i18n'
 import TextInput from '@/components/ui/TextInput'
 
 const Mascotas: React.FC = () => {
   const { t } = useTranslation()
-  const { mascotas, loading, error } = useMascotasDelUsuario({ listen: true })
-  // Usamos un único hook para acciones sobre mascotas (create/update/remove).
-  const { create, update, loading: actionsLoading } = useMascotaActions()
+  const { mascotas, cargando, error } = useMascotasDelUsuario({ listen: true })
+  // Usamos un único hook para acciones sobre mascotas (crear/actualizar/eliminar).
+  const { crear, actualizar, cargando: accionesCargando } = useMascotaActions()
 
   const [adding, setAdding] = useState(false)
   const [nombre, setNombre] = useState('')
   const [foto, setFoto] = useState('')
   const especie = useMemo(() => 'perro' as const, [])
 
-  if (loading) {
+  if (cargando) {
     return <LoadingScreen messageType="pets" />
   }
 
@@ -100,7 +101,7 @@ const Mascotas: React.FC = () => {
                     )
                     return
                   }
-                  const res = await create({
+                  const res = await crear({
                     nombre: nombre.trim(),
                     especie,
                     foto: foto.trim() || undefined,
@@ -121,8 +122,8 @@ const Mascotas: React.FC = () => {
                   setFoto('')
                 }}
                 size="sm"
-                loading={actionsLoading}
-                disabled={actionsLoading}
+                loading={accionesCargando}
+                disabled={accionesCargando}
                 variant="primario"
               />
             </View>
@@ -146,7 +147,7 @@ const Mascotas: React.FC = () => {
         ) : null}
 
         <View style={styles.grid}>
-          {mascotas.map(m => {
+          {mascotas.map((m: Mascota) => {
             const isActive = m.activo !== false // por defecto activo
 
             const rightNode = (
@@ -173,7 +174,7 @@ const Mascotas: React.FC = () => {
                           ? t('mascotas:lista.ui.desactivar')
                           : t('mascotas:lista.ui.activar'),
                         onPress: async () => {
-                          const res = await update(m.id, {
+                          const res = await actualizar(m.id, {
                             activo: !isActive,
                           })
                           if (!res.success) {

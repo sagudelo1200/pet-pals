@@ -35,8 +35,8 @@ Este documento describe un plan incremental para reglas de seguridad, alineado c
 
 - No enviar `createdBy` de otro usuario; los servicios ya lo fuerzan al `uid` actual.
 - No modificar `createdAt/createdBy`; el backend (CRUD + serverTimestamp) se encarga.
-- `MascotaService.create`: no pases `id_usuario` distinto; será forzado al `uid`.
-- `PaseoService.create`: se forzará `creado_por = uid`. La relación con mascotas se gestiona exclusivamente en la subcolección `paseos/{id}/mascotas`.
+- `ServicioMascota.crear`: no pases `id_usuario` distinto; será forzado al `uid`.
+- `ServicioPaseo.crear`: se forzará `creado_por = uid`. La relación con mascotas se gestiona exclusivamente en la subcolección `paseos/{id}/mascotas`.
 
 ## Roles: documento vs claims
 

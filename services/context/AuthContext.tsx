@@ -8,7 +8,7 @@ import React, {
 import { User } from 'firebase/auth'
 import { AuthService } from '../firebase/auth'
 import { AuthUser, AuthContextType, AuthResult } from '../firebase/types'
-import { UsuarioService } from '../firebase/usuario'
+import { ServicioUsuario } from '../firebase/usuario'
 import { RolUsuario, Usuario } from '../../models/Usuario'
 
 // Crear el contexto
@@ -31,7 +31,7 @@ interface AuthProviderProps {
 // Provider del contexto
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<AuthUser | null>(null)
-  const [loading, setLoading] = useState<boolean>(true)
+  const [cargando, setCargando] = useState<boolean>(true)
   const [roles, setRoles] = useState<RolUsuario[] | undefined>(undefined)
   const [profile, setProfile] = useState<Usuario | null | undefined>(undefined)
 
@@ -39,7 +39,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   useEffect(() => {
     const unsubscribe = AuthService.onAuthStateChange(
       async (firebaseUser: User | null) => {
-        setLoading(true)
+        setCargando(true)
         if (firebaseUser) {
           // Si hay usuario, crear el objeto AuthUser
           const authUser: AuthUser = {
@@ -51,7 +51,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           setUser(authUser)
 
           // Cargar el perfil desde Firestore por UID (usuarios/{uid})
-          const res = await UsuarioService.getById(firebaseUser.uid)
+          const res = await ServicioUsuario.obtenerPorId(firebaseUser.uid)
           if (res.success && res.data) {
             setProfile(res.data)
             setRoles(res.data.roles)
@@ -65,7 +65,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           setProfile(null)
           setRoles([])
         }
-        setLoading(false)
+        setCargando(false)
       }
     )
 
@@ -78,10 +78,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     email: string,
     password: string
   ): Promise<AuthResult> => {
-    setLoading(true)
+    setCargando(true)
     const result = await AuthService.loginWithEmail(email, password)
-    // Si falla, liberamos loading; si no, onAuthStateChange se encargará de bajarlo
-    if (!result.success) setLoading(false)
+    // Si falla, liberamos cargando; si no, onAuthStateChange se encargará de bajarlo
+    if (!result.success) setCargando(false)
     return result
   }
 
@@ -91,21 +91,21 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     password: string,
     displayName: string
   ): Promise<AuthResult> => {
-    setLoading(true)
+    setCargando(true)
     const result = await AuthService.registerWithEmail(
       email,
       password,
       displayName
     )
-    if (!result.success) setLoading(false)
+    if (!result.success) setCargando(false)
     return result
   }
 
   // Función para logout
   const logout = async (): Promise<AuthResult> => {
-    setLoading(true)
+    setCargando(true)
     const result = await AuthService.logout()
-    if (!result.success) setLoading(false)
+    if (!result.success) setCargando(false)
     return result
   }
 
@@ -113,7 +113,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const reloadProfile = async (): Promise<void> => {
     const current = AuthService.getCurrentUser()
     if (current?.uid) {
-      const res = await UsuarioService.getById(current.uid)
+      const res = await ServicioUsuario.obtenerPorId(current.uid)
       if (res.success && res.data) {
         setProfile(res.data)
         setRoles(res.data.roles)
@@ -124,7 +124,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   // Valor que se pasa al contexto
   const value: AuthContextType = {
     user,
-    loading,
+    cargando,
     login,
     register,
     logout,

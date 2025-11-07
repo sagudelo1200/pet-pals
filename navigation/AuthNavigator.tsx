@@ -10,7 +10,7 @@ import { AuthFlowParamList } from './types'
 const Stack = createStackNavigator<AuthFlowParamList>()
 
 const AuthNavigator: React.FC = () => {
-  const { user, loading, roles, reloadProfile } = useAuth()
+  const { user, cargando, roles, reloadProfile } = useAuth()
   const retriedRef = React.useRef(false)
   const navigation = useNavigation<any>() // TODO: tipar con RootStack
   // Helper: prefer reset on parent (root) navigator if available
@@ -23,7 +23,7 @@ const AuthNavigator: React.FC = () => {
 
   // Efecto para navegar automáticamente cuando hay usuario
   useEffect(() => {
-    if (user && !loading) {
+    if (user && !cargando) {
       // Esperar a que `roles` esté cargado (no undefined). Evita navegar por defecto
       // a `DuenoApp` antes de que el perfil/roles se hayan recuperado.
       if (!Array.isArray(roles)) return
@@ -76,10 +76,10 @@ const AuthNavigator: React.FC = () => {
         console.error('AuthNavigator: error resetting navigation', e)
       }
     }
-  }, [user, loading, roles, navigation])
+  }, [user, cargando, roles, navigation])
 
   // Mientras carga, muestra el componente de carga con mensajes de mascotas
-  if (loading) {
+  if (cargando) {
     return <LoadingScreen messageType="pets" spinnerColor="#22A47C" />
   }
 

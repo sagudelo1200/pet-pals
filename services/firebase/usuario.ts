@@ -1,4 +1,4 @@
-import { BaseCrudService } from './crud'
+import { ServicioCrudBase } from './crud'
 import { Usuario } from '../../models/Usuario'
 import { CrudResult } from './types'
 import { db } from '@/firebase.config'
@@ -7,16 +7,16 @@ import { toDb, nowServerTimestamp } from './converters'
 // AuthService removed: profile creation should happen at registration via AuthService
 import { mapFirebaseError } from './errors'
 
-export class UsuarioService {
+export class ServicioUsuario {
   private static readonly COLLECTION = 'usuarios'
 
-  static async create(
+  static async crear(
     data: Omit<
       Usuario,
       'id' | 'creado_en' | 'actualizado_en' | 'creado_por' | 'actualizado_por'
     >
   ): Promise<CrudResult<Usuario>> {
-    return BaseCrudService.create<Usuario>(this.COLLECTION, data)
+    return ServicioCrudBase.crear<Usuario>(this.COLLECTION, data)
   }
 
   // Nota: la creación del documento `usuarios/{uid}` se realiza ahora
@@ -27,7 +27,7 @@ export class UsuarioService {
    * Útil como fallback justo después de registro cuando `auth.currentUser` puede
    * no estar todavía disponible en algunos entornos.
    */
-  static async createWithUid(
+  static async crearConUid(
     uid: string,
     data: Omit<
       Usuario,
@@ -53,7 +53,7 @@ export class UsuarioService {
       // serverTimestamp() sentinels which must be written as-is.
       await setDoc(ref, { ...toDb(data), ...base })
 
-      return BaseCrudService.getById<Usuario>(this.COLLECTION, uid)
+      return ServicioCrudBase.obtenerPorId<Usuario>(this.COLLECTION, uid)
     } catch (error: any) {
       return {
         success: false,
@@ -62,31 +62,32 @@ export class UsuarioService {
     }
   }
 
-  static async getById(id: string): Promise<CrudResult<Usuario>> {
-    return BaseCrudService.getById<Usuario>(this.COLLECTION, id)
+  static async obtenerPorId(id: string): Promise<CrudResult<Usuario>> {
+    return ServicioCrudBase.obtenerPorId<Usuario>(this.COLLECTION, id)
   }
 
-  static async update(
+  static async actualizar(
     id: string,
     data: Partial<Omit<Usuario, 'id' | 'creado_en' | 'creado_por'>>
   ): Promise<CrudResult<Usuario>> {
-    return BaseCrudService.update<Usuario>(this.COLLECTION, id, data)
+    return ServicioCrudBase.actualizar<Usuario>(this.COLLECTION, id, data)
+  }
+  static async eliminar(id: string): Promise<CrudResult<boolean>> {
+    return ServicioCrudBase.eliminar(this.COLLECTION, id)
   }
 
-  static async delete(id: string): Promise<CrudResult<boolean>> {
-    return BaseCrudService.delete(this.COLLECTION, id)
-  }
-
-  static async getAll(): Promise<CrudResult<Usuario[]>> {
-    return BaseCrudService.getAll<Usuario>(this.COLLECTION)
+  static async obtenerTodos(): Promise<CrudResult<Usuario[]>> {
+    return ServicioCrudBase.obtenerTodos<Usuario>(this.COLLECTION)
   }
 
   // Métodos específicos
-  static async getByEmail(email: string): Promise<CrudResult<Usuario[]>> {
-    return BaseCrudService.getWhere<Usuario>(this.COLLECTION, 'correo', email)
+  static async obtenerPorCorreo(email: string): Promise<CrudResult<Usuario[]>> {
+    return ServicioCrudBase.buscar<Usuario>(this.COLLECTION, 'correo', email)
   }
 
-  static async getByEstado(estado: string): Promise<CrudResult<Usuario[]>> {
-    return BaseCrudService.getWhere<Usuario>(this.COLLECTION, 'estado', estado)
+  static async obtenerPorEstado(
+    estado: string
+  ): Promise<CrudResult<Usuario[]>> {
+    return ServicioCrudBase.buscar<Usuario>(this.COLLECTION, 'estado', estado)
   }
 }

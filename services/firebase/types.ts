@@ -14,7 +14,7 @@ export interface AuthResult {
 
 export interface AuthContextType {
   user: AuthUser | null
-  loading: boolean
+  cargando: boolean
   login: (email: string, password: string) => Promise<AuthResult>
   register: (
     email: string,

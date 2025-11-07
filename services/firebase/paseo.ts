@@ -1,4 +1,4 @@
-import { BaseCrudService } from './crud'
+import { ServicioCrudBase } from './crud'
 import { Paseo } from '../../models/Paseo'
 import { CrudResult } from './types'
 import { AuthService } from './auth'
@@ -7,10 +7,10 @@ import { addMascotasAlPaseo } from './paseo-mascota'
 import { MAX_MASCOTAS_POR_PASEO, ERR } from '@/constants'
 import { mapFirebaseError } from './errors'
 
-export class PaseoService {
+export class ServicioPaseo {
   private static readonly COLLECTION = 'paseos'
 
-  static async create(
+  static async crear(
     data: Omit<
       Paseo,
       'id' | 'creado_en' | 'actualizado_en' | 'creado_por' | 'actualizado_por'
@@ -26,14 +26,14 @@ export class PaseoService {
       creado_por: uid,
     }
 
-    return BaseCrudService.create<Paseo>(this.COLLECTION, payload as any)
+    return ServicioCrudBase.crear<Paseo>(this.COLLECTION, payload as any)
   }
 
   /**
    * Crear paseo con 0..N mascotas (N <= MAX_MASCOTAS_POR_PASEO)
    * Si N=0, paseo propuesto por paseador; si N>0, se crean subdocs en 'mascotas'.
    */
-  static async createConMascotas(
+  static async crearConMascotas(
     data: Omit<
       Paseo,
       | 'id'
@@ -63,7 +63,7 @@ export class PaseoService {
     // Validar que todas las mascotas pertenecen al usuario actual (si hay)
     if (unique.length > 0) {
       for (const mid of unique) {
-        const m = await BaseCrudService.getById<Mascota>('mascotas', mid)
+        const m = await ServicioCrudBase.obtenerPorId<Mascota>('mascotas', mid)
         if (!m.success || !m.data)
           return { success: false, error: ERR.MASCOTA_NO_ENCONTRADA }
         const ownerOk = (m.data as any).creado_por === uid
@@ -73,7 +73,7 @@ export class PaseoService {
     }
 
     // Crear paseo
-    const paseoRes = await BaseCrudService.create<Paseo>(this.COLLECTION, {
+    const paseoRes = await ServicioCrudBase.crear<Paseo>(this.COLLECTION, {
       ...(data as any),
       creado_por: uid,
       // Si no vienen mascotas: por defecto es múltiple (propuesta de paseador)
@@ -94,35 +94,38 @@ export class PaseoService {
     return paseoRes
   }
 
-  static async getById(id: string): Promise<CrudResult<Paseo>> {
-    return BaseCrudService.getById<Paseo>(this.COLLECTION, id)
+  static async obtenerPorId(id: string): Promise<CrudResult<Paseo>> {
+    return ServicioCrudBase.obtenerPorId<Paseo>(this.COLLECTION, id)
   }
 
-  static async update(
+  static async actualizar(
     id: string,
     data: Partial<Omit<Paseo, 'id' | 'creado_en' | 'creado_por'>>
   ): Promise<CrudResult<Paseo>> {
-    return BaseCrudService.update<Paseo>(this.COLLECTION, id, data)
+    return ServicioCrudBase.actualizar<Paseo>(this.COLLECTION, id, data)
+  }
+  static async eliminar(id: string): Promise<CrudResult<boolean>> {
+    return ServicioCrudBase.eliminar(this.COLLECTION, id)
   }
 
-  static async delete(id: string): Promise<CrudResult<boolean>> {
-    return BaseCrudService.delete(this.COLLECTION, id)
-  }
-
-  static async getAll(): Promise<CrudResult<Paseo[]>> {
-    return BaseCrudService.getAll<Paseo>(this.COLLECTION)
+  static async obtenerTodos(): Promise<CrudResult<Paseo[]>> {
+    return ServicioCrudBase.obtenerTodos<Paseo>(this.COLLECTION)
   }
 
   // Métodos específicos
-  static async getByPaseador(paseadorId: string): Promise<CrudResult<Paseo[]>> {
-    return BaseCrudService.getWhere<Paseo>(
+  static async obtenerPorPaseador(
+    paseadorId: string
+  ): Promise<CrudResult<Paseo[]>> {
+    return ServicioCrudBase.buscar<Paseo>(
       this.COLLECTION,
       'id_paseador',
       paseadorId
     )
   }
 
-  static async getByMascota(mascotaId: string): Promise<CrudResult<Paseo[]>> {
+  static async obtenerPorMascota(
+    mascotaId: string
+  ): Promise<CrudResult<Paseo[]>> {
     // Buscar paseos donde la mascota participe vía collectionGroup sobre subcolección 'mascotas'
     try {
       const { db } = await import('@/firebase.config')
@@ -142,7 +145,10 @@ export class PaseoService {
 
       const results: Paseo[] = []
       for (const id of paseoIds) {
-        const res = await BaseCrudService.getById<Paseo>(this.COLLECTION, id)
+        const res = await ServicioCrudBase.obtenerPorId<Paseo>(
+          this.COLLECTION,
+          id
+        )
         if (res.success && res.data) results.push(res.data)
       }
       return { success: true, data: results }
@@ -151,7 +157,7 @@ export class PaseoService {
     }
   }
 
-  static async getByEstado(estado: string): Promise<CrudResult<Paseo[]>> {
-    return BaseCrudService.getWhere<Paseo>(this.COLLECTION, 'estado', estado)
+  static async obtenerPorEstado(estado: string): Promise<CrudResult<Paseo[]>> {
+    return ServicioCrudBase.buscar<Paseo>(this.COLLECTION, 'estado', estado)
   }
 }

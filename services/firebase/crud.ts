@@ -17,11 +17,11 @@ import { nowServerTimestamp, toDb, toDomain } from './converters'
 import { ERR } from '@/constants'
 import { mapFirebaseError } from './errors'
 
-export class BaseCrudService {
+export class ServicioCrudBase {
   /**
    * Crear un documento
    */
-  static async create<T extends BaseModel>(
+  static async crear<T extends BaseModel>(
     collectionName: string,
     data: Omit<
       T,
@@ -41,7 +41,7 @@ export class BaseCrudService {
       const docRef = await addDoc(collection(db, collectionName), docDataDb)
 
       // Re-leer para retornar en formato de dominio (Date)
-      return this.getById<T>(collectionName, docRef.id)
+      return this.obtenerPorId<T>(collectionName, docRef.id)
     } catch (error: any) {
       return { success: false, error: mapFirebaseError(error) }
     }
@@ -50,7 +50,7 @@ export class BaseCrudService {
   /**
    * Obtener por ID
    */
-  static async getById<T extends BaseModel>(
+  static async obtenerPorId<T extends BaseModel>(
     collectionName: string,
     id: string
   ): Promise<CrudResult<T>> {
@@ -78,7 +78,7 @@ export class BaseCrudService {
   /**
    * Actualizar documento
    */
-  static async update<T extends BaseModel>(
+  static async actualizar<T extends BaseModel>(
     collectionName: string,
     id: string,
     data: Partial<Omit<T, 'id' | 'creado_en' | 'creado_por'>>
@@ -96,7 +96,7 @@ export class BaseCrudService {
       await updateDoc(docRef, updateDataDb)
 
       // Retornar documento actualizado
-      return this.getById<T>(collectionName, id)
+      return this.obtenerPorId<T>(collectionName, id)
     } catch (error: any) {
       return { success: false, error: mapFirebaseError(error) }
     }
@@ -105,7 +105,7 @@ export class BaseCrudService {
   /**
    * Eliminar documento
    */
-  static async delete(
+  static async eliminar(
     collectionName: string,
     id: string
   ): Promise<CrudResult<boolean>> {
@@ -125,7 +125,7 @@ export class BaseCrudService {
   /**
    * Obtener todos los documentos de una colección
    */
-  static async getAll<T extends BaseModel>(
+  static async obtenerTodos<T extends BaseModel>(
     collectionName: string
   ): Promise<CrudResult<T[]>> {
     try {
@@ -149,7 +149,7 @@ export class BaseCrudService {
   /**
    * Obtener documentos con filtro simple
    */
-  static async getWhere<T extends BaseModel>(
+  static async buscar<T extends BaseModel>(
     collectionName: string,
     field: string,
     value: any

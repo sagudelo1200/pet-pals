@@ -21,19 +21,19 @@ export function useCollection<T extends BaseModel = any>(
 ) {
   const { listen = false } = options || {}
   const [data, setData] = useState<T[]>([])
-  const [loading, setLoading] = useState<boolean>(true)
+  const [cargando, setCargando] = useState<boolean>(true)
   const [error, setError] = useState<string | undefined>(undefined)
 
   const unsubRef = useRef<Unsubscribe | null>(null)
 
   const fetchOnce = useCallback(async () => {
-    setLoading(true)
+    setCargando(true)
     setError(undefined)
     try {
       if (!q) {
         // No query: expose empty result
         setData([])
-        setLoading(false)
+        setCargando(false)
         return
       }
 
@@ -47,7 +47,7 @@ export function useCollection<T extends BaseModel = any>(
     } catch (e: any) {
       setError(mapFirebaseError(e))
     } finally {
-      setLoading(false)
+      setCargando(false)
     }
   }, [q])
 
@@ -61,12 +61,12 @@ export function useCollection<T extends BaseModel = any>(
     // Realtime mode: if q is null, expose empty data and avoid subscribing
     if (!q) {
       setData([])
-      setLoading(false)
+      setCargando(false)
       setError(undefined)
       return () => {}
     }
 
-    setLoading(true)
+    setCargando(true)
     setError(undefined)
     const unsub = onSnapshot(
       q,
@@ -77,11 +77,11 @@ export function useCollection<T extends BaseModel = any>(
           items.push({ id: doc.id, ...(domainData ?? {}) } as unknown as T)
         })
         setData(items)
-        setLoading(false)
+        setCargando(false)
       },
       err => {
         setError(mapFirebaseError(err))
-        setLoading(false)
+        setCargando(false)
       }
     )
 
@@ -92,5 +92,5 @@ export function useCollection<T extends BaseModel = any>(
     }
   }, [listen, q, fetchOnce])
 
-  return { data, loading, error, refetch: fetchOnce }
+  return { data, cargando, error, refetch: fetchOnce }
 }
