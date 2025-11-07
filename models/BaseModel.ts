@@ -18,11 +18,11 @@ export interface BaseModel {
   /**
    * ID del usuario que creó originalmente el registro (snake_case en Firestore: `creado_por`).
    */
-  creado_por?: string
+  creado_por: string
   /**
    * ID del usuario que realizó la última modificación (snake_case en Firestore: `actualizado_por`).
    */
-  actualizado_por?: string
+  actualizado_por: string
 }
 
 /**

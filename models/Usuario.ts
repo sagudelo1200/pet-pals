@@ -43,6 +43,5 @@ export interface Usuario extends BaseModel {
   verificado: boolean
 
   // Estado y control
-  fecha_registro: Date
   estado: EstadoUsuario
 }

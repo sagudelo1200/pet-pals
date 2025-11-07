@@ -3,7 +3,7 @@ import { Usuario } from '../../models/Usuario'
 import { CrudResult } from './types'
 import { db } from '@/firebase.config'
 import { doc, setDoc } from 'firebase/firestore'
-import { toDb } from './converters'
+import { toDb, nowServerTimestamp } from './converters'
 // AuthService removed: profile creation should happen at registration via AuthService
 import { mapFirebaseError } from './errors'
 
@@ -35,16 +35,23 @@ export class UsuarioService {
     >
   ): Promise<CrudResult<Usuario>> {
     try {
-      const base = {
-        // use client timestamp as above for consistency with security rules
-        creado_en: new Date(),
-        actualizado_en: new Date(),
+      // Build base system fields. If caller provided `fecha_registro` we
+      // respect it (it will be converted by toDb). Otherwise, set it to
+      // serverTimestamp sentinel so the server assigns the registration time.
+      const base: any = {
+        creado_en: nowServerTimestamp(),
+        actualizado_en: nowServerTimestamp(),
         creado_por: uid,
         actualizado_por: uid,
       }
+      if (!(data as any).fecha_registro) {
+        base.fecha_registro = nowServerTimestamp()
+      }
 
       const ref = doc(db, this.COLLECTION, uid)
-      await setDoc(ref, toDb({ ...data, ...base }))
+      // Important: do not run `toDb` over `base` because it contains
+      // serverTimestamp() sentinels which must be written as-is.
+      await setDoc(ref, { ...toDb(data), ...base })
 
       return BaseCrudService.getById<Usuario>(this.COLLECTION, uid)
     } catch (error: any) {

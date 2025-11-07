@@ -71,7 +71,6 @@ export class AuthService {
           celular: '',
           roles: ['dueño'],
           verificado: false,
-          fecha_registro: new Date(),
           estado: 'activo',
         } as any)
 
