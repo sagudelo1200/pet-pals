@@ -31,7 +31,7 @@ export function useMascotasDelUsuario(options?: { listen?: boolean }) {
     ? error
     : authCargando
       ? undefined
-      : ERR.NO_AUTENTICADO
+      : ERR.COMUN.NO_AUTENTICADO
 
   return {
     mascotas: data,

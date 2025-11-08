@@ -18,7 +18,7 @@ export class ServicioPaseo {
   ): Promise<CrudResult<Paseo>> {
     const currentUser = ServicioAuth.obtenerUsuarioActual()
     const uid = currentUser?.uid
-    if (!uid) return { success: false, error: ERR.NO_AUTENTICADO }
+    if (!uid) return { success: false, error: ERR.COMUN.NO_AUTENTICADO }
 
     // Enforce que el dueño del paseo sea el usuario actual
     const payload: typeof data & { creado_por: string } = {
@@ -47,7 +47,7 @@ export class ServicioPaseo {
   ): Promise<CrudResult<Paseo>> {
     const current = ServicioAuth.obtenerUsuarioActual()
     const uid = current?.uid
-    if (!uid) return { success: false, error: ERR.NO_AUTENTICADO }
+    if (!uid) return { success: false, error: ERR.COMUN.NO_AUTENTICADO }
 
     // Validaciones básicas de mascotaIds
     const unique = Array.from(new Set((mascotaIds || []).filter(Boolean)))
@@ -58,17 +58,20 @@ export class ServicioPaseo {
         : MAX_MASCOTAS_POR_PASEO
     const max = Math.min(MAX_MASCOTAS_POR_PASEO, maxPaseo)
     if (unique.length > max)
-      return { success: false, error: ERR.LIMITE_DE_MASCOTAS_SUPERADO }
+      return { success: false, error: ERR.PASEOS.LIMITE_DE_MASCOTAS_SUPERADO }
 
     // Validar que todas las mascotas pertenecen al usuario actual (si hay)
     if (unique.length > 0) {
       for (const mid of unique) {
         const m = await ServicioCrudBase.obtenerPorId<Mascota>('mascotas', mid)
         if (!m.success || !m.data)
-          return { success: false, error: ERR.MASCOTA_NO_ENCONTRADA }
+          return { success: false, error: ERR.MASCOTAS.MASCOTA_NO_ENCONTRADA }
         const ownerOk = (m.data as any).creado_por === uid
         if (!ownerOk)
-          return { success: false, error: ERR.MASCOTA_NO_PERTENECE_AL_USUARIO }
+          return {
+            success: false,
+            error: ERR.MASCOTAS.MASCOTA_NO_PERTENECE_AL_USUARIO,
+          }
       }
     }
 

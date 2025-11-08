@@ -45,7 +45,7 @@ export function useDoc<T extends BaseModel = any>(
         setData({ id: snap.id, ...(domainData ?? {}) } as unknown as T)
       } else {
         setData(undefined)
-        setError(ERR.DOCUMENTO_NO_ENCONTRADO)
+        setError(ERR.COMUN.DOCUMENTO_NO_ENCONTRADO)
       }
     } catch (e: any) {
       setError(mapFirebaseError(e))
@@ -70,7 +70,7 @@ export function useDoc<T extends BaseModel = any>(
           setCargando(false)
         } else {
           setData(undefined)
-          setError(ERR.DOCUMENTO_NO_ENCONTRADO)
+          setError(ERR.COMUN.DOCUMENTO_NO_ENCONTRADO)
           setCargando(false)
         }
       },

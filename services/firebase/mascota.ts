@@ -16,12 +16,12 @@ export class ServicioMascota {
     const currentUser = ServicioAuth.obtenerUsuarioActual()
     const uid = currentUser?.uid
     if (!uid) {
-      return { success: false, error: ERR.NO_AUTENTICADO }
+      return { success: false, error: ERR.COMUN.NO_AUTENTICADO }
     }
 
     // Alinear propiedad de ownership: creado_por debe ser el dueño (uid actual)
     if ((data as any).creado_por && (data as any).creado_por !== uid) {
-      return { success: false, error: ERR.DUENO_NO_COINCIDE }
+      return { success: false, error: ERR.MASCOTAS.DUENO_NO_COINCIDE }
     }
 
     // Ensure new mascotas are active by default unless explicitly set otherwise

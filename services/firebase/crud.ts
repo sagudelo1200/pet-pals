@@ -68,7 +68,7 @@ export class ServicioCrudBase {
 
       return {
         success: false,
-        error: ERR.DOCUMENTO_NO_ENCONTRADO,
+        error: ERR.COMUN.DOCUMENTO_NO_ENCONTRADO,
       }
     } catch (error: any) {
       return { success: false, error: mapFirebaseError(error) }

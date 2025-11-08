@@ -18,25 +18,25 @@ function mapFirebaseAuthError(e: any): string {
   switch (code) {
     case 'auth/invalid-credential':
     case 'auth/wrong-password':
-      return ERR.AUTH_INVALID_CREDENTIALS
+      return ERR.AUTH.CREDENCIALES_INVALIDAS
     case 'auth/user-not-found':
-      return ERR.AUTH_USER_NOT_FOUND
+      return ERR.AUTH.USUARIO_NO_ENCONTRADO
     case 'auth/invalid-email':
-      return ERR.AUTH_INVALID_EMAIL
+      return ERR.AUTH.CORREO_INVALIDO
     case 'auth/user-disabled':
-      return ERR.AUTH_USER_DISABLED
+      return ERR.AUTH.USUARIO_DESHABILITADO
     case 'auth/too-many-requests':
-      return ERR.AUTH_TOO_MANY_REQUESTS
+      return ERR.AUTH.DEMASIADOS_INTENTOS
     case 'auth/email-already-in-use':
-      return ERR.AUTH_EMAIL_IN_USE
+      return ERR.AUTH.CORREO_EN_USO
     case 'auth/weak-password':
-      return ERR.AUTH_WEAK_PASSWORD
+      return ERR.AUTH.PASSWORD_DEBIL
     case 'auth/operation-not-allowed':
-      return ERR.AUTH_OPERATION_NOT_ALLOWED
+      return ERR.AUTH.OPERACION_NO_PERMITIDA
     case 'auth/network-request-failed':
-      return ERR.AUTH_NETWORK_ERROR
+      return ERR.AUTH.ERROR_RED
     default:
-      return ERR.ERROR_DESCONOCIDO
+      return ERR.COMUN.ERROR_DESCONOCIDO
   }
 }
 
@@ -83,7 +83,7 @@ export class ServicioAuth {
           }
           return {
             success: false,
-            error: res.error || ERR.ERROR_DESCONOCIDO,
+            error: res.error || ERR.COMUN.ERROR_DESCONOCIDO,
           }
         }
       } catch (e) {
@@ -96,7 +96,7 @@ export class ServicioAuth {
         console.error('Error creando doc usuario tras registro:', e)
         return {
           success: false,
-          error: ERR.ERROR_DESCONOCIDO,
+          error: ERR.COMUN.ERROR_DESCONOCIDO,
         }
       }
 

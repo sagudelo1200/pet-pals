@@ -54,41 +54,41 @@ Traducciones: `services/i18n/locales/es/errors.json`. Helpers y setup: `services
 
 ## Autenticación (Firebase Auth)
 
-Los errores de Firebase Auth se mapean en `services/firebase/auth.ts` a códigos de dominio (`constants/errors.ts`) y se traducen con `tErrorMaybe(res.error)` desde la UI.
+Los errores de Firebase Auth se mapean en `services/firebase/auth.ts` a códigos de dominio definidos en `constants/errors.ts` bajo `ERR.AUTH` y se traducen con `tErrorMaybe(res.error)` desde la UI.
 
-- AUTH_INVALID_CREDENTIALS
+- ERR.AUTH.CREDENCIALES_INVALIDAS
   - Cuándo: Credenciales inválidas al ingresar (wrong-password, invalid-credential).
   - Origen: `ServicioAuth.ingresarConCorreo`
 
-- AUTH_USER_NOT_FOUND
+- ERR.AUTH.USUARIO_NO_ENCONTRADO
   - Cuándo: No existe una cuenta con ese correo.
   - Origen: `ServicioAuth.ingresarConCorreo`
 
-- AUTH_EMAIL_IN_USE
+- ERR.AUTH.CORREO_EN_USO
   - Cuándo: Ya existe un usuario con ese correo.
   - Origen: `ServicioAuth.registrarConCorreo`
 
-- AUTH_WEAK_PASSWORD
+- ERR.AUTH.PASSWORD_DEBIL
   - Cuándo: La contraseña no cumple los requisitos mínimos.
   - Origen: `ServicioAuth.registrarConCorreo`
 
-- AUTH_OPERATION_NOT_ALLOWED
+- ERR.AUTH.OPERACION_NO_PERMITIDA
   - Cuándo: La operación no está habilitada en el proyecto.
   - Origen: `ServicioAuth.registrarConCorreo` o `ServicioAuth.ingresarConCorreo`
 
-- AUTH_TOO_MANY_REQUESTS
+- ERR.AUTH.DEMASIADOS_INTENTOS
   - Cuándo: Demasiados intentos en un corto periodo.
   - Origen: `ServicioAuth.ingresarConCorreo` o `ServicioAuth.registrarConCorreo`
 
-- AUTH_USER_DISABLED
+- ERR.AUTH.USUARIO_DESHABILITADO
   - Cuándo: La cuenta ha sido deshabilitada por un administrador.
   - Origen: `ServicioAuth.ingresarConCorreo`
 
-- AUTH_INVALID_EMAIL
+- ERR.AUTH.CORREO_INVALIDO
   - Cuándo: El formato del correo no es válido.
   - Origen: `ServicioAuth.ingresarConCorreo` o `ServicioAuth.registrarConCorreo`
 
-- AUTH_NETWORK_ERROR
+- ERR.AUTH.ERROR_RED
   - Cuándo: Error de red del cliente.
   - Origen: `ServicioAuth.ingresarConCorreo` o `ServicioAuth.registrarConCorreo`
 

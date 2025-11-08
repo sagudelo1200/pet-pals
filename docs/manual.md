@@ -8,11 +8,12 @@ Menos es más: aquí están las piezas que usarás y cómo actuar según sus res
 
 ## Contrato común
 
-- La mayoría de los servicios devuelven un objeto tipo CrudResult<T> o AuthResult:
-  - { success: boolean, data?: T, user?: {...}, error?: ErrorCode }
-  - Siempre comprueba `result.success` antes de usar `data`/`user`.
-- Los hooks exponen además `loading: boolean` y `error?: string` (código ERR).
-- Los errores son códigos string definidos en `constants/errors.ts` (p. ej. `NO_AUTENTICADO`, `DOCUMENTO_NO_ENCONTRADO`, `AUTH_INVALID_CREDENTIALS`, `ERROR_DESCONOCIDO`).
+-- La mayoría de los servicios devuelven un objeto tipo CrudResult<T> o AuthResult:
+
+- { success: boolean, data?: T, user?: {...}, error?: ErrorCode }
+- Siempre comprueba `result.success` antes de usar `data`/`user`.
+  -- Los hooks exponen además `cargando: boolean` y `error?: string` (código ERR).
+  -- Los errores son códigos string definidos en `constants/errors.ts` y agrupados por dominio (p. ej. `ERR.COMUN.NO_AUTENTICADO`, `ERR.COMUN.DOCUMENTO_NO_ENCONTRADO`, `ERR.AUTH.CREDENCIALES_INVALIDAS`, `ERR.COMUN.ERROR_DESCONOCIDO`).
 
 ---
 
@@ -20,11 +21,12 @@ Menos es más: aquí están las piezas que usarás y cómo actuar según sus res
 
 Valores comunes en `ERR` y cuándo aparecen (resumen):
 
-- NO_AUTENTICADO: cuando se requiere usuario (ej. crear mascota) y no hay sesión.
+-- ERR.COMUN.NO_AUTENTICADO: cuando se requiere usuario (ej. crear mascota) y no hay sesión.
+
 - PERMISOS_INSUFICIENTES: acceso bloqueado por reglas/permiso.
-- DOCUMENTO_NO_ENCONTRADO: obtenerPorId no encontró documento.
+  -- ERR.COMUN.DOCUMENTO_NO_ENCONTRADO: obtenerPorId no encontró documento.
 - DUENO_NO_COINCIDE: al crear/editar una mascota, si se intenta asignar otro dueño.
-- AUTH\_\* (AUTH_INVALID_CREDENTIALS, AUTH_USER_NOT_FOUND, AUTH_EMAIL_IN_USE, AUTH_WEAK_PASSWORD, AUTH_TOO_MANY_REQUESTS, AUTH_USER_DISABLED, AUTH_INVALID_EMAIL, AUTH_NETWORK_ERROR): errores mapeados desde Firebase Auth.
+  -- ERR.AUTH.\* (ej. `ERR.AUTH.CREDENCIALES_INVALIDAS`, `ERR.AUTH.USUARIO_NO_ENCONTRADO`, `ERR.AUTH.CORREO_EN_USO`, `ERR.AUTH.PASSWORD_DEBIL`, `ERR.AUTH.DEMASIADOS_INTENTOS`, `ERR.AUTH.USUARIO_DESHABILITADO`, `ERR.AUTH.CORREO_INVALIDO`, `ERR.AUTH.ERROR_RED`): errores mapeados desde Firebase Auth.
 - ERROR_DESCONOCIDO: fallback para errores no mapeados.
 
 Usa estos códigos para mostrar mensajes al usuario o lógica condicional.
@@ -39,10 +41,10 @@ Usa estos códigos para mostrar mensajes al usuario o lógica condicional.
   - registrarConCorreo(email, password, displayName): Promise<AuthResult>
     - Crea usuario en Firebase Auth, actualiza displayName y crea documento en Firestore (`usuarios/{uid}`).
     - Respuesta: { success: true, user } o { success: false, error }
-    - Errores: AUTH_EMAIL_IN_USE, AUTH_WEAK_PASSWORD, ERROR_DESCONOCIDO, etc.
+  - Errores: ERR.AUTH.CORREO_EN_USO, ERR.AUTH.PASSWORD_DEBIL, ERROR_DESCONOCIDO, etc.
   - ingresarConCorreo(email, password): Promise<AuthResult>
     - Login; implementa un mínimo artificial de tiempo de respuesta (3s) para UX.
-    - Errores: AUTH_INVALID_CREDENTIALS, AUTH_USER_NOT_FOUND, etc.
+  - Errores: ERR.AUTH.CREDENCIALES_INVALIDAS, ERR.AUTH.USUARIO_NO_ENCONTRADO, etc.
   - cerrarSesion(): Promise<AuthResult>
     - Cierra sesión.
   - obtenerUsuarioActual(): User | null
@@ -156,7 +158,7 @@ if (!res.success) console.log(res.error)
 - Comportamiento:
   - Usa `useCollection` con un query por `creado_por === user.uid`.
   - Por defecto `listen: true` (realtime).
-  - Si `auth` ya resolvió y no hay usuario, expone `NO_AUTENTICADO` en `error`.
+  - Si `auth` ya resolvió y no hay usuario, expone `ERR.COMUN.NO_AUTENTICADO` en `error`.
 
 Ejemplo:
 

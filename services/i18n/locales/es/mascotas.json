@@ -1,61 +1,9 @@
 {
-  "lista": {
-    "ui": {
-      "titulo": "Mis Mascotas",
-      "agregar": "Agregar mascota",
-      "detalles": "Ver detalles",
-      "accion": "Acción",
-      "desactivar": "Desactivar",
-      "activar": "Activar",
-      "error": "Error",
-      "confirmar": {
-        "desactivar": "Confirmar desactivación",
-        "activar": "Confirmar activación",
-        "desactivarTexto": "¿Deseas desactivar a {{nombre}}? La mascota quedará inactiva y no estará disponible para solicitudes.",
-        "activarTexto": "¿Deseas reactivar a {{nombre}}? La mascota estará disponible nuevamente."
-      }
-    },
-    "errores": {
-      "cargar": "No pudimos cargar tus mascotas"
-    },
-    "vacio": {
-      "titulo": "Aún no tienes mascotas",
-      "descripcion": "Agrega tu primera mascota para empezar a solicitar paseos."
-    },
-    "elemento": {
-      "peso": "Peso: {{kg}} kg",
-      "pesoDesconocido": "Sin peso registrado"
-    }
-  },
-  "crear": {
-    "formulario": {
-      "titulo": "Nueva mascota",
-      "nombre": {
-        "label": "Nombre",
-        "placeholder": "Nombre de tu mascota"
-      },
-      "foto": {
-        "label": "Foto (URL)"
-      },
-      "acciones": {
-        "guardar": "Guardar",
-        "cancelar": "Cancelar"
-      },
-      "errores": {
-        "nombreRequerido": "El nombre es obligatorio."
-      }
-    },
-    "exito": {
-      "mensaje": "Mascota creada correctamente."
-    }
-  },
-  "detalles": {
-    "insignia": {
-      "vacunasAlDia": "Vacunas al día"
-    },
-    "cualidades": {
-      "energetico": "Enérgico",
-      "sociable": "Sociable"
-    }
+  "errores": {
+    "MASCOTA_REQUERIDA": "Debes seleccionar una mascota.",
+    "MASCOTAS_REQUERIDAS": "Debes seleccionar al menos una mascota.",
+    "MASCOTA_NO_ENCONTRADA": "La mascota indicada no existe.",
+    "MASCOTA_NO_PERTENECE_AL_USUARIO": "La mascota no pertenece al usuario actual.",
+    "DUENO_NO_COINCIDE": "El dueño de la mascota no coincide con el usuario actual"
   }
 }
