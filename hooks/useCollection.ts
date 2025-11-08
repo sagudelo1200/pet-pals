@@ -1,10 +1,13 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState, useMemo } from 'react'
 import {
   getDocs,
   onSnapshot,
+  collection,
+  query as firestoreQuery,
   type Query,
   type Unsubscribe,
 } from 'firebase/firestore'
+import { db } from '@/firebase.config'
 import { toDomain } from '@/services/firebase/converters'
 // ERR codes are produced via mapFirebaseError
 import { mapFirebaseError } from '@/services/firebase/errors'
@@ -16,10 +19,20 @@ import type { BaseModel } from '@/models/BaseModel'
  * - `listen=true` para realtime; `false` para fetch único.
  */
 export function useCollection<T extends BaseModel = any>(
-  q: Query | null,
+  qOrCollection: Query | string | null,
   options?: { listen?: boolean }
 ) {
   const { listen = false } = options || {}
+
+  // Allow passing either a Firestore Query or a collection name string.
+  const q = useMemo<Query | null>(() => {
+    if (!qOrCollection) return null
+    if (typeof qOrCollection === 'string') {
+      // collection name provided -> simple query without filters
+      return firestoreQuery(collection(db, qOrCollection))
+    }
+    return qOrCollection
+  }, [qOrCollection])
   const [data, setData] = useState<T[]>([])
   const [cargando, setCargando] = useState<boolean>(true)
   const [error, setError] = useState<string | undefined>(undefined)
@@ -69,7 +82,7 @@ export function useCollection<T extends BaseModel = any>(
     setCargando(true)
     setError(undefined)
     const unsub = onSnapshot(
-      q,
+      q as Query,
       snap => {
         const items: T[] = []
         snap.forEach(doc => {

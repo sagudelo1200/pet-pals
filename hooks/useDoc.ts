@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, useCallback } from 'react'
+import { useEffect, useRef, useState, useCallback } from 'react'
 import {
   doc,
   getDoc,
@@ -17,29 +17,56 @@ import type { BaseModel } from '@/models/BaseModel'
  * - Convierte automáticamente Timestamp -> Date usando `toDomain`.
  * - Permite modo realtime (listen) o fetch único.
  */
+/**
+ * useDoc
+ * Flexible hook to read a document as domain object (with Date conversion).
+ * Accepts either a Firestore DocumentReference<T> or (collectionName, id).
+ */
 export function useDoc<T extends BaseModel = any>(
-  collectionName: string,
-  id: string,
-  options?: { listen?: boolean }
+  refOrCollection: DocumentReference | string,
+  idOrOptions?: string | { listen?: boolean },
+  maybeOptions?: { listen?: boolean }
 ) {
-  const { listen = false } = options || {}
+  // Normalize arguments:
+  // - useDoc(ref)
+  // - useDoc(collectionName, id, options?)
+  // - useDoc(collectionName, id)
+  let listen = false
+  let docRef: DocumentReference
+
+  if (
+    typeof refOrCollection === 'object' &&
+    refOrCollection !== null &&
+    'path' in refOrCollection
+  ) {
+    // Called with DocumentReference
+    docRef = refOrCollection as DocumentReference
+    if (typeof idOrOptions === 'object' && idOrOptions !== null)
+      listen = !!idOrOptions.listen
+  } else {
+    // Called with collectionName, id, options?
+    const collectionName = refOrCollection as string
+    const id = typeof idOrOptions === 'string' ? idOrOptions : ''
+    const options = (maybeOptions ??
+      (typeof idOrOptions === 'object' ? idOrOptions : undefined)) as
+      | { listen?: boolean }
+      | undefined
+    listen = !!options?.listen
+    docRef = doc(db, collectionName, id)
+  }
+
   const [data, setData] = useState<T | undefined>(undefined)
   const [cargando, setCargando] = useState<boolean>(true)
   const [error, setError] = useState<string | undefined>(undefined)
 
-  // Guardamos la ref para evitar recrearla en cada render
-  const ref = useMemo<DocumentReference>(
-    () => doc(db, collectionName, id),
-    [collectionName, id]
-  )
-
+  // Guardamos el unsubscribe y el fetchOnce similar al patrón anterior
   const unsubRef = useRef<Unsubscribe | null>(null)
 
   const fetchOnce = useCallback(async () => {
     setCargando(true)
     setError(undefined)
     try {
-      const snap = await getDoc(ref)
+      const snap = await getDoc(docRef)
       if (snap.exists()) {
         const domainData = toDomain(snap.data()) as T | undefined | null
         setData({ id: snap.id, ...(domainData ?? {}) } as unknown as T)
@@ -52,17 +79,18 @@ export function useDoc<T extends BaseModel = any>(
     } finally {
       setCargando(false)
     }
-  }, [ref])
+  }, [docRef])
 
   useEffect(() => {
     if (!listen) {
       void fetchOnce()
       return () => {}
     }
+
     setCargando(true)
     setError(undefined)
     const unsub = onSnapshot(
-      ref,
+      docRef,
       snap => {
         if (snap.exists()) {
           const domainData = toDomain(snap.data()) as T | undefined | null
@@ -85,7 +113,7 @@ export function useDoc<T extends BaseModel = any>(
       if (unsubRef.current) unsubRef.current()
       unsubRef.current = null
     }
-  }, [listen, ref, fetchOnce])
+  }, [listen, docRef, fetchOnce])
 
-  return { data, cargando, error, refetch: fetchOnce }
+  return { data, cargando, error, refetch: fetchOnce, ref: docRef }
 }
