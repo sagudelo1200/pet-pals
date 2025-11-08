@@ -78,20 +78,8 @@ const AuthNavigator: React.FC = () => {
     }
   }, [user, cargando, roles, navigation])
 
-  // Mientras carga, muestra el componente de carga con mensajes de mascotas
-  if (cargando) {
-    return <LoadingScreen messageType="mascota" spinnerColor="#22A47C" />
-  }
-
-  // Si hay usuario autenticado, muestra loading mientras navega
-  if (user) {
-    return (
-      <LoadingScreen
-        message="🚀 Accediendo a tu cuenta..."
-        messageType="auth"
-        spinnerColor="#22A47C"
-      />
-    )
+  if (cargando || user) {
+    return <LoadingScreen messageType="auth" spinnerColor="#22A47C" />
   }
 
   // Si no hay usuario, mostramos el stack de autenticación (Ingresar / Registro)

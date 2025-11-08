@@ -72,7 +72,7 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({
       paseador,
       custom: customMessages || [],
     }
-  }, [customMessages])
+  }, [customMessages, i18n.language])
 
   useEffect(() => {
     // Si hay un mensaje específico, usarlo
@@ -80,14 +80,20 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({
       setCurrentMessage(message)
       return
     }
-
     // Obtener la colección de mensajes según el tipo
     const messages =
       messageCollections[messageType as keyof typeof messageCollections] ||
       messageCollections.general
 
-    // Seleccionar mensaje aleatorio
-    const randomMessage = messages[Math.floor(Math.random() * messages.length)]
+    // Proteger contra arrays vacíos (puede ocurrir si i18n aún no tiene las claves)
+    const safeMessages =
+      Array.isArray(messages) && messages.length > 0
+        ? messages
+        : MINIMAL_FALLBACKS.general
+
+    // Seleccionar mensaje aleatorio (siempre habrá al menos 1)
+    const randomMessage =
+      safeMessages[Math.floor(Math.random() * safeMessages.length)]
     setCurrentMessage(randomMessage)
   }, [message, messageType])
 
