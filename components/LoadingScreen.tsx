@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useMemo } from 'react'
 import { View, Text, ActivityIndicator, StyleSheet } from 'react-native'
 import { COLOR } from '../constants'
+import { i18n } from '@/services/i18n'
 
 interface LoadingScreenProps {
   /** Mensaje personalizado, si no se proporciona usa uno aleatorio */
   message?: string
   /** Tipo de mensajes a mostrar */
-  messageType?: 'general' | 'pets' | 'auth' | 'walks' | 'custom'
+  messageType?: 'general' | 'auth' | 'mascota' | 'paseador' | 'custom'
   /** Mensajes personalizados para usar con messageType='custom' */
   customMessages?: string[]
   /** Mostrar o no el ActivityIndicator */
@@ -21,58 +22,6 @@ interface LoadingScreenProps {
   textStyle?: object
 }
 
-// Definir las colecciones de mensajes fuera del componente para evitar recrearlas
-const defaultMessageCollections = {
-  general: [
-    '⏳ Cargando...',
-    '🚀 Preparando todo para ti...',
-    '✨ Un momento por favor...',
-    '🔄 Actualizando información...',
-    '📱 Configurando la aplicación...',
-  ],
-
-  auth: [
-    '🔐 Verificando credenciales...',
-    '👤 Iniciando sesión...',
-    '🔑 Autenticando usuario...',
-    '✅ Configurando tu perfil...',
-    '🏠 Preparando tu cuenta...',
-  ],
-
-  pets: [
-    /* Tips de cuidado y bienestar */
-    '🚶‍♂️🐕 Un paseo diario mantiene a tu perro feliz y saludable.',
-    '💧🐶 Lleva siempre agua fresca en los paseos.',
-    '🦴🍖 Una dieta equilibrada es clave para la salud de tu mascota.',
-    '🐾🔍 Revisa sus patitas al volver, pueden tener piedritas.',
-    '🧘‍♂️🐕 El ejercicio reduce el estrés y la ansiedad.',
-    '☀️🔥🐾 Evita pasear en horas de calor para cuidar sus patas.',
-
-    /* Mensajes divertidos/tiernos */
-    '🐶💤 "¿Otra vez pasear? ¡Estoy listo para la aventura!"',
-    '🌎🐕 Cada paseo es una aventura para tu perro.',
-    '🐶➡️👋 Una cola moviéndose es pura alegría.',
-    '🐕💨 "¡Corre, salta y juega! ¡El mundo es nuestro!"',
-    '🐾❤️ "Un paseo contigo es lo mejor del día."',
-    '🐕🌳 "Explorar nuevos lugares es mi pasatiempo favorito."',
-
-    /* Educación y responsabilidad */
-    '🦺🐕 Usa siempre correa para la seguridad de tu perro.',
-    '💩🗑️ Recoge siempre los desechos de tu mascota.',
-    '📅🐶 Mantén sus vacunas y desparasitaciones al día.',
-    '👂🐶 Escucha a tu perro, su lenguaje corporal dice mucho.',
-  ],
-
-  walks: [
-    '🚶‍♂️ Preparando el paseo perfecto...',
-    '🗺️ Buscando las mejores rutas...',
-    '🐕 Tu mascota está emocionada por salir...',
-    '🌳 Encontrando parques cercanos...',
-    '⏰ Calculando tiempo ideal de paseo...',
-    '🐾 Configurando el seguimiento del paseo...',
-  ],
-}
-
 const LoadingScreen: React.FC<LoadingScreenProps> = ({
   message,
   messageType = 'general',
@@ -85,14 +34,45 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({
 }) => {
   const [currentMessage, setCurrentMessage] = useState<string>('')
 
-  // Usar useMemo para crear las colecciones de mensajes solo cuando customMessages cambie
-  const messageCollections = useMemo(
-    () => ({
-      ...defaultMessageCollections,
+  // Minimal safe fallbacks used only if i18n isn't ready. Kept intentionally
+  // small because i18n is the single source of truth per project decision.
+  const MINIMAL_FALLBACKS: Record<string, string[]> = {
+    general: ['⏳ Cargando...'],
+    auth: ['🔐 Verificando credenciales...'],
+    mascota: ['🐾 Cargando información de la mascota...'],
+    paseador: ['🗺️ Preparando paseo...'],
+  }
+
+  // Usar useMemo para construir la colección de mensajes a usar (i18n + custom)
+  const messageCollections = useMemo(() => {
+    // Intentar leer arrays desde i18n: 'loading:<messageType>' devuelve array si existe
+    const loadFromI18n = (key: string) => {
+      try {
+        const path = `loading:${key}`
+        if (i18n.exists(path)) {
+          // returnObjects para obtener arrays definidos en JSON
+          const arr = i18n.t(path, { returnObjects: true }) as unknown
+          if (Array.isArray(arr)) return arr as string[]
+        }
+      } catch {
+        /* ignore */
+      }
+      return undefined
+    }
+
+    const general = loadFromI18n('general') || MINIMAL_FALLBACKS.general
+    const auth = loadFromI18n('auth') || MINIMAL_FALLBACKS.auth
+    const mascota = loadFromI18n('mascota') || MINIMAL_FALLBACKS.mascota
+    const paseador = loadFromI18n('paseador') || MINIMAL_FALLBACKS.paseador
+
+    return {
+      general,
+      auth,
+      mascota,
+      paseador,
       custom: customMessages || [],
-    }),
-    [customMessages]
-  )
+    }
+  }, [customMessages])
 
   useEffect(() => {
     // Si hay un mensaje específico, usarlo
@@ -103,7 +83,8 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({
 
     // Obtener la colección de mensajes según el tipo
     const messages =
-      messageCollections[messageType] || messageCollections.general
+      messageCollections[messageType as keyof typeof messageCollections] ||
+      messageCollections.general
 
     // Seleccionar mensaje aleatorio
     const randomMessage = messages[Math.floor(Math.random() * messages.length)]

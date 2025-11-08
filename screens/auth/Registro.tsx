@@ -2,7 +2,6 @@ import React, { useCallback, useMemo, useState } from 'react'
 import {
   TouchableWithoutFeedback,
   Keyboard,
-  StatusBar,
   StyleSheet,
   KeyboardAvoidingView,
   Platform,
@@ -101,7 +100,6 @@ const Registro: React.FC = () => {
   return (
     <DismissKeyboard>
       <View style={styles.container}>
-        <StatusBar hidden />
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
           style={styles.kav}

@@ -80,7 +80,7 @@ const AuthNavigator: React.FC = () => {
 
   // Mientras carga, muestra el componente de carga con mensajes de mascotas
   if (cargando) {
-    return <LoadingScreen messageType="pets" spinnerColor="#22A47C" />
+    return <LoadingScreen messageType="mascota" spinnerColor="#22A47C" />
   }
 
   // Si hay usuario autenticado, muestra loading mientras navega
