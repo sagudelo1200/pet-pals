@@ -10,7 +10,7 @@ import { AuthFlowParamList } from './types'
 const Stack = createStackNavigator<AuthFlowParamList>()
 
 const AuthNavigator: React.FC = () => {
-  const { user, cargando, roles, reloadProfile } = useAuth()
+  const { user, cargando, roles, recargarPerfil } = useAuth()
   const retriedRef = React.useRef(false)
   const navigation = useNavigation<any>() // TODO: tipar con RootStack
   // Helper: prefer reset on parent (root) navigator if available
@@ -34,7 +34,7 @@ const AuthNavigator: React.FC = () => {
       if (Array.isArray(roles) && roles.length === 0) {
         if (!retriedRef.current) {
           retriedRef.current = true
-          void reloadProfile?.()
+          void recargarPerfil?.()
           return
         }
       }

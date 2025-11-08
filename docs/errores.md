@@ -58,46 +58,46 @@ Los errores de Firebase Auth se mapean en `services/firebase/auth.ts` a códigos
 
 - AUTH_INVALID_CREDENTIALS
   - Cuándo: Credenciales inválidas al ingresar (wrong-password, invalid-credential).
-  - Origen: `AuthService.login`
+  - Origen: `ServicioAuth.ingresarConCorreo`
 
 - AUTH_USER_NOT_FOUND
   - Cuándo: No existe una cuenta con ese correo.
-  - Origen: `AuthService.login`
+  - Origen: `ServicioAuth.ingresarConCorreo`
 
 - AUTH_EMAIL_IN_USE
   - Cuándo: Ya existe un usuario con ese correo.
-  - Origen: `AuthService.register`
+  - Origen: `ServicioAuth.registrarConCorreo`
 
 - AUTH_WEAK_PASSWORD
   - Cuándo: La contraseña no cumple los requisitos mínimos.
-  - Origen: `AuthService.register`
+  - Origen: `ServicioAuth.registrarConCorreo`
 
 - AUTH_OPERATION_NOT_ALLOWED
   - Cuándo: La operación no está habilitada en el proyecto.
-  - Origen: `AuthService.register` o `login`
+  - Origen: `ServicioAuth.registrarConCorreo` o `ServicioAuth.ingresarConCorreo`
 
 - AUTH_TOO_MANY_REQUESTS
   - Cuándo: Demasiados intentos en un corto periodo.
-  - Origen: `AuthService.login` o `register`
+  - Origen: `ServicioAuth.ingresarConCorreo` o `ServicioAuth.registrarConCorreo`
 
 - AUTH_USER_DISABLED
   - Cuándo: La cuenta ha sido deshabilitada por un administrador.
-  - Origen: `AuthService.login`
+  - Origen: `ServicioAuth.ingresarConCorreo`
 
 - AUTH_INVALID_EMAIL
   - Cuándo: El formato del correo no es válido.
-  - Origen: `AuthService.login` o `register`
+  - Origen: `ServicioAuth.ingresarConCorreo` o `ServicioAuth.registrarConCorreo`
 
 - AUTH_NETWORK_ERROR
   - Cuándo: Error de red del cliente.
-  - Origen: `AuthService.login` o `register`
+  - Origen: `ServicioAuth.ingresarConCorreo` o `ServicioAuth.registrarConCorreo`
 
 ### Ejemplo de uso en UI
 
 ```ts
 import { tErrorMaybe } from '@/services/i18n'
 
-const res = await AuthService.login(email, password)
+const res = await ServicioAuth.ingresarConCorreo(email, password)
 if (!res.ok) {
   const message = tErrorMaybe(res.error)
   setFormError(message)

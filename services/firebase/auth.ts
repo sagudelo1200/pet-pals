@@ -40,9 +40,9 @@ function mapFirebaseAuthError(e: any): string {
   }
 }
 
-export class AuthService {
+export class ServicioAuth {
   // Registro con email y contraseña
-  static async registerWithEmail(
+  static async registrarConCorreo(
     email: string,
     password: string,
     displayName: string
@@ -118,8 +118,8 @@ export class AuthService {
     }
   }
 
-  // Login con email y contraseña
-  static async loginWithEmail(
+  // Ingreso con correo y contraseña
+  static async ingresarConCorreo(
     email: string,
     password: string
   ): Promise<AuthResult> {
@@ -151,7 +151,7 @@ export class AuthService {
         },
       }
     } catch (error: any) {
-      console.error('Error en login:', error)
+      console.error('Error en ingreso:', error)
       return {
         success: false,
         error: mapFirebaseAuthError(error),
@@ -160,12 +160,12 @@ export class AuthService {
   }
 
   // Cerrar sesión
-  static async logout(): Promise<AuthResult> {
+  static async cerrarSesion(): Promise<AuthResult> {
     try {
       await signOut(auth)
       return { success: true }
     } catch (error: any) {
-      console.error('Error en logout:', error)
+      console.error('Error en cerrarSesion:', error)
       return {
         success: false,
         error: mapFirebaseAuthError(error),
@@ -174,13 +174,13 @@ export class AuthService {
   }
 
   // Obtener usuario actual
-  static getCurrentUser(): User | null {
+  static obtenerUsuarioActual(): User | null {
     return auth.currentUser
   }
 
   /* eslint-disable no-unused-vars */
   // Escuchar cambios de autenticación
-  static onAuthStateChange(callback: (user: User | null) => void) {
+  static escucharEstadoAuth(callback: (user: User | null) => void) {
     return onAuthStateChanged(auth, callback)
   }
 }

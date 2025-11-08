@@ -34,7 +34,7 @@ const Ingresar: React.FC = () => {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const navigation = useNavigation<Nav>()
-  const { login, cargando } = useAuth()
+  const { ingresar, cargando } = useAuth()
   const { t } = useTranslation()
   const handleSubmit = useCallback(async () => {
     if (!email || !password) {
@@ -44,14 +44,14 @@ const Ingresar: React.FC = () => {
       )
       return
     }
-    const result = await login(email.trim(), password)
+    const result = await ingresar(email.trim(), password)
     if (!result.success) {
       Alert.alert(
         t('auth:ingresar.errores.loginFallido.titulo'),
         tErrorMaybe(result.error, t('comun.intentaNuevamente'))
       )
     }
-  }, [email, password, login])
+  }, [email, password, ingresar])
 
   const goToRegistro = useCallback(() => {
     navigation.navigate('Registro')

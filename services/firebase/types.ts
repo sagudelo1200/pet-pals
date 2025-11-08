@@ -15,18 +15,18 @@ export interface AuthResult {
 export interface AuthContextType {
   user: AuthUser | null
   cargando: boolean
-  login: (email: string, password: string) => Promise<AuthResult>
-  register: (
+  ingresar: (email: string, password: string) => Promise<AuthResult>
+  registrar: (
     email: string,
     password: string,
     displayName: string
   ) => Promise<AuthResult>
-  logout: () => Promise<AuthResult>
+  cerrarSesion: () => Promise<AuthResult>
   // Extensiones para navegación por roles (perfil en Firestore)
   roles?: import('../../models/Usuario').RolUsuario[]
   profile?: import('../../models/Usuario').Usuario | null
   hasRole?: (role: import('../../models/Usuario').RolUsuario) => boolean
-  reloadProfile?: () => Promise<void>
+  recargarPerfil?: () => Promise<void>
 }
 
 // Tipos simples para CRUD

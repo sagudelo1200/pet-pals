@@ -10,7 +10,7 @@ import { COLOR } from '@/constants'
 const MiCuenta = () => {
   const navigation = useNavigation<any>()
   const insets = useSafeAreaInsets()
-  const { logout, cargando, user, profile } = useAuth()
+  const { cerrarSesion, cargando, user, profile } = useAuth()
   const correo = user?.email ?? (profile as any)?.correo ?? '—'
   const nombre = user?.displayName ?? (profile as any)?.nombre ?? '—'
 
@@ -20,7 +20,7 @@ const MiCuenta = () => {
       : Math.max(insets.bottom + 60, 75)
 
   const handleLogout = useCallback(async () => {
-    const result = await logout()
+    const result = await cerrarSesion()
     if (result.success) {
       navigation.reset({ index: 0, routes: [{ name: 'Auth' }] })
     } else {
@@ -29,7 +29,7 @@ const MiCuenta = () => {
         tErrorMaybe(result.error, 'Intenta nuevamente.')
       )
     }
-  }, [logout, navigation])
+  }, [cerrarSesion, navigation])
 
   return (
     <SafeAreaView style={[styles.container, { paddingBottom: TAB_BAR_HEIGHT }]}>

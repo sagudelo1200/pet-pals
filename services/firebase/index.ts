@@ -7,7 +7,7 @@ export { ServicioUsuario } from './usuario'
 export { ServicioPaseo } from './paseo'
 
 // Servicio de autenticación
-export { AuthService } from './auth'
+export { ServicioAuth } from './auth'
 
 // Tipos
 export * from './types'

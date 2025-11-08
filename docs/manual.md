@@ -33,27 +33,27 @@ Usa estos códigos para mostrar mensajes al usuario o lógica condicional.
 
 ## Servicios principales
 
-### AuthService (services/firebase/auth.ts)
+### ServicioAuth (services/firebase/auth.ts)
 
 - Métodos:
-  - registerWithEmail(email, password, displayName): Promise<AuthResult>
+  - registrarConCorreo(email, password, displayName): Promise<AuthResult>
     - Crea usuario en Firebase Auth, actualiza displayName y crea documento en Firestore (`usuarios/{uid}`).
     - Respuesta: { success: true, user } o { success: false, error }
     - Errores: AUTH_EMAIL_IN_USE, AUTH_WEAK_PASSWORD, ERROR_DESCONOCIDO, etc.
-  - loginWithEmail(email, password): Promise<AuthResult>
+  - ingresarConCorreo(email, password): Promise<AuthResult>
     - Login; implementa un mínimo artificial de tiempo de respuesta (3s) para UX.
     - Errores: AUTH_INVALID_CREDENTIALS, AUTH_USER_NOT_FOUND, etc.
-  - logout(): Promise<AuthResult>
+  - cerrarSesion(): Promise<AuthResult>
     - Cierra sesión.
-  - getCurrentUser(): User | null
+  - obtenerUsuarioActual(): User | null
     - Devuelve usuario de Firebase Auth (sin llamar a la red).
-  - onAuthStateChange(callback): Unsubscribe
+  - escucharEstadoAuth(callback): Unsubscribe
     - Suscribe al cambio de estado de autenticación.
 
 Ejemplo de uso:
 
 ```ts
-const res = await AuthService.loginWithEmail('a@a.com', 'pass')
+const res = await ServicioAuth.ingresarConCorreo('a@a.com', 'pass')
 if (!res.success) {
   // res.error es un código ERR
 }
@@ -123,17 +123,17 @@ if (!res.success) {
 ### useAuth / AuthProvider (`services/context/AuthContext.tsx`)
 
 - Debe envolver la app: `<AuthProvider>{children}</AuthProvider>`.
-- Hook: `const { user, loading, login, register, logout, roles, profile, hasRole, reloadProfile } = useAuth()`
+- Hook: `const { user, cargando, ingresar, registrar, cerrarSesion, roles, profile, hasRole, recargarPerfil } = useAuth()`
 - Notas:
-  - `login`, `register`, `logout` devuelven `AuthResult` (mismo contrato que AuthService).
-  - `loading` está ligado tanto a estado de auth como a operaciones explícitas de login/register.
+  - `ingresar`, `registrar`, `cerrarSesion` devuelven `AuthResult` (mismo contrato que ServicioAuth).
+  - `cargando` está ligado tanto a estado de auth como a operaciones explícitas de ingresar/registrar.
   - `profile` y `roles` se cargan desde Firestore cuando hay usuario.
 
 Ejemplo mínimo:
 
 ```tsx
-const { user, login, loading, error } = useAuth()
-await login(email, password)
+const { user, ingresar, cargando, error } = useAuth()
+await ingresar(email, password)
 ```
 
 ### useCrud(collectionName) (`hooks/useCrud.ts`)
@@ -193,7 +193,7 @@ if (!res.success) alert(res.error)
 
 1. Asegúrate de envolver la app con `<AuthProvider>` en `App.tsx` o `index.tsx`.
 2. Inicia la app (Expo / React Native según tu flujo).
-3. Usar la pantalla de registro: llamar a `register(email,password,name)` desde `useAuth` y confirmar que el doc usuario se creó.
+3. Usar la pantalla de registro: llamar a `registrar(email,password,name)` desde `useAuth` y confirmar que el doc usuario se creó.
 4. Crear una mascota: usar `useMascotaActions().create(...)` y comprobarla en `useMascotasDelUsuario()`.
 5. Probar casos de error: intentar `ServicioMascota.crear` sin estar autenticado (debe devolver `NO_AUTENTICADO`).
 
@@ -201,7 +201,7 @@ if (!res.success) alert(res.error)
 
 ## Archivos relevantes (rápido)
 
-- `services/firebase/auth.ts` — AuthService (login/register/logout)
+- `services/firebase/auth.ts` — ServicioAuth (ingresar/registrar/cerrarSesion)
 - `services/firebase/crud.ts` — ServicioCrudBase (create/get/update/delete/getWhere/getAll)
 - `services/firebase/mascota.ts` — ServicioMascota (lógica específica de mascotas)
 - `services/firebase/errors.ts` — mapFirebaseError (mapeo a `ERR`)

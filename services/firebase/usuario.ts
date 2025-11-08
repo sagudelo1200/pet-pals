@@ -4,7 +4,6 @@ import { CrudResult } from './types'
 import { db } from '@/firebase.config'
 import { doc, setDoc } from 'firebase/firestore'
 import { toDb, nowServerTimestamp } from './converters'
-// AuthService removed: profile creation should happen at registration via AuthService
 import { mapFirebaseError } from './errors'
 
 export class ServicioUsuario {
@@ -18,9 +17,6 @@ export class ServicioUsuario {
   ): Promise<CrudResult<Usuario>> {
     return ServicioCrudBase.crear<Usuario>(this.COLLECTION, data)
   }
-
-  // Nota: la creación del documento `usuarios/{uid}` se realiza ahora
-  // durante el flujo de registro en `AuthService.registerWithEmail`.
 
   /**
    * Crear documento de usuario usando un UID explícito.

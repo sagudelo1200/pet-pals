@@ -1,7 +1,7 @@
 import { ServicioCrudBase } from './crud'
 import { Mascota } from '../../models/Mascota'
 import { CrudResult } from './types'
-import { AuthService } from './auth'
+import { ServicioAuth } from './auth'
 import { ERR } from '@/constants'
 
 export class ServicioMascota {
@@ -13,7 +13,7 @@ export class ServicioMascota {
       'id' | 'creado_en' | 'actualizado_en' | 'creado_por' | 'actualizado_por'
     >
   ): Promise<CrudResult<Mascota>> {
-    const currentUser = AuthService.getCurrentUser()
+    const currentUser = ServicioAuth.obtenerUsuarioActual()
     const uid = currentUser?.uid
     if (!uid) {
       return { success: false, error: ERR.NO_AUTENTICADO }

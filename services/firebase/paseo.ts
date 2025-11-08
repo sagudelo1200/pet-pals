@@ -1,7 +1,7 @@
 import { ServicioCrudBase } from './crud'
 import { Paseo } from '../../models/Paseo'
 import { CrudResult } from './types'
-import { AuthService } from './auth'
+import { ServicioAuth } from './auth'
 import type { Mascota } from '@/models/Mascota'
 import { addMascotasAlPaseo } from './paseo-mascota'
 import { MAX_MASCOTAS_POR_PASEO, ERR } from '@/constants'
@@ -16,7 +16,7 @@ export class ServicioPaseo {
       'id' | 'creado_en' | 'actualizado_en' | 'creado_por' | 'actualizado_por'
     >
   ): Promise<CrudResult<Paseo>> {
-    const currentUser = AuthService.getCurrentUser()
+    const currentUser = ServicioAuth.obtenerUsuarioActual()
     const uid = currentUser?.uid
     if (!uid) return { success: false, error: ERR.NO_AUTENTICADO }
 
@@ -45,7 +45,7 @@ export class ServicioPaseo {
     >,
     mascotaIds: string[]
   ): Promise<CrudResult<Paseo>> {
-    const current = AuthService.getCurrentUser()
+    const current = ServicioAuth.obtenerUsuarioActual()
     const uid = current?.uid
     if (!uid) return { success: false, error: ERR.NO_AUTENTICADO }
 

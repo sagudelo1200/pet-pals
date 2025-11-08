@@ -35,7 +35,7 @@ type Nav = StackNavigationProp<AuthFlowParamList>
 
 const Registro: React.FC = () => {
   const navigation = useNavigation<Nav>()
-  const { register, cargando, reloadProfile } = useAuth()
+  const { registrar, cargando, recargarPerfil } = useAuth()
   const { t } = useTranslation()
   const [nombre, setNombre] = useState('')
   const [email, setEmail] = useState('')
@@ -82,7 +82,7 @@ const Registro: React.FC = () => {
       return
     }
 
-    const result = await register(email.trim(), password, nombre.trim())
+    const result = await registrar(email.trim(), password, nombre.trim())
     if (!result.success || !result.user) {
       Alert.alert(
         t('auth:registro.errores.registroFallido.titulo'),
@@ -91,10 +91,8 @@ const Registro: React.FC = () => {
       return
     }
 
-    // El perfil/usuario en Firestore se crea ahora dentro de
-    // AuthService.registerWithEmail. Solo recargamos el perfil local.
-    await reloadProfile?.()
-  }, [canSubmit, email, nombre, password, register, rol])
+    await recargarPerfil?.()
+  }, [canSubmit, email, nombre, password, registrar, rol])
 
   const goToLogin = useCallback(() => {
     navigation.navigate('Ingresar')

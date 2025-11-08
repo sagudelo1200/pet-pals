@@ -28,8 +28,8 @@ export class ServicioCrudBase {
     >
   ): Promise<CrudResult<T>> {
     try {
-      const { AuthService } = await import('./auth')
-      const currentUser = AuthService.getCurrentUser()
+      const { ServicioAuth } = await import('./auth')
+      const currentUser = ServicioAuth.obtenerUsuarioActual()
       const base = {
         creado_en: nowServerTimestamp(),
         actualizado_en: nowServerTimestamp(),
@@ -84,8 +84,8 @@ export class ServicioCrudBase {
     data: Partial<Omit<T, 'id' | 'creado_en' | 'creado_por'>>
   ): Promise<CrudResult<T>> {
     try {
-      const { AuthService } = await import('./auth')
-      const currentUser = AuthService.getCurrentUser()
+      const { ServicioAuth } = await import('./auth')
+      const currentUser = ServicioAuth.obtenerUsuarioActual()
       const docRef = doc(db, collectionName, id)
 
       const updateDataDb = {

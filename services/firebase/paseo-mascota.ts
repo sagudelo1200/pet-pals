@@ -7,7 +7,7 @@ import {
   increment,
 } from 'firebase/firestore'
 import { nowServerTimestamp } from './converters'
-import { AuthService } from './auth'
+import { ServicioAuth } from './auth'
 import type { Mascota } from '@/models/Mascota'
 import { ServicioCrudBase } from './crud'
 import { MAX_MASCOTAS_POR_PASEO, ERR } from '@/constants'
@@ -18,7 +18,7 @@ export async function addMascotasAlPaseo(
   paseoId: string,
   mascotaIds: string[]
 ): Promise<{ success: true } | { success: false; error: string }> {
-  const uid = AuthService.getCurrentUser()?.uid
+  const uid = ServicioAuth.obtenerUsuarioActual()?.uid
   if (!uid) return { success: false, error: ERR.NO_AUTENTICADO }
 
   try {
@@ -62,7 +62,7 @@ export async function addMascotaAlPaseo(
   paseoId: string,
   mascotaId: string
 ): Promise<{ success: true } | { success: false; error: string }> {
-  const uid = AuthService.getCurrentUser()?.uid
+  const uid = ServicioAuth.obtenerUsuarioActual()?.uid
   if (!uid) return { success: false, error: ERR.NO_AUTENTICADO }
   if (!mascotaId) return { success: false, error: ERR.MASCOTA_REQUERIDA }
 
