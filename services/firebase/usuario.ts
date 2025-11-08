@@ -31,9 +31,9 @@ export class ServicioUsuario {
     >
   ): Promise<CrudResult<Usuario>> {
     try {
-      // Build base system fields. If caller provided `fecha_registro` we
-      // respect it (it will be converted by toDb). Otherwise, set it to
-      // serverTimestamp sentinel so the server assigns the registration time.
+      // Construir campos base del sistema. Si el llamador proporcionó
+      // `fecha_registro` se respeta (será convertido por `toDb`). Si no,
+      // usar `nowServerTimestamp()` para que el servidor asigne la fecha.
       const base: any = {
         creado_en: nowServerTimestamp(),
         actualizado_en: nowServerTimestamp(),
@@ -45,8 +45,8 @@ export class ServicioUsuario {
       }
 
       const ref = doc(db, this.COLLECTION, uid)
-      // Important: do not run `toDb` over `base` because it contains
-      // serverTimestamp() sentinels which must be written as-is.
+      // Importante: no ejecutar `toDb` sobre `base` porque contiene
+      // sentinelas `serverTimestamp()` que deben escribirse tal cual.
       await setDoc(ref, { ...toDb(data), ...base })
 
       return ServicioCrudBase.obtenerPorId<Usuario>(this.COLLECTION, uid)

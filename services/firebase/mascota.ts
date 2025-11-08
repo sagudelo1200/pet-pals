@@ -24,7 +24,7 @@ export class ServicioMascota {
       return { success: false, error: ERR.MASCOTAS.DUENO_NO_COINCIDE }
     }
 
-    // Ensure new mascotas are active by default unless explicitly set otherwise
+    // Asegurar que las mascotas nuevas estén activas por defecto salvo indicación contraria
     const payload = { ...data, creado_por: uid, activo: data.activo ?? true }
     return ServicioCrudBase.crear<Mascota>(this.COLLECTION, payload)
   }

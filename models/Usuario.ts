@@ -1,47 +1,76 @@
+import { BaseModel } from './BaseModel'
+
+/**
+ * Dirección postal/domicilio estructurada.
+ */
 export interface Direccion {
+  /** Calle o avenida */
   calle?: string
+  /** Número exterior o indicativo */
   numero?: string
-  barrio?: string // barrio de Medellín
-  comuna?: string // comuna de Medellín
+  /** Barrio (ej: barrios de Medellín) */
+  barrio?: string
+  /** Comuna (ej: comunas de Medellín) */
+  comuna?: string
+  /** Ciudad */
   ciudad?: string
+  /** Departamento / estado */
   departamento?: string
+  /** País */
   pais?: string
+  /** Código postal */
   codigo_postal?: string
+  /** Coordenadas geográficas (lat/lng) */
   coordenadas?: {
     lat: number
     lng: number
   }
-  referencia?: string // punto de referencia o indicaciones
-  descripcion?: string // campo libre para detalles adicionales
+  /** Punto de referencia o indicaciones */
+  referencia?: string
+  /** Descripción libre adicional */
+  descripcion?: string
 }
-import { BaseModel } from './BaseModel'
 
+/** Roles posibles del usuario en la plataforma */
 export type RolUsuario = 'dueño' | 'paseador' | 'admin'
+
+/** Estado operativo del usuario */
 export type EstadoUsuario = 'activo' | 'inactivo' | 'baneado'
+
+/** Tipos de documento de identidad soportados */
 export type TipoDocumento = 'NUIP' | 'CC' | 'CE' | 'Pasaporte'
 
+/** Documento de identidad estructurado */
 export interface DocumentoIdentidad {
   tipo: TipoDocumento
   numero: string
 }
 
+/** Modelo de usuario en la capa de dominio */
 export interface Usuario extends BaseModel {
-  // Identificación
+  /** Nombre completo */
   nombre: string
+  /** URL de la foto de perfil */
   foto?: string
+  /** Correo electrónico */
   correo: string
+  /** Número de celular (formato internacional recomendado) */
   celular: string
 
-  // Datos generales
+  /** Fecha de nacimiento */
   fecha_nacimiento?: Date
+  /** Dirección postal/domicilio */
   direccion?: Direccion
+  /** Zona o sector (texto libre) */
   zona?: string
 
-  // Roles y verificación
+  /** Roles asignados al usuario */
   roles: RolUsuario[]
+  /** Documento de identidad (opcional) */
   documento_identidad?: DocumentoIdentidad
+  /** Indicador de verificación del perfil */
   verificado: boolean
 
-  // Estado y control
+  /** Estado del usuario (activo/inactivo/baneado) */
   estado: EstadoUsuario
 }

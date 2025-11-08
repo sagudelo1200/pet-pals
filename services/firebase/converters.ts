@@ -1,6 +1,6 @@
 import { Timestamp, serverTimestamp, type FieldValue } from 'firebase/firestore'
 
-// Type guards
+// Comprobaciones de tipo
 export function isFirestoreTimestamp(value: unknown): value is Timestamp {
   return (
     !!value &&
@@ -35,8 +35,8 @@ export function toDomain<T = any>(input: any): T {
   if (isFirestoreTimestamp(input)) {
     return input.toDate() as unknown as T
   }
-  // Only recurse into plain objects. This avoids trying to traverse Firestore
-  // sentinel objects (FieldValue), DocumentReference, GeoPoint, etc.
+  // Solo recorrer objetos llanos. Evita transformar sentinelas de Firestore
+  // (FieldValue), DocumentReference, GeoPoint, etc.
   if (isPlainObject(input)) {
     const out: any = {}
     for (const [k, v] of Object.entries(input)) {
@@ -47,8 +47,8 @@ export function toDomain<T = any>(input: any): T {
       } else if (isPlainObject(v)) {
         out[k] = toDomain(v)
       } else {
-        // For non-plain objects (FieldValue sentinels, DocumentReference, GeoPoint, etc.)
-        // keep the value as-is. Consumers can handle them explicitly if needed.
+        // Para objetos no llanos (sentinelas FieldValue, DocumentReference, GeoPoint, ...)
+        // conservar el valor tal cual; el consumidor puede manejarlo si es necesario.
         out[k] = v
       }
     }
@@ -69,9 +69,8 @@ export function toDb<T = any>(input: any): T {
     return Timestamp.fromDate(input) as unknown as T
   }
 
-  // Only recurse into plain objects. This avoids attempting to transform
-  // Firestore `FieldValue` sentinels (serverTimestamp(), increment(), etc.)
-  // which are not plain objects and should be left as-is by the writer.
+  // Solo recorrer objetos llanos. Evita transformar sentinelas de Firestore
+  // (`serverTimestamp()`, `increment()`, etc.) que no deben modificarse.
   if (isPlainObject(input)) {
     const out: any = {}
     for (const [k, v] of Object.entries(input)) {
@@ -82,7 +81,7 @@ export function toDb<T = any>(input: any): T {
       } else if (isPlainObject(v)) {
         out[k] = toDb(v)
       } else {
-        // For non-plain objects (FieldValue, DocumentReference, etc.) keep as-is
+        // Para objetos no llanos (FieldValue, DocumentReference, ...), conservar tal cual
         out[k] = v
       }
     }

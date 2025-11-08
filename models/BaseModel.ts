@@ -3,25 +3,15 @@
  * Proporciona campos comunes que todas las entidades comparten.
  */
 export interface BaseModel {
-  /**
-   * Identificador único del registro.
-   */
+  /** Identificador único del registro. */
   id: string
-  /**
-   * Fecha y hora en que se creó el registro (snake_case en Firestore: `creado_en`).
-   */
+  /** Fecha y hora en que se creó el registro (Firestore: `creado_en`). */
   creado_en: Date
-  /**
-   * Fecha y hora de la última actualización del registro (snake_case en Firestore: `actualizado_en`).
-   */
+  /** Fecha y hora de la última actualización (Firestore: `actualizado_en`). */
   actualizado_en: Date
-  /**
-   * ID del usuario que creó originalmente el registro (snake_case en Firestore: `creado_por`).
-   */
+  /** ID del usuario que creó el registro (Firestore: `creado_por`). */
   creado_por: string
-  /**
-   * ID del usuario que realizó la última modificación (snake_case en Firestore: `actualizado_por`).
-   */
+  /** ID del usuario que realizó la última modificación (Firestore: `actualizado_por`). */
   actualizado_por: string
 }
 

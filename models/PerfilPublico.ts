@@ -1,25 +1,35 @@
 import { BaseModel } from './BaseModel'
 
+/** Estado de verificación del perfil público */
 export type EstadoVerificacion = 'pendiente' | 'verificado' | 'rechazado'
 
+/** Perfil público que muestra la información visible para otros usuarios */
 export interface PerfilPublico extends BaseModel {
-  // Datos básicos
+  /** Nombre mostrado */
   nombre: string
+  /** URL de la foto de perfil */
   foto?: string
+  /** Biografía breve */
   biografia?: string
+  /** Texto libre sobre experiencia o formación */
   experiencia?: string
 
-  // Servicio
+  /** Zonas o barrios donde ofrece servicio */
   zonas_servicio?: string[]
+  /** Información de disponibilidad (texto libre) */
   disponibilidad?: string
+  /** Tipos de mascotas aceptadas */
   mascotas_aceptadas?: string[]
+  /** Número máximo de mascotas que acepta simultáneamente */
   max_mascotas?: number
 
-  // Reputación
-  valoraciones?: string[] // IDs de valoraciones recibidas
+  /** IDs de valoraciones recibidas */
+  valoraciones?: string[]
+  /** Calificación promedio calculada a partir de valoraciones */
   rating_promedio?: number
+  /** Cantidad total de paseos realizados */
   cantidad_paseos_realizados?: number
 
-  // Seguridad y confianza
+  /** Estado de verificación del perfil para confianza y seguridad */
   verificacion: EstadoVerificacion
 }

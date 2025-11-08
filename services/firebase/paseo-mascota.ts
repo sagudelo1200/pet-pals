@@ -46,7 +46,7 @@ export async function addMascotasAlPaseo(
         creado_por: uid,
         actualizado_por: uid,
       }
-      // Importante: no envolver FieldValue (serverTimestamp) con toDb
+      // No envolver sentinelas de servidor (serverTimestamp) con `toDb`
       batch.set(ref, base)
     }
 
@@ -112,8 +112,8 @@ export async function addMascotaAlPaseo(
       const subSnap = await tx.get(subRef)
       if (subSnap.exists()) throw new Error(ERR.MASCOTAS.MASCOTA_YA_AGREGADA)
 
-      // Crear subdoc (con denormalización) y aumentar contador
-      // Importante: no envolver FieldValue (serverTimestamp) con toDb
+      // Crear subdocumento (con denormalización) y aumentar contador
+      // No envolver sentinelas de servidor (serverTimestamp) con `toDb`
       tx.set(subRef, {
         id_paseo: paseoId,
         id_mascota: mascotaId,

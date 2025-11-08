@@ -51,12 +51,13 @@ export class ServicioPaseo {
 
     // Validaciones básicas de mascotaIds
     const unique = Array.from(new Set((mascotaIds || []).filter(Boolean)))
-    // Cupo: mínimo entre global y el solicitado en data (si existe)
+    // Cupo: mínimo entre el máximo permitido y el solicitado en 'data' (si existe)
     const maxPaseo =
       typeof (data as any).cupo_maximo_mascotas === 'number'
         ? (data as any).cupo_maximo_mascotas
         : MAX_MASCOTAS_POR_PASEO
     const max = Math.min(MAX_MASCOTAS_POR_PASEO, maxPaseo)
+    // Validación de cupo: si se excede el límite, devolver error
     if (unique.length > max)
       return { success: false, error: ERR.PASEOS.LIMITE_DE_MASCOTAS_SUPERADO }
 
@@ -129,7 +130,7 @@ export class ServicioPaseo {
   static async obtenerPorMascota(
     mascotaId: string
   ): Promise<CrudResult<Paseo[]>> {
-    // Buscar paseos donde la mascota participe vía collectionGroup sobre subcolección 'mascotas'
+    // Buscar paseos donde la mascota participe usando collectionGroup sobre la subcolección 'mascotas'
     try {
       const { db } = await import('@/firebase.config')
       const { collectionGroup, query, where, getDocs, documentId } =
