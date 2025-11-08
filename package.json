@@ -13,7 +13,8 @@
     "lint:fix": "eslint . --ext .js,.jsx,.ts,.tsx --fix",
     "lint:check": "eslint . --ext .js,.jsx,.ts,.tsx --max-warnings 0",
     "type-check": "tsc --noEmit",
-    "check:i18n": "node ./scripts/check-i18n-keys.js"
+    "check:i18n": "node ./scripts/check-i18n-keys.js",
+    "check:todomain": "node ./scripts/check-toDomain.js"
   },
   "repository": {
     "type": "git",

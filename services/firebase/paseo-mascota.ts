@@ -6,7 +6,7 @@ import {
   runTransaction,
   increment,
 } from 'firebase/firestore'
-import { nowServerTimestamp } from './converters'
+import { nowServerTimestamp, toDomain } from './converters'
 import { ServicioAuth } from './auth'
 import type { Mascota } from '@/models/Mascota'
 import { ServicioCrudBase } from './crud'
@@ -85,7 +85,8 @@ export async function addMascotaAlPaseo(
     await runTransaction(db, async tx => {
       const paseoSnap = await tx.get(paseoRef)
       if (!paseoSnap.exists()) throw new Error(ERR.PASEOS.PASEO_NO_ENCONTRADO)
-      const paseo = paseoSnap.data() as any
+      // Convertir a dominio para garantizar Date en campos de fecha si se usan
+      const paseo = toDomain(paseoSnap.data()) as any
 
       // Verificar estado y es_multiple
       const estado = paseo.estado as string

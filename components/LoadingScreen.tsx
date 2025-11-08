@@ -45,10 +45,10 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({
 
   // Usar useMemo para construir la colección de mensajes a usar (i18n + custom)
   const messageCollections = useMemo(() => {
-    // Intentar leer arrays desde i18n: 'loading:<messageType>' devuelve array si existe
+    // Intentar leer arrays desde i18n: 'cargando:<messageType>' devuelve array si existe
     const loadFromI18n = (key: string) => {
       try {
-        const path = `loading:${key}`
+        const path = `cargando:${key}`
         if (i18n.exists(path)) {
           // returnObjects para obtener arrays definidos en JSON
           const arr = i18n.t(path, { returnObjects: true }) as unknown
