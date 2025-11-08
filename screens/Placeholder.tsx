@@ -1,16 +1,16 @@
 import { COLOR } from '@/constants'
 import React from 'react'
 import { Text } from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context'
+import Screen from '@/components/ui/Screen'
 
 const Placeholder = () => {
   return (
-    <SafeAreaView style={styles.container}>
+    <Screen style={styles.container}>
       <Text style={styles.text}>¡Próximamente!</Text>
       <Text style={styles.subText}>
         Esta sección está en desarrollo. ¡Mantente atento a las actualizaciones!
       </Text>
-    </SafeAreaView>
+    </Screen>
   )
 }
 

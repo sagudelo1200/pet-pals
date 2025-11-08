@@ -14,8 +14,8 @@ import {
   Avatar,
   Badge,
   Icon,
-  ScreenScrollView,
 } from '@/components/ui'
+import Screen from '@/components/ui/Screen'
 
 type DashboardNavigationProp = BottomTabNavigationProp<DuenoTabParamList>
 
@@ -31,98 +31,94 @@ const Dashboard: React.FC = () => {
   }
 
   return (
-    <View style={styles.container}>
-      <ScreenScrollView
-        style={styles.scrollView}
-        contentContainerStyle={styles.content}
-        showsVerticalScrollIndicator={false}
+    <Screen
+      scroll
+      style={styles.container}
+      contentContainerStyle={styles.content}
+    >
+      {/* Próximo paseo */}
+      <Card
+        title="Próximo paseo"
+        subtitle="Hoy, 5:30 PM"
+        right={<Badge label="Confirmado" variant="exito" size="sm" />}
+        style={{ marginBottom: 16 }}
       >
-        {/* Próximo paseo */}
-        <Card
-          title="Próximo paseo"
-          subtitle="Hoy, 5:30 PM"
-          right={<Badge label="Confirmado" variant="exito" size="sm" />}
-          style={{ marginBottom: 16 }}
-        >
+        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <Avatar name="Luna" />
+          <Spacer horizontal size={12} />
+          <View style={{ flex: 1 }}>
+            <Text style={{ color: COLOR.TEXTO, fontWeight: '700' }}>Luna</Text>
+            <Text style={{ color: COLOR.SUBTEXTO }}>
+              Con Juan - Punto de encuentro parque central
+            </Text>
+          </View>
+          <Button title="Detalles" size="sm" onPress={handleAlert} />
+        </View>
+      </Card>
+
+      {/* Acciones rápidas */}
+      <Card
+        title="Acciones rápidas"
+        subtitle="Lo más usado"
+        style={{ marginBottom: 16 }}
+      >
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
+          <Chip
+            label="Solicitar paseo"
+            leftIconName="walking"
+            onPress={handleAlert}
+          />
+          <Spacer horizontal size={8} />
+          <Chip
+            label="Agregar mascota"
+            leftIconName="paw"
+            onPress={handleMascotasPress}
+          />
+          <Spacer horizontal size={8} />
+          <Chip
+            label="Ver historial"
+            leftIconName="history"
+            onPress={handleAlert}
+          />
+        </View>
+      </Card>
+
+      {/* Actividad reciente */}
+      <Card title="Actividad reciente" subtitle="Últimos movimientos">
+        <View>
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-            <Avatar name="Luna" />
-            <Spacer horizontal size={12} />
-            <View style={{ flex: 1 }}>
-              <Text style={{ color: COLOR.TEXTO, fontWeight: '700' }}>
-                Luna
-              </Text>
-              <Text style={{ color: COLOR.SUBTEXTO }}>
-                Con Juan - Punto de encuentro parque central
-              </Text>
-            </View>
-            <Button title="Detalles" size="sm" onPress={handleAlert} />
-          </View>
-        </Card>
-
-        {/* Acciones rápidas */}
-        <Card
-          title="Acciones rápidas"
-          subtitle="Lo más usado"
-          style={{ marginBottom: 16 }}
-        >
-          <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
-            <Chip
-              label="Solicitar paseo"
-              leftIconName="walking"
-              onPress={handleAlert}
-            />
+            <Icon name="walking" size={16} color={COLOR.SUBTEXTO} />
             <Spacer horizontal size={8} />
-            <Chip
-              label="Agregar mascota"
-              leftIconName="paw"
-              onPress={handleMascotasPress}
-            />
+            <Text style={{ color: COLOR.TEXTO, flex: 1 }}>
+              Paseo completado con Max - 10:00 AM
+            </Text>
+            <Badge label="Completado" variant="exito" size="sm" />
+          </View>
+          <Spacer size={10} />
+          <Divider />
+          <Spacer size={10} />
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <Icon name="map-marker-alt" size={16} color={COLOR.SUBTEXTO} />
             <Spacer horizontal size={8} />
-            <Chip
-              label="Ver historial"
-              leftIconName="history"
-              onPress={handleAlert}
-            />
+            <Text style={{ color: COLOR.TEXTO, flex: 1 }}>
+              Punto de encuentro actualizado
+            </Text>
+            <Badge label="Info" variant="info" size="sm" />
           </View>
-        </Card>
-
-        {/* Actividad reciente */}
-        <Card title="Actividad reciente" subtitle="Últimos movimientos">
-          <View>
-            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-              <Icon name="walking" size={16} color={COLOR.SUBTEXTO} />
-              <Spacer horizontal size={8} />
-              <Text style={{ color: COLOR.TEXTO, flex: 1 }}>
-                Paseo completado con Max - 10:00 AM
-              </Text>
-              <Badge label="Completado" variant="exito" size="sm" />
-            </View>
-            <Spacer size={10} />
-            <Divider />
-            <Spacer size={10} />
-            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-              <Icon name="map-marker-alt" size={16} color={COLOR.SUBTEXTO} />
-              <Spacer horizontal size={8} />
-              <Text style={{ color: COLOR.TEXTO, flex: 1 }}>
-                Punto de encuentro actualizado
-              </Text>
-              <Badge label="Info" variant="info" size="sm" />
-            </View>
-            <Spacer size={10} />
-            <Divider />
-            <Spacer size={10} />
-            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-              <Icon name="star" size={16} color={COLOR.SUBTEXTO} />
-              <Spacer horizontal size={8} />
-              <Text style={{ color: COLOR.TEXTO, flex: 1 }}>
-                Valoraste a Ana con 5 estrellas
-              </Text>
-              <Badge label="¡Gracias!" variant="enfasis" size="sm" />
-            </View>
+          <Spacer size={10} />
+          <Divider />
+          <Spacer size={10} />
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <Icon name="star" size={16} color={COLOR.SUBTEXTO} />
+            <Spacer horizontal size={8} />
+            <Text style={{ color: COLOR.TEXTO, flex: 1 }}>
+              Valoraste a Ana con 5 estrellas
+            </Text>
+            <Badge label="¡Gracias!" variant="enfasis" size="sm" />
           </View>
-        </Card>
-      </ScreenScrollView>
-    </View>
+        </View>
+      </Card>
+    </Screen>
   )
 }
 

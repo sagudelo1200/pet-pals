@@ -1,7 +1,8 @@
 import React, { useCallback } from 'react'
 import { Alert, Platform, Text, View } from 'react-native'
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Button } from '@/components'
+import Screen from '@/components/ui/Screen'
 import { tErrorMaybe } from '@/services/i18n'
 import { useAuth } from '@/services/context/AuthContext'
 import { useNavigation } from '@react-navigation/native'
@@ -32,7 +33,10 @@ const MiCuenta = () => {
   }, [cerrarSesion, navigation])
 
   return (
-    <SafeAreaView style={[styles.container, { paddingBottom: TAB_BAR_HEIGHT }]}>
+    <Screen
+      includeTopInset
+      style={[styles.container, { paddingBottom: TAB_BAR_HEIGHT }]}
+    >
       <View style={styles.content}>
         <Text style={styles.text}>¡Mi Cuenta!</Text>
         <Text style={styles.subText}>
@@ -53,7 +57,7 @@ const MiCuenta = () => {
           {cargando ? 'Cerrando sesión…' : 'Cerrar sesión'}
         </Button>
       </View>
-    </SafeAreaView>
+    </Screen>
   )
 }
 
@@ -66,7 +70,7 @@ const styles = {
   content: {
     flex: 1,
     alignItems: 'center' as const,
-    justifyContent: 'center' as const,
+    justifyContent: 'flex-start' as const,
     paddingHorizontal: 20,
   },
   text: {

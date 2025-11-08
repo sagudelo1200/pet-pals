@@ -1,16 +1,16 @@
 import { COLOR } from '@/constants'
 import React from 'react'
 import { Text } from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context'
+import Screen from '@/components/ui/Screen'
 
 const Paseos = () => {
   return (
-    <SafeAreaView style={styles.container}>
+    <Screen style={styles.container}>
       <Text style={styles.text}>¡Paseos!</Text>
       <Text style={styles.subText}>
         Esta sección está en desarrollo. ¡Mantente atento a las actualizaciones!
       </Text>
-    </SafeAreaView>
+    </Screen>
   )
 }
 

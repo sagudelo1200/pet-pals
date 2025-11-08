@@ -1,17 +1,9 @@
 import React, { useCallback, useMemo, useState } from 'react'
-import {
-  TouchableWithoutFeedback,
-  Keyboard,
-  StyleSheet,
-  KeyboardAvoidingView,
-  Platform,
-  View,
-  Alert,
-  Pressable,
-} from 'react-native'
+import { StyleSheet, View, Alert, Pressable } from 'react-native'
 import { Block, Text } from 'galio-framework'
 import { COLOR } from '@/constants'
 import { Button, TextInput } from '@/components/ui'
+import Screen from '@/components/ui/Screen'
 import { useAuth } from '@/services/context/AuthContext'
 import type { RolUsuario } from '@/models/Usuario'
 import { tErrorMaybe } from '@/services/i18n'
@@ -19,16 +11,6 @@ import { useTranslation } from 'react-i18next'
 import { useNavigation } from '@react-navigation/native'
 import type { StackNavigationProp } from '@react-navigation/stack'
 import type { AuthFlowParamList } from '@/navigation/types'
-
-interface DismissKeyboardProps {
-  children: React.ReactNode
-}
-
-const DismissKeyboard: React.FC<DismissKeyboardProps> = ({ children }) => (
-  <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
-    {children}
-  </TouchableWithoutFeedback>
-)
 
 type Nav = StackNavigationProp<AuthFlowParamList>
 
@@ -98,112 +80,105 @@ const Registro: React.FC = () => {
   }, [navigation])
 
   return (
-    <DismissKeyboard>
-      <View style={styles.container}>
-        <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-          style={styles.kav}
-        >
-          <Block style={styles.content}>
-            <Text h4 style={styles.title}>
-              {t('auth:registro.formulario.titulo')}
-            </Text>
-            <Text style={styles.subtitle}>
-              {t('auth:registro.formulario.subtitulo')}
-            </Text>
+    <Screen contentContainerStyle={styles.content} style={styles.container}>
+      <Block>
+        <Text h4 style={styles.title}>
+          {t('auth:registro.formulario.titulo')}
+        </Text>
+        <Text style={styles.subtitle}>
+          {t('auth:registro.formulario.subtitulo')}
+        </Text>
 
-            <View style={styles.form}>
-              <TextInput
-                label={t('auth:registro.formulario.nombre.label')}
-                value={nombre}
-                onChangeText={setNombre}
-                placeholder={t('auth:registro.formulario.nombre.placeholder')}
-                iconName="user"
-              />
+        <View style={styles.form}>
+          <TextInput
+            label={t('auth:registro.formulario.nombre.label')}
+            value={nombre}
+            onChangeText={setNombre}
+            placeholder={t('auth:registro.formulario.nombre.placeholder')}
+            iconName="user"
+          />
 
-              <TextInput
-                label={t('auth:registro.formulario.correo.label')}
-                value={email}
-                onChangeText={tVal => {
-                  setEmail(tVal)
-                  if (!emailTouched) setEmailTouched(true)
-                }}
-                placeholder={t('auth:registro.formulario.correo.placeholder')}
-                keyboardType="email-address"
-                autoCapitalize="none"
-                iconName="envelope"
-                errorText={emailError}
-              />
+          <TextInput
+            label={t('auth:registro.formulario.correo.label')}
+            value={email}
+            onChangeText={tVal => {
+              setEmail(tVal)
+              if (!emailTouched) setEmailTouched(true)
+            }}
+            placeholder={t('auth:registro.formulario.correo.placeholder')}
+            keyboardType="email-address"
+            autoCapitalize="none"
+            iconName="envelope"
+            errorText={emailError}
+          />
 
-              <TextInput
-                label={t('auth:registro.formulario.password.label')}
-                value={password}
-                onChangeText={tVal => {
-                  setPassword(tVal)
-                  if (!passwordTouched) setPasswordTouched(true)
-                }}
-                placeholder={t('auth:registro.formulario.password.placeholder')}
-                secureTextEntry
-                autoCapitalize="none"
-                iconName="lock"
-                errorText={passwordError}
-              />
+          <TextInput
+            label={t('auth:registro.formulario.password.label')}
+            value={password}
+            onChangeText={tVal => {
+              setPassword(tVal)
+              if (!passwordTouched) setPasswordTouched(true)
+            }}
+            placeholder={t('auth:registro.formulario.password.placeholder')}
+            secureTextEntry
+            autoCapitalize="none"
+            iconName="lock"
+            errorText={passwordError}
+          />
 
-              <Text style={styles.label}>
-                {t('auth:registro.formulario.soyLabel')}
+          <Text style={styles.label}>
+            {t('auth:registro.formulario.soyLabel')}
+          </Text>
+          <View style={styles.roleRow}>
+            <Pressable
+              onPress={() => setRol('dueño')}
+              style={[
+                styles.roleBtn,
+                { marginRight: 8 },
+                rol === 'dueño' ? styles.roleBtnActive : undefined,
+              ]}
+            >
+              <Text style={styles.roleText}>
+                {t('auth:compartido.roles.dueno')}
               </Text>
-              <View style={styles.roleRow}>
-                <Pressable
-                  onPress={() => setRol('dueño')}
-                  style={[
-                    styles.roleBtn,
-                    { marginRight: 8 },
-                    rol === 'dueño' ? styles.roleBtnActive : undefined,
-                  ]}
-                >
-                  <Text style={styles.roleText}>
-                    {t('auth:compartido.roles.dueno')}
-                  </Text>
-                </Pressable>
-                <Pressable
-                  onPress={() => setRol('paseador')}
-                  style={[
-                    styles.roleBtn,
-                    rol === 'paseador' ? styles.roleBtnActive : undefined,
-                  ]}
-                >
-                  <Text style={styles.roleText}>
-                    {t('auth:compartido.roles.paseador')}
-                  </Text>
-                </Pressable>
-              </View>
+            </Pressable>
+            <Pressable
+              onPress={() => setRol('paseador')}
+              style={[
+                styles.roleBtn,
+                rol === 'paseador' ? styles.roleBtnActive : undefined,
+              ]}
+            >
+              <Text style={styles.roleText}>
+                {t('auth:compartido.roles.paseador')}
+              </Text>
+            </Pressable>
+          </View>
 
-              <Button
-                title={
-                  cargando
-                    ? t('auth:registro.formulario.estado.creando')
-                    : t('auth:registro.formulario.accion')
-                }
-                onPress={onSubmit}
-                variant="primario"
-                fullWidth
-                style={styles.submit}
-                disabled={!canSubmit}
-                loading={cargando}
-              />
+          <Button
+            title={
+              cargando
+                ? t('auth:registro.formulario.estado.creando')
+                : t('auth:registro.formulario.accion')
+            }
+            onPress={onSubmit}
+            variant="primario"
+            fullWidth
+            style={styles.submit}
+            disabled={!canSubmit}
+            loading={cargando}
+          />
 
-              <Button
-                title={t('auth:registro.ui.tengoCuenta')}
-                onPress={goToLogin}
-                variant="bloque"
-                fullWidth
-                style={styles.secondary}
-              />
-            </View>
-          </Block>
-        </KeyboardAvoidingView>
-      </View>
-    </DismissKeyboard>
+          <Button
+            title={t('auth:registro.ui.tengoCuenta')}
+            onPress={goToLogin}
+            variant="bloque"
+            fullWidth
+            style={styles.secondary}
+          />
+        </View>
+      </Block>
+    </Screen>
   )
 }
 

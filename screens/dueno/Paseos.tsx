@@ -1,25 +1,23 @@
 import React from 'react'
 import { StyleSheet, View, Text } from 'react-native'
 import { COLOR } from '@/constants'
-import { ScreenScrollView } from '@/components/ui'
+import Screen from '@/components/ui/Screen'
 
 const Paseos: React.FC = () => {
   return (
-    <View style={styles.container}>
-      <ScreenScrollView
-        style={styles.scrollView}
-        contentContainerStyle={styles.content}
-        showsVerticalScrollIndicator={false}
-      >
-        <Text style={styles.title}>Paseos</Text>
-        <View style={styles.section}>
-          <Text style={{ color: COLOR.SUBTEXTO }}>
-            Esta pantalla ha sido limpiada: se eliminó la implementación de
-            ejemplo. Aquí iremos añadiendo la gestión de paseos.
-          </Text>
-        </View>
-      </ScreenScrollView>
-    </View>
+    <Screen
+      scroll
+      style={styles.container}
+      contentContainerStyle={styles.content}
+    >
+      <Text style={styles.title}>Paseos</Text>
+      <View style={styles.section}>
+        <Text style={{ color: COLOR.SUBTEXTO }}>
+          Esta pantalla ha sido limpiada: se eliminó la implementación de
+          ejemplo. Aquí iremos añadiendo la gestión de paseos.
+        </Text>
+      </View>
+    </Screen>
   )
 }
 

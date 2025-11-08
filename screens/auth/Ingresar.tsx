@@ -1,32 +1,15 @@
 import React, { useState, useCallback } from 'react'
-import {
-  TouchableWithoutFeedback,
-  Keyboard,
-  StyleSheet,
-  KeyboardAvoidingView,
-  Platform,
-  View,
-  Alert,
-} from 'react-native'
+import { StyleSheet, Alert, View } from 'react-native'
 import { Block, Text } from 'galio-framework'
 import { COLOR } from '@/constants'
 import { Button, TextInput } from '@/components/ui'
+import Screen from '@/components/ui/Screen'
 import { useAuth } from '@/services/context/AuthContext'
 import { useNavigation } from '@react-navigation/native'
 import type { AuthFlowParamList } from '@/navigation/types'
 import type { StackNavigationProp } from '@react-navigation/stack'
 import { useTranslation } from 'react-i18next'
 import { tErrorMaybe } from '@/services/i18n'
-
-interface DismissKeyboardProps {
-  children: React.ReactNode
-}
-
-const DismissKeyboard: React.FC<DismissKeyboardProps> = ({ children }) => (
-  <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
-    {children}
-  </TouchableWithoutFeedback>
-)
 
 type Nav = StackNavigationProp<AuthFlowParamList>
 
@@ -58,67 +41,60 @@ const Ingresar: React.FC = () => {
   }, [navigation])
 
   return (
-    <DismissKeyboard>
-      <View style={styles.container}>
-        <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-          style={styles.kav}
-        >
-          <Block style={styles.content}>
-            <Text h4 style={styles.title}>
-              {t('auth:ingresar.formulario.titulo')}
-            </Text>
-            <Text style={styles.subtitle}>
-              {t('auth:ingresar.formulario.subtitulo')}
-            </Text>
+    <Screen contentContainerStyle={styles.content} style={styles.container}>
+      <Block>
+        <Text h4 style={styles.title}>
+          {t('auth:ingresar.formulario.titulo')}
+        </Text>
+        <Text style={styles.subtitle}>
+          {t('auth:ingresar.formulario.subtitulo')}
+        </Text>
 
-            <View style={styles.form}>
-              <TextInput
-                label={t('auth:ingresar.formulario.correo.label')}
-                value={email}
-                onChangeText={setEmail}
-                placeholder={t('auth:ingresar.formulario.correo.placeholder')}
-                keyboardType="email-address"
-                autoCapitalize="none"
-                iconName="envelope"
-              />
+        <View style={styles.form}>
+          <TextInput
+            label={t('auth:ingresar.formulario.correo.label')}
+            value={email}
+            onChangeText={setEmail}
+            placeholder={t('auth:ingresar.formulario.correo.placeholder')}
+            keyboardType="email-address"
+            autoCapitalize="none"
+            iconName="envelope"
+          />
 
-              <TextInput
-                label={t('auth:ingresar.formulario.password.label')}
-                value={password}
-                onChangeText={setPassword}
-                placeholder={t('auth:ingresar.formulario.password.placeholder')}
-                secureTextEntry
-                autoCapitalize="none"
-                iconName="lock"
-              />
+          <TextInput
+            label={t('auth:ingresar.formulario.password.label')}
+            value={password}
+            onChangeText={setPassword}
+            placeholder={t('auth:ingresar.formulario.password.placeholder')}
+            secureTextEntry
+            autoCapitalize="none"
+            iconName="lock"
+          />
 
-              <Button
-                title={
-                  cargando
-                    ? t('auth:ingresar.formulario.estado.ingresando')
-                    : t('auth:ingresar.formulario.accion')
-                }
-                onPress={handleSubmit}
-                variant="primario"
-                fullWidth
-                style={styles.submit}
-                disabled={cargando}
-                loading={cargando}
-              />
+          <Button
+            title={
+              cargando
+                ? t('auth:ingresar.formulario.estado.ingresando')
+                : t('auth:ingresar.formulario.accion')
+            }
+            onPress={handleSubmit}
+            variant="primario"
+            fullWidth
+            style={styles.submit}
+            disabled={cargando}
+            loading={cargando}
+          />
 
-              <Button
-                title={t('auth:registro.formulario.accion')}
-                onPress={goToRegistro}
-                variant="bloque"
-                fullWidth
-                style={styles.secondary}
-              />
-            </View>
-          </Block>
-        </KeyboardAvoidingView>
-      </View>
-    </DismissKeyboard>
+          <Button
+            title={t('auth:registro.formulario.accion')}
+            onPress={goToRegistro}
+            variant="bloque"
+            fullWidth
+            style={styles.secondary}
+          />
+        </View>
+      </Block>
+    </Screen>
   )
 }
 
