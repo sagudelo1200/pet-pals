@@ -1,7 +1,7 @@
 import React, { useCallback } from 'react'
 import { Alert, Platform, Text, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { Button } from '@/components'
+import { Button } from '@/components/ui'
 import Screen from '@/components/ui/Screen'
 import { tErrorMaybe } from '@/services/i18n'
 import { useAuth } from '@/services/context/AuthContext'
@@ -50,12 +50,12 @@ const MiCuenta = () => {
       <View style={styles.footer}>
         <Button
           style={styles.logoutButton as any}
-          onPress={handleLogout}
+          onPress={() => void handleLogout()}
           disabled={cargando}
-          color={'secondary'}
-        >
-          {cargando ? 'Cerrando sesión…' : 'Cerrar sesión'}
-        </Button>
+          loading={cargando}
+          variant="secundario"
+          title={cargando ? 'Cerrando sesión…' : 'Cerrar sesión'}
+        />
       </View>
     </Screen>
   )

@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react'
 import { useAuth } from '@/services/context/AuthContext'
-import { LoadingScreen } from '@/components'
+import { LoadingScreen } from '@/components/ui'
 import { useNavigation, CommonActions } from '@react-navigation/native'
 import { createStackNavigator } from '@react-navigation/stack'
 import Ingresar from '@/screens/auth/Ingresar'

@@ -1,24 +1,16 @@
 import React, { useState, useEffect, useMemo } from 'react'
 import { View, Text, ActivityIndicator, StyleSheet } from 'react-native'
-import { COLOR } from '../constants'
+import { COLOR } from '@/constants'
 import { i18n } from '@/services/i18n'
 
 interface LoadingScreenProps {
-  /** Mensaje personalizado, si no se proporciona usa uno aleatorio */
   message?: string
-  /** Tipo de mensajes a mostrar */
   messageType?: 'general' | 'auth' | 'mascota' | 'paseador' | 'custom'
-  /** Mensajes personalizados para usar con messageType='custom' */
   customMessages?: string[]
-  /** Mostrar o no el ActivityIndicator */
   showSpinner?: boolean
-  /** Color del spinner */
   spinnerColor?: string
-  /** Tamaño del spinner */
   spinnerSize?: 'small' | 'large'
-  /** Estilo personalizado del contenedor */
   containerStyle?: object
-  /** Estilo personalizado del texto */
   textStyle?: object
 }
 
@@ -34,8 +26,6 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({
 }) => {
   const [currentMessage, setCurrentMessage] = useState<string>('')
 
-  // Minimal safe fallbacks used only if i18n isn't ready. Kept intentionally
-  // small because i18n is the single source of truth per project decision.
   const MINIMAL_FALLBACKS: Record<string, string[]> = {
     general: ['⏳ Cargando...'],
     auth: ['🔐 Verificando credenciales...'],
@@ -43,14 +33,11 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({
     paseador: ['🗺️ Preparando paseo...'],
   }
 
-  // Usar useMemo para construir la colección de mensajes a usar (i18n + custom)
   const messageCollections = useMemo(() => {
-    // Intentar leer arrays desde i18n: 'cargando:<messageType>' devuelve array si existe
     const loadFromI18n = (key: string) => {
       try {
         const path = `cargando:${key}`
         if (i18n.exists(path)) {
-          // returnObjects para obtener arrays definidos en JSON
           const arr = i18n.t(path, { returnObjects: true }) as unknown
           if (Array.isArray(arr)) return arr as string[]
         }
@@ -75,23 +62,19 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({
   }, [customMessages, i18n.language])
 
   useEffect(() => {
-    // Si hay un mensaje específico, usarlo
     if (message) {
       setCurrentMessage(message)
       return
     }
-    // Obtener la colección de mensajes según el tipo
     const messages =
       messageCollections[messageType as keyof typeof messageCollections] ||
       messageCollections.general
 
-    // Proteger contra arrays vacíos (puede ocurrir si i18n aún no tiene las claves)
     const safeMessages =
       Array.isArray(messages) && messages.length > 0
         ? messages
         : MINIMAL_FALLBACKS.general
 
-    // Seleccionar mensaje aleatorio (siempre habrá al menos 1)
     const randomMessage =
       safeMessages[Math.floor(Math.random() * safeMessages.length)]
     setCurrentMessage(randomMessage)
