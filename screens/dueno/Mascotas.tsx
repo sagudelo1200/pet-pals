@@ -6,6 +6,8 @@ import Screen from '@/components/ui/Screen'
 import Fab from '@/components/ui/Fab'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import Card from '@/components/ui/Card'
+import EmptyState from '@/components/ui/EmptyState'
+import { i18n } from '@/services/i18n'
 import Icon from '@/components/ui/Icon'
 import Avatar from '@/components/ui/Avatar'
 import LoadingScreen from '@/components/ui/LoadingScreen'
@@ -108,6 +110,8 @@ const Mascotas: React.FC = () => {
             onPress={() => void fetchMascotas()}
             style={styles.iconButton}
             accessibilityLabel="Refrescar"
+            accessibilityRole="button"
+            hitSlop={8}
             android_ripple={{ color: 'rgba(230,243,239,0.08)' }}
           >
             <Icon name="sync" size={18} />
@@ -123,9 +127,14 @@ const Mascotas: React.FC = () => {
 
       <View style={styles.section}>
         {mascotas.length === 0 ? (
-          <Text style={{ color: COLOR.SUBTEXTO }}>
-            No hay mascotas registradas.
-          </Text>
+          <EmptyState
+            title={i18n.t('mascotas:vacio.titulo')}
+            description={i18n.t('mascotas:vacio.descripcion')}
+            actionLabel={i18n.t('mascotas:vacio.accion_agregar')}
+            onActionPress={handleCrear}
+            iconName="paw"
+            style={{ paddingVertical: 24 }}
+          />
         ) : (
           <View style={styles.grid}>
             {mascotas.map(m => (
@@ -140,6 +149,8 @@ const Mascotas: React.FC = () => {
                       onPress={() => handleEditar(m.id)}
                       style={styles.iconButton}
                       accessibilityLabel={`Editar ${m.nombre}`}
+                      accessibilityRole="button"
+                      hitSlop={8}
                       android_ripple={{ color: 'rgba(230,243,239,0.08)' }}
                     >
                       <Icon name="edit" size={18} />
@@ -148,6 +159,8 @@ const Mascotas: React.FC = () => {
                       onPress={() => handleEliminar(m.id)}
                       style={styles.iconButton}
                       accessibilityLabel={`Eliminar ${m.nombre}`}
+                      accessibilityRole="button"
+                      hitSlop={8}
                       android_ripple={{ color: 'rgba(230,243,239,0.08)' }}
                     >
                       <Icon name="trash" size={18} />
@@ -256,13 +269,12 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-start',
   },
   iconButton: {
-    padding: 6,
+    padding: 10,
     borderRadius: 20,
   },
   headerActions: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
   },
   fab: {
     position: 'absolute',

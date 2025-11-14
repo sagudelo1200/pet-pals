@@ -5,5 +5,11 @@
     "MASCOTA_NO_ENCONTRADA": "La mascota indicada no existe.",
     "MASCOTA_NO_PERTENECE_AL_USUARIO": "La mascota no pertenece al usuario actual.",
     "DUENO_NO_COINCIDE": "El dueño de la mascota no coincide con el usuario actual"
+  },
+
+  "vacio": {
+    "titulo": "No hay mascotas",
+    "descripcion": "Registra tus mascotas para poder gestionarlas desde la app.",
+    "accion_agregar": "Agregar mascota"
   }
 }
