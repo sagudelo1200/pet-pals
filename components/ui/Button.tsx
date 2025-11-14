@@ -144,7 +144,7 @@ const Button: React.FC<Props> = ({
       onPress={onPress}
       disabled={disabled || loading}
       // Efecto de onda en Android con un tono más oscuro del color base
-      android_ripple={{ color: darken(bgColor, 0.25) }}
+      android_ripple={{ color: darken(bgColor, 0.22), borderless: false }}
       // En iOS/Android, usamos la prop style función para cambiar el fondo en "pressed"
       style={({ pressed }) => [
         ...baseStyles,
