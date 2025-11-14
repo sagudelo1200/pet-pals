@@ -1,7 +1,7 @@
 import {
   collection,
   doc,
-  addDoc,
+  setDoc,
   getDoc,
   getDocs,
   updateDoc,
@@ -37,11 +37,16 @@ export class ServicioCrudBase {
         actualizado_por: currentUser?.uid,
       }
 
-      const docDataDb = { ...toDb(data), ...base }
-      const docRef = await addDoc(collection(db, collectionName), docDataDb)
+      // Creamos un docRef con id generado por cliente para cumplir las reglas
+      const colRef = collection(db, collectionName)
+      const docRef = doc(colRef)
+      const id = docRef.id
+
+      const docDataDb = { id, ...toDb(data), ...base }
+      await setDoc(docRef, docDataDb)
 
       // Re-leer para retornar en formato de dominio (Date)
-      return this.obtenerPorId<T>(collectionName, docRef.id)
+      return this.obtenerPorId<T>(collectionName, id)
     } catch (error: any) {
       return { success: false, error: mapFirebaseError(error) }
     }
