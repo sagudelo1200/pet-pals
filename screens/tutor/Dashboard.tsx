@@ -3,7 +3,7 @@ import { StyleSheet, View, Platform, Alert } from 'react-native'
 import { theme, Text } from 'galio-framework'
 import { useNavigation } from '@react-navigation/native'
 import { BottomTabNavigationProp } from '@react-navigation/bottom-tabs'
-import { DuenoTabParamList } from '@/navigation/types'
+import { TutorTabParamList } from '@/navigation/types'
 import { COLOR } from '@/constants'
 import {
   Card,
@@ -17,7 +17,7 @@ import {
 } from '@/components/ui'
 import Screen from '@/components/ui/Screen'
 
-type DashboardNavigationProp = BottomTabNavigationProp<DuenoTabParamList>
+type DashboardNavigationProp = BottomTabNavigationProp<TutorTabParamList>
 
 const Dashboard: React.FC = () => {
   const navigation = useNavigation<DashboardNavigationProp>()

@@ -6,7 +6,7 @@ const MOCK_ERR = {
     NO_AUTENTICADO: 'NO_AUTENTICADO',
     DOCUMENTO_NO_ENCONTRADO: 'DOCUMENTO_NO_ENCONTRADO',
   },
-  MASCOTAS: { DUENO_NO_COINCIDE: 'DUENO_NO_COINCIDE' },
+  MASCOTAS: { TUTOR_NO_COINCIDE: 'TUTOR_NO_COINCIDE' },
 }
 
 jest.mock('@/constants', () => ({ ERR: MOCK_ERR }))
@@ -49,7 +49,7 @@ describe('ServicioMascota - unitario', () => {
   })
 
   // Si el payload incluye creado_por distinto al uid actual, debe fallar
-  test('crear devuelve DUENO_NO_COINCIDE cuando creado_por no coincide', async () => {
+  test('crear devuelve TUTOR_NO_COINCIDE cuando creado_por no coincide', async () => {
     ServicioAuth.obtenerUsuarioActual.mockReturnValue({ uid: 'u1' })
     const res = await ServicioMascota.crear({
       nombre: 'Fido',
@@ -57,7 +57,7 @@ describe('ServicioMascota - unitario', () => {
       creado_por: 'u2',
     })
     expect(res.success).toBe(false)
-    expect(res.error).toBe(MOCK_ERR.MASCOTAS.DUENO_NO_COINCIDE)
+    expect(res.error).toBe(MOCK_ERR.MASCOTAS.TUTOR_NO_COINCIDE)
   })
 
   // Debe delegar en ServicioCrudBase.crear y devolver su resultado

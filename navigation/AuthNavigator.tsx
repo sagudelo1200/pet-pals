@@ -26,7 +26,7 @@ const AuthNavigator: React.FC = () => {
   useEffect(() => {
     if (user && !cargando) {
       // Esperar a que `roles` esté cargado (no undefined). Evita navegar por defecto
-      // a `DuenoApp` antes de que el perfil/roles se hayan recuperado.
+      // a `TutorApp` antes de que el perfil/roles se hayan recuperado.
       if (!Array.isArray(roles)) return
 
       // Si roles es un array vacío, intentar recargar perfil una vez (posible eventual
@@ -42,15 +42,15 @@ const AuthNavigator: React.FC = () => {
 
       // Decidir destino por rol. Priorizar admin si existe.
       const isAdmin = roles.includes('admin')
-      const isDueno = roles.includes('dueño')
-      const isPaseador = roles.includes('paseador')
+      const isTutor = roles.includes('tutor')
+      const isCuidador = roles.includes('cuidador')
       const target = isAdmin
         ? 'AdminApp'
-        : isDueno
-          ? 'DuenoApp'
-          : isPaseador
-            ? 'PaseadorApp'
-            : 'DuenoApp'
+        : isTutor
+          ? 'TutorApp'
+          : isCuidador
+            ? 'CuidadorApp'
+            : 'TutorApp'
 
       const rootNav = getRootNavigation()
       // Prefer using reset if available on the nav object, otherwise dispatch CommonActions.reset

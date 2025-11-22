@@ -47,7 +47,7 @@ export class ServicioUsuario {
       const ref = doc(db, this.COLLECTION, uid)
       // Importante: no ejecutar `toDb` sobre `base` porque contiene
       // sentinelas `serverTimestamp()` que deben escribirse tal cual.
-      await setDoc(ref, { ...toDb(data), ...base })
+      await setDoc(ref, { id: uid, ...toDb(data), ...base })
 
       return ServicioCrudBase.obtenerPorId<Usuario>(this.COLLECTION, uid)
     } catch (error: any) {

@@ -69,7 +69,7 @@ export class ServicioAuth {
           nombre: displayName,
           correo: email,
           celular: '',
-          roles: ['dueño'],
+          roles: ['tutor'],
           verificado: false,
           estado: 'activo',
         } as any)

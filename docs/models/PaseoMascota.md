@@ -28,7 +28,7 @@ Ejemplo JSON (dominio):
   "id": "paseomasc_001",
   "id_paseo": "paseo_100",
   "id_mascota": "masc_001",
-  "id_usuario": "user_dueno_01",
+  "id_usuario": "user_tutor_01",
   "observaciones": "Necesita correa extra resistente",
   "codigo_recogida": "RCG-4521",
   "codigo_entrega": "ENT-7833",
@@ -42,7 +42,7 @@ Relaciones y recomendaciones:
 
 - `id_paseo` → `Paseo` padre.
 - `id_mascota` → `Mascota` participante (denormalizado para reglas y auditoría).
-- `id_usuario` → dueño de la mascota; útil para reglas de seguridad.
+- `id_usuario` → tutor de la mascota; útil para reglas de seguridad.
 
 Validaciones y casos prácticos:
 

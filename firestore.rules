@@ -14,105 +14,99 @@ service cloud.firestore {
       return get(/databases/$(database)/documents/usuarios/$(request.auth.uid));
     }
 
-    // Comprueba si el usuario u tiene el rol rol
-    function tiene_rol(u, rol) {
-      if (!autenticado()) return false;
-      // Si es el usuario autenticado primero probar Custom Claims
-      if (u == request.auth.uid) {
-      if (request.auth != null && request.auth.token != null && request.auth.token.roles != null) {
-      let roles = request.auth.token.roles;
-      return (roles is list && roles.hasAny([rol])) ||
-      (roles is map && roles[rol] == true);
+    // Verifica si hay roles en el token (Custom Claims)
+    function tiene_rol_en_claims(rol) {
+      return request.auth.token.roles != null && (
+      (request.auth.token.roles is list && request.auth.token.roles.hasAny([rol])) ||
+      (request.auth.token.roles is map && request.auth.token.roles[rol] == true)
+      );
     }
 
-    // Si no hay claims usar doc_usuario
-    let d = doc_usuario();
-    return d.exists() && d.data.roles != null && (
-    (d.data.roles is list && d.data.roles.hasAny([rol])) ||
-    (d.data.roles is map && d.data.roles[rol] == true)
-    );
-  }
+    // Verifica si hay roles en un documento de usuario
+    function tiene_rol_en_doc(d, rol) {
+      return d != null && d.data.roles != null && (
+      (d.data.roles is list && d.data.roles.hasAny([rol])) ||
+      (d.data.roles is map && d.data.roles[rol] == true)
+      );
+      }    // Comprueba si el usuario u tiene el rol rol
+    function tiene_rol(u, rol) {
+      return autenticado() && (
+      (u == request.auth.uid && (tiene_rol_en_claims(rol) || tiene_rol_en_doc(doc_usuario(), rol))) ||
+      (u != request.auth.uid && tiene_rol_en_doc(get(/databases/$(database)/documents/usuarios/$(u)), rol))
+      );
+    }
 
-  // Caso general leer doc del usuario u
-  let doc = get(/databases/$(database)/documents/usuarios/$(u));
-  return doc.exists() && doc.data.roles != null && (
-  (doc.data.roles is list && doc.data.roles.hasAny([rol])) ||
-  (doc.data.roles is map && doc.data.roles[rol] == true)
-  );
-}
+    // Verifica si el usuario autenticado tiene un rol especifico
+    function tiene_rol_actual(rol) {
+      return autenticado() && tiene_rol(request.auth.uid, rol);
+    }
 
-// Verifica si el usuario autenticado tiene un rol especifico
-function tiene_rol_actual(rol) {
-  return autenticado() && tiene_rol(request.auth.uid, rol);
-}
+    // Verifica si el usuario autenticado es administrador
+    function es_admin() {
+      return autenticado() && tiene_rol_actual('admin');
+    }
 
-// Verifica si el usuario autenticado es administrador
-function es_admin() {
-  return autenticado() && tiene_rol_actual('admin');
-}
+    // Comprueba si el UID corresponde al usuario autenticado
+    function es_mismo_uid(u) {
+      return autenticado() && u == request.auth.uid;
+    }
 
-// Comprueba si el UID corresponde al usuario autenticado
-function es_mismo_uid(u) {
-  return autenticado() && u == request.auth.uid;
-}
+    // Comprueba si el documento pertenece al usuario autenticado
+    function es_tutor() {
+      return autenticado() &&
+      resource != null &&
+      resource.data.creado_por == request.auth.uid;
+    }
 
-// Comprueba si el documento pertenece al usuario autenticado
-function es_dueno() {
-  return autenticado() &&
-  resource != null &&
-  resource.data.creado_por == request.auth.uid;
-}
+    // Verifica que el payload declara correctamente el creador
+    function es_creador() {
+      return autenticado() &&
+      request.resource.data.creado_por == request.auth.uid;
+    }
 
-// Verifica que el payload declara correctamente el creador
-function es_creador() {
-  return autenticado() &&
-  request.resource.data.creado_por == request.auth.uid;
-}
+    // CAMPOS SISTEMA VALIDACIONES
 
-// CAMPOS SISTEMA VALIDACIONES
+    function tiene_campos_sistema_basicos() {
+      return request.resource.data.keys().hasAll([
+      'id', 'creado_por', 'actualizado_por', 'creado_en', 'actualizado_en'
+      ]);
+    }
 
-function tiene_campos_sistema_basicos() {
-  return request.resource.data.keys().hasAll([
-  'id', 'creado_por', 'actualizado_por', 'creado_en', 'actualizado_en'
-  ]);
-}
+    function campos_sistema_validos_crear() {
+      return request.resource.data.creado_en == request.time &&
+      request.resource.data.actualizado_en == request.time &&
+      request.resource.data.creado_por == request.auth.uid &&
+      request.resource.data.actualizado_por == request.auth.uid;
+    }
 
-function campos_sistema_validos_crear() {
-  return request.resource.data.creado_en == request.time &&
-  request.resource.data.actualizado_en == request.time &&
-  request.resource.data.creado_por == request.auth.uid &&
-  request.resource.data.actualizado_por == request.auth.uid;
-}
+    function campos_sistema_validos_actualizar() {
+      return request.resource.data.creado_en == resource.data.creado_en &&
+      request.resource.data.creado_por == resource.data.creado_por &&
+      request.resource.data.actualizado_en == request.time &&
+      request.resource.data.actualizado_por == request.auth.uid;
+    }
 
-function campos_sistema_validos_actualizar() {
-  return request.resource.data.creado_en == resource.data.creado_en &&
-  request.resource.data.creado_por == resource.data.creado_por &&
-  request.resource.data.actualizado_en == request.time &&
-  request.resource.data.actualizado_por == request.auth.uid;
-}
+    function solo_campos_permitidos(camposPermitidos) {
+      return request.resource.data.keys().hasOnly(camposPermitidos);
+    }
 
-function solo_campos_permitidos(camposPermitidos) {
-  return request.resource.data.keys().hasOnly(camposPermitidos);
-}
+    // PASEOS HELPERS ESPECIFICOS
 
-// PASEOS HELPERS ESPECIFICOS
+    function estado_permite_unirse(estado) {
+      return estado in ['pendiente', 'confirmado'];
+    }
 
-function estado_permite_unirse(estado) {
-  return estado in ['pendiente', 'confirmado'];
-}
+    function es_actor_paseo_doc(p) {
+      return autenticado() && p != null && (
+      p.data.creado_por == request.auth.uid ||
+      p.data.id_cuidador == request.auth.uid ||
+      es_admin()
+      );
+    }    function puede_unirse_a_paseo_doc(p) {
+      return p != null && p.data.es_multiple == true && estado_permite_unirse(p.data.estado);
+    }
 
-function es_actor_paseo_doc(p) {
-  if (!autenticado() || !p.exists()) return false;
-  if (p.data.creado_por == request.auth.uid) return true;
-  if (p.data.id_paseador == request.auth.uid) return true;
-  return es_admin();
-}
-
-function puede_unirse_a_paseo_doc(p) {
-  return p.exists() && p.data.es_multiple == true && estado_permite_unirse(p.data.estado);
-}
-
-// USUARIOS
+    // USUARIOS
     match /usuarios/{uid} {
       allow read: if autenticado() && (es_mismo_uid(uid) || es_admin());
       allow create: if autenticado() && es_mismo_uid(uid)
@@ -124,7 +118,7 @@ function puede_unirse_a_paseo_doc(p) {
       allow delete: if es_admin();
     }
 
-  // PERFIL PUBLICO
+    // PERFIL PUBLICO
     match /perfil_publico/{docId} {
       allow read: if true;
       allow create: if autenticado()
@@ -137,25 +131,25 @@ function puede_unirse_a_paseo_doc(p) {
       allow delete: if es_admin();
     }
 
-  // MASCOTAS
+    // MASCOTAS
     match /mascotas/{id} {
-      allow read: if autenticado() && (es_dueno() || es_admin());
+      allow read: if autenticado() && (es_tutor() || es_admin());
       allow create: if autenticado()
         && es_creador()
         && tiene_campos_sistema_basicos()
         && campos_sistema_validos_crear();
       allow update: if autenticado()
-        && es_dueno()
+        && es_tutor()
         && campos_sistema_validos_actualizar()
         && request.resource.data.creado_por == resource.data.creado_por
         && solo_campos_permitidos([
-          'nombre', 'raza', 'edad', 'descripcion',
-          'creado_por', 'creado_en', 'actualizado_en', 'actualizado_por'
-        ]);
-      allow delete: if autenticado() && (es_dueno() || es_admin());
+      'nombre', 'raza', 'edad', 'descripcion',
+      'creado_por', 'creado_en', 'actualizado_en', 'actualizado_por'
+      ]);
+      allow delete: if autenticado() && (es_tutor() || es_admin());
     }
 
-  // PASEOS
+    // PASEOS
     match /paseos/{id} {
       allow read: if es_actor_paseo_doc(resource);
       allow create: if autenticado()
@@ -168,47 +162,47 @@ function puede_unirse_a_paseo_doc(p) {
       allow delete: if es_actor_paseo_doc(resource);
     }
 
-  // SUBCOLECCION PASEOS MASCOTAS
+    // SUBCOLECCION PASEOS MASCOTAS
     match /paseos/{paseoId}/mascotas/{mascotaId} {
 
       function paseoDoc() {
         return get(/databases/$(database)/documents/paseos/$(paseoId));
       }
 
-      function es_dueno_mascota() {
+      function es_tutor_mascota() {
         return autenticado() &&
-               resource != null &&
-               resource.data.id_usuario == request.auth.uid;
+        resource != null &&
+        resource.data.id_usuario == request.auth.uid;
       }
 
-      allow read: if es_actor_paseo_doc(paseoDoc()) || es_dueno_mascota();
+      allow read: if es_actor_paseo_doc(paseoDoc()) || es_tutor_mascota();
 
       allow create: if autenticado()
         && tiene_campos_sistema_basicos()
         && campos_sistema_validos_crear()
         && (
-          es_actor_paseo_doc(paseoDoc()) ||
-          (puede_unirse_a_paseo_doc(paseoDoc())
-            && request.resource.data.id_usuario == request.auth.uid
-            && request.resource.data.id_mascota == mascotaId)
-        );
+      es_actor_paseo_doc(paseoDoc()) ||
+      (puede_unirse_a_paseo_doc(paseoDoc())
+        && request.resource.data.id_usuario == request.auth.uid
+        && request.resource.data.id_mascota == mascotaId)
+      );
 
-      // Actor o dueño puede actualizar observaciones
+      // Actor o tutor puede actualizar observaciones
       allow update: if (
-        (es_actor_paseo_doc(paseoDoc())
-          && campos_sistema_validos_actualizar()
-          && request.resource.data.id_mascota == resource.data.id_mascota
-          && request.resource.data.id_usuario == resource.data.id_usuario)
+      (es_actor_paseo_doc(paseoDoc())
+        && campos_sistema_validos_actualizar()
+        && request.resource.data.id_mascota == resource.data.id_mascota
+        && request.resource.data.id_usuario == resource.data.id_usuario)
         ||
-        (es_dueno_mascota()
-          && campos_sistema_validos_actualizar()
-          && request.resource.data.id_paseo == resource.data.id_paseo
-          && request.resource.data.id_mascota == resource.data.id_mascota
-          && request.resource.data.id_usuario == resource.data.id_usuario
-          && request.resource.data.estado_mascota == resource.data.estado_mascota
-          && request.resource.data.codigo_recogida == resource.data.codigo_recogida
-          && request.resource.data.codigo_entrega == resource.data.codigo_entrega
-          && request.resource.data.actualizado_por == request.auth.uid)
+      (es_tutor_mascota()
+        && campos_sistema_validos_actualizar()
+        && request.resource.data.id_paseo == resource.data.id_paseo
+        && request.resource.data.id_mascota == resource.data.id_mascota
+        && request.resource.data.id_usuario == resource.data.id_usuario
+        && request.resource.data.estado_mascota == resource.data.estado_mascota
+        && request.resource.data.codigo_recogida == resource.data.codigo_recogida
+        && request.resource.data.codigo_entrega == resource.data.codigo_entrega
+        && request.resource.data.actualizado_por == request.auth.uid)
       );
 
       allow delete: if es_actor_paseo_doc(paseoDoc());

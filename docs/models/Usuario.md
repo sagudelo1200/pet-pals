@@ -6,7 +6,7 @@ Uso rápido:
 
 - Colección sugerida: `usuarios`.
 - Campos críticos: `nombre`, `correo`, `celular`, `roles`, `verificado`, `estado`.
-- Roles: `dueño`, `paseador`, `admin` (un usuario puede tener varios roles).
+- Roles: `tutor`, `cuidador`, `admin` (un usuario puede tener varios roles).
 
 Contrato (TypeScript):
 
@@ -31,7 +31,7 @@ export interface Usuario extends BaseModel {
     descripcion?: string
   }
   zona?: string
-  roles: ('dueño' | 'paseador' | 'admin')[]
+  roles: ('tutor' | 'cuidador' | 'admin')[]
   documento_identidad?: {
     tipo: 'NUIP' | 'CC' | 'CE' | 'Pasaporte'
     numero: string
@@ -45,7 +45,7 @@ Ejemplo JSON (dominio):
 
 ```json
 {
-  "id": "user_dueno_01",
+  "id": "user_tutor_01",
   "nombre": "Andrés Gómez",
   "foto": "https://cdn.example.com/andres.jpg",
   "correo": "andres@example.com",
@@ -59,7 +59,7 @@ Ejemplo JSON (dominio):
     "coordenadas": { "lat": 6.2442, "lng": -75.5812 }
   },
   "zona": "Laureles",
-  "roles": ["dueño"],
+  "roles": ["tutor"],
   "verificado": true,
   "estado": "activo",
   "creado_en": "2024-01-10T12:00:00.000Z",
@@ -70,7 +70,7 @@ Ejemplo JSON (dominio):
 Relaciones y notas prácticas:
 
 - Un `Usuario` puede tener varias `Mascota`.
-- `id_paseador` en `Paseo` referencia a un `Usuario` con rol `paseador`.
+- `id_cuidador` en `Paseo` referencia a un `Usuario` con rol `cuidador`.
 - Mantener separación clara entre datos privados (`correo`, `documento_identidad`) y públicos (`PerfilPublico`).
 
 Validaciones y consideraciones de seguridad:

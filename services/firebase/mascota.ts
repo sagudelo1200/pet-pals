@@ -19,9 +19,9 @@ export class ServicioMascota {
       return { success: false, error: ERR.COMUN.NO_AUTENTICADO }
     }
 
-    // Alinear propiedad de ownership: creado_por debe ser el dueño (uid actual)
+    // Alinear propiedad de ownership: creado_por debe ser el tutor (uid actual)
     if ((data as any).creado_por && (data as any).creado_por !== uid) {
-      return { success: false, error: ERR.MASCOTAS.DUENO_NO_COINCIDE }
+      return { success: false, error: ERR.MASCOTAS.TUTOR_NO_COINCIDE }
     }
 
     // Asegurar que las mascotas nuevas estén activas por defecto salvo indicación contraria

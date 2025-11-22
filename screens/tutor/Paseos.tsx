@@ -13,8 +13,7 @@ const Paseos: React.FC = () => {
       <Text style={styles.title}>Paseos</Text>
       <View style={styles.section}>
         <Text style={{ color: COLOR.SUBTEXTO }}>
-          Esta pantalla ha sido limpiada: se eliminó la implementación de
-          ejemplo. Aquí iremos añadiendo la gestión de paseos.
+          Gestión de paseos
         </Text>
       </View>
     </Screen>

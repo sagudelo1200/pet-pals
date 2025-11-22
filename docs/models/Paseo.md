@@ -12,7 +12,7 @@ Contrato (TypeScript):
 
 ```ts
 export interface Paseo extends BaseModel {
-  id_paseador?: string
+  id_cuidador?: string
   es_multiple?: boolean
   cupo_maximo_mascotas?: number
   mascotas_count?: number
@@ -37,7 +37,7 @@ Ejemplo JSON (dominio):
 ```json
 {
   "id": "paseo_100",
-  "id_paseador": "user_paseador_01",
+  "id_cuidador": "user_cuidador_01",
   "es_multiple": true,
   "cupo_maximo_mascotas": 3,
   "mascotas_count": 2,
@@ -55,7 +55,7 @@ Ejemplo JSON (dominio):
 Relaciones y consideraciones:
 
 - Subcolección `paseos/{paseoId}/mascotas` contiene `PaseoMascota` por cada participación.
-- `id_paseador` referencia a un `Usuario` con rol `paseador`.
+- `id_cuidador` referencia a un `Usuario` con rol `cuidador`.
 - `mascotas_count` es denormalizado para queries rápidas; mantenerlo consistente al añadir/remover mascotas.
 
 Validaciones y casos límite:

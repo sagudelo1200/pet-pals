@@ -3,8 +3,8 @@
 // Stack principal de autenticación
 export type AuthStackParamList = {
   Auth: undefined
-  DuenoApp: undefined
-  PaseadorApp: undefined
+  TutorApp: undefined
+  CuidadorApp: undefined
   AdminApp: undefined
 }
 
@@ -16,7 +16,7 @@ export type AuthFlowParamList = {
 }
 
 // Tabs principales de la aplicación
-export type DuenoTabParamList = {
+export type TutorTabParamList = {
   Inicio: undefined
   Mascotas: undefined
   Paseos: undefined
@@ -24,8 +24,8 @@ export type DuenoTabParamList = {
   Colors: undefined
 }
 
-// Tabs para el rol de Paseador
-export type PaseadorTabParamList = {
+// Tabs para el rol de Cuidador
+export type CuidadorTabParamList = {
   Paseos: undefined
   MiCuenta: undefined
 }

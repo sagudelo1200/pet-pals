@@ -32,7 +32,7 @@ export interface Direccion {
 }
 
 /** Roles posibles del usuario en la plataforma */
-export type RolUsuario = 'dueño' | 'paseador' | 'admin'
+export type RolUsuario = 'admin' | 'tutor' | 'cuidador'
 
 /** Estado operativo del usuario */
 export type EstadoUsuario = 'activo' | 'inactivo' | 'baneado'

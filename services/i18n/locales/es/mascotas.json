@@ -4,7 +4,7 @@
     "MASCOTAS_REQUERIDAS": "Debes seleccionar al menos una mascota.",
     "MASCOTA_NO_ENCONTRADA": "La mascota indicada no existe.",
     "MASCOTA_NO_PERTENECE_AL_USUARIO": "La mascota no pertenece al usuario actual.",
-    "DUENO_NO_COINCIDE": "El dueño de la mascota no coincide con el usuario actual",
+    "TUTOR_NO_COINCIDE": "El tutor de la mascota no coincide con el usuario actual",
     "nombre_requerido": "El nombre de tu mascota es importante para nosotros",
     "nombre_muy_corto": "El nombre debe tener al menos 2 caracteres",
     "especie_requerida": "Por favor indícanos qué tipo de mascota es",

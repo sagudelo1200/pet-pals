@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react'
 import {
   Modal,
   StyleSheet,
@@ -10,72 +10,85 @@ import {
   KeyboardAvoidingView,
   Platform,
   StatusBar,
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { COLOR } from '@/constants';
-import { TextInput, Button, Picker, ImagePicker, Icon, Divider } from '@/components/ui';
-import { ServicioMascota, ServicioAuth } from '@/services/firebase';
-import type { Mascota, EspecieMascota } from '@/models/Mascota';
-import { useTranslation } from 'react-i18next';
-import { useNavigation } from '@react-navigation/native';
+} from 'react-native'
+import { SafeAreaView } from 'react-native-safe-area-context'
+import { COLOR } from '@/constants'
+import {
+  TextInput,
+  Button,
+  Picker,
+  ImagePicker,
+  Icon,
+  Divider,
+} from '@/components/ui'
+import { ServicioMascota, ServicioAuth } from '@/services/firebase'
+import type { Mascota, EspecieMascota } from '@/models/Mascota'
+import { useTranslation } from 'react-i18next'
+import { useNavigation } from '@react-navigation/native'
 
 interface Props {
-  visible: boolean;
-  onClose: () => void;
-  onCreated?: () => void;
-  editingPet?: Mascota;
+  visible: boolean
+  onClose: () => void
+  onCreated?: () => void
+  editingPet?: Mascota
 }
 
-const CrearMascota: React.FC<Props> = ({ visible, onClose, onCreated, editingPet }) => {
-  const { t } = useTranslation();
-  const navigation = useNavigation<any>();
-  const isEditing = !!editingPet;
+const CrearMascota: React.FC<Props> = ({
+  visible,
+  onClose,
+  onCreated,
+  editingPet,
+}) => {
+  const { t } = useTranslation()
+  const navigation = useNavigation<any>()
+  const isEditing = !!editingPet
 
   // Basic fields only
-  const [nombre, setNombre] = useState('');
-  const [foto, setFoto] = useState<string | undefined>(undefined);
-  const [especie, setEspecie] = useState<EspecieMascota | ''>('');
-  const [loading, setLoading] = useState(false);
-  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [nombre, setNombre] = useState('')
+  const [foto, setFoto] = useState<string | undefined>(undefined)
+  const [especie, setEspecie] = useState<EspecieMascota | ''>('')
+  const [loading, setLoading] = useState(false)
+  const [errors, setErrors] = useState<Record<string, string>>({})
 
   // Load data when editing (only basic fields)
   useEffect(() => {
     if (editingPet) {
-      setNombre(editingPet.nombre || '');
-      setFoto(editingPet.foto);
-      setEspecie(editingPet.especie || '');
+      setNombre(editingPet.nombre || '')
+      setFoto(editingPet.foto)
+      setEspecie(editingPet.especie || '')
     } else {
-      setNombre('');
-      setFoto(undefined);
-      setEspecie('');
+      setNombre('')
+      setFoto(undefined)
+      setEspecie('')
     }
-    setErrors({});
-  }, [editingPet, visible]);
+    setErrors({})
+  }, [editingPet, visible])
 
   const validate = (): boolean => {
-    const newErrors: Record<string, string> = {};
-    if (!nombre.trim()) newErrors.nombre = t('mascotas:errores.nombre_requerido');
-    if (!especie) newErrors.especie = t('mascotas:errores.especie_requerida');
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
+    const newErrors: Record<string, string> = {}
+    if (!nombre.trim())
+      newErrors.nombre = t('mascotas:errores.nombre_requerido')
+    if (!especie) newErrors.especie = t('mascotas:errores.especie_requerida')
+    setErrors(newErrors)
+    return Object.keys(newErrors).length === 0
+  }
 
   const handleSave = async () => {
-    if (!validate()) return;
-    setLoading(true);
+    if (!validate()) return
+    setLoading(true)
     try {
-      const user = ServicioAuth.obtenerUsuarioActual();
-      if (!user) throw new Error('User not logged');
+      const user = ServicioAuth.obtenerUsuarioActual()
+      if (!user) throw new Error('User not logged')
       const payload: Partial<Mascota> = {
         nombre: nombre.trim(),
         foto,
         especie: especie as any,
         activo: true,
-      };
-      const res = await ServicioMascota.crear(payload as any);
+      }
+      const res = await ServicioMascota.crear(payload as any)
       if (res.success) {
         // Try to get the created pet ID if available
-        const petId = (res as any).id || (res as any).payload?.id;
+        const petId = (res as any).id || (res as any).payload?.id
         Alert.alert(
           t('mascotas:exitoso.titulo'),
           `${payload.nombre} está casi lista para su primer paseo, completa su perfil.`,
@@ -84,43 +97,61 @@ const CrearMascota: React.FC<Props> = ({ visible, onClose, onCreated, editingPet
               text: 'OK',
               onPress: () => {
                 if (petId) {
-                  navigation.navigate('DetalleMascota', { petId });
+                  navigation.navigate('DetalleMascota', { petId })
                 } else {
-                  navigation.navigate('Mascotas');
+                  navigation.navigate('Mascotas')
                 }
               },
             },
           ]
-        );
-        onCreated?.();
-        onClose();
+        )
+        onCreated?.()
+        onClose()
       } else {
-        Alert.alert('Error', t('mascotas:errores.error_guardar'));
+        Alert.alert('Error', t('mascotas:errores.error_guardar'))
       }
     } catch (e) {
-      Alert.alert('Error', t('mascotas:errores.error_guardar'));
+      Alert.alert('Error', t('mascotas:errores.error_guardar'))
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   return (
-    <Modal visible={visible} animationType="slide" transparent={true} onRequestClose={onClose}>
-      <StatusBar backgroundColor="transparent" barStyle="light-content" translucent />
-      <SafeAreaView style={styles.safeArea} edges={['top', 'bottom', 'left', 'right']}>
+    <Modal
+      visible={visible}
+      animationType="slide"
+      transparent={true}
+      onRequestClose={onClose}
+    >
+      <StatusBar
+        backgroundColor="transparent"
+        barStyle="light-content"
+        translucent
+      />
+      <SafeAreaView
+        style={styles.safeArea}
+        edges={['top', 'bottom', 'left', 'right']}
+      >
         <View style={styles.fullScreenBackground}>
           <KeyboardAvoidingView
             behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
             style={styles.keyboardView}
           >
             <Pressable style={styles.overlay} onPress={onClose} />
-            <Pressable style={styles.panel} onPress={(e) => e.stopPropagation()}>
+            <Pressable style={styles.panel} onPress={e => e.stopPropagation()}>
               {/* Header */}
               <View style={styles.header}>
                 <Text style={styles.title}>
-                  {isEditing ? t('mascotas:formulario.titulo_editar') : t('mascotas:formulario.titulo_crear')}
+                  {isEditing
+                    ? t('mascotas:formulario.titulo_editar')
+                    : t('mascotas:formulario.titulo_crear')}
                 </Text>
-                <Pressable onPress={onClose} style={styles.closeButton} hitSlop={8}>
+                <Pressable
+                  onPress={onClose}
+                  style={styles.closeButton}
+                  hitSlop={8}
+                >
                   <Icon name="times" size={20} color={COLOR.TEXTO} />
                 </Pressable>
               </View>
@@ -152,10 +183,16 @@ const CrearMascota: React.FC<Props> = ({ visible, onClose, onCreated, editingPet
                 <Picker
                   label={t('mascotas:formulario.especie_label')}
                   value={especie}
-                  onValueChange={(v) => setEspecie(v as EspecieMascota)}
+                  onValueChange={v => setEspecie(v as EspecieMascota)}
                   options={[
-                    { label: t('mascotas:opciones.especie.perro'), value: 'perro' },
-                    { label: t('mascotas:opciones.especie.gato'), value: 'gato' },
+                    {
+                      label: t('mascotas:opciones.especie.perro'),
+                      value: 'perro',
+                    },
+                    {
+                      label: t('mascotas:opciones.especie.gato'),
+                      value: 'gato',
+                    },
                   ]}
                   errorText={errors.especie}
                 />
@@ -180,8 +217,8 @@ const CrearMascota: React.FC<Props> = ({ visible, onClose, onCreated, editingPet
         </View>
       </SafeAreaView>
     </Modal>
-  );
-};
+  )
+}
 
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: COLOR.BASE },
@@ -217,6 +254,6 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: COLOR.BORDE,
   },
-});
+})
 
-export default CrearMascota;
+export default CrearMascota

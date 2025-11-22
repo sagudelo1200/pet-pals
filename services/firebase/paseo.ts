@@ -20,7 +20,7 @@ export class ServicioPaseo {
     const uid = currentUser?.uid
     if (!uid) return { success: false, error: ERR.COMUN.NO_AUTENTICADO }
 
-    // Enforce que el dueño del paseo sea el usuario actual
+    // Enforce que el creador del paseo sea el usuario actual
     const payload: typeof data & { creado_por: string } = {
       ...data,
       creado_por: uid,
@@ -31,7 +31,7 @@ export class ServicioPaseo {
 
   /**
    * Crear paseo con 0..N mascotas (N <= MAX_MASCOTAS_POR_PASEO)
-   * Si N=0, paseo propuesto por paseador; si N>0, se crean subdocs en 'mascotas'.
+   * Si N=0, paseo propuesto por cuidador; si N>0, se crean subdocs en 'mascotas'.
    */
   static async crearConMascotas(
     data: Omit<
@@ -80,7 +80,7 @@ export class ServicioPaseo {
     const paseoRes = await ServicioCrudBase.crear<Paseo>(this.COLLECTION, {
       ...(data as any),
       creado_por: uid,
-      // Si no vienen mascotas: por defecto es múltiple (propuesta de paseador)
+      // Si no vienen mascotas: por defecto es múltiple (propuesta de cuidador)
       es_multiple: (data as any).es_multiple ?? unique.length !== 1,
       cupo_maximo_mascotas: max,
       mascotas_count: unique.length,
@@ -117,13 +117,13 @@ export class ServicioPaseo {
   }
 
   // Métodos específicos
-  static async obtenerPorPaseador(
-    paseadorId: string
+  static async obtenerPorCuidador(
+    cuidadorId: string
   ): Promise<CrudResult<Paseo[]>> {
     return ServicioCrudBase.buscar<Paseo>(
       this.COLLECTION,
-      'id_paseador',
-      paseadorId
+      'id_cuidador',
+      cuidadorId
     )
   }
 

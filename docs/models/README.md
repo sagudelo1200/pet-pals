@@ -23,7 +23,7 @@ Relaciones principales (diagrama):
 ```mermaid
 flowchart LR
   Usuario -->|posee| Mascota
-  Usuario -->|paseador de| Paseo
+  Usuario -->|cuidador de| Paseo
   Paseo -->|tiene subcolección| PaseoMascota
   PaseoMascota -->|participa| Mascota
   PaseoMascota -->|propietario| Usuario
@@ -93,7 +93,7 @@ Valoracion (resumen):
 {
   "id": "val_100",
   "id_paseo": "paseo_100",
-  "id_paseador": "user_paseador_01",
+  "id_cuidador": "user_cuidador_01",
   "rating": 5
 }
 ```

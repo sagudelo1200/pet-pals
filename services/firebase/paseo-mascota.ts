@@ -26,7 +26,7 @@ export async function addMascotasAlPaseo(
     const col = collection(db, 'paseos', paseoId, 'mascotas')
 
     for (const mascotaId of mascotaIds) {
-      // Obtener dueño real de la mascota para denormalizar
+      // Obtener tutor real de la mascota para denormalizar
       const m = await ServicioCrudBase.obtenerPorId<Mascota>(
         'mascotas',
         mascotaId

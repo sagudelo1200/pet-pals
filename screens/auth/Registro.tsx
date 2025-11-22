@@ -1,11 +1,10 @@
 import React, { useCallback, useMemo, useState, useRef, useEffect } from 'react'
-import { StyleSheet, View, Alert, Pressable, Animated, Dimensions } from 'react-native'
+import { StyleSheet, View, Alert, Animated, Dimensions } from 'react-native'
 import { Block, Text } from 'galio-framework'
 import { COLOR } from '@/constants'
 import { Button, TextInput } from '@/components/ui'
 import Screen from '@/components/ui/Screen'
 import { useAuth } from '@/services/context/AuthContext'
-import type { RolUsuario } from '@/models/Usuario'
 import { tErrorMaybe } from '@/services/i18n'
 import { useTranslation } from 'react-i18next'
 import { useNavigation } from '@react-navigation/native'
@@ -23,7 +22,6 @@ const Registro: React.FC = () => {
   const [nombre, setNombre] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [rol, setRol] = useState<RolUsuario>('dueño')
   const [emailTouched, setEmailTouched] = useState(false)
   const [passwordTouched, setPasswordTouched] = useState(false)
 
@@ -115,7 +113,7 @@ const Registro: React.FC = () => {
     }
 
     await recargarPerfil?.()
-  }, [canSubmit, email, nombre, password, registrar, rol])
+  }, [canSubmit, email, nombre, password, registrar])
 
   const goToLogin = useCallback(() => {
     navigation.navigate('Ingresar')
@@ -195,35 +193,6 @@ const Registro: React.FC = () => {
             iconName="lock"
             errorText={passwordError}
           />
-
-          <Text style={styles.label}>
-            {t('auth:registro.formulario.soyLabel')}
-          </Text>
-          <View style={styles.roleRow}>
-            <Pressable
-              onPress={() => setRol('dueño')}
-              style={[
-                styles.roleBtn,
-                { marginRight: 8 },
-                rol === 'dueño' ? styles.roleBtnActive : undefined,
-              ]}
-            >
-              <Text style={styles.roleText}>
-                {t('auth:compartido.roles.dueno')}
-              </Text>
-            </Pressable>
-            <Pressable
-              onPress={() => setRol('paseador')}
-              style={[
-                styles.roleBtn,
-                rol === 'paseador' ? styles.roleBtnActive : undefined,
-              ]}
-            >
-              <Text style={styles.roleText}>
-                {t('auth:compartido.roles.paseador')}
-              </Text>
-            </Pressable>
-          </View>
 
           <Button
             title={
@@ -317,35 +286,6 @@ const styles = StyleSheet.create({
   },
   secondary: {
     marginTop: 12,
-  },
-  label: {
-    color: COLOR.SUBTEXTO,
-    marginBottom: 8,
-    fontSize: 13,
-    fontWeight: '600',
-  },
-  roleRow: {
-    flexDirection: 'row',
-    marginBottom: 14,
-  },
-  roleBtn: {
-    flex: 1,
-    backgroundColor: COLOR.BLOQUE,
-    borderColor: COLOR.BORDE,
-    borderWidth: 1.5,
-    paddingVertical: 14,
-    borderRadius: 12,
-    alignItems: 'center',
-  },
-  roleBtnActive: {
-    borderColor: COLOR.ENFASIS,
-    borderWidth: 2,
-    backgroundColor: `${COLOR.ENFASIS}15`,
-  },
-  roleText: {
-    color: COLOR.TEXTO,
-    fontWeight: '700',
-    fontSize: 15,
   },
 })
 

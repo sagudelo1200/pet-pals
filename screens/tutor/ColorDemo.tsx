@@ -1,4 +1,4 @@
-// screens/dueno/ColorDemo.tsx
+// screens/tutor/ColorDemo.tsx
 import React from 'react'
 import { View, StyleSheet, TouchableOpacity, Platform } from 'react-native'
 import { Text, theme } from 'galio-framework'

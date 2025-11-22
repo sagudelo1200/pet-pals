@@ -68,5 +68,5 @@ Validaciones y casos límite:
 
 Notas de implementación:
 
-- No denormalizar información sensible del dueño en `Mascota` salvo cuando sea necesario para reglas de consulta.
+- No denormalizar información sensible del tutor en `Mascota` salvo cuando sea necesario para reglas de consulta.
 - Usar los converters de la capa de persistencia para transformar `Timestamp` ↔ `Date`.

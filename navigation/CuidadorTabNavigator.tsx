@@ -3,15 +3,15 @@ import { Platform } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
 import { Icon } from '@/components/ui'
-import Paseos from '@/screens/paseador/Paseos'
+import Paseos from '@/screens/cuidador/Paseos'
 import MiCuenta from '@/screens/shared/MiCuenta'
-import { PaseadorTabParamList } from './types'
+import { CuidadorTabParamList } from './types'
 import { COLOR } from '@/constants'
 
-const Tab = createBottomTabNavigator<PaseadorTabParamList>()
+const Tab = createBottomTabNavigator<CuidadorTabParamList>()
 
-// Tab Navigator para el rol Paseador (simplificado)
-export default function PaseadorTabNavigator(): React.ReactElement {
+// Tab Navigator para el rol Cuidador (simplificado)
+export default function CuidadorTabNavigator(): React.ReactElement {
   const insets = useSafeAreaInsets()
 
   return (

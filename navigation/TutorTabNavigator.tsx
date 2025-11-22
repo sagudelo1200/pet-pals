@@ -3,18 +3,18 @@ import { Platform } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
 import { Icon } from '@/components/ui'
-import Dashboard from '@/screens/dueno/Dashboard'
-import Mascotas from '@/screens/dueno/Mascotas'
-import Paseos from '@/screens/dueno/Paseos'
+import Dashboard from '@/screens/tutor/Dashboard'
+import Mascotas from '@/screens/tutor/Mascotas'
+import Paseos from '@/screens/tutor/Paseos'
 import MiCuenta from '@/screens/shared/MiCuenta'
-import ColorDemo from '@/screens/dueno/ColorDemo'
-import { DuenoTabParamList } from './types'
+import ColorDemo from '@/screens/tutor/ColorDemo'
+import { TutorTabParamList } from './types'
 import { COLOR } from '@/constants'
 
-const Tab = createBottomTabNavigator<DuenoTabParamList>()
+const Tab = createBottomTabNavigator<TutorTabParamList>()
 
-// Tab Navigator para el rol Dueño
-export default function DuenoTabNavigator(): React.ReactElement {
+// Tab Navigator para el rol Tutor
+export default function TutorTabNavigator(): React.ReactElement {
   const insets = useSafeAreaInsets()
 
   return (
