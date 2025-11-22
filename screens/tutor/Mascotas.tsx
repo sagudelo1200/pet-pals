@@ -16,7 +16,7 @@ import {
   Fab,
   EmptyState,
   Icon,
-  LoadingScreen,
+  Skeleton,
   PetCard,
 } from '@/components/ui'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
@@ -159,8 +159,6 @@ const Mascotas: React.FC = () => {
     void fetchMascotas()
   }
 
-  if (cargando) return <LoadingScreen messageType="mascota" />
-
   return (
     <Screen
       scroll
@@ -209,32 +207,57 @@ const Mascotas: React.FC = () => {
       ) : null}
 
       {/* Lista de mascotas */}
-      <Animated.View style={[styles.section, { opacity: fadeAnim }]}>
-        {mascotas.length === 0 ? (
-          <EmptyState
-            title={t('mascotas:vacio.titulo')}
-            description={t('mascotas:vacio.descripcion')}
-            actionLabel={t('mascotas:vacio.accion_agregar')}
-            onActionPress={handleCrear}
-            iconName="paw"
-            style={{ paddingVertical: 32 }}
-          />
-        ) : (
-          <View style={styles.list}>
-            {mascotas.map((pet, index) => (
-              <PetCard
-                key={pet.id}
-                pet={pet}
-                onPress={() => handleVerDetalles(pet)}
-                onEdit={() => handleEditar(pet)}
-                onDelete={() => handleEliminar(pet)}
-                animationDelay={index * 80}
-                testID={`pet-card-${pet.id}`}
-              />
-            ))}
-          </View>
-        )}
-      </Animated.View>
+      {cargando ? (
+        <View style={styles.section}>
+          {[1, 2, 3].map(i => (
+            <View key={i} style={styles.skeletonCard}>
+              <View style={styles.skeletonContent}>
+                <Skeleton circle width={64} height={64} />
+                <View style={styles.skeletonInfo}>
+                  <Skeleton
+                    width="60%"
+                    height={20}
+                    style={{ marginBottom: 8 }}
+                  />
+                  <Skeleton
+                    width="40%"
+                    height={14}
+                    style={{ marginBottom: 8 }}
+                  />
+                  <Skeleton width="30%" height={14} />
+                </View>
+              </View>
+            </View>
+          ))}
+        </View>
+      ) : (
+        <Animated.View style={[styles.section, { opacity: fadeAnim }]}>
+          {mascotas.length === 0 ? (
+            <EmptyState
+              title={t('mascotas:vacio.titulo')}
+              description={t('mascotas:vacio.descripcion')}
+              actionLabel={t('mascotas:vacio.accion_agregar')}
+              onActionPress={handleCrear}
+              iconName="paw"
+              style={{ paddingVertical: 32 }}
+            />
+          ) : (
+            <View style={styles.list}>
+              {mascotas.map((pet, index) => (
+                <PetCard
+                  key={pet.id}
+                  pet={pet}
+                  onPress={() => handleVerDetalles(pet)}
+                  onEdit={() => handleEditar(pet)}
+                  onDelete={() => handleEliminar(pet)}
+                  animationDelay={index * 80}
+                  testID={`pet-card-${pet.id}`}
+                />
+              ))}
+            </View>
+          )}
+        </Animated.View>
+      )}
 
       {/* Modal de crear/editar */}
       <CrearMascota
@@ -289,6 +312,23 @@ const styles = StyleSheet.create({
     bottom: 24,
     zIndex: 99999,
     elevation: 100,
+  },
+  skeletonCard: {
+    backgroundColor: COLOR.BLOQUE,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: COLOR.BORDE,
+    marginBottom: 12,
+    overflow: 'hidden',
+  },
+  skeletonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+  },
+  skeletonInfo: {
+    flex: 1,
+    marginLeft: 12,
   },
 })
 
