@@ -1,5 +1,9 @@
 {
   "intentaNuevamente": "Intenta nuevamente.",
+  "error": "Error",
+  "exito": "Éxito",
+  "ok": "OK",
+  "cancelar": "Cancelar",
   "errores": {
     "NO_AUTENTICADO": "Debes iniciar sesión para continuar.",
     "PERMISOS_INSUFICIENTES": "No tienes permisos para realizar esta acción.",

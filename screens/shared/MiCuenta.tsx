@@ -7,11 +7,13 @@ import { tErrorMaybe } from '@/services/i18n'
 import { useAuth } from '@/services/context/AuthContext'
 import { useNavigation } from '@react-navigation/native'
 import { COLOR } from '@/constants'
+import { useTranslation } from 'react-i18next'
 
 const MiCuenta = () => {
   const navigation = useNavigation<any>()
   const insets = useSafeAreaInsets()
   const { cerrarSesion, cargando, user, profile } = useAuth()
+  const { t } = useTranslation()
   const correo = user?.email ?? (profile as any)?.correo ?? '—'
   const nombre = user?.displayName ?? (profile as any)?.nombre ?? '—'
 
@@ -26,22 +28,23 @@ const MiCuenta = () => {
       navigation.reset({ index: 0, routes: [{ name: 'Auth' }] })
     } else {
       Alert.alert(
-        'No se pudo cerrar sesión',
-        tErrorMaybe(result.error, 'Intenta nuevamente.')
+        t('perfil:error_cerrar_sesion_titulo'),
+        tErrorMaybe(result.error, t('comun:intentaNuevamente'))
       )
     }
-  }, [cerrarSesion, navigation])
+  }, [cerrarSesion, navigation, t])
 
   return (
     <Screen style={[styles.container, { paddingBottom: TAB_BAR_HEIGHT }]}>
       <View style={styles.content}>
-        <Text style={styles.text}>¡Mi Cuenta!</Text>
-        <Text style={styles.subText}>
-          Esta sección está en desarrollo. ¡Mantente atento a las
-          actualizaciones!
+        <Text style={styles.text}>{t('perfil:titulo')}</Text>
+        <Text style={styles.subText}>{t('perfil:descripcion')}</Text>
+        <Text style={styles.nameText}>
+          {t('perfil:nombre_label', { nombre })}
         </Text>
-        <Text style={styles.nameText}>Nombre: {nombre}</Text>
-        <Text style={styles.emailText}>Sesión iniciada como: {correo}</Text>
+        <Text style={styles.emailText}>
+          {t('perfil:sesion_label', { correo })}
+        </Text>
       </View>
 
       <View style={styles.footer}>
@@ -51,7 +54,9 @@ const MiCuenta = () => {
           disabled={cargando}
           loading={cargando}
           variant="secundario"
-          title={cargando ? 'Cerrando sesión…' : 'Cerrar sesión'}
+          title={
+            cargando ? t('perfil:cerrando_sesion') : t('perfil:cerrar_sesion')
+          }
         />
       </View>
     </Screen>

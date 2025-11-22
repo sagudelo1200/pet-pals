@@ -7,6 +7,7 @@ import esAuth from './locales/es/auth.json'
 import esMascotas from './locales/es/mascotas.json'
 import esPaseos from './locales/es/paseos.json'
 import esCargando from './locales/es/cargando.json'
+import esPerfil from './locales/es/perfil.json'
 import { ERR, type ErrorCode } from '@/constants/errors'
 
 // Detección opcional del idioma del dispositivo sin forzar dependencia inmediata
@@ -32,9 +33,10 @@ if (!i18n.isInitialized) {
         mascotas: esMascotas as any,
         paseos: esPaseos as any,
         cargando: esCargando as any,
+        perfil: esPerfil as any,
       },
     },
-    ns: ['comun', 'auth', 'mascotas', 'paseos', 'cargando'],
+    ns: ['comun', 'auth', 'mascotas', 'paseos', 'cargando', 'perfil'],
     defaultNS: 'comun',
     fallbackLng: 'es',
     lng: detectDeviceLanguage() || 'es',

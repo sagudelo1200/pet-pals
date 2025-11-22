@@ -68,7 +68,7 @@ const CrearMascota: React.FC<Props> = ({
     setLoading(true)
     try {
       const user = ServicioAuth.obtenerUsuarioActual()
-      if (!user) throw new Error('User not logged')
+      if (!user) throw new Error(t('comun:errores.NO_AUTENTICADO'))
 
       const payload: any = {
         nombre: nombre.trim(),
@@ -82,10 +82,10 @@ const CrearMascota: React.FC<Props> = ({
         const petId = (res as any).id || (res as any).payload?.id
         Alert.alert(
           t('mascotas:exitoso.titulo'),
-          `${payload.nombre} está casi lista para su primer paseo, completa su perfil.`,
+          t('mascotas:exitoso.mensaje', { nombre: payload.nombre }),
           [
             {
-              text: 'OK',
+              text: t('comun:ok'),
               onPress: () => {
                 if (petId) {
                   navigation.navigate('DetalleMascota', { petId })
@@ -100,13 +100,13 @@ const CrearMascota: React.FC<Props> = ({
         onClose()
       } else {
         Alert.alert(
-          'Error',
+          t('comun:error'),
           String(res.error) || t('mascotas:errores.error_guardar')
         )
       }
     } catch (e) {
       Alert.alert(
-        'Error',
+        t('comun:error'),
         e instanceof Error ? e.message : t('mascotas:errores.error_guardar')
       )
     } finally {

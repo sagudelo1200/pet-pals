@@ -117,11 +117,17 @@ const Mascotas: React.FC = () => {
               const res = await ServicioMascota.eliminar(pet.id)
               if (!res.success) {
                 setMascotas(previous)
-                Alert.alert('Error', t('mascotas:errores.error_eliminar'))
+                Alert.alert(
+                  t('comun:error'),
+                  t('mascotas:errores.error_eliminar')
+                )
               }
             } catch (err) {
               setMascotas(previous)
-              Alert.alert('Error', t('mascotas:errores.error_eliminar'))
+              Alert.alert(
+                t('comun:error'),
+                t('mascotas:errores.error_eliminar')
+              )
             }
           },
         },

@@ -52,52 +52,52 @@
 
     "nombre_label": "Nombre",
     "nombre_placeholder": "¿Cómo se llama tu mascota?",
-    
+
     "foto_label": "Foto",
     "foto_placeholder": "Agregar foto",
     "foto_cambiar": "Cambiar foto",
-    
+
     "especie_label": "Especie",
     "especie_placeholder": "Selecciona la especie",
-    
+
     "raza_label": "Raza",
     "raza_placeholder": "Ej: Labrador, Mestizo, etc.",
-    
+
     "fecha_nacimiento_label": "Fecha de nacimiento",
     "fecha_nacimiento_placeholder": "Selecciona la fecha",
-    
+
     "genero_label": "Género",
     "genero_placeholder": "Selecciona el género",
-    
+
     "tamano_label": "Tamaño",
     "tamano_placeholder": "Selecciona el tamaño",
-    
+
     "peso_label": "Peso (kg)",
     "peso_placeholder": "Ej: 15.5",
-    
+
     "esterilizado_label": "¿Está esterilizado/a?",
-    
+
     "condiciones_salud_label": "Condiciones de salud",
     "condiciones_salud_placeholder": "Ej: Alergias, diabetes, etc.",
     "condiciones_salud_agregar": "Agregar condición",
-    
+
     "historial_medico_label": "Historial médico",
     "historial_medico_placeholder": "Notas sobre cirugías, tratamientos, etc.",
-    
+
     "condiciones_comportamiento_label": "Condiciones de comportamiento",
     "condiciones_comportamiento_placeholder": "Ej: Ansioso, reactivo con otros perros, etc.",
     "condiciones_comportamiento_agregar": "Agregar condición",
-    
+
     "nivel_energia_label": "Nivel de energía",
     "nivel_energia_placeholder": "Selecciona el nivel",
-    
+
     "preferencias_paseo_label": "Preferencias de paseo",
     "preferencias_paseo_placeholder": "Ej: Le gusta correr, prefiere parques tranquilos, etc.",
     "preferencias_paseo_agregar": "Agregar preferencia",
-    
+
     "descripcion_label": "Descripción adicional",
     "descripcion_placeholder": "Cuéntanos más sobre tu mascota...",
-    
+
     "activo_label": "Mascota activa"
   },
 
@@ -130,22 +130,8 @@
     "eliminar_cancelar": "Cancelar"
   },
 
-  "mensajes": {
-    "guardado_exito": "{{nombre}} ha sido guardado correctamente",
-    "eliminado_exito": "{{nombre}} ha sido eliminado",
-    "actualizado_exito": "Los datos de {{nombre}} han sido actualizados"
-  },
-
-  "detalles": {
-    "titulo": "Detalles",
-    "editar": "Editar",
-    "eliminar": "Eliminar",
-    "informacion_basica": "Información básica",
-    "caracteristicas": "Características",
-    "salud": "Salud",
-    "comportamiento": "Comportamiento",
-    "sin_informacion": "Sin información",
-    "si": "Sí",
-    "no": "No"
+  "exitoso": {
+    "titulo": "¡Mascota agregada!",
+    "mensaje": "{{nombre}} está casi lista para su primer paseo, completa su perfil."
   }
 }

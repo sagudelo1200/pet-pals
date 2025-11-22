@@ -1,0 +1,9 @@
+{
+  "titulo": "¡Mi Cuenta!",
+  "descripcion": "Esta sección está en desarrollo. ¡Mantente atento a las actualizaciones!",
+  "nombre_label": "Nombre: {{nombre}}",
+  "sesion_label": "Sesión iniciada como: {{correo}}",
+  "cerrar_sesion": "Cerrar sesión",
+  "cerrando_sesion": "Cerrando sesión…",
+  "error_cerrar_sesion_titulo": "No se pudo cerrar sesión"
+}
