@@ -1,8 +1,24 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react'
-import { StyleSheet, View, Text, Pressable, Alert, Animated, RefreshControl } from 'react-native'
+import {
+  StyleSheet,
+  View,
+  Text,
+  Pressable,
+  Alert,
+  Animated,
+  RefreshControl,
+  Platform,
+} from 'react-native'
 import { useNavigation } from '@react-navigation/native'
 import { COLOR } from '@/constants'
-import { Screen, Fab, EmptyState, Icon, LoadingScreen, PetCard } from '@/components/ui'
+import {
+  Screen,
+  Fab,
+  EmptyState,
+  Icon,
+  LoadingScreen,
+  PetCard,
+} from '@/components/ui'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { ServicioMascota, ServicioAuth } from '@/services/firebase'
 import type { Mascota as MascotaModel } from '@/models/Mascota'
@@ -17,46 +33,60 @@ const Mascotas: React.FC = () => {
   const [refreshing, setRefreshing] = useState<boolean>(false)
   const [error, setError] = useState<string | undefined>(undefined)
   const [showCrear, setShowCrear] = useState(false)
-  const [editingPet, setEditingPet] = useState<MascotaModel | undefined>(undefined)
-  
+  const [editingPet, setEditingPet] = useState<MascotaModel | undefined>(
+    undefined
+  )
+
   const insets = useSafeAreaInsets()
   const fadeAnim = useRef(new Animated.Value(0)).current
 
-  const fetchMascotas = useCallback(async (isRefresh = false) => {
-    if (!isRefresh) setCargando(true)
-    setError(undefined)
-    
-    try {
-      const user = ServicioAuth.obtenerUsuarioActual()
-      if (!user) {
-        setMascotas([])
-        setError(t('comun:errores.NO_AUTENTICADO'))
-        if (!isRefresh) setCargando(false)
-        return
-      }
+  const tabBarHeight =
+    Platform.OS === 'ios'
+      ? Math.max(insets.bottom + 65, 85)
+      : Math.max(insets.bottom + 60, 75)
 
-      const res = await ServicioMascota.obtenerPorUsuario(user.uid)
-      if (res.success) {
-        setMascotas(res.data ?? [])
-        
-        // Animar fade-in de la lista
-        if (!isRefresh) {
-          Animated.timing(fadeAnim, {
-            toValue: 1,
-            duration: 400,
-            useNativeDriver: true,
-          }).start()
+  // Restamos insets.bottom porque Screen ya aplica un SafeAreaView que añade ese padding
+  // Si no lo restamos, se duplica el espacio (padding del Screen + altura del TabBar que incluye insets)
+  const fabBottom = tabBarHeight - (insets.bottom || 0) + 16
+
+  const fetchMascotas = useCallback(
+    async (isRefresh = false) => {
+      if (!isRefresh) setCargando(true)
+      setError(undefined)
+
+      try {
+        const user = ServicioAuth.obtenerUsuarioActual()
+        if (!user) {
+          setMascotas([])
+          setError(t('comun:errores.NO_AUTENTICADO'))
+          if (!isRefresh) setCargando(false)
+          return
         }
-      } else {
-        setError(res.error as string)
+
+        const res = await ServicioMascota.obtenerPorUsuario(user.uid)
+        if (res.success) {
+          setMascotas(res.data ?? [])
+
+          // Animar fade-in de la lista
+          if (!isRefresh) {
+            Animated.timing(fadeAnim, {
+              toValue: 1,
+              duration: 400,
+              useNativeDriver: true,
+            }).start()
+          }
+        } else {
+          setError(res.error as string)
+        }
+      } catch (e) {
+        setError(t('mascotas:errores.error_cargar'))
+      } finally {
+        if (!isRefresh) setCargando(false)
+        setRefreshing(false)
       }
-    } catch (e) {
-      setError(t('mascotas:errores.error_cargar'))
-    } finally {
-      if (!isRefresh) setCargando(false)
-      setRefreshing(false)
-    }
-  }, [t, fadeAnim])
+    },
+    [t, fadeAnim]
+  )
 
   useEffect(() => {
     void fetchMascotas()
@@ -82,7 +112,7 @@ const Mascotas: React.FC = () => {
           onPress: async () => {
             const previous = mascotas
             setMascotas(prev => prev.filter(m => m.id !== pet.id))
-            
+
             try {
               const res = await ServicioMascota.eliminar(pet.id)
               if (!res.success) {
@@ -146,6 +176,14 @@ const Mascotas: React.FC = () => {
           />
         ),
       }}
+      floating={
+        <Fab
+          onPress={handleCrear}
+          iconName="plus"
+          accessibilityLabel={t('mascotas:lista.agregar')}
+          style={[styles.fab, { bottom: fabBottom }]}
+        />
+      }
     >
       {/* Header */}
       <View style={styles.headerRow}>
@@ -204,14 +242,6 @@ const Mascotas: React.FC = () => {
         onClose={handleCloseModal}
         onCreated={handleSaved}
         editingPet={editingPet}
-      />
-
-      {/* FAB */}
-      <Fab
-        onPress={handleCrear}
-        iconName="plus"
-        accessibilityLabel={t('mascotas:lista.agregar')}
-        style={[styles.fab, { bottom: 24 + (insets.bottom ?? 0) }]}
       />
     </Screen>
   )

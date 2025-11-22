@@ -28,6 +28,8 @@ interface ScreenProps {
   keyboardVerticalOffset?: number
   /** Incluir inset top (safe area) como padding-top en el SafeAreaView. Por defecto false */
   includeTopInset?: boolean
+  /** Componente flotante (ej: FAB) que se renderiza sobre el contenido y no hace scroll */
+  floating?: React.ReactNode
 }
 
 const Screen: React.FC<ScreenProps> = ({
@@ -39,6 +41,7 @@ const Screen: React.FC<ScreenProps> = ({
   disableDismiss = false,
   keyboardVerticalOffset,
   includeTopInset = false,
+  floating,
 }) => {
   const insets = useSafeAreaInsets()
 
@@ -116,6 +119,7 @@ const Screen: React.FC<ScreenProps> = ({
         style={{ flex: 1 }}
       >
         {Wrapped}
+        {floating}
       </KeyboardAvoidingView>
     </SafeAreaView>
   )

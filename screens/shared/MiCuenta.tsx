@@ -33,10 +33,7 @@ const MiCuenta = () => {
   }, [cerrarSesion, navigation])
 
   return (
-    <Screen
-      includeTopInset
-      style={[styles.container, { paddingBottom: TAB_BAR_HEIGHT }]}
-    >
+    <Screen style={[styles.container, { paddingBottom: TAB_BAR_HEIGHT }]}>
       <View style={styles.content}>
         <Text style={styles.text}>¡Mi Cuenta!</Text>
         <Text style={styles.subText}>

@@ -120,10 +120,14 @@ const Registro: React.FC = () => {
   }, [navigation])
 
   return (
-    <Screen contentContainerStyle={styles.content} style={styles.container}>
+    <Screen
+      contentContainerStyle={styles.content}
+      style={styles.container}
+      includeTopInset
+    >
       {/* Círculo decorativo */}
       <View style={styles.decorativeCircle} />
-      
+
       {/* Huella decorativa */}
       <View style={styles.pawPrint}>
         <Text style={styles.pawEmoji}>🐾</Text>

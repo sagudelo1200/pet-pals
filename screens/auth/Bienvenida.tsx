@@ -15,7 +15,7 @@ const { height } = Dimensions.get('window')
 const Bienvenida: React.FC = () => {
   const navigation = useNavigation<Nav>()
   const { t } = useTranslation()
-  
+
   // Animaciones
   const logoOpacity = useRef(new Animated.Value(0)).current
   const logoScale = useRef(new Animated.Value(0.8)).current
@@ -80,7 +80,7 @@ const Bienvenida: React.FC = () => {
         }),
       ])
     )
-    
+
     // Iniciar después de que aparezca el botón
     setTimeout(() => breatheAnimation.start(), 1500)
 
@@ -96,11 +96,16 @@ const Bienvenida: React.FC = () => {
   }
 
   return (
-    <Screen style={styles.container} contentContainerStyle={styles.content} disableDismiss>
+    <Screen
+      style={styles.container}
+      contentContainerStyle={styles.content}
+      disableDismiss
+      includeTopInset
+    >
       {/* Círculos decorativos suaves */}
       <View style={styles.decorativeCircle1} />
       <View style={styles.decorativeCircle2} />
-      
+
       {/* Logo con animación */}
       <Animated.View
         style={[
