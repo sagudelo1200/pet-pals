@@ -13,123 +13,37 @@
     "error_eliminar": "No pudimos eliminar la mascota. Intenta nuevamente",
     "error_cargar": "No pudimos cargar tus mascotas. Intenta nuevamente"
   },
-
   "lista": {
     "titulo": "Tus mascotas",
     "refrescar": "Refrescar",
     "agregar": "Agregar mascota"
   },
-
   "vacio": {
     "titulo": "Aún no tienes mascotas registradas",
     "descripcion": "Tus mascotas son parte de tu familia. Comencemos agregándolas 🐾",
     "accion_agregar": "Agregar mi primera mascota"
   },
-
-  "tarjeta": {
-    "edad_anos": "{{count}} año",
-    "edad_anos_plural": "{{count}} años",
-    "edad_meses": "{{count}} mes",
-    "edad_meses_plural": "{{count}} meses",
-    "edad_desconocida": "Edad desconocida",
-    "editar": "Editar {{nombre}}",
-    "eliminar": "Eliminar {{nombre}}",
-    "ver_detalles": "Ver detalles de {{nombre}}"
-  },
-
+  "tarjeta": {},
   "formulario": {
     "titulo_crear": "Agregar mascota",
     "titulo_editar": "Editar mascota",
     "guardar": "Guardar",
     "cancelar": "Cancelar",
-    "guardando": "Guardando...",
-
-    "seccion_basica": "Información básica",
-    "seccion_fisica": "Características físicas",
-    "seccion_salud": "Salud y cuidados",
-    "seccion_comportamiento": "Comportamiento",
-    "seccion_adicional": "Información adicional",
-
     "nombre_label": "Nombre",
-    "nombre_placeholder": "¿Cómo se llama tu mascota?",
-
-    "foto_label": "Foto",
-    "foto_placeholder": "Agregar foto",
-    "foto_cambiar": "Cambiar foto",
-
-    "especie_label": "Especie",
-    "especie_placeholder": "Selecciona la especie",
-
-    "raza_label": "Raza",
-    "raza_placeholder": "Ej: Labrador, Mestizo, etc.",
-
-    "fecha_nacimiento_label": "Fecha de nacimiento",
-    "fecha_nacimiento_placeholder": "Selecciona la fecha",
-
-    "genero_label": "Género",
-    "genero_placeholder": "Selecciona el género",
-
-    "tamano_label": "Tamaño",
-    "tamano_placeholder": "Selecciona el tamaño",
-
-    "peso_label": "Peso (kg)",
-    "peso_placeholder": "Ej: 15.5",
-
-    "esterilizado_label": "¿Está esterilizado/a?",
-
-    "condiciones_salud_label": "Condiciones de salud",
-    "condiciones_salud_placeholder": "Ej: Alergias, diabetes, etc.",
-    "condiciones_salud_agregar": "Agregar condición",
-
-    "historial_medico_label": "Historial médico",
-    "historial_medico_placeholder": "Notas sobre cirugías, tratamientos, etc.",
-
-    "condiciones_comportamiento_label": "Condiciones de comportamiento",
-    "condiciones_comportamiento_placeholder": "Ej: Ansioso, reactivo con otros perros, etc.",
-    "condiciones_comportamiento_agregar": "Agregar condición",
-
-    "nivel_energia_label": "Nivel de energía",
-    "nivel_energia_placeholder": "Selecciona el nivel",
-
-    "preferencias_paseo_label": "Preferencias de paseo",
-    "preferencias_paseo_placeholder": "Ej: Le gusta correr, prefiere parques tranquilos, etc.",
-    "preferencias_paseo_agregar": "Agregar preferencia",
-
-    "descripcion_label": "Descripción adicional",
-    "descripcion_placeholder": "Cuéntanos más sobre tu mascota...",
-
-    "activo_label": "Mascota activa"
+    "nombre_placeholder": "¿Cómo se llama tu mascota?"
   },
-
   "opciones": {
-    "especie": {
-      "perro": "Perro"
-    },
-    "genero": {
-      "macho": "Macho",
-      "hembra": "Hembra"
-    },
-    "tamano": {
-      "muy_pequeno": "Muy pequeño",
-      "pequeno": "Pequeño",
-      "mediano": "Mediano",
-      "grande": "Grande",
-      "gigante": "Gigante"
-    },
-    "nivel_energia": {
-      "bajo": "Bajo",
-      "medio": "Medio",
-      "alto": "Alto"
-    }
+    "especie": {},
+    "genero": {},
+    "tamano": {},
+    "nivel_energia": {}
   },
-
   "confirmacion": {
     "eliminar_titulo": "¿Eliminar a {{nombre}}?",
     "eliminar_mensaje": "Esta acción no se puede deshacer. ¿Estás seguro de que quieres eliminar a {{nombre}} de tu lista?",
     "eliminar_confirmar": "Eliminar",
     "eliminar_cancelar": "Cancelar"
   },
-
   "exitoso": {
     "titulo": "¡Mascota agregada!",
     "mensaje": "{{nombre}} está casi lista para su primer paseo, completa su perfil."

@@ -64,7 +64,7 @@ function listSourceFiles(dir) {
   return res
 }
 
-const keyRegex = /(?:^|[^A-Za-z0-9_])t\(\s*['"`"]([^'"`)]+)['"`"]\s*\)/g
+const keyRegex = /(?:^|[^A-Za-z0-9_])t\(\s*['"`"]([^'"`]+)['"`"]/g
 
 const sourceFiles = listSourceFiles(ROOT)
 const usedRawKeys = new Set()
@@ -104,6 +104,9 @@ for (const f of files) {
   // For each leaf, check if any usage matches ns:keyPath or ns.keyPath or keyPath (without ns)
   const unusedLeaves = []
   for (const leaf of leaves) {
+    // Ignorar claves de errores (suelen usarse dinámicamente)
+    if (leaf.startsWith('errores.') || leaf.includes('.errores.')) continue
+
     const candidate1 = `${ns}:${leaf}`
     const candidate2 = `${ns}.${leaf}`
     const candidate3 = leaf
