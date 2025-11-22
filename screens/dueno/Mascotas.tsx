@@ -1,99 +1,133 @@
-import React, { useEffect, useState, useCallback } from 'react'
-import { StyleSheet, View, Text, Pressable, Alert } from 'react-native'
+import React, { useEffect, useState, useCallback, useRef } from 'react'
+import { StyleSheet, View, Text, Pressable, Alert, Animated, RefreshControl } from 'react-native'
 import { useNavigation } from '@react-navigation/native'
 import { COLOR } from '@/constants'
-import Screen from '@/components/ui/Screen'
-import Fab from '@/components/ui/Fab'
+import { Screen, Fab, EmptyState, Icon, LoadingScreen, PetCard } from '@/components/ui'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import Card from '@/components/ui/Card'
-import EmptyState from '@/components/ui/EmptyState'
-import { i18n } from '@/services/i18n'
-import Icon from '@/components/ui/Icon'
-import Avatar from '@/components/ui/Avatar'
-import LoadingScreen from '@/components/ui/LoadingScreen'
 import { ServicioMascota, ServicioAuth } from '@/services/firebase'
 import type { Mascota as MascotaModel } from '@/models/Mascota'
+import { useTranslation } from 'react-i18next'
 import CrearMascota from './CrearMascota'
 
 const Mascotas: React.FC = () => {
   const navigation = useNavigation<any>()
+  const { t } = useTranslation()
   const [mascotas, setMascotas] = useState<MascotaModel[]>([])
   const [cargando, setCargando] = useState<boolean>(true)
+  const [refreshing, setRefreshing] = useState<boolean>(false)
   const [error, setError] = useState<string | undefined>(undefined)
+  const [showCrear, setShowCrear] = useState(false)
+  const [editingPet, setEditingPet] = useState<MascotaModel | undefined>(undefined)
+  
+  const insets = useSafeAreaInsets()
+  const fadeAnim = useRef(new Animated.Value(0)).current
 
-  const fetchMascotas = useCallback(async () => {
-    setCargando(true)
+  const fetchMascotas = useCallback(async (isRefresh = false) => {
+    if (!isRefresh) setCargando(true)
     setError(undefined)
+    
     try {
       const user = ServicioAuth.obtenerUsuarioActual()
       if (!user) {
         setMascotas([])
-        setError('No autenticado')
-        setCargando(false)
+        setError(t('comun:errores.NO_AUTENTICADO'))
+        if (!isRefresh) setCargando(false)
         return
       }
 
       const res = await ServicioMascota.obtenerPorUsuario(user.uid)
       if (res.success) {
         setMascotas(res.data ?? [])
+        
+        // Animar fade-in de la lista
+        if (!isRefresh) {
+          Animated.timing(fadeAnim, {
+            toValue: 1,
+            duration: 400,
+            useNativeDriver: true,
+          }).start()
+        }
       } else {
         setError(res.error as string)
       }
     } catch (e) {
-      setError('ERROR_DESCONOCIDO')
+      setError(t('mascotas:errores.error_cargar'))
     } finally {
-      setCargando(false)
+      if (!isRefresh) setCargando(false)
+      setRefreshing(false)
     }
-  }, [])
+  }, [t, fadeAnim])
 
   useEffect(() => {
     void fetchMascotas()
   }, [fetchMascotas])
 
-  const handleEliminar = async (id: string) => {
-    Alert.alert('Eliminar mascota', '¿Confirmas eliminar esta mascota?', [
-      { text: 'Cancelar', style: 'cancel' },
-      {
-        text: 'Eliminar',
-        style: 'destructive',
-        onPress: async () => {
-          const previous = mascotas
-          setMascotas(prev => prev.filter(m => m.id !== id))
-          setCargando(true)
-          try {
-            const res = await ServicioMascota.eliminar(id)
-            if (!res.success) {
-              // revertir y mostrar error
-              setMascotas(previous)
-              Alert.alert('Error', String(res.error))
-            }
-          } catch (err) {
-            setMascotas(previous)
-            Alert.alert('Error', 'No se pudo eliminar la mascota')
-          } finally {
-            setCargando(false)
-          }
+  const handleRefresh = useCallback(() => {
+    setRefreshing(true)
+    void fetchMascotas(true)
+  }, [fetchMascotas])
+
+  const handleEliminar = async (pet: MascotaModel) => {
+    Alert.alert(
+      t('mascotas:confirmacion.eliminar_titulo', { nombre: pet.nombre }),
+      t('mascotas:confirmacion.eliminar_mensaje', { nombre: pet.nombre }),
+      [
+        {
+          text: t('mascotas:confirmacion.eliminar_cancelar'),
+          style: 'cancel',
         },
-      },
-    ])
+        {
+          text: t('mascotas:confirmacion.eliminar_confirmar'),
+          style: 'destructive',
+          onPress: async () => {
+            const previous = mascotas
+            setMascotas(prev => prev.filter(m => m.id !== pet.id))
+            
+            try {
+              const res = await ServicioMascota.eliminar(pet.id)
+              if (!res.success) {
+                setMascotas(previous)
+                Alert.alert('Error', t('mascotas:errores.error_eliminar'))
+              }
+            } catch (err) {
+              setMascotas(previous)
+              Alert.alert('Error', t('mascotas:errores.error_eliminar'))
+            }
+          },
+        },
+      ]
+    )
   }
 
-  const handleEditar = (id: string) => {
-    // navegar a pantalla de edición (si está registrada en la navegación)
-    // usa nombre de screen "EditarMascota" que implementaremos luego
+  const handleEditar = (pet: MascotaModel) => {
+    setEditingPet(pet)
+    setShowCrear(true)
+  }
+
+  const handleVerDetalles = (pet: MascotaModel) => {
     try {
-      navigation.navigate('EditarMascota', { id })
+      navigation.navigate('DetalleMascota', { id: pet.id })
     } catch (e) {
-      Alert.alert('Editar', `Abrir editor para mascota ${id}`)
+      // Si la ruta no existe, abrir en modo edición
+      handleEditar(pet)
     }
   }
 
   const handleCrear = () => {
+    setEditingPet(undefined)
     setShowCrear(true)
   }
 
-  const [showCrear, setShowCrear] = useState(false)
-  const insets = useSafeAreaInsets()
+  const handleCloseModal = () => {
+    setShowCrear(false)
+    setEditingPet(undefined)
+  }
+
+  const handleSaved = () => {
+    setShowCrear(false)
+    setEditingPet(undefined)
+    void fetchMascotas()
+  }
 
   if (cargando) return <LoadingScreen messageType="mascota" />
 
@@ -102,14 +136,25 @@ const Mascotas: React.FC = () => {
       scroll
       style={styles.container}
       contentContainerStyle={styles.content}
+      scrollProps={{
+        refreshControl: (
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={handleRefresh}
+            tintColor={COLOR.ENFASIS}
+            colors={[COLOR.ENFASIS]}
+          />
+        ),
+      }}
     >
+      {/* Header */}
       <View style={styles.headerRow}>
-        <Text style={styles.title}>Mascotas</Text>
+        <Text style={styles.title}>{t('mascotas:lista.titulo')}</Text>
         <View style={styles.headerActions}>
           <Pressable
-            onPress={() => void fetchMascotas()}
+            onPress={handleRefresh}
             style={styles.iconButton}
-            accessibilityLabel="Refrescar"
+            accessibilityLabel={t('mascotas:lista.refrescar')}
             accessibilityRole="button"
             hitSlop={8}
             android_ripple={{ color: 'rgba(230,243,239,0.08)' }}
@@ -125,81 +170,47 @@ const Mascotas: React.FC = () => {
         </View>
       ) : null}
 
-      <View style={styles.section}>
+      {/* Lista de mascotas */}
+      <Animated.View style={[styles.section, { opacity: fadeAnim }]}>
         {mascotas.length === 0 ? (
           <EmptyState
-            title={i18n.t('mascotas:vacio.titulo')}
-            description={i18n.t('mascotas:vacio.descripcion')}
-            actionLabel={i18n.t('mascotas:vacio.accion_agregar')}
+            title={t('mascotas:vacio.titulo')}
+            description={t('mascotas:vacio.descripcion')}
+            actionLabel={t('mascotas:vacio.accion_agregar')}
             onActionPress={handleCrear}
             iconName="paw"
-            style={{ paddingVertical: 24 }}
+            style={{ paddingVertical: 32 }}
           />
         ) : (
-          <View style={styles.grid}>
-            {mascotas.map(m => (
-              <Card
-                key={m.id}
-                title={m.nombre}
-                subtitle={m.especie}
-                style={[styles.card, !m.activo ? styles.cardInactive : null]}
-                right={
-                  <View style={styles.iconActions}>
-                    <Pressable
-                      onPress={() => handleEditar(m.id)}
-                      style={styles.iconButton}
-                      accessibilityLabel={`Editar ${m.nombre}`}
-                      accessibilityRole="button"
-                      hitSlop={8}
-                      android_ripple={{ color: 'rgba(230,243,239,0.08)' }}
-                    >
-                      <Icon name="edit" size={18} />
-                    </Pressable>
-                    <Pressable
-                      onPress={() => handleEliminar(m.id)}
-                      style={styles.iconButton}
-                      accessibilityLabel={`Eliminar ${m.nombre}`}
-                      accessibilityRole="button"
-                      hitSlop={8}
-                      android_ripple={{ color: 'rgba(230,243,239,0.08)' }}
-                    >
-                      <Icon name="trash" size={18} />
-                    </Pressable>
-                  </View>
-                }
-              >
-                <View style={styles.itemRow}>
-                  <Avatar uri={m.foto} name={m.nombre} size={56} />
-                  <View style={styles.itemText}>
-                    <Text style={{ color: COLOR.TEXTO }}>{m.nombre}</Text>
-                    {m.descripcion ? (
-                      <Text
-                        style={{ color: COLOR.SUBTEXTO, fontSize: 12 }}
-                        numberOfLines={2}
-                        ellipsizeMode="tail"
-                      >
-                        {m.descripcion}
-                      </Text>
-                    ) : null}
-                  </View>
-                </View>
-              </Card>
+          <View style={styles.list}>
+            {mascotas.map((pet, index) => (
+              <PetCard
+                key={pet.id}
+                pet={pet}
+                onPress={() => handleVerDetalles(pet)}
+                onEdit={() => handleEditar(pet)}
+                onDelete={() => handleEliminar(pet)}
+                animationDelay={index * 80}
+                testID={`pet-card-${pet.id}`}
+              />
             ))}
           </View>
         )}
-      </View>
+      </Animated.View>
+
+      {/* Modal de crear/editar */}
       <CrearMascota
         visible={showCrear}
-        onClose={() => setShowCrear(false)}
-        onCreated={() => {
-          setShowCrear(false)
-          void fetchMascotas()
-        }}
+        onClose={handleCloseModal}
+        onCreated={handleSaved}
+        editingPet={editingPet}
       />
+
+      {/* FAB */}
       <Fab
         onPress={handleCrear}
         iconName="plus"
-        accessibilityLabel="Agregar mascota"
+        accessibilityLabel={t('mascotas:lista.agregar')}
         style={[styles.fab, { bottom: 24 + (insets.bottom ?? 0) }]}
       />
     </Screen>
@@ -211,70 +222,36 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: COLOR.BASE,
   },
-  scrollView: {
-    flex: 1,
-  },
   content: {
     padding: 16,
-    paddingBottom: 32,
+    paddingBottom: 100,
   },
   section: {
     marginBottom: 16,
   },
   title: {
-    fontSize: 24,
+    fontSize: 28,
     fontWeight: '700',
     color: COLOR.TEXTO,
-    marginBottom: 12,
+    marginBottom: 8,
+    letterSpacing: -0.5,
   },
   headerRow: {
     flexDirection: 'row',
     alignItems: 'center',
-  },
-  grid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap' as const,
     justifyContent: 'space-between',
+    marginBottom: 20,
   },
-  card: {
-    width: '100%',
-    marginBottom: 12,
-  },
-  itemRow: {
+  headerActions: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 10,
-  },
-  dogThumb: {
-    width: 56,
-    height: 56,
-    borderRadius: 8,
-    backgroundColor: COLOR.SECUNDARIO,
-    marginRight: 12,
-  },
-  cardEmoji: {
-    fontSize: 28,
-    marginBottom: 8,
-  },
-  /* nuevos estilos para acciones del card */
-  cardTopRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 8,
-  },
-  iconActions: {
-    marginLeft: 8,
-    alignItems: 'flex-end',
-    justifyContent: 'flex-start',
   },
   iconButton: {
     padding: 10,
     borderRadius: 20,
   },
-  headerActions: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  list: {
+    width: '100%',
   },
   fab: {
     position: 'absolute',
@@ -282,12 +259,6 @@ const styles = StyleSheet.create({
     bottom: 24,
     zIndex: 99999,
     elevation: 100,
-  },
-  itemText: {
-    flex: 1,
-  },
-  cardInactive: {
-    opacity: 0.55,
   },
 })
 
