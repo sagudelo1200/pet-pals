@@ -13,14 +13,7 @@ import {
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { COLOR } from '@/constants'
-import {
-  TextInput,
-  Button,
-  Picker,
-  ImagePicker,
-  Icon,
-  Divider,
-} from '@/components/ui'
+import { TextInput, Button, Icon } from '@/components/ui'
 import { ServicioMascota, ServicioAuth } from '@/services/firebase'
 import type { Mascota, EspecieMascota } from '@/models/Mascota'
 import { useTranslation } from 'react-i18next'
@@ -45,8 +38,7 @@ const CrearMascota: React.FC<Props> = ({
 
   // Basic fields only
   const [nombre, setNombre] = useState('')
-  const [foto, setFoto] = useState<string | undefined>(undefined)
-  const [especie, setEspecie] = useState<EspecieMascota | ''>('')
+  const [especie, setEspecie] = useState<EspecieMascota>('perro')
   const [loading, setLoading] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
 
@@ -54,12 +46,10 @@ const CrearMascota: React.FC<Props> = ({
   useEffect(() => {
     if (editingPet) {
       setNombre(editingPet.nombre || '')
-      setFoto(editingPet.foto)
-      setEspecie(editingPet.especie || '')
+      setEspecie(editingPet.especie || 'perro')
     } else {
       setNombre('')
-      setFoto(undefined)
-      setEspecie('')
+      setEspecie('perro')
     }
     setErrors({})
   }, [editingPet, visible])
@@ -79,13 +69,14 @@ const CrearMascota: React.FC<Props> = ({
     try {
       const user = ServicioAuth.obtenerUsuarioActual()
       if (!user) throw new Error('User not logged')
-      const payload: Partial<Mascota> = {
+
+      const payload: any = {
         nombre: nombre.trim(),
-        foto,
-        especie: especie as any,
+        especie: especie,
         activo: true,
       }
-      const res = await ServicioMascota.crear(payload as any)
+
+      const res = await ServicioMascota.crear(payload)
       if (res.success) {
         // Try to get the created pet ID if available
         const petId = (res as any).id || (res as any).payload?.id
@@ -108,10 +99,16 @@ const CrearMascota: React.FC<Props> = ({
         onCreated?.()
         onClose()
       } else {
-        Alert.alert('Error', t('mascotas:errores.error_guardar'))
+        Alert.alert(
+          'Error',
+          String(res.error) || t('mascotas:errores.error_guardar')
+        )
       }
     } catch (e) {
-      Alert.alert('Error', t('mascotas:errores.error_guardar'))
+      Alert.alert(
+        'Error',
+        e instanceof Error ? e.message : t('mascotas:errores.error_guardar')
+      )
     } finally {
       setLoading(false)
     }
@@ -162,13 +159,6 @@ const CrearMascota: React.FC<Props> = ({
                 showsVerticalScrollIndicator={false}
                 keyboardShouldPersistTaps="handled"
               >
-                {/* Photo */}
-                <ImagePicker
-                  label={t('mascotas:formulario.foto_label')}
-                  value={foto}
-                  onValueChange={setFoto}
-                  placeholder={t('mascotas:formulario.foto_placeholder')}
-                />
                 {/* Name */}
                 <TextInput
                   label={t('mascotas:formulario.nombre_label')}
@@ -177,24 +167,6 @@ const CrearMascota: React.FC<Props> = ({
                   placeholder={t('mascotas:formulario.nombre_placeholder')}
                   errorText={errors.nombre}
                   autoCapitalize="words"
-                />
-                {/* Species */}
-                <Divider style={{ marginVertical: 12 }} />
-                <Picker
-                  label={t('mascotas:formulario.especie_label')}
-                  value={especie}
-                  onValueChange={v => setEspecie(v as EspecieMascota)}
-                  options={[
-                    {
-                      label: t('mascotas:opciones.especie.perro'),
-                      value: 'perro',
-                    },
-                    {
-                      label: t('mascotas:opciones.especie.gato'),
-                      value: 'gato',
-                    },
-                  ]}
-                  errorText={errors.especie}
                 />
               </ScrollView>
 
