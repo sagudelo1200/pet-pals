@@ -10,6 +10,7 @@ export type AuthStackParamList = {
 
 // Flujo interno de autenticación (pantallas del stack de Auth)
 export type AuthFlowParamList = {
+  Bienvenida: undefined
   Ingresar: undefined
   Registro: undefined
 }

@@ -3,6 +3,7 @@ import { useAuth } from '@/services/context/AuthContext'
 import { LoadingScreen } from '@/components/ui'
 import { useNavigation, CommonActions } from '@react-navigation/native'
 import { createStackNavigator } from '@react-navigation/stack'
+import Bienvenida from '@/screens/auth/Bienvenida'
 import Ingresar from '@/screens/auth/Ingresar'
 import Registro from '@/screens/auth/Registro'
 import { AuthFlowParamList } from './types'
@@ -82,9 +83,10 @@ const AuthNavigator: React.FC = () => {
     return <LoadingScreen messageType="auth" spinnerColor="#22A47C" />
   }
 
-  // Si no hay usuario, mostramos el stack de autenticación (Ingresar / Registro)
+  // Si no hay usuario, mostramos el stack de autenticación (Bienvenida / Ingresar / Registro)
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
+    <Stack.Navigator screenOptions={{ headerShown: false }} initialRouteName="Bienvenida">
+      <Stack.Screen name="Bienvenida" component={Bienvenida} />
       <Stack.Screen name="Ingresar" component={Ingresar} />
       <Stack.Screen name="Registro" component={Registro} />
     </Stack.Navigator>

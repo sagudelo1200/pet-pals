@@ -1,5 +1,5 @@
-import React, { useCallback, useMemo, useState } from 'react'
-import { StyleSheet, View, Alert, Pressable } from 'react-native'
+import React, { useCallback, useMemo, useState, useRef, useEffect } from 'react'
+import { StyleSheet, View, Alert, Pressable, Animated, Dimensions } from 'react-native'
 import { Block, Text } from 'galio-framework'
 import { COLOR } from '@/constants'
 import { Button, TextInput } from '@/components/ui'
@@ -14,6 +14,8 @@ import type { AuthFlowParamList } from '@/navigation/types'
 
 type Nav = StackNavigationProp<AuthFlowParamList>
 
+const { height } = Dimensions.get('window')
+
 const Registro: React.FC = () => {
   const navigation = useNavigation<Nav>()
   const { registrar, cargando, recargarPerfil } = useAuth()
@@ -24,6 +26,46 @@ const Registro: React.FC = () => {
   const [rol, setRol] = useState<RolUsuario>('dueño')
   const [emailTouched, setEmailTouched] = useState(false)
   const [passwordTouched, setPasswordTouched] = useState(false)
+
+  // Animaciones
+  const messageOpacity = useRef(new Animated.Value(0)).current
+  const messageTranslateY = useRef(new Animated.Value(20)).current
+  const formOpacity = useRef(new Animated.Value(0)).current
+  const formTranslateY = useRef(new Animated.Value(30)).current
+
+  useEffect(() => {
+    // Secuencia de animaciones de entrada
+    Animated.sequence([
+      // Mensaje aparece primero
+      Animated.parallel([
+        Animated.timing(messageOpacity, {
+          toValue: 1,
+          duration: 600,
+          useNativeDriver: true,
+        }),
+        Animated.timing(messageTranslateY, {
+          toValue: 0,
+          duration: 600,
+          useNativeDriver: true,
+        }),
+      ]),
+      // Formulario aparece después
+      Animated.parallel([
+        Animated.timing(formOpacity, {
+          toValue: 1,
+          duration: 500,
+          delay: 100,
+          useNativeDriver: true,
+        }),
+        Animated.timing(formTranslateY, {
+          toValue: 0,
+          duration: 500,
+          delay: 100,
+          useNativeDriver: true,
+        }),
+      ]),
+    ]).start()
+  }, [])
 
   const emailValid = useMemo(() => {
     const value = email.trim()
@@ -81,15 +123,43 @@ const Registro: React.FC = () => {
 
   return (
     <Screen contentContainerStyle={styles.content} style={styles.container}>
-      <Block>
-        <Text h4 style={styles.title}>
-          {t('auth:registro.formulario.titulo')}
-        </Text>
-        <Text style={styles.subtitle}>
-          {t('auth:registro.formulario.subtitulo')}
-        </Text>
+      {/* Círculo decorativo */}
+      <View style={styles.decorativeCircle} />
+      
+      {/* Huella decorativa */}
+      <View style={styles.pawPrint}>
+        <Text style={styles.pawEmoji}>🐾</Text>
+      </View>
 
-        <View style={styles.form}>
+      <Block>
+        {/* Mensaje emocional */}
+        <Animated.View
+          style={{
+            opacity: messageOpacity,
+            transform: [{ translateY: messageTranslateY }],
+          }}
+        >
+          <Text style={styles.emotionalMessage}>
+            {t('auth:registro.formulario.mensajeEmocional')}
+          </Text>
+          <Text h4 style={styles.title}>
+            {t('auth:registro.formulario.titulo')}
+          </Text>
+          <Text style={styles.subtitle}>
+            {t('auth:registro.formulario.subtitulo')}
+          </Text>
+        </Animated.View>
+
+        {/* Formulario con animación */}
+        <Animated.View
+          style={[
+            styles.form,
+            {
+              opacity: formOpacity,
+              transform: [{ translateY: formTranslateY }],
+            },
+          ]}
+        >
           <TextInput
             label={t('auth:registro.formulario.nombre.label')}
             value={nombre}
@@ -176,7 +246,7 @@ const Registro: React.FC = () => {
             fullWidth
             style={styles.secondary}
           />
-        </View>
+        </Animated.View>
       </Block>
     </Screen>
   )
@@ -192,52 +262,90 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    paddingHorizontal: 20,
+    paddingHorizontal: 24,
     justifyContent: 'center',
+  },
+  decorativeCircle: {
+    position: 'absolute',
+    top: -80,
+    right: -80,
+    width: 220,
+    height: 220,
+    borderRadius: 110,
+    backgroundColor: `${COLOR.ENFASIS}10`,
+  },
+  pawPrint: {
+    position: 'absolute',
+    bottom: height * 0.12,
+    right: 35,
+    opacity: 0.06,
+    transform: [{ rotate: '25deg' }],
+  },
+  pawEmoji: {
+    fontSize: 40,
+  },
+  emotionalMessage: {
+    fontSize: 14,
+    color: COLOR.ENFASIS,
+    textAlign: 'center',
+    marginBottom: 12,
+    fontWeight: '600',
+    letterSpacing: 0.5,
+    textTransform: 'uppercase',
   },
   title: {
     color: COLOR.TEXTO,
     fontWeight: '700',
-    marginBottom: 6,
+    marginBottom: 8,
+    textAlign: 'center',
+    fontSize: 28,
   },
   subtitle: {
     color: COLOR.SUBTEXTO,
-    marginBottom: 18,
+    marginBottom: 32,
+    textAlign: 'center',
+    fontSize: 15,
+    lineHeight: 22,
   },
   form: {
     marginTop: 8,
   },
   submit: {
-    marginTop: 10,
+    marginTop: 14,
+    height: 52,
+    borderRadius: 26,
   },
   secondary: {
-    marginTop: 8,
+    marginTop: 12,
   },
   label: {
     color: COLOR.SUBTEXTO,
-    marginBottom: 6,
+    marginBottom: 8,
     fontSize: 13,
     fontWeight: '600',
   },
   roleRow: {
     flexDirection: 'row',
-    marginBottom: 10,
+    marginBottom: 14,
   },
   roleBtn: {
     flex: 1,
     backgroundColor: COLOR.BLOQUE,
     borderColor: COLOR.BORDE,
-    borderWidth: 1,
-    paddingVertical: 12,
-    borderRadius: 10,
+    borderWidth: 1.5,
+    paddingVertical: 14,
+    borderRadius: 12,
     alignItems: 'center',
   },
   roleBtnActive: {
     borderColor: COLOR.ENFASIS,
+    borderWidth: 2,
+    backgroundColor: `${COLOR.ENFASIS}15`,
   },
   roleText: {
     color: COLOR.TEXTO,
     fontWeight: '700',
+    fontSize: 15,
   },
 })
 
