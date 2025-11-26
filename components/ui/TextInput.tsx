@@ -18,6 +18,9 @@ interface Props {
   testID?: string
   keyboardType?: any
   autoCapitalize?: any
+  autoFocus?: boolean
+  returnKeyType?: 'done' | 'go' | 'next' | 'search' | 'send'
+  onSubmitEditing?: () => void
 }
 
 /**
@@ -36,8 +39,14 @@ const TextInput: React.FC<Props> = ({
   testID,
   keyboardType,
   autoCapitalize = 'none',
+  autoFocus,
+  returnKeyType,
+  onSubmitEditing,
 }) => {
   const [focused, setFocused] = useState(false)
+
+  // Cast Input to any to avoid missing prop types in Galio definition
+  const GalioInput: React.ComponentType<any> = Input as any
 
   const containerStyle: ViewStyle | ViewStyle[] = [
     styles.container,
@@ -54,7 +63,7 @@ const TextInput: React.FC<Props> = ({
   return (
     <View style={containerStyle} testID={testID}>
       {label ? <Text style={styles.label}>{label}</Text> : null}
-      <Input
+      <GalioInput
         value={value}
         onChangeText={onChangeText}
         placeholder={placeholder}
@@ -62,6 +71,9 @@ const TextInput: React.FC<Props> = ({
         password={secureTextEntry}
         keyboardType={keyboardType}
         autoCapitalize={autoCapitalize}
+        autoFocus={autoFocus}
+        returnKeyType={returnKeyType}
+        onSubmitEditing={onSubmitEditing}
         onFocus={() => setFocused(true)}
         onBlur={() => setFocused(false)}
         color={inputColor}

@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react'
 import {
   Modal,
   View,
@@ -9,18 +9,18 @@ import {
   Platform,
   Keyboard,
   KeyboardEvent,
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { COLOR } from '@/constants';
+} from 'react-native'
+import { SafeAreaView } from 'react-native-safe-area-context'
+import { COLOR } from '@/constants'
 
 interface BottomSheetProps {
-  visible: boolean;
-  onClose: () => void;
-  children: React.ReactNode;
-  height?: number | string;
+  visible: boolean
+  onClose: () => void
+  children: React.ReactNode
+  height?: number | string
 }
 
-const { height: SCREEN_HEIGHT } = Dimensions.get('window');
+const { height: SCREEN_HEIGHT } = Dimensions.get('window')
 
 export const BottomSheet: React.FC<BottomSheetProps> = ({
   visible,
@@ -28,9 +28,9 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
   children,
   height = 'auto',
 }) => {
-  const slideAnim = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
-  const opacityAnim = useRef(new Animated.Value(0)).current;
-  const [keyboardHeight, setKeyboardHeight] = useState(0);
+  const slideAnim = useRef(new Animated.Value(SCREEN_HEIGHT)).current
+  const opacityAnim = useRef(new Animated.Value(0)).current
+  const [keyboardHeight, setKeyboardHeight] = useState(0)
 
   useEffect(() => {
     if (visible) {
@@ -38,15 +38,15 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
         Animated.spring(slideAnim, {
           toValue: 0,
           useNativeDriver: true,
-          tension: 65,
-          friction: 11,
+          tension: 45,
+          friction: 8,
         }),
         Animated.timing(opacityAnim, {
           toValue: 1,
-          duration: 250,
+          duration: 300,
           useNativeDriver: true,
         }),
-      ]).start();
+      ]).start()
     } else {
       Animated.parallel([
         Animated.timing(slideAnim, {
@@ -59,41 +59,35 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
           duration: 200,
           useNativeDriver: true,
         }),
-      ]).start();
+      ]).start()
       // Reset keyboard height when modal closes
-      setKeyboardHeight(0);
+      setKeyboardHeight(0)
     }
-  }, [visible]);
+  }, [visible])
 
   useEffect(() => {
-    const keyboardWillShow = (e: KeyboardEvent) => {
-      setKeyboardHeight(e.endCoordinates.height);
-    };
+    const handleKeyboardShow = (e: KeyboardEvent) => {
+      setKeyboardHeight(e.endCoordinates.height)
+    }
 
-    const keyboardWillHide = () => {
-      setKeyboardHeight(0);
-    };
-
-    const keyboardDidShow = (e: KeyboardEvent) => {
-      setKeyboardHeight(e.endCoordinates.height);
-    };
-
-    const keyboardDidHide = () => {
-      setKeyboardHeight(0);
-    };
+    const handleKeyboardHide = () => {
+      setKeyboardHeight(0)
+    }
 
     // Use 'will' events on iOS for smoother animation, 'did' events on Android
-    const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
-    const hideEvent = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
+    const showEvent =
+      Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow'
+    const hideEvent =
+      Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide'
 
-    const showListener = Keyboard.addListener(showEvent, keyboardWillShow);
-    const hideListener = Keyboard.addListener(hideEvent, keyboardWillHide);
+    const showListener = Keyboard.addListener(showEvent, handleKeyboardShow)
+    const hideListener = Keyboard.addListener(hideEvent, handleKeyboardHide)
 
     return () => {
-      showListener.remove();
-      hideListener.remove();
-    };
-  }, []);
+      showListener.remove()
+      hideListener.remove()
+    }
+  }, [])
 
   return (
     <Modal
@@ -114,10 +108,15 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
               styles.sheet,
               {
                 transform: [{ translateY: slideAnim }],
-                paddingBottom: keyboardHeight > 0 
-                  ? (Platform.OS === 'ios' ? keyboardHeight * 0.4 : keyboardHeight * 0.3) + 20
-                  : 20,
-                ...(typeof height === 'number' ? { height } : { maxHeight: '90%' }),
+                paddingBottom:
+                  keyboardHeight > 0
+                    ? (Platform.OS === 'ios'
+                        ? keyboardHeight * 0.4
+                        : keyboardHeight * 0.3) + 20
+                    : 20,
+                ...(typeof height === 'number'
+                  ? { height }
+                  : { maxHeight: '90%' }),
               },
             ]}
           >
@@ -127,8 +126,8 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
         </View>
       </SafeAreaView>
     </Modal>
-  );
-};
+  )
+}
 
 const styles = StyleSheet.create({
   safeArea: {
@@ -169,4 +168,4 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 12,
   },
-});
+})

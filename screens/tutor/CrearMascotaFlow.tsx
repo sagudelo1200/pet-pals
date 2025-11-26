@@ -13,9 +13,43 @@ import { useFormularioMascota } from '@/hooks/useFormularioMascota'
 import type { Mascota } from '@/models/Mascota'
 import * as ImagePicker from 'expo-image-picker'
 
+// Componente para animar la entrada de cada paso
+const PasoAnimado: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const fadeAnim = useRef(new Animated.Value(0)).current
+  const slideAnim = useRef(new Animated.Value(20)).current
+
+  useEffect(() => {
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 400,
+        useNativeDriver: true,
+      }),
+      Animated.spring(slideAnim, {
+        toValue: 0,
+        friction: 8,
+        tension: 40,
+        useNativeDriver: true,
+      }),
+    ]).start()
+  }, [])
+
+  return (
+    <Animated.View
+      style={{
+        opacity: fadeAnim,
+        transform: [{ translateY: slideAnim }],
+      }}
+    >
+      {children}
+    </Animated.View>
+  )
+}
+
 interface CrearMascotaFlowProps {
   visible: boolean
   onClose: () => void
+  // eslint-disable-next-line no-unused-vars
   onGuardar: (data: Partial<Mascota>) => Promise<void>
   mascotaInicial?: Mascota
 }
@@ -41,18 +75,7 @@ export const CrearMascotaFlow: React.FC<CrearMascotaFlowProps> = ({
   const [guardando, setGuardando] = useState(false)
 
   // Animation values
-  const stepAnim = useRef(new Animated.Value(0)).current
   const avatarScale = useRef(new Animated.Value(1)).current
-
-  // Animate step transition when the step changes
-  useEffect(() => {
-    stepAnim.setValue(0)
-    Animated.timing(stepAnim, {
-      toValue: 1,
-      duration: 300,
-      useNativeDriver: true,
-    }).start()
-  }, [pasoActual])
 
   // Trigger avatar scaling after a photo is selected
   const triggerAvatarScale = () => {
@@ -151,19 +174,7 @@ export const CrearMascotaFlow: React.FC<CrearMascotaFlowProps> = ({
     switch (pasoActual) {
       case 1:
         return (
-          <Animated.View
-            style={{
-              opacity: stepAnim,
-              transform: [
-                {
-                  translateY: stepAnim.interpolate({
-                    inputRange: [0, 1],
-                    outputRange: [20, 0],
-                  }),
-                },
-              ],
-            }}
-          >
+          <PasoAnimado>
             <View style={styles.pasoContainer}>
               <Text style={styles.emocional}>
                 {t('mascotas:crear.paso1.emocional')}
@@ -175,6 +186,9 @@ export const CrearMascotaFlow: React.FC<CrearMascotaFlowProps> = ({
                 value={datosMascota.nombre || ''}
                 onChangeText={text => actualizarCampo('nombre', text)}
                 placeholder={t('mascotas:crear.paso1.placeholder')}
+                autoFocus
+                returnKeyType="next"
+                onSubmitEditing={handleContinuar}
               />
               <Button
                 title={t('mascotas:crear.paso1.continuar')}
@@ -183,23 +197,11 @@ export const CrearMascotaFlow: React.FC<CrearMascotaFlowProps> = ({
                 style={styles.boton}
               />
             </View>
-          </Animated.View>
+          </PasoAnimado>
         )
       case 2:
         return (
-          <Animated.View
-            style={{
-              opacity: stepAnim,
-              transform: [
-                {
-                  translateY: stepAnim.interpolate({
-                    inputRange: [0, 1],
-                    outputRange: [20, 0],
-                  }),
-                },
-              ],
-            }}
-          >
+          <PasoAnimado>
             <View style={styles.pasoContainer}>
               <Text style={styles.titulo}>
                 {t('mascotas:crear.paso2.titulo')}
@@ -208,6 +210,9 @@ export const CrearMascotaFlow: React.FC<CrearMascotaFlowProps> = ({
                 value={datosMascota.raza || ''}
                 onChangeText={text => actualizarCampo('raza', text)}
                 placeholder={t('mascotas:crear.paso2.placeholder')}
+                autoFocus
+                returnKeyType="next"
+                onSubmitEditing={handleContinuar}
               />
               <View style={styles.botonesRow}>
                 <Button
@@ -223,23 +228,11 @@ export const CrearMascotaFlow: React.FC<CrearMascotaFlowProps> = ({
                 />
               </View>
             </View>
-          </Animated.View>
+          </PasoAnimado>
         )
       case 3:
         return (
-          <Animated.View
-            style={{
-              opacity: stepAnim,
-              transform: [
-                {
-                  translateY: stepAnim.interpolate({
-                    inputRange: [0, 1],
-                    outputRange: [20, 0],
-                  }),
-                },
-              ],
-            }}
-          >
+          <PasoAnimado>
             <View style={styles.pasoContainer}>
               <Text style={styles.titulo}>
                 {t('mascotas:crear.paso3.titulo')}
@@ -266,23 +259,11 @@ export const CrearMascotaFlow: React.FC<CrearMascotaFlowProps> = ({
                 />
               </View>
             </View>
-          </Animated.View>
+          </PasoAnimado>
         )
       case 4:
         return (
-          <Animated.View
-            style={{
-              opacity: stepAnim,
-              transform: [
-                {
-                  translateY: stepAnim.interpolate({
-                    inputRange: [0, 1],
-                    outputRange: [20, 0],
-                  }),
-                },
-              ],
-            }}
-          >
+          <PasoAnimado>
             <View style={styles.pasoContainer}>
               <Text style={styles.titulo}>
                 {t('mascotas:crear.paso4.titulo')}
@@ -319,7 +300,7 @@ export const CrearMascotaFlow: React.FC<CrearMascotaFlowProps> = ({
                 style={styles.boton}
               />
             </View>
-          </Animated.View>
+          </PasoAnimado>
         )
       default:
         return null
