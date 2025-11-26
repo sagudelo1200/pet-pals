@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react'
+import React, { useRef, useEffect } from 'react'
 import { View, StyleSheet, Text, Alert, Animated } from 'react-native'
 import { useTranslation } from 'react-i18next'
 import { COLOR } from '@/constants'
@@ -72,8 +72,6 @@ export const CrearMascotaFlow: React.FC<CrearMascotaFlowProps> = ({
     reiniciar,
   } = useFormularioMascota(mascotaInicial)
 
-  const [guardando, setGuardando] = useState(false)
-
   // Animation values
   const avatarScale = useRef(new Animated.Value(1)).current
 
@@ -104,27 +102,10 @@ export const CrearMascotaFlow: React.FC<CrearMascotaFlowProps> = ({
   }
 
   const handleGuardar = async () => {
-    try {
-      setGuardando(true)
-      await onGuardar(datosMascota)
-      Alert.alert(
-        t('mascotas:mensajes.creado', { nombre: datosMascota.nombre }),
-        '',
-        [
-          {
-            text: 'OK',
-            onPress: () => {
-              reiniciar()
-              onClose()
-            },
-          },
-        ]
-      )
-    } catch (error) {
-      Alert.alert(t('mascotas:mensajes.error'))
-    } finally {
-      setGuardando(false)
-    }
+    // Optimistic UI: Cerramos inmediatamente
+    onGuardar(datosMascota)
+    reiniciar()
+    onClose()
   }
 
   const handleSeleccionarFoto = async () => {
@@ -296,7 +277,6 @@ export const CrearMascotaFlow: React.FC<CrearMascotaFlowProps> = ({
               <Button
                 title={t('mascotas:crear.confirmacion.guardar')}
                 onPress={handleGuardar}
-                loading={guardando}
                 style={styles.boton}
               />
             </View>

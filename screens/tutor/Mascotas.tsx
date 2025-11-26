@@ -15,8 +15,8 @@ import {
   EmptyState,
   Fab,
   PetCard,
-  LoadingScreen,
   Button,
+  Skeleton,
 } from '@/components/ui'
 import { useMascotas } from '@/hooks/useMascotas'
 import { CrearMascotaFlow } from './CrearMascotaFlow'
@@ -93,7 +93,22 @@ export default function Mascotas({ navigation }: any) {
   }
 
   if (loading && mascotas.length === 0) {
-    return <LoadingScreen />
+    return (
+      <Screen>
+        <View style={styles.list}>
+          {[1, 2, 3].map(i => (
+            <View key={i} style={styles.skeletonCard}>
+              <Skeleton width={64} height={64} radius={32} />
+              <View style={{ flex: 1, marginLeft: 12 }}>
+                <Skeleton width="60%" height={20} style={{ marginBottom: 8 }} />
+                <Skeleton width="40%" height={16} style={{ marginBottom: 8 }} />
+                <Skeleton width="30%" height={14} />
+              </View>
+            </View>
+          ))}
+        </View>
+      </Screen>
+    )
   }
 
   if (error) {
@@ -178,5 +193,15 @@ const styles = StyleSheet.create({
     right: 21,
     zIndex: 1000,
     elevation: 9,
+  },
+  skeletonCard: {
+    backgroundColor: COLOR.BLOQUE,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: COLOR.BORDE,
+    padding: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
   },
 })

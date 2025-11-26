@@ -25,7 +25,7 @@
   },
   "crear": {
     "paso1": {
-      "emocional": "Cada mascota tiene una historia única",
+      "emocional": "Todo vínculo empieza con un nombre.",
       "titulo": "¿Cómo se llama?",
       "placeholder": "Nombre de tu mascota",
       "continuar": "Continuar"
@@ -37,7 +37,7 @@
       "continuar": "Continuar"
     },
     "paso3": {
-      "titulo": "¿Cuántos años tiene?",
+      "titulo": "Crecen rápido, ¿cierto?",
       "fecha_nacimiento": "Fecha de nacimiento",
       "edad_aproximada": "Edad aproximada",
       "placeholder_anos": "Años",
@@ -47,7 +47,7 @@
     },
     "paso4": {
       "titulo": "Agreguemos una foto",
-      "subtitulo": "Una imagen vale más que mil palabras",
+      "subtitulo": "Queremos conocerlo como tú lo ves.",
       "tocar_agregar": "Tocar para agregar foto",
       "camara": "Tomar foto",
       "galeria": "Elegir de galería",
@@ -56,7 +56,7 @@
     },
     "confirmacion": {
       "titulo": "¡Casi listo!",
-      "subtitulo": "Revisa que todo esté correcto",
+      "subtitulo": "Una última mirada antes de guardar.",
       "guardar": "Guardar mascota",
       "editar": "Editar información"
     }
