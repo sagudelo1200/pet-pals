@@ -58,6 +58,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     padding: 16,
+    paddingBottom: 80,
   },
   iconWrap: {
     padding: 10,

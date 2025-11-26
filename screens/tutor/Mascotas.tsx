@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react'
 import {
   View,
   StyleSheet,
@@ -7,20 +7,27 @@ import {
   Animated,
   Alert,
   Text,
-} from 'react-native';
-import { useTranslation } from 'react-i18next';
-import { COLOR } from '@/constants';
-import { Screen, EmptyState, Fab, PetCard, LoadingScreen, Button } from '@/components/ui';
-import { useMascotas } from '@/hooks/useMascotas';
-import { CrearMascotaFlow } from './CrearMascotaFlow';
-import type { Mascota } from '@/models/Mascota';
+} from 'react-native'
+import { useTranslation } from 'react-i18next'
+import { COLOR } from '@/constants'
+import {
+  Screen,
+  EmptyState,
+  Fab,
+  PetCard,
+  LoadingScreen,
+  Button,
+} from '@/components/ui'
+import { useMascotas } from '@/hooks/useMascotas'
+import { CrearMascotaFlow } from './CrearMascotaFlow'
+import type { Mascota } from '@/models/Mascota'
 
 export default function Mascotas({ navigation }: any) {
-  const { t } = useTranslation();
-  const { mascotas, loading, error, refrescar, crear, eliminar } = useMascotas();
-  const [modalVisible, setModalVisible] = useState(false);
-  const [mascotaEditando, setMascotaEditando] = useState<Mascota | undefined>();
-  const fadeAnim = useRef(new Animated.Value(1)).current;
+  const { t } = useTranslation()
+  const { mascotas, loading, error, refrescar, crear, eliminar } = useMascotas()
+  const [modalVisible, setModalVisible] = useState(false)
+  const [mascotaEditando, setMascotaEditando] = useState<Mascota | undefined>()
+  const fadeAnim = useRef(new Animated.Value(1)).current
 
   useEffect(() => {
     if (!loading && mascotas.length > 0) {
@@ -28,24 +35,24 @@ export default function Mascotas({ navigation }: any) {
         toValue: 1,
         duration: 400,
         useNativeDriver: true,
-      }).start();
+      }).start()
     }
-  }, [loading, mascotas.length]);
+  }, [loading, mascotas.length])
 
   const handleAbrirCrear = () => {
-    setMascotaEditando(undefined);
-    setModalVisible(true);
-  };
+    setMascotaEditando(undefined)
+    setModalVisible(true)
+  }
 
   const handleAbrirEditar = (mascota: Mascota) => {
-    setMascotaEditando(mascota);
-    setModalVisible(true);
-  };
+    setMascotaEditando(mascota)
+    setModalVisible(true)
+  }
 
   const handleGuardar = async (data: Partial<Mascota>) => {
-    await crear(data);
-    setModalVisible(false);
-  };
+    await crear(data)
+    setModalVisible(false)
+  }
 
   const handleEliminar = (mascota: Mascota) => {
     Alert.alert(
@@ -61,17 +68,17 @@ export default function Mascotas({ navigation }: any) {
           style: 'destructive',
           onPress: async () => {
             if (mascota.id) {
-              await eliminar(mascota.id);
+              await eliminar(mascota.id)
             }
           },
         },
       ]
-    );
-  };
+    )
+  }
 
   const handleVerDetalle = (mascota: Mascota) => {
-    navigation.navigate('DetalleMascota', { mascotaId: mascota.id });
-  };
+    navigation.navigate('DetalleMascota', { mascotaId: mascota.id })
+  }
 
   const renderPetCard = ({ item, index }: { item: Mascota; index: number }) => {
     return (
@@ -82,28 +89,41 @@ export default function Mascotas({ navigation }: any) {
         onDelete={() => handleEliminar(item)}
         animationDelay={index * 100}
       />
-    );
-  };
+    )
+  }
 
   if (loading && mascotas.length === 0) {
-    return <LoadingScreen />;
+    return <LoadingScreen />
   }
 
   if (error) {
     return (
       <Screen>
-        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 }}>
-          <Text style={{ color: COLOR.ERROR, fontSize: 16, textAlign: 'center' }}>
+        <View
+          style={{
+            flex: 1,
+            justifyContent: 'center',
+            alignItems: 'center',
+            padding: 20,
+          }}
+        >
+          <Text
+            style={{ color: COLOR.ERROR, fontSize: 16, textAlign: 'center' }}
+          >
             {error}
           </Text>
-          <Button title={t('comun:reintentar')} onPress={refrescar} style={{ marginTop: 20 }} />
+          <Button
+            title={t('comun:reintentar')}
+            onPress={refrescar}
+            style={{ marginTop: 20 }}
+          />
         </View>
       </Screen>
-    );
+    )
   }
 
   return (
-    <Screen 
+    <Screen
       contentContainerStyle={{ flex: 1 }}
       floating={<Fab onPress={handleAbrirCrear} style={styles.fab} />}
     >
@@ -119,7 +139,7 @@ export default function Mascotas({ navigation }: any) {
           <FlatList
             data={mascotas}
             renderItem={renderPetCard}
-            keyExtractor={(item) => item.id || ''}
+            keyExtractor={item => item.id || ''}
             contentContainerStyle={styles.list}
             showsVerticalScrollIndicator={false}
             refreshControl={
@@ -141,7 +161,7 @@ export default function Mascotas({ navigation }: any) {
         mascotaInicial={mascotaEditando}
       />
     </Screen>
-  );
+  )
 }
 
 const styles = StyleSheet.create({
@@ -159,4 +179,4 @@ const styles = StyleSheet.create({
     zIndex: 1000,
     elevation: 9,
   },
-});
+})

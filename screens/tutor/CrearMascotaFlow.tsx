@@ -1,17 +1,23 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { View, StyleSheet, Text, Alert, Animated } from 'react-native';
-import { useTranslation } from 'react-i18next';
-import { COLOR } from '@/constants';
-import { BottomSheet, Button, PetAvatar, DatePicker, TextInput as UITextInput } from '@/components/ui';
-import { useFormularioMascota } from '@/hooks/useFormularioMascota';
-import type { Mascota } from '@/models/Mascota';
-import * as ImagePicker from 'expo-image-picker';
+import React, { useState, useRef, useEffect } from 'react'
+import { View, StyleSheet, Text, Alert, Animated } from 'react-native'
+import { useTranslation } from 'react-i18next'
+import { COLOR } from '@/constants'
+import {
+  BottomSheet,
+  Button,
+  PetAvatar,
+  DatePicker,
+  TextInput as UITextInput,
+} from '@/components/ui'
+import { useFormularioMascota } from '@/hooks/useFormularioMascota'
+import type { Mascota } from '@/models/Mascota'
+import * as ImagePicker from 'expo-image-picker'
 
 interface CrearMascotaFlowProps {
-  visible: boolean;
-  onClose: () => void;
-  onGuardar: (data: Partial<Mascota>) => Promise<void>;
-  mascotaInicial?: Mascota;
+  visible: boolean
+  onClose: () => void
+  onGuardar: (data: Partial<Mascota>) => Promise<void>
+  mascotaInicial?: Mascota
 }
 
 export const CrearMascotaFlow: React.FC<CrearMascotaFlowProps> = ({
@@ -20,7 +26,7 @@ export const CrearMascotaFlow: React.FC<CrearMascotaFlowProps> = ({
   onGuardar,
   mascotaInicial,
 }) => {
-  const { t } = useTranslation();
+  const { t } = useTranslation()
   const {
     pasoActual,
     datosMascota,
@@ -29,63 +35,80 @@ export const CrearMascotaFlow: React.FC<CrearMascotaFlowProps> = ({
     actualizarCampo,
     validarPasoActual,
     totalPasos,
-  } = useFormularioMascota(mascotaInicial);
+    reiniciar,
+  } = useFormularioMascota(mascotaInicial)
 
-  const [guardando, setGuardando] = useState(false);
+  const [guardando, setGuardando] = useState(false)
 
   // Animation values
-  const stepAnim = useRef(new Animated.Value(0)).current;
-  const avatarScale = useRef(new Animated.Value(1)).current;
+  const stepAnim = useRef(new Animated.Value(0)).current
+  const avatarScale = useRef(new Animated.Value(1)).current
 
   // Animate step transition when the step changes
   useEffect(() => {
-    stepAnim.setValue(0);
+    stepAnim.setValue(0)
     Animated.timing(stepAnim, {
       toValue: 1,
       duration: 300,
       useNativeDriver: true,
-    }).start();
-  }, [pasoActual]);
+    }).start()
+  }, [pasoActual])
 
   // Trigger avatar scaling after a photo is selected
   const triggerAvatarScale = () => {
     Animated.sequence([
-      Animated.timing(avatarScale, { toValue: 1.2, duration: 150, useNativeDriver: true }),
-      Animated.timing(avatarScale, { toValue: 1, duration: 150, useNativeDriver: true }),
-    ]).start();
-  };
+      Animated.timing(avatarScale, {
+        toValue: 1.2,
+        duration: 150,
+        useNativeDriver: true,
+      }),
+      Animated.timing(avatarScale, {
+        toValue: 1,
+        duration: 150,
+        useNativeDriver: true,
+      }),
+    ]).start()
+  }
 
   const handleContinuar = () => {
     if (validarPasoActual()) {
-      siguientePaso();
+      siguientePaso()
     }
-  };
+  }
 
   const handleSaltar = () => {
-    siguientePaso();
-  };
+    siguientePaso()
+  }
 
   const handleGuardar = async () => {
     try {
-      setGuardando(true);
-      await onGuardar(datosMascota);
+      setGuardando(true)
+      await onGuardar(datosMascota)
       Alert.alert(
         t('mascotas:mensajes.creado', { nombre: datosMascota.nombre }),
         '',
-        [{ text: 'OK', onPress: onClose }]
-      );
+        [
+          {
+            text: 'OK',
+            onPress: () => {
+              reiniciar()
+              onClose()
+            },
+          },
+        ]
+      )
     } catch (error) {
-      Alert.alert(t('mascotas:mensajes.error'));
+      Alert.alert(t('mascotas:mensajes.error'))
     } finally {
-      setGuardando(false);
+      setGuardando(false)
     }
-  };
+  }
 
   const handleSeleccionarFoto = async () => {
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync()
     if (status !== 'granted') {
-      Alert.alert(t('mascotas:mensajes.permisos_galeria'));
-      return;
+      Alert.alert(t('mascotas:mensajes.permisos_galeria'))
+      return
     }
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
@@ -93,30 +116,36 @@ export const CrearMascotaFlow: React.FC<CrearMascotaFlowProps> = ({
       aspect: [1, 1],
       quality: 0.7,
       base64: true,
-    });
+    })
     if (!result.canceled && result.assets[0].base64) {
-      actualizarCampo('foto', `data:image/jpeg;base64,${result.assets[0].base64}`);
-      triggerAvatarScale();
+      actualizarCampo(
+        'foto',
+        `data:image/jpeg;base64,${result.assets[0].base64}`
+      )
+      triggerAvatarScale()
     }
-  };
+  }
 
   const handleTomarFoto = async () => {
-    const { status } = await ImagePicker.requestCameraPermissionsAsync();
+    const { status } = await ImagePicker.requestCameraPermissionsAsync()
     if (status !== 'granted') {
-      Alert.alert(t('mascotas:mensajes.permisos_camara'));
-      return;
+      Alert.alert(t('mascotas:mensajes.permisos_camara'))
+      return
     }
     const result = await ImagePicker.launchCameraAsync({
       allowsEditing: true,
       aspect: [1, 1],
       quality: 0.7,
       base64: true,
-    });
+    })
     if (!result.canceled && result.assets[0].base64) {
-      actualizarCampo('foto', `data:image/jpeg;base64,${result.assets[0].base64}`);
-      triggerAvatarScale();
+      actualizarCampo(
+        'foto',
+        `data:image/jpeg;base64,${result.assets[0].base64}`
+      )
+      triggerAvatarScale()
     }
-  };
+  }
 
   const renderPaso = () => {
     switch (pasoActual) {
@@ -125,15 +154,26 @@ export const CrearMascotaFlow: React.FC<CrearMascotaFlowProps> = ({
           <Animated.View
             style={{
               opacity: stepAnim,
-              transform: [{ translateY: stepAnim.interpolate({ inputRange: [0, 1], outputRange: [20, 0] }) }],
+              transform: [
+                {
+                  translateY: stepAnim.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [20, 0],
+                  }),
+                },
+              ],
             }}
           >
             <View style={styles.pasoContainer}>
-              <Text style={styles.emocional}>{t('mascotas:crear.paso1.emocional')}</Text>
-              <Text style={styles.titulo}>{t('mascotas:crear.paso1.titulo')}</Text>
+              <Text style={styles.emocional}>
+                {t('mascotas:crear.paso1.emocional')}
+              </Text>
+              <Text style={styles.titulo}>
+                {t('mascotas:crear.paso1.titulo')}
+              </Text>
               <UITextInput
                 value={datosMascota.nombre || ''}
-                onChangeText={(text) => actualizarCampo('nombre', text)}
+                onChangeText={text => actualizarCampo('nombre', text)}
                 placeholder={t('mascotas:crear.paso1.placeholder')}
               />
               <Button
@@ -144,20 +184,29 @@ export const CrearMascotaFlow: React.FC<CrearMascotaFlowProps> = ({
               />
             </View>
           </Animated.View>
-        );
+        )
       case 2:
         return (
           <Animated.View
             style={{
               opacity: stepAnim,
-              transform: [{ translateY: stepAnim.interpolate({ inputRange: [0, 1], outputRange: [20, 0] }) }],
+              transform: [
+                {
+                  translateY: stepAnim.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [20, 0],
+                  }),
+                },
+              ],
             }}
           >
             <View style={styles.pasoContainer}>
-              <Text style={styles.titulo}>{t('mascotas:crear.paso2.titulo')}</Text>
+              <Text style={styles.titulo}>
+                {t('mascotas:crear.paso2.titulo')}
+              </Text>
               <UITextInput
                 value={datosMascota.raza || ''}
-                onChangeText={(text) => actualizarCampo('raza', text)}
+                onChangeText={text => actualizarCampo('raza', text)}
                 placeholder={t('mascotas:crear.paso2.placeholder')}
               />
               <View style={styles.botonesRow}>
@@ -175,21 +224,32 @@ export const CrearMascotaFlow: React.FC<CrearMascotaFlowProps> = ({
               </View>
             </View>
           </Animated.View>
-        );
+        )
       case 3:
         return (
           <Animated.View
             style={{
               opacity: stepAnim,
-              transform: [{ translateY: stepAnim.interpolate({ inputRange: [0, 1], outputRange: [20, 0] }) }],
+              transform: [
+                {
+                  translateY: stepAnim.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [20, 0],
+                  }),
+                },
+              ],
             }}
           >
             <View style={styles.pasoContainer}>
-              <Text style={styles.titulo}>{t('mascotas:crear.paso3.titulo')}</Text>
+              <Text style={styles.titulo}>
+                {t('mascotas:crear.paso3.titulo')}
+              </Text>
               <DatePicker
                 label={t('mascotas:crear.paso3.fecha_nacimiento')}
                 value={datosMascota.fecha_nacimiento}
-                onValueChange={(date) => actualizarCampo('fecha_nacimiento', date)}
+                onValueChange={date =>
+                  actualizarCampo('fecha_nacimiento', date)
+                }
                 maximumDate={new Date()}
               />
               <View style={styles.botonesRow}>
@@ -207,18 +267,29 @@ export const CrearMascotaFlow: React.FC<CrearMascotaFlowProps> = ({
               </View>
             </View>
           </Animated.View>
-        );
+        )
       case 4:
         return (
           <Animated.View
             style={{
               opacity: stepAnim,
-              transform: [{ translateY: stepAnim.interpolate({ inputRange: [0, 1], outputRange: [20, 0] }) }],
+              transform: [
+                {
+                  translateY: stepAnim.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [20, 0],
+                  }),
+                },
+              ],
             }}
           >
             <View style={styles.pasoContainer}>
-              <Text style={styles.titulo}>{t('mascotas:crear.paso4.titulo')}</Text>
-              <Text style={styles.subtitulo}>{t('mascotas:crear.paso4.subtitulo')}</Text>
+              <Text style={styles.titulo}>
+                {t('mascotas:crear.paso4.titulo')}
+              </Text>
+              <Text style={styles.subtitulo}>
+                {t('mascotas:crear.paso4.subtitulo')}
+              </Text>
               <Animated.View style={{ transform: [{ scale: avatarScale }] }}>
                 <PetAvatar
                   uri={datosMascota.foto}
@@ -249,11 +320,11 @@ export const CrearMascotaFlow: React.FC<CrearMascotaFlowProps> = ({
               />
             </View>
           </Animated.View>
-        );
+        )
       default:
-        return null;
+        return null
     }
-  };
+  }
 
   return (
     <BottomSheet visible={visible} onClose={onClose}>
@@ -270,13 +341,16 @@ export const CrearMascotaFlow: React.FC<CrearMascotaFlowProps> = ({
         {Array.from({ length: totalPasos }).map((_, index) => (
           <View
             key={index}
-            style={[styles.punto, index + 1 === pasoActual && styles.puntoActivo]}
+            style={[
+              styles.punto,
+              index + 1 === pasoActual && styles.puntoActivo,
+            ]}
           />
         ))}
       </View>
     </BottomSheet>
-  );
-};
+  )
+}
 
 const styles = StyleSheet.create({
   pasoContainer: {
@@ -332,4 +406,4 @@ const styles = StyleSheet.create({
     backgroundColor: COLOR.PRIMARIO,
     width: 24,
   },
-});
+})
