@@ -109,11 +109,9 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
               {
                 transform: [{ translateY: slideAnim }],
                 paddingBottom:
-                  keyboardHeight > 0
-                    ? (Platform.OS === 'ios'
-                        ? keyboardHeight * 0.4
-                        : keyboardHeight * 0.3) + 20
-                    : 20,
+                  (Platform.OS === 'ios' && keyboardHeight > 0
+                    ? keyboardHeight
+                    : 0) + 20,
                 ...(typeof height === 'number'
                   ? { height }
                   : { maxHeight: '90%' }),
