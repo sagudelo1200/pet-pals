@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
-import { View, StyleSheet, Text, Alert } from 'react-native';
+import React, { useState, useRef, useEffect } from 'react';
+import { View, StyleSheet, Text, Alert, Animated } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { COLOR } from '@/constants';
-import { BottomSheet, Button, TextInput, PetAvatar, DatePicker } from '@/components/ui';
+import { BottomSheet, Button, PetAvatar, DatePicker, TextInput as UITextInput } from '@/components/ui';
 import { useFormularioMascota } from '@/hooks/useFormularioMascota';
 import type { Mascota } from '@/models/Mascota';
 import * as ImagePicker from 'expo-image-picker';
@@ -32,6 +32,28 @@ export const CrearMascotaFlow: React.FC<CrearMascotaFlowProps> = ({
   } = useFormularioMascota(mascotaInicial);
 
   const [guardando, setGuardando] = useState(false);
+
+  // Animation values
+  const stepAnim = useRef(new Animated.Value(0)).current;
+  const avatarScale = useRef(new Animated.Value(1)).current;
+
+  // Animate step transition when the step changes
+  useEffect(() => {
+    stepAnim.setValue(0);
+    Animated.timing(stepAnim, {
+      toValue: 1,
+      duration: 300,
+      useNativeDriver: true,
+    }).start();
+  }, [pasoActual]);
+
+  // Trigger avatar scaling after a photo is selected
+  const triggerAvatarScale = () => {
+    Animated.sequence([
+      Animated.timing(avatarScale, { toValue: 1.2, duration: 150, useNativeDriver: true }),
+      Animated.timing(avatarScale, { toValue: 1, duration: 150, useNativeDriver: true }),
+    ]).start();
+  };
 
   const handleContinuar = () => {
     if (validarPasoActual()) {
@@ -65,7 +87,6 @@ export const CrearMascotaFlow: React.FC<CrearMascotaFlowProps> = ({
       Alert.alert(t('mascotas:mensajes.permisos_galeria'));
       return;
     }
-
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
@@ -73,9 +94,9 @@ export const CrearMascotaFlow: React.FC<CrearMascotaFlowProps> = ({
       quality: 0.7,
       base64: true,
     });
-
     if (!result.canceled && result.assets[0].base64) {
       actualizarCampo('foto', `data:image/jpeg;base64,${result.assets[0].base64}`);
+      triggerAvatarScale();
     }
   };
 
@@ -85,16 +106,15 @@ export const CrearMascotaFlow: React.FC<CrearMascotaFlowProps> = ({
       Alert.alert(t('mascotas:mensajes.permisos_camara'));
       return;
     }
-
     const result = await ImagePicker.launchCameraAsync({
       allowsEditing: true,
       aspect: [1, 1],
       quality: 0.7,
       base64: true,
     });
-
     if (!result.canceled && result.assets[0].base64) {
       actualizarCampo('foto', `data:image/jpeg;base64,${result.assets[0].base64}`);
+      triggerAvatarScale();
     }
   };
 
@@ -102,108 +122,134 @@ export const CrearMascotaFlow: React.FC<CrearMascotaFlowProps> = ({
     switch (pasoActual) {
       case 1:
         return (
-          <View style={styles.pasoContainer}>
-            <Text style={styles.emocional}>{t('mascotas:crear.paso1.emocional')}</Text>
-            <Text style={styles.titulo}>{t('mascotas:crear.paso1.titulo')}</Text>
-            <TextInput
-              value={datosMascota.nombre || ''}
-              onChangeText={(text) => actualizarCampo('nombre', text)}
-              placeholder={t('mascotas:crear.paso1.placeholder')}
-            />
-            <Button
-              title={t('mascotas:crear.paso1.continuar')}
-              onPress={handleContinuar}
-              disabled={!validarPasoActual()}
-              style={styles.boton}
-            />
-          </View>
+          <Animated.View
+            style={{
+              opacity: stepAnim,
+              transform: [{ translateY: stepAnim.interpolate({ inputRange: [0, 1], outputRange: [20, 0] }) }],
+            }}
+          >
+            <View style={styles.pasoContainer}>
+              <Text style={styles.emocional}>{t('mascotas:crear.paso1.emocional')}</Text>
+              <Text style={styles.titulo}>{t('mascotas:crear.paso1.titulo')}</Text>
+              <UITextInput
+                value={datosMascota.nombre || ''}
+                onChangeText={(text) => actualizarCampo('nombre', text)}
+                placeholder={t('mascotas:crear.paso1.placeholder')}
+              />
+              <Button
+                title={t('mascotas:crear.paso1.continuar')}
+                onPress={handleContinuar}
+                disabled={!validarPasoActual()}
+                style={styles.boton}
+              />
+            </View>
+          </Animated.View>
         );
-
       case 2:
         return (
-          <View style={styles.pasoContainer}>
-            <Text style={styles.titulo}>{t('mascotas:crear.paso2.titulo')}</Text>
-            <TextInput
-              value={datosMascota.raza || ''}
-              onChangeText={(text) => actualizarCampo('raza', text)}
-              placeholder={t('mascotas:crear.paso2.placeholder')}
-            />
-            <View style={styles.botonesRow}>
-              <Button
-                title={t('mascotas:crear.paso2.saltar')}
-                variant="bloque"
-                onPress={handleSaltar}
-                style={styles.botonMitad}
+          <Animated.View
+            style={{
+              opacity: stepAnim,
+              transform: [{ translateY: stepAnim.interpolate({ inputRange: [0, 1], outputRange: [20, 0] }) }],
+            }}
+          >
+            <View style={styles.pasoContainer}>
+              <Text style={styles.titulo}>{t('mascotas:crear.paso2.titulo')}</Text>
+              <UITextInput
+                value={datosMascota.raza || ''}
+                onChangeText={(text) => actualizarCampo('raza', text)}
+                placeholder={t('mascotas:crear.paso2.placeholder')}
               />
-              <Button
-                title={t('mascotas:crear.paso2.continuar')}
-                onPress={handleContinuar}
-                style={styles.botonMitad}
-              />
+              <View style={styles.botonesRow}>
+                <Button
+                  title={t('mascotas:crear.paso2.saltar')}
+                  variant="bloque"
+                  onPress={handleSaltar}
+                  style={styles.botonMitad}
+                />
+                <Button
+                  title={t('mascotas:crear.paso2.continuar')}
+                  onPress={handleContinuar}
+                  style={styles.botonMitad}
+                />
+              </View>
             </View>
-          </View>
+          </Animated.View>
         );
-
       case 3:
         return (
-          <View style={styles.pasoContainer}>
-            <Text style={styles.titulo}>{t('mascotas:crear.paso3.titulo')}</Text>
-            <DatePicker
-              label={t('mascotas:crear.paso3.fecha_nacimiento')}
-              value={datosMascota.fecha_nacimiento}
-              onValueChange={(date) => actualizarCampo('fecha_nacimiento', date)}
-              maximumDate={new Date()}
-            />
-            <View style={styles.botonesRow}>
-              <Button
-                title={t('mascotas:crear.paso3.saltar')}
-                variant="bloque"
-                onPress={handleSaltar}
-                style={styles.botonMitad}
+          <Animated.View
+            style={{
+              opacity: stepAnim,
+              transform: [{ translateY: stepAnim.interpolate({ inputRange: [0, 1], outputRange: [20, 0] }) }],
+            }}
+          >
+            <View style={styles.pasoContainer}>
+              <Text style={styles.titulo}>{t('mascotas:crear.paso3.titulo')}</Text>
+              <DatePicker
+                label={t('mascotas:crear.paso3.fecha_nacimiento')}
+                value={datosMascota.fecha_nacimiento}
+                onValueChange={(date) => actualizarCampo('fecha_nacimiento', date)}
+                maximumDate={new Date()}
               />
-              <Button
-                title={t('mascotas:crear.paso3.continuar')}
-                onPress={handleContinuar}
-                style={styles.botonMitad}
-              />
+              <View style={styles.botonesRow}>
+                <Button
+                  title={t('mascotas:crear.paso3.saltar')}
+                  variant="bloque"
+                  onPress={handleSaltar}
+                  style={styles.botonMitad}
+                />
+                <Button
+                  title={t('mascotas:crear.paso3.continuar')}
+                  onPress={handleContinuar}
+                  style={styles.botonMitad}
+                />
+              </View>
             </View>
-          </View>
+          </Animated.View>
         );
-
       case 4:
         return (
-          <View style={styles.pasoContainer}>
-            <Text style={styles.titulo}>{t('mascotas:crear.paso4.titulo')}</Text>
-            <Text style={styles.subtitulo}>{t('mascotas:crear.paso4.subtitulo')}</Text>
-            <PetAvatar
-              uri={datosMascota.foto}
-              size="large"
-              editable
-              onPress={handleSeleccionarFoto}
-            />
-            <View style={styles.botonesRow}>
+          <Animated.View
+            style={{
+              opacity: stepAnim,
+              transform: [{ translateY: stepAnim.interpolate({ inputRange: [0, 1], outputRange: [20, 0] }) }],
+            }}
+          >
+            <View style={styles.pasoContainer}>
+              <Text style={styles.titulo}>{t('mascotas:crear.paso4.titulo')}</Text>
+              <Text style={styles.subtitulo}>{t('mascotas:crear.paso4.subtitulo')}</Text>
+              <Animated.View style={{ transform: [{ scale: avatarScale }] }}>
+                <PetAvatar
+                  uri={datosMascota.foto}
+                  size="large"
+                  editable
+                  onPress={handleSeleccionarFoto}
+                />
+              </Animated.View>
+              <View style={styles.botonesRow}>
+                <Button
+                  title={t('mascotas:crear.paso4.camara')}
+                  variant="bloque"
+                  onPress={handleTomarFoto}
+                  style={styles.botonMitad}
+                />
+                <Button
+                  title={t('mascotas:crear.paso4.galeria')}
+                  variant="bloque"
+                  onPress={handleSeleccionarFoto}
+                  style={styles.botonMitad}
+                />
+              </View>
               <Button
-                title={t('mascotas:crear.paso4.camara')}
-                variant="bloque"
-                onPress={handleTomarFoto}
-                style={styles.botonMitad}
-              />
-              <Button
-                title={t('mascotas:crear.paso4.galeria')}
-                variant="bloque"
-                onPress={handleSeleccionarFoto}
-                style={styles.botonMitad}
+                title={t('mascotas:crear.confirmacion.guardar')}
+                onPress={handleGuardar}
+                loading={guardando}
+                style={styles.boton}
               />
             </View>
-            <Button
-              title={t('mascotas:crear.confirmacion.guardar')}
-              onPress={handleGuardar}
-              loading={guardando}
-              style={styles.boton}
-            />
-          </View>
+          </Animated.View>
         );
-
       default:
         return null;
     }
@@ -224,10 +270,7 @@ export const CrearMascotaFlow: React.FC<CrearMascotaFlowProps> = ({
         {Array.from({ length: totalPasos }).map((_, index) => (
           <View
             key={index}
-            style={[
-              styles.punto,
-              index + 1 === pasoActual && styles.puntoActivo,
-            ]}
+            style={[styles.punto, index + 1 === pasoActual && styles.puntoActivo]}
           />
         ))}
       </View>

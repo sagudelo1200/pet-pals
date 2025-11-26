@@ -149,14 +149,14 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   list: {
-    padding: 16,
+    padding: 15,
     gap: 12,
   },
   fab: {
     position: 'absolute',
-    bottom: 80,
-    right: 20,
+    bottom: 90,
+    right: 21,
     zIndex: 1000,
-    elevation: 8,
+    elevation: 9,
   },
 });

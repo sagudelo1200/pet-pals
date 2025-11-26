@@ -39,12 +39,13 @@ export default {
     },
     userInterfaceStyle: 'dark', // Forzar modo oscuro para evitar fondos blancos del sistema
     androidNavigationBar: {
-      barStyle: 'light-content',
       backgroundColor: '#0F2521', // COLOR.BLOQUE
       translucent: false, // IMPORTANTE: Evita que el sistema ponga una capa oscura encima
+      barStyle: 'dark-content',
+      visible: 'sticky-immersive',
     },
     androidStatusBar: {
-      barStyle: 'light-content',
+      barStyle: 'dark-content',
       backgroundColor: 'transparent',
       hidden: false,
       translucent: true,
