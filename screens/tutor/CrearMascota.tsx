@@ -123,7 +123,7 @@ const CrearMascota: React.FC<Props> = ({
     >
       <StatusBar
         backgroundColor="transparent"
-        barStyle="light-content"
+        barStyle="dark-content"
         translucent
       />
       <SafeAreaView
@@ -216,7 +216,7 @@ const styles = StyleSheet.create({
   },
   title: { fontSize: 22, fontWeight: '700', color: COLOR.TEXTO },
   closeButton: { padding: 4 },
-  scrollView: { maxHeight: '70%' },
+  scrollView: { maxHeight: '60%' },
   form: { padding: 20, paddingTop: 16 },
   actions: {
     flexDirection: 'row',

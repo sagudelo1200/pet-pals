@@ -10,3 +10,6 @@ yarn.lock
 .env
 
 .github
+OAuth.secrets.json
+credentials.json
+android/*

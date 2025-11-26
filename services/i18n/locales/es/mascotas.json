@@ -14,38 +14,109 @@
     "error_cargar": "No pudimos cargar tus mascotas. Intenta nuevamente"
   },
   "lista": {
-    "titulo": "Tus mascotas",
+    "titulo": "Tus Mascotas",
     "refrescar": "Refrescar",
     "agregar": "Agregar mascota"
   },
   "vacio": {
-    "titulo": "Aún no tienes mascotas registradas",
-    "descripcion": "Tus mascotas son parte de tu familia. Comencemos agregándolas 🐾",
-    "accion_agregar": "Agregar mi primera mascota"
+    "titulo": "Aún no tienes mascotas",
+    "subtitulo": "Tus mascotas son parte de tu familia. Comencemos agregándolas 🐾",
+    "boton": "Agregar tu primera mascota"
   },
-  "tarjeta": {},
-  "formulario": {
-    "titulo_crear": "Agregar mascota",
-    "titulo_editar": "Editar mascota",
-    "guardar": "Guardar",
-    "cancelar": "Cancelar",
-    "nombre_label": "Nombre",
-    "nombre_placeholder": "¿Cómo se llama tu mascota?"
+  "crear": {
+    "paso1": {
+      "emocional": "Cada mascota tiene una historia única",
+      "titulo": "¿Cómo se llama?",
+      "placeholder": "Nombre de tu mascota",
+      "continuar": "Continuar"
+    },
+    "paso2": {
+      "titulo": "¿De qué raza?",
+      "placeholder": "Raza (opcional)",
+      "saltar": "Saltar",
+      "continuar": "Continuar"
+    },
+    "paso3": {
+      "titulo": "¿Cuántos años tiene?",
+      "fecha_nacimiento": "Fecha de nacimiento",
+      "edad_aproximada": "Edad aproximada",
+      "placeholder_anos": "Años",
+      "placeholder_meses": "Meses",
+      "saltar": "Saltar",
+      "continuar": "Continuar"
+    },
+    "paso4": {
+      "titulo": "Agreguemos una foto",
+      "subtitulo": "Una imagen vale más que mil palabras",
+      "tocar_agregar": "Tocar para agregar foto",
+      "camara": "Tomar foto",
+      "galeria": "Elegir de galería",
+      "saltar": "Saltar",
+      "continuar": "Continuar"
+    },
+    "confirmacion": {
+      "titulo": "¡Casi listo!",
+      "subtitulo": "Revisa que todo esté correcto",
+      "guardar": "Guardar mascota",
+      "editar": "Editar información"
+    }
   },
-  "opciones": {
-    "especie": {},
-    "genero": {},
-    "tamano": {},
-    "nivel_energia": {}
+  "editar": {
+    "titulo": "Editar Mascota",
+    "guardar": "Guardar cambios"
   },
-  "confirmacion": {
-    "eliminar_titulo": "¿Eliminar a {{nombre}}?",
-    "eliminar_mensaje": "Esta acción no se puede deshacer. ¿Estás seguro de que quieres eliminar a {{nombre}} de tu lista?",
-    "eliminar_confirmar": "Eliminar",
-    "eliminar_cancelar": "Cancelar"
+  "detalle": {
+    "informacion_basica": "Información Básica",
+    "salud": "Salud",
+    "comportamiento": "Comportamiento",
+    "editar": "Editar",
+    "eliminar": "Eliminar"
   },
-  "exitoso": {
-    "titulo": "¡Mascota agregada!",
-    "mensaje": "{{nombre}} está casi lista para su primer paseo, completa su perfil."
+  "eliminar": {
+    "titulo": "¿Eliminar mascota?",
+    "mensaje": "Esta acción no se puede deshacer. ¿Estás seguro de que quieres eliminar a {{nombre}}?",
+    "confirmar": "Sí, eliminar",
+    "cancelar": "Cancelar"
+  },
+  "campos": {
+    "nombre": "Nombre",
+    "tipo": "Tipo",
+    "raza": "Raza",
+    "edad": "Edad",
+    "fecha_nacimiento": "Fecha de nacimiento",
+    "genero": "Género",
+    "tamano": "Tamaño",
+    "peso": "Peso",
+    "esterilizado": "Esterilizado",
+    "nivel_energia": "Nivel de energía"
+  },
+  "tipos": {
+    "perro": "Perro",
+    "gato": "Gato",
+    "otro": "Otro"
+  },
+  "generos": {
+    "macho": "Macho",
+    "hembra": "Hembra"
+  },
+  "tamanos": {
+    "muy_pequeno": "Muy pequeño",
+    "pequeno": "Pequeño",
+    "mediano": "Mediano",
+    "grande": "Grande",
+    "gigante": "Gigante"
+  },
+  "energia": {
+    "bajo": "Bajo",
+    "medio": "Medio",
+    "alto": "Alto"
+  },
+  "mensajes": {
+    "creado": "{{nombre}} ha sido agregado a tu familia 🎉",
+    "actualizado": "Información de {{nombre}} actualizada",
+    "eliminado": "Mascota eliminada",
+    "error": "Ocurrió un error. Intenta nuevamente.",
+    "permisos_galeria": "Necesitamos permisos para acceder a tu galería",
+    "permisos_camara": "Necesitamos permisos para acceder a tu cámara"
   }
 }

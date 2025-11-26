@@ -1,341 +1,162 @@
-import React, { useEffect, useState, useCallback, useRef } from 'react'
+import React, { useState, useEffect, useRef } from 'react';
 import {
-  StyleSheet,
   View,
-  Text,
-  Pressable,
-  Alert,
-  Animated,
+  StyleSheet,
+  FlatList,
   RefreshControl,
-  Platform,
-} from 'react-native'
-import { useNavigation } from '@react-navigation/native'
-import { COLOR } from '@/constants'
-import {
-  Screen,
-  Fab,
-  EmptyState,
-  Icon,
-  Skeleton,
-  PetCard,
-} from '@/components/ui'
-import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { ServicioMascota, ServicioAuth } from '@/services/firebase'
-import type { Mascota as MascotaModel } from '@/models/Mascota'
-import { useTranslation } from 'react-i18next'
-import CrearMascota from './CrearMascota'
+  Animated,
+  Alert,
+  Text,
+} from 'react-native';
+import { useTranslation } from 'react-i18next';
+import { COLOR } from '@/constants';
+import { Screen, EmptyState, Fab, PetCard, LoadingScreen, Button } from '@/components/ui';
+import { useMascotas } from '@/hooks/useMascotas';
+import { CrearMascotaFlow } from './CrearMascotaFlow';
+import type { Mascota } from '@/models/Mascota';
 
-const Mascotas: React.FC = () => {
-  const navigation = useNavigation<any>()
-  const { t } = useTranslation()
-  const [mascotas, setMascotas] = useState<MascotaModel[]>([])
-  const [cargando, setCargando] = useState<boolean>(true)
-  const [refreshing, setRefreshing] = useState<boolean>(false)
-  const [error, setError] = useState<string | undefined>(undefined)
-  const [showCrear, setShowCrear] = useState(false)
-  const [editingPet, setEditingPet] = useState<MascotaModel | undefined>(
-    undefined
-  )
-
-  const insets = useSafeAreaInsets()
-  const fadeAnim = useRef(new Animated.Value(0)).current
-
-  const tabBarHeight =
-    Platform.OS === 'ios'
-      ? Math.max(insets.bottom + 65, 85)
-      : Math.max(insets.bottom + 60, 75)
-
-  // Restamos insets.bottom porque Screen ya aplica un SafeAreaView que añade ese padding
-  // Si no lo restamos, se duplica el espacio (padding del Screen + altura del TabBar que incluye insets)
-  const fabBottom = tabBarHeight - (insets.bottom || 0) + 16
-
-  const fetchMascotas = useCallback(
-    async (isRefresh = false) => {
-      if (!isRefresh) setCargando(true)
-      setError(undefined)
-
-      try {
-        const user = ServicioAuth.obtenerUsuarioActual()
-        if (!user) {
-          setMascotas([])
-          setError(t('comun:errores.NO_AUTENTICADO'))
-          if (!isRefresh) setCargando(false)
-          return
-        }
-
-        const res = await ServicioMascota.obtenerPorUsuario(user.uid)
-        if (res.success) {
-          setMascotas(res.data ?? [])
-
-          // Animar fade-in de la lista
-          if (!isRefresh) {
-            Animated.timing(fadeAnim, {
-              toValue: 1,
-              duration: 400,
-              useNativeDriver: true,
-            }).start()
-          }
-        } else {
-          setError(res.error as string)
-        }
-      } catch (e) {
-        setError(t('mascotas:errores.error_cargar'))
-      } finally {
-        if (!isRefresh) setCargando(false)
-        setRefreshing(false)
-      }
-    },
-    [t, fadeAnim]
-  )
+export default function Mascotas({ navigation }: any) {
+  const { t } = useTranslation();
+  const { mascotas, loading, error, refrescar, crear, eliminar } = useMascotas();
+  const [modalVisible, setModalVisible] = useState(false);
+  const [mascotaEditando, setMascotaEditando] = useState<Mascota | undefined>();
+  const fadeAnim = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
-    void fetchMascotas()
-  }, [fetchMascotas])
+    if (!loading && mascotas.length > 0) {
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 400,
+        useNativeDriver: true,
+      }).start();
+    }
+  }, [loading, mascotas.length]);
 
-  const handleRefresh = useCallback(() => {
-    setRefreshing(true)
-    void fetchMascotas(true)
-  }, [fetchMascotas])
+  const handleAbrirCrear = () => {
+    setMascotaEditando(undefined);
+    setModalVisible(true);
+  };
 
-  const handleEliminar = async (pet: MascotaModel) => {
+  const handleAbrirEditar = (mascota: Mascota) => {
+    setMascotaEditando(mascota);
+    setModalVisible(true);
+  };
+
+  const handleGuardar = async (data: Partial<Mascota>) => {
+    await crear(data);
+    setModalVisible(false);
+  };
+
+  const handleEliminar = (mascota: Mascota) => {
     Alert.alert(
-      t('mascotas:confirmacion.eliminar_titulo', { nombre: pet.nombre }),
-      t('mascotas:confirmacion.eliminar_mensaje', { nombre: pet.nombre }),
+      t('mascotas:eliminar.titulo'),
+      t('mascotas:eliminar.mensaje', { nombre: mascota.nombre }),
       [
         {
-          text: t('mascotas:confirmacion.eliminar_cancelar'),
+          text: t('mascotas:eliminar.cancelar'),
           style: 'cancel',
         },
         {
-          text: t('mascotas:confirmacion.eliminar_confirmar'),
+          text: t('mascotas:eliminar.confirmar'),
           style: 'destructive',
           onPress: async () => {
-            const previous = mascotas
-            setMascotas(prev => prev.filter(m => m.id !== pet.id))
-
-            try {
-              const res = await ServicioMascota.eliminar(pet.id)
-              if (!res.success) {
-                setMascotas(previous)
-                Alert.alert(
-                  t('comun:error'),
-                  t('mascotas:errores.error_eliminar')
-                )
-              }
-            } catch (err) {
-              setMascotas(previous)
-              Alert.alert(
-                t('comun:error'),
-                t('mascotas:errores.error_eliminar')
-              )
+            if (mascota.id) {
+              await eliminar(mascota.id);
             }
           },
         },
       ]
-    )
+    );
+  };
+
+  const handleVerDetalle = (mascota: Mascota) => {
+    navigation.navigate('DetalleMascota', { mascotaId: mascota.id });
+  };
+
+  const renderPetCard = ({ item, index }: { item: Mascota; index: number }) => {
+    return (
+      <PetCard
+        pet={item}
+        onPress={() => handleVerDetalle(item)}
+        onEdit={() => handleAbrirEditar(item)}
+        onDelete={() => handleEliminar(item)}
+        animationDelay={index * 100}
+      />
+    );
+  };
+
+  if (loading && mascotas.length === 0) {
+    return <LoadingScreen />;
   }
 
-  const handleEditar = (pet: MascotaModel) => {
-    setEditingPet(pet)
-    setShowCrear(true)
-  }
-
-  const handleVerDetalles = (pet: MascotaModel) => {
-    try {
-      navigation.navigate('DetalleMascota', { id: pet.id })
-    } catch (e) {
-      // Si la ruta no existe, abrir en modo edición
-      handleEditar(pet)
-    }
-  }
-
-  const handleCrear = () => {
-    setEditingPet(undefined)
-    setShowCrear(true)
-  }
-
-  const handleCloseModal = () => {
-    setShowCrear(false)
-    setEditingPet(undefined)
-  }
-
-  const handleSaved = () => {
-    setShowCrear(false)
-    setEditingPet(undefined)
-    void fetchMascotas()
+  if (error) {
+    return (
+      <Screen>
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 }}>
+          <Text style={{ color: COLOR.ERROR, fontSize: 16, textAlign: 'center' }}>
+            {error}
+          </Text>
+          <Button title={t('comun:reintentar')} onPress={refrescar} style={{ marginTop: 20 }} />
+        </View>
+      </Screen>
+    );
   }
 
   return (
-    <Screen
-      scroll
-      style={styles.container}
-      contentContainerStyle={styles.content}
-      scrollProps={{
-        refreshControl: (
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={handleRefresh}
-            tintColor={COLOR.ENFASIS}
-            colors={[COLOR.ENFASIS]}
-          />
-        ),
-      }}
-      floating={
-        <Fab
-          onPress={handleCrear}
-          iconName="plus"
-          accessibilityLabel={t('mascotas:lista.agregar')}
-          style={[styles.fab, { bottom: fabBottom }]}
-        />
-      }
+    <Screen 
+      contentContainerStyle={{ flex: 1 }}
+      floating={<Fab onPress={handleAbrirCrear} style={styles.fab} />}
     >
-      {/* Header */}
-      <View style={styles.headerRow}>
-        <Text style={styles.title}>{t('mascotas:lista.titulo')}</Text>
-        <View style={styles.headerActions}>
-          <Pressable
-            onPress={handleRefresh}
-            style={styles.iconButton}
-            accessibilityLabel={t('mascotas:lista.refrescar')}
-            accessibilityRole="button"
-            hitSlop={8}
-            android_ripple={{ color: 'rgba(230,243,239,0.08)' }}
-          >
-            <Icon name="sync" size={18} />
-          </Pressable>
-        </View>
-      </View>
-
-      {error ? (
-        <View style={styles.section}>
-          <Text style={{ color: COLOR.ERROR }}>{String(error)}</Text>
-        </View>
-      ) : null}
-
-      {/* Lista de mascotas */}
-      {cargando ? (
-        <View style={styles.section}>
-          {[1, 2, 3].map(i => (
-            <View key={i} style={styles.skeletonCard}>
-              <View style={styles.skeletonContent}>
-                <Skeleton circle width={64} height={64} />
-                <View style={styles.skeletonInfo}>
-                  <Skeleton
-                    width="60%"
-                    height={20}
-                    style={{ marginBottom: 8 }}
-                  />
-                  <Skeleton
-                    width="40%"
-                    height={14}
-                    style={{ marginBottom: 8 }}
-                  />
-                  <Skeleton width="30%" height={14} />
-                </View>
-              </View>
-            </View>
-          ))}
-        </View>
+      {mascotas.length === 0 ? (
+        <EmptyState
+          title={t('mascotas:vacio.titulo')}
+          description={t('mascotas:vacio.subtitulo')}
+          actionLabel={t('mascotas:vacio.boton')}
+          onActionPress={handleAbrirCrear}
+        />
       ) : (
-        <Animated.View style={[styles.section, { opacity: fadeAnim }]}>
-          {mascotas.length === 0 ? (
-            <EmptyState
-              title={t('mascotas:vacio.titulo')}
-              description={t('mascotas:vacio.descripcion')}
-              actionLabel={t('mascotas:vacio.accion_agregar')}
-              onActionPress={handleCrear}
-              iconName="paw"
-              style={{ paddingVertical: 32 }}
-            />
-          ) : (
-            <View style={styles.list}>
-              {mascotas.map((pet, index) => (
-                <PetCard
-                  key={pet.id}
-                  pet={pet}
-                  onPress={() => handleVerDetalles(pet)}
-                  onEdit={() => handleEditar(pet)}
-                  onDelete={() => handleEliminar(pet)}
-                  animationDelay={index * 80}
-                  testID={`pet-card-${pet.id}`}
-                />
-              ))}
-            </View>
-          )}
+        <Animated.View style={[styles.listContainer, { opacity: fadeAnim }]}>
+          <FlatList
+            data={mascotas}
+            renderItem={renderPetCard}
+            keyExtractor={(item) => item.id || ''}
+            contentContainerStyle={styles.list}
+            showsVerticalScrollIndicator={false}
+            refreshControl={
+              <RefreshControl
+                refreshing={loading}
+                onRefresh={refrescar}
+                tintColor={COLOR.PRIMARIO}
+                colors={[COLOR.PRIMARIO]}
+              />
+            }
+          />
         </Animated.View>
       )}
 
-      {/* Modal de crear/editar */}
-      <CrearMascota
-        visible={showCrear}
-        onClose={handleCloseModal}
-        onCreated={handleSaved}
-        editingPet={editingPet}
+      <CrearMascotaFlow
+        visible={modalVisible}
+        onClose={() => setModalVisible(false)}
+        onGuardar={handleGuardar}
+        mascotaInicial={mascotaEditando}
       />
     </Screen>
-  )
+  );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  listContainer: {
     flex: 1,
-    backgroundColor: COLOR.BASE,
-  },
-  content: {
-    padding: 16,
-    paddingBottom: 100,
-  },
-  section: {
-    marginBottom: 16,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: COLOR.TEXTO,
-    marginBottom: 8,
-    letterSpacing: -0.5,
-  },
-  headerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 20,
-  },
-  headerActions: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  iconButton: {
-    padding: 10,
-    borderRadius: 20,
   },
   list: {
-    width: '100%',
+    padding: 16,
+    gap: 12,
   },
   fab: {
     position: 'absolute',
-    right: 18,
-    bottom: 24,
-    zIndex: 99999,
-    elevation: 100,
+    bottom: 80,
+    right: 20,
+    zIndex: 1000,
+    elevation: 8,
   },
-  skeletonCard: {
-    backgroundColor: COLOR.BLOQUE,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: COLOR.BORDE,
-    marginBottom: 12,
-    overflow: 'hidden',
-  },
-  skeletonContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 16,
-  },
-  skeletonInfo: {
-    flex: 1,
-    marginLeft: 12,
-  },
-})
-
-export default Mascotas
+});

@@ -4,6 +4,7 @@ export default {
   expo: {
     name: 'Pet Pals',
     slug: 'pet-pals',
+    scheme: 'petpals', // Necesario para Deep Linking y Auth Session
     privacy: 'public',
     platforms: ['ios', 'android'],
     version: '0.1.0',
@@ -36,17 +37,20 @@ export default {
         // Modo Expo prebuild: algunos campos se mapean desde androidNavigationBar en app.json
       },
     },
+    userInterfaceStyle: 'dark', // Forzar modo oscuro para evitar fondos blancos del sistema
     androidNavigationBar: {
       barStyle: 'light-content',
-      backgroundColor: '#0F2521',
+      backgroundColor: '#0F2521', // COLOR.BLOQUE
+      translucent: false, // IMPORTANTE: Evita que el sistema ponga una capa oscura encima
     },
     androidStatusBar: {
       barStyle: 'light-content',
-      backgroundColor: '#0F2521',
+      backgroundColor: 'transparent',
       hidden: false,
-      translucent: false,
+      translucent: true,
     },
     plugins: [
+      'expo-web-browser',
       [
         'expo-build-properties',
         {

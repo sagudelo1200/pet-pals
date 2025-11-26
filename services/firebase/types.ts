@@ -27,6 +27,7 @@ export interface AuthContextType {
   profile?: import('../../models/Usuario').Usuario | null
   hasRole?: (role: import('../../models/Usuario').RolUsuario) => boolean
   recargarPerfil?: () => Promise<void>
+  ingresarConGoogle?: (credential: any) => Promise<AuthResult>
 }
 
 // Tipos simples para CRUD

@@ -168,16 +168,23 @@ const Button: React.FC<Props> = ({
 const styles = StyleSheet.create({
   button: {
     height: 48,
-    borderRadius: 6,
+    borderRadius: 12, // Más redondeado y moderno
     alignItems: 'center',
     justifyContent: 'center',
+    // Eliminamos sombras para look minimalista/plano
+    elevation: 0,
+    shadowColor: 'transparent',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0,
+    shadowRadius: 0,
   },
   fullWidth: {
     alignSelf: 'stretch' as const,
   },
   text: {
     color: COLOR.TEXTO,
-    fontWeight: '700',
+    fontWeight: '600', // Un poco menos pesado que 700
+    letterSpacing: 0.5,
   },
 })
 

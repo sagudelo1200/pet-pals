@@ -3,6 +3,7 @@ import { StyleSheet, View, Alert, Animated, Dimensions } from 'react-native'
 import { Block, Text } from 'galio-framework'
 import { COLOR } from '@/constants'
 import { Button, TextInput } from '@/components/ui'
+import { GoogleSignInButton } from '@/components/auth/GoogleSignInButton'
 import Screen from '@/components/ui/Screen'
 import { useAuth } from '@/services/context/AuthContext'
 import { tErrorMaybe } from '@/services/i18n'
@@ -206,7 +207,6 @@ const Registro: React.FC = () => {
             }
             onPress={onSubmit}
             variant="primario"
-            fullWidth
             style={styles.submit}
             disabled={!canSubmit}
             loading={cargando}
@@ -216,9 +216,10 @@ const Registro: React.FC = () => {
             title={t('auth:registro.ui.tengoCuenta')}
             onPress={goToLogin}
             variant="bloque"
-            fullWidth
             style={styles.secondary}
           />
+
+          <GoogleSignInButton />
         </Animated.View>
       </Block>
     </Screen>
@@ -287,9 +288,13 @@ const styles = StyleSheet.create({
     marginTop: 14,
     height: 52,
     borderRadius: 26,
+    width: 280,
+    alignSelf: 'center',
   },
   secondary: {
     marginTop: 12,
+    width: 280,
+    alignSelf: 'center',
   },
 })
 

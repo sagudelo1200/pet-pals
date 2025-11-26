@@ -3,6 +3,7 @@ import { StyleSheet, Alert, View, Animated, Dimensions } from 'react-native'
 import { Block, Text } from 'galio-framework'
 import { COLOR } from '@/constants'
 import { Button, TextInput } from '@/components/ui'
+import { GoogleSignInButton } from '@/components/auth/GoogleSignInButton'
 import Screen from '@/components/ui/Screen'
 import { useAuth } from '@/services/context/AuthContext'
 import { useNavigation } from '@react-navigation/native'
@@ -154,7 +155,6 @@ const Ingresar: React.FC = () => {
             }
             onPress={handleSubmit}
             variant="primario"
-            fullWidth
             style={styles.submit}
             disabled={cargando}
             loading={cargando}
@@ -164,9 +164,10 @@ const Ingresar: React.FC = () => {
             title={t('auth:registro.formulario.accion')}
             onPress={goToRegistro}
             variant="bloque"
-            fullWidth
             style={styles.secondary}
           />
+
+          <GoogleSignInButton />
         </Animated.View>
       </Block>
     </Screen>
@@ -235,9 +236,13 @@ const styles = StyleSheet.create({
     marginTop: 12,
     height: 52,
     borderRadius: 26,
+    width: 280,
+    alignSelf: 'center',
   },
   secondary: {
     marginTop: 12,
+    width: 280,
+    alignSelf: 'center',
   },
 })
 

@@ -118,6 +118,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   }
 
+  /** Función para iniciar sesión con Google */
+  const ingresarConGoogle = async (credential: any): Promise<AuthResult> => {
+    setCargando(true)
+    const result = await ServicioAuth.ingresarConGoogle(credential)
+    if (!result.success) setCargando(false)
+    return result
+  }
+
   // Valor que se expone en el contexto
   const value: AuthContextType = {
     user,
@@ -129,6 +137,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     profile: profile ?? null,
     hasRole: (role: RolUsuario) => Array.isArray(roles) && roles.includes(role),
     recargarPerfil,
+    ingresarConGoogle,
   }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
