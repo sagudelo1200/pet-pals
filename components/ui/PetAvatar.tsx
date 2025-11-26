@@ -1,20 +1,20 @@
-import React from 'react';
-import { View, StyleSheet, Pressable, Image, Text } from 'react-native';
-import { COLOR } from '@/constants';
-import Icon from './Icon';
+import React from 'react'
+import { View, StyleSheet, Pressable, Image, Text } from 'react-native'
+import { COLOR } from '@/constants'
+import Icon from './Icon'
 
 interface PetAvatarProps {
-  uri?: string;
-  size?: 'small' | 'medium' | 'large';
-  editable?: boolean;
-  onPress?: () => void;
+  uri?: string
+  size?: 'small' | 'medium' | 'large'
+  editable?: boolean
+  onPress?: () => void
 }
 
 const SIZES = {
   small: 48,
   medium: 80,
   large: 120,
-};
+}
 
 export const PetAvatar: React.FC<PetAvatarProps> = ({
   uri,
@@ -22,62 +22,62 @@ export const PetAvatar: React.FC<PetAvatarProps> = ({
   editable = false,
   onPress,
 }) => {
-  const avatarSize = SIZES[size];
+  const avatarSize = SIZES[size]
 
   const content = (
-    <View
-      style={[
-        styles.container,
-        {
-          width: avatarSize,
-          height: avatarSize,
-          borderRadius: avatarSize / 2,
-        },
-      ]}
-    >
-      {uri ? (
-        <Image
-          source={{ uri }}
-          style={[
-            styles.image,
-            {
-              width: avatarSize,
-              height: avatarSize,
-              borderRadius: avatarSize / 2,
-            },
-          ]}
-        />
-      ) : (
-        <View style={styles.placeholder}>
-          <Icon
-            name="paw"
-            size={avatarSize * 0.4}
-            color={COLOR.SUBTEXTO}
+    <View style={{ width: avatarSize, height: avatarSize }}>
+      <View
+        style={[
+          styles.container,
+          {
+            width: avatarSize,
+            height: avatarSize,
+            borderRadius: avatarSize / 2,
+          },
+        ]}
+      >
+        {uri ? (
+          <Image
+            source={{ uri }}
+            style={[
+              styles.image,
+              {
+                width: avatarSize,
+                height: avatarSize,
+                borderRadius: avatarSize / 2,
+              },
+            ]}
           />
-        </View>
-      )}
+        ) : (
+          <View style={styles.placeholder}>
+            <Icon name="paw" size={avatarSize * 0.4} color={COLOR.SUBTEXTO} />
+          </View>
+        )}
+      </View>
 
       {editable && (
         <View style={styles.editBadge}>
-          <Icon name="camera" size={size === 'large' ? 20 : 16} color={COLOR.TEXTO} />
+          <Icon
+            name="camera"
+            size={size === 'large' ? 20 : 16}
+            color={COLOR.TEXTO}
+          />
         </View>
       )}
     </View>
-  );
+  )
 
   if (editable && onPress) {
     return (
       <Pressable onPress={onPress} style={styles.pressable}>
         {content}
-        {!uri && (
-          <Text style={styles.editText}>Tocar para agregar foto</Text>
-        )}
+        {!uri && <Text style={styles.editText}>Tocar para agregar foto</Text>}
       </Pressable>
-    );
+    )
   }
 
-  return content;
-};
+  return content
+}
 
 const styles = StyleSheet.create({
   pressable: {
@@ -118,4 +118,4 @@ const styles = StyleSheet.create({
     color: COLOR.SUBTEXTO,
     textAlign: 'center',
   },
-});
+})

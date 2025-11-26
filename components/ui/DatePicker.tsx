@@ -1,5 +1,13 @@
 import React, { useState } from 'react'
-import { StyleSheet, Text, View, ViewStyle, Modal, Pressable, Platform } from 'react-native'
+import {
+  StyleSheet,
+  Text,
+  View,
+  ViewStyle,
+  Modal,
+  Pressable,
+  Platform,
+} from 'react-native'
 import { COLOR } from '@/constants'
 import Icon from './Icon'
 import DateTimePicker from '@react-native-community/datetimepicker'
@@ -37,11 +45,11 @@ const DatePicker: React.FC<DatePickerProps> = ({
 
   const formatDate = (date?: Date): string => {
     if (!date) return placeholder
-    
+
     const day = date.getDate().toString().padStart(2, '0')
     const month = (date.getMonth() + 1).toString().padStart(2, '0')
     const year = date.getFullYear()
-    
+
     return `${day}/${month}/${year}`
   }
 
@@ -49,7 +57,7 @@ const DatePicker: React.FC<DatePickerProps> = ({
     if (Platform.OS === 'android') {
       setShowPicker(false)
     }
-    
+
     if (selectedDate) {
       setTempDate(selectedDate)
       if (Platform.OS === 'android') {
@@ -78,7 +86,7 @@ const DatePicker: React.FC<DatePickerProps> = ({
   return (
     <View style={containerStyle} testID={testID}>
       {label && <Text style={styles.label}>{label}</Text>}
-      
+
       <Pressable
         onPress={() => !disabled && setShowPicker(true)}
         style={[
@@ -94,7 +102,7 @@ const DatePicker: React.FC<DatePickerProps> = ({
           name="calendar"
           size={18}
           color={disabled ? COLOR.INACTIVO : COLOR.SUBTEXTO}
-          style={styles.icon}
+          containerStyle={styles.icon}
         />
         <Text
           style={[
@@ -132,7 +140,7 @@ const DatePicker: React.FC<DatePickerProps> = ({
           <Pressable style={styles.modalOverlay} onPress={handleCancel}>
             <Pressable
               style={styles.modalContent}
-              onPress={(e) => e.stopPropagation()}
+              onPress={e => e.stopPropagation()}
             >
               <View style={styles.modalHeader}>
                 <Pressable onPress={handleCancel} style={styles.modalButton}>
