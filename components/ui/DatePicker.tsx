@@ -6,11 +6,54 @@ import {
   ViewStyle,
   Modal,
   Pressable,
-  Platform,
 } from 'react-native'
 import { COLOR } from '@/constants'
 import Icon from './Icon'
-import DateTimePicker from '@react-native-community/datetimepicker'
+import { Calendar, LocaleConfig } from 'react-native-calendars'
+
+// Configurar el calendario en español
+LocaleConfig.locales['es'] = {
+  monthNames: [
+    'Enero',
+    'Febrero',
+    'Marzo',
+    'Abril',
+    'Mayo',
+    'Junio',
+    'Julio',
+    'Agosto',
+    'Septiembre',
+    'Octubre',
+    'Noviembre',
+    'Diciembre',
+  ],
+  monthNamesShort: [
+    'Ene',
+    'Feb',
+    'Mar',
+    'Abr',
+    'May',
+    'Jun',
+    'Jul',
+    'Ago',
+    'Sep',
+    'Oct',
+    'Nov',
+    'Dic',
+  ],
+  dayNames: [
+    'Domingo',
+    'Lunes',
+    'Martes',
+    'Miércoles',
+    'Jueves',
+    'Viernes',
+    'Sábado',
+  ],
+  dayNamesShort: ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'],
+  today: 'Hoy',
+}
+LocaleConfig.defaultLocale = 'es'
 
 interface DatePickerProps {
   label?: string
@@ -27,6 +70,7 @@ interface DatePickerProps {
 
 /**
  * DatePicker: Componente de selección de fecha con diseño PetPals
+ * Usa react-native-calendars para personalización completa
  */
 const DatePicker: React.FC<DatePickerProps> = ({
   label,
@@ -41,7 +85,6 @@ const DatePicker: React.FC<DatePickerProps> = ({
   minimumDate,
 }) => {
   const [showPicker, setShowPicker] = useState(false)
-  const [tempDate, setTempDate] = useState<Date>(value || new Date())
 
   const formatDate = (date?: Date): string => {
     if (!date) return placeholder
@@ -53,26 +96,16 @@ const DatePicker: React.FC<DatePickerProps> = ({
     return `${day}/${month}/${year}`
   }
 
-  const handleDateChange = (event: any, selectedDate?: Date) => {
-    if (Platform.OS === 'android') {
-      setShowPicker(false)
-    }
-
-    if (selectedDate) {
-      setTempDate(selectedDate)
-      if (Platform.OS === 'android') {
-        onValueChange(selectedDate)
-      }
-    }
+  const formatDateForCalendar = (date: Date): string => {
+    const year = date.getFullYear()
+    const month = (date.getMonth() + 1).toString().padStart(2, '0')
+    const day = date.getDate().toString().padStart(2, '0')
+    return `${year}-${month}-${day}`
   }
 
-  const handleConfirm = () => {
-    onValueChange(tempDate)
-    setShowPicker(false)
-  }
-
-  const handleCancel = () => {
-    setTempDate(value || new Date())
+  const handleDayPress = (day: any) => {
+    const selectedDate = new Date(day.year, day.month - 1, day.day)
+    onValueChange(selectedDate)
     setShowPicker(false)
   }
 
@@ -82,6 +115,16 @@ const DatePicker: React.FC<DatePickerProps> = ({
   ]
 
   const borderColor = errorText ? COLOR.ERROR : COLOR.BORDE
+
+  const markedDates = value
+    ? {
+        [formatDateForCalendar(value)]: {
+          selected: true,
+          selectedColor: COLOR.ENFASIS,
+          selectedTextColor: COLOR.BASE,
+        },
+      }
+    : {}
 
   return (
     <View style={containerStyle} testID={testID}>
@@ -117,56 +160,62 @@ const DatePicker: React.FC<DatePickerProps> = ({
 
       {errorText && <Text style={styles.error}>{errorText}</Text>}
 
-      {/* Picker nativo de Android */}
-      {showPicker && Platform.OS === 'android' && (
-        <DateTimePicker
-          value={tempDate}
-          mode="date"
-          display="default"
-          onChange={handleDateChange}
-          maximumDate={maximumDate}
-          minimumDate={minimumDate}
-        />
-      )}
-
-      {/* Modal para iOS */}
-      {showPicker && Platform.OS === 'ios' && (
-        <Modal
-          visible={showPicker}
-          transparent
-          animationType="fade"
-          onRequestClose={handleCancel}
-          statusBarTranslucent
+      {/* Modal con calendario personalizado */}
+      <Modal
+        visible={showPicker}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowPicker(false)}
+        statusBarTranslucent
+      >
+        <Pressable
+          style={styles.modalOverlay}
+          onPress={() => setShowPicker(false)}
         >
-          <Pressable style={styles.modalOverlay} onPress={handleCancel}>
-            <Pressable
-              style={styles.modalContent}
-              onPress={e => e.stopPropagation()}
-            >
-              <View style={styles.modalHeader}>
-                <Pressable onPress={handleCancel} style={styles.modalButton}>
-                  <Text style={styles.cancelText}>Cancelar</Text>
-                </Pressable>
-                <Text style={styles.modalTitle}>{label || 'Fecha'}</Text>
-                <Pressable onPress={handleConfirm} style={styles.modalButton}>
-                  <Text style={styles.confirmText}>Confirmar</Text>
-                </Pressable>
-              </View>
+          <Pressable
+            style={styles.modalContent}
+            onPress={(e) => e.stopPropagation()}
+          >
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>{label || 'Selecciona una fecha'}</Text>
+              <Pressable
+                onPress={() => setShowPicker(false)}
+                style={styles.closeButton}
+                hitSlop={8}
+              >
+                <Icon name="times" size={20} color={COLOR.TEXTO} />
+              </Pressable>
+            </View>
 
-              <DateTimePicker
-                value={tempDate}
-                mode="date"
-                display="spinner"
-                onChange={handleDateChange}
-                maximumDate={maximumDate}
-                minimumDate={minimumDate}
-                textColor={COLOR.TEXTO}
-                style={styles.picker}
-              />
-            </Pressable>
+            <Calendar
+              current={value ? formatDateForCalendar(value) : undefined}
+              onDayPress={handleDayPress}
+              markedDates={markedDates}
+              maxDate={maximumDate ? formatDateForCalendar(maximumDate) : undefined}
+              minDate={minimumDate ? formatDateForCalendar(minimumDate) : undefined}
+              theme={{
+                calendarBackground: COLOR.SECUNDARIO,
+                textSectionTitleColor: COLOR.SUBTEXTO,
+                selectedDayBackgroundColor: COLOR.ENFASIS,
+                selectedDayTextColor: COLOR.BASE,
+                todayTextColor: COLOR.ENFASIS,
+                dayTextColor: COLOR.TEXTO,
+                textDisabledColor: COLOR.INACTIVO,
+                monthTextColor: COLOR.TEXTO,
+                indicatorColor: COLOR.ENFASIS,
+                textDayFontWeight: '400',
+                textMonthFontWeight: '700',
+                textDayHeaderFontWeight: '600',
+                textDayFontSize: 15,
+                textMonthFontSize: 18,
+                textDayHeaderFontSize: 13,
+                arrowColor: COLOR.ENFASIS,
+              }}
+              style={styles.calendar}
+            />
           </Pressable>
-        </Modal>
-      )}
+        </Pressable>
+      </Modal>
     </View>
   )
 }
@@ -215,46 +264,44 @@ const styles = StyleSheet.create({
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.6)',
-    justifyContent: 'flex-end',
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
   },
   modalContent: {
     backgroundColor: COLOR.BASE,
-    borderTopLeftRadius: 16,
-    borderTopRightRadius: 16,
+    borderRadius: 16,
+    width: '100%',
+    maxWidth: 400,
     borderWidth: 1,
     borderColor: COLOR.BORDE,
-    paddingBottom: 20,
+    shadowColor: '#000',
+    shadowOpacity: 0.3,
+    shadowOffset: { width: 0, height: 4 },
+    shadowRadius: 12,
+    elevation: 8,
+    overflow: 'hidden',
   },
   modalHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     padding: 16,
+    backgroundColor: COLOR.BLOQUE,
     borderBottomWidth: 1,
     borderBottomColor: COLOR.BORDE,
   },
   modalTitle: {
-    fontSize: 16,
-    fontWeight: '600',
+    fontSize: 18,
+    fontWeight: '700',
     color: COLOR.TEXTO,
   },
-  modalButton: {
+  closeButton: {
     padding: 4,
-    minWidth: 70,
   },
-  cancelText: {
-    fontSize: 15,
-    color: COLOR.SUBTEXTO,
-  },
-  confirmText: {
-    fontSize: 15,
-    color: COLOR.ENFASIS,
-    fontWeight: '600',
-    textAlign: 'right',
-  },
-  picker: {
-    height: 200,
+  calendar: {
+    borderRadius: 0,
   },
 })
 
