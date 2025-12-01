@@ -12,6 +12,7 @@ import {
 import { useFormularioMascota } from '@/hooks/useFormularioMascota'
 import type { Mascota } from '@/models/Mascota'
 import * as ImagePicker from 'expo-image-picker'
+import AcariciandoMascotaSvg from '@/assets/imgs/undraw/acariciando_mascota.svg'
 
 // Componente para animar la entrada de cada paso
 const PasoAnimado: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -157,6 +158,13 @@ export const CrearMascotaFlow: React.FC<CrearMascotaFlowProps> = ({
         return (
           <PasoAnimado>
             <View style={styles.pasoContainer}>
+              <View style={styles.ilustracionContainer}>
+                <AcariciandoMascotaSvg
+                  width="100%"
+                  height={120}
+                  style={styles.ilustracion}
+                />
+              </View>
               <Text style={styles.emocional}>
                 {t('mascotas:crear.paso1.emocional')}
               </Text>
@@ -316,6 +324,13 @@ export const CrearMascotaFlow: React.FC<CrearMascotaFlowProps> = ({
 const styles = StyleSheet.create({
   pasoContainer: {
     paddingVertical: 20,
+  },
+  ilustracionContainer: {
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  ilustracion: {
+    opacity: 0.9,
   },
   emocional: {
     fontSize: 14,
