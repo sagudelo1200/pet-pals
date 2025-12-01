@@ -86,6 +86,7 @@ const Picker: React.FC<PickerProps> = ({
         transparent
         animationType="fade"
         onRequestClose={() => setModalVisible(false)}
+        statusBarTranslucent
       >
         <Pressable
           style={styles.modalOverlay}

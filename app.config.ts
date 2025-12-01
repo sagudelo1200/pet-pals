@@ -41,14 +41,13 @@ export default {
     androidNavigationBar: {
       backgroundColor: '#0F2521', // COLOR.BLOQUE
       translucent: false, // IMPORTANTE: Evita que el sistema ponga una capa oscura encima
-      barStyle: 'dark-content',
-      visible: 'sticky-immersive',
+      barStyle: 'light-content',
     },
     androidStatusBar: {
-      barStyle: 'dark-content',
-      backgroundColor: 'transparent',
+      barStyle: 'light-content', // Iconos claros sobre fondo oscuro
+      backgroundColor: '#0F2521', // COLOR.BLOQUE - fondo oscuro consistente
       hidden: false,
-      translucent: true,
+      translucent: false, // Fondo sólido, no translúcido
     },
     plugins: [
       'expo-web-browser',

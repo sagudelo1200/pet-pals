@@ -136,6 +136,7 @@ const DatePicker: React.FC<DatePickerProps> = ({
           transparent
           animationType="fade"
           onRequestClose={handleCancel}
+          statusBarTranslucent
         >
           <Pressable style={styles.modalOverlay} onPress={handleCancel}>
             <Pressable
