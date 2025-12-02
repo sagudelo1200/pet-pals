@@ -11,6 +11,7 @@ import {
   Dimensions,
   ActivityIndicator,
   PanResponder,
+  useWindowDimensions,
 } from 'react-native'
 import { useTranslation } from 'react-i18next'
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native'
@@ -23,11 +24,15 @@ import type { Mascota } from '@/models/Mascota'
 import { AuthStackParamList } from '@/navigation/types'
 import { ServicioMascota } from '@/services/firebase'
 
+import PerroSvg from '@/assets/imgs/undraw/perro.svg'
+
 type DetalleMascotaRouteProp = RouteProp<AuthStackParamList, 'DetalleMascota'>
 
-const { height: SCREEN_HEIGHT } = Dimensions.get('window')
+// Valor inicial seguro, pero usaremos useWindowDimensions dentro del componente
+const { height: INITIAL_HEIGHT } = Dimensions.get('window')
 
 const DetalleMascota: React.FC = () => {
+  const { height: screenHeight } = useWindowDimensions()
   const { t } = useTranslation()
   const navigation = useNavigation()
   const route = useRoute<DetalleMascotaRouteProp>()
@@ -48,10 +53,10 @@ const DetalleMascota: React.FC = () => {
   // Constante para el estado parcial (altura oculta inicialmente)
   // Calculado para dejar visible aprox 465px (Imagen + Info + Botones)
   // Sheet height es 85% de pantalla. Offset = SheetHeight - VisibleHeight
-  const PARTIAL_OFFSET = Math.max(0, SCREEN_HEIGHT * 0.85 - 465)
+  const PARTIAL_OFFSET = Math.max(0, screenHeight * 0.85 - 465)
 
   // Animaciones
-  const slideAnim = useRef(new Animated.Value(SCREEN_HEIGHT)).current
+  const slideAnim = useRef(new Animated.Value(INITIAL_HEIGHT)).current
   const opacityAnim = useRef(new Animated.Value(0)).current
   const scrollViewRef = useRef<ScrollView>(null)
 
@@ -79,7 +84,7 @@ const DetalleMascota: React.FC = () => {
   const handleClose = () => {
     Animated.parallel([
       Animated.timing(slideAnim, {
-        toValue: SCREEN_HEIGHT,
+        toValue: screenHeight,
         duration: 200,
         useNativeDriver: true,
       }),
@@ -193,6 +198,19 @@ const DetalleMascota: React.FC = () => {
     ]).start()
   }, [mascotaId, mascotaParam, t])
 
+  // Efecto para ajustar posición si cambian dimensiones (y corregir el glitch de background)
+  useEffect(() => {
+    if (!isExpanded && !loading) {
+      // Forzar actualización de posición si cambia la altura de pantalla
+      Animated.spring(slideAnim, {
+        toValue: PARTIAL_OFFSET,
+        useNativeDriver: true,
+        tension: 45,
+        friction: 8,
+      }).start()
+    }
+  }, [screenHeight, isExpanded, loading, PARTIAL_OFFSET])
+
   // handleClose movido arriba para usarlo en PanResponder
 
   const handleEdit = () => {
@@ -270,8 +288,9 @@ const DetalleMascota: React.FC = () => {
                   style={styles.heroImage}
                 />
               ) : (
+                /* Poner un breve margen superior */
                 <View style={styles.placeholderHero}>
-                  <Icon name="paw" size={60} color={COLOR.SUBTEXTO} />
+                  <PerroSvg width="100%" height="100%" />
                 </View>
               )}
               <View style={styles.heroOverlay} />
@@ -489,10 +508,12 @@ const styles = StyleSheet.create({
   },
   placeholderHero: {
     width: '100%',
-    height: '100%',
+    height: 250,
     backgroundColor: COLOR.BLOQUE,
     justifyContent: 'center',
     alignItems: 'center',
+    paddingTop: 21,
+    paddingBottom: 21,
   },
   heroOverlay: {
     position: 'absolute',
