@@ -1,4 +1,22 @@
 {
+  "titulo": "Paseos",
+  "subtitulo": "Gestiona los paseos de tus mascotas",
+  "lista": {
+    "vacio_proximos": "No tienes paseos programados",
+    "vacio_completados": "Aún no has completado ningún paseo",
+    "programar_btn": "Programar Paseo"
+  },
+  "estado": {
+    "pendiente": "Pendiente",
+    "confirmado": "Confirmado",
+    "en_progreso": "En Progreso",
+    "completado": "Completado",
+    "cancelado": "Cancelado"
+  },
+  "tarjeta": {
+    "cuidador": "Cuidador:",
+    "sin_cuidador": "Por asignar"
+  },
   "errores": {
     "PASEO_NO_ENCONTRADO": "El paseo indicado no existe.",
     "PASEO_NO_ES_MULTIPLE": "Este paseo no admite múltiples mascotas.",
