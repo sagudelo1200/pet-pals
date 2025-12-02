@@ -4,6 +4,7 @@ import TutorTabNavigator from '@/navigation/TutorTabNavigator'
 import CuidadorTabNavigator from '@/navigation/CuidadorTabNavigator'
 import AdminTabNavigator from '@/navigation/AdminTabNavigator'
 import AuthNavigator from './AuthNavigator'
+import DetalleMascota from '@/screens/tutor/DetalleMascota'
 import { AuthStackParamList } from './types'
 
 // Stack principal con autenticación
@@ -17,6 +18,15 @@ export default function RootNavigator(): React.ReactElement {
       <Stack.Screen name="TutorApp" component={TutorTabNavigator} />
       <Stack.Screen name="CuidadorApp" component={CuidadorTabNavigator} />
       <Stack.Screen name="AdminApp" component={AdminTabNavigator} />
+      <Stack.Screen
+        name="DetalleMascota"
+        component={DetalleMascota}
+        options={{
+          presentation: 'transparentModal',
+          headerShown: false,
+          cardStyle: { backgroundColor: 'transparent' },
+        }}
+      />
     </Stack.Navigator>
   )
 }

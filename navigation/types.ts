@@ -6,6 +6,7 @@ export type AuthStackParamList = {
   TutorApp: undefined
   CuidadorApp: undefined
   AdminApp: undefined
+  DetalleMascota: { mascotaId: string }
 }
 
 // Flujo interno de autenticación (pantallas del stack de Auth)

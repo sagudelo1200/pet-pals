@@ -70,7 +70,10 @@
     "salud": "Salud",
     "comportamiento": "Comportamiento",
     "editar": "Editar",
-    "eliminar": "Eliminar"
+    "eliminar": "Eliminar",
+    "sobre_mi": "Sobre mí",
+    "sin_descripcion": "Sin descripción disponible.",
+    "vacuna": "Vacuna: "
   },
   "eliminar": {
     "titulo": "¿Eliminar mascota?",

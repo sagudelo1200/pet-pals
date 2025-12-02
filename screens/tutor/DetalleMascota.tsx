@@ -1,260 +1,435 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react'
 import {
-  View,
   StyleSheet,
+  View,
   Text,
   ScrollView,
-  Animated,
+  Image,
+  Pressable,
   Alert,
-} from 'react-native';
-import { useTranslation } from 'react-i18next';
-import { COLOR } from '@/constants';
-import { Screen, Button, PetAvatar, Card, LoadingScreen } from '@/components/ui';
-import { ServicioMascota } from '@/services/firebase';
-import type { Mascota } from '@/models/Mascota';
-import { CrearMascotaFlow } from './CrearMascotaFlow';
+  Animated,
+  Dimensions,
+} from 'react-native'
+import { useTranslation } from 'react-i18next'
+import { useNavigation, useRoute, RouteProp } from '@react-navigation/native'
+import { COLOR } from '@/constants'
+import Card from '@/components/ui/Card'
+import Button from '@/components/ui/Button'
+import Icon from '@/components/ui/Icon'
+import Badge from '@/components/ui/Badge'
+import type { Mascota } from '@/models/Mascota'
+import { AuthStackParamList } from '@/navigation/types'
 
-interface DetalleMascotaProps {
-  route: {
-    params: {
-      mascotaId: string;
-    };
-  };
-  navigation: any;
+// Mock Data para desarrollo
+const MOCK_MASCOTA: Mascota = {
+  id: '1',
+  nombre: 'Max',
+  especie: 'perro',
+  raza: 'Golden Retriever',
+  fecha_nacimiento: new Date(new Date().setFullYear(new Date().getFullYear() - 3)), // 3 años
+  genero: 'macho',
+  tamano: 'grande',
+  peso: 28.5,
+  nivel_energia: 'alto',
+  esterilizado: true,
+  vacunas: [
+    { nombre: 'Rabia', fecha: new Date() },
+    { nombre: 'Séxtuple', fecha: new Date() },
+  ],
+  condiciones_salud: ['Alergia al pollo'],
+  condiciones_comportamiento: ['Se lleva bien con otros perros'],
+  descripcion:
+    'Max es un perro muy juguetón y cariñoso. Le encanta nadar y correr por el parque. Es muy sociable con personas y otros animales.',
+  foto: 'https://images.unsplash.com/photo-1552053831-71594a27632d?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60',
+  activo: true,
+  creado_en: new Date(),
+  actualizado_en: new Date(),
+  creado_por: 'user-1',
+  actualizado_por: 'user-1',
 }
 
-export default function DetalleMascota({ route, navigation }: DetalleMascotaProps) {
-  const { t } = useTranslation();
-  const { mascotaId } = route.params;
-  const [mascota, setMascota] = useState<Mascota | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [modalVisible, setModalVisible] = useState(false);
-  const fadeAnim = useRef(new Animated.Value(0)).current;
+type DetalleMascotaRouteProp = RouteProp<AuthStackParamList, 'DetalleMascota'>
+
+const { height: SCREEN_HEIGHT } = Dimensions.get('window')
+
+const DetalleMascota: React.FC = () => {
+  const { t } = useTranslation()
+  const navigation = useNavigation()
+  const route = useRoute<DetalleMascotaRouteProp>()
+  const { mascotaId } = route.params
+  const [mascota] = useState<Mascota>(MOCK_MASCOTA)
+
+  // Animaciones
+  const slideAnim = useRef(new Animated.Value(SCREEN_HEIGHT)).current
+  const opacityAnim = useRef(new Animated.Value(0)).current
 
   useEffect(() => {
-    cargarMascota();
-  }, [mascotaId]);
-
-  useEffect(() => {
-    if (mascota) {
-      Animated.timing(fadeAnim, {
-        toValue: 1,
-        duration: 400,
+    Animated.parallel([
+      Animated.spring(slideAnim, {
+        toValue: 0,
         useNativeDriver: true,
-      }).start();
-    }
-  }, [mascota]);
+        tension: 45,
+        friction: 8,
+      }),
+      Animated.timing(opacityAnim, {
+        toValue: 1,
+        duration: 300,
+        useNativeDriver: true,
+      }),
+    ]).start()
+  }, [])
 
-  const cargarMascota = async () => {
-    try {
-      setLoading(true);
-      const resultado = await ServicioMascota.obtenerPorId(mascotaId);
-      if (resultado.success && resultado.data) {
-        setMascota(resultado.data);
-      }
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleEliminar = () => {
-    if (!mascota) return;
-
-    Alert.alert(
-      t('mascotas:eliminar.titulo'),
-      t('mascotas:eliminar.mensaje', { nombre: mascota.nombre }),
-      [
-        {
-          text: t('mascotas:eliminar.cancelar'),
-          style: 'cancel',
-        },
-        {
-          text: t('mascotas:eliminar.confirmar'),
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await ServicioMascota.eliminar(mascotaId);
-              navigation.goBack();
-            } catch (error) {
-              Alert.alert(t('mascotas:mensajes.error'));
-            }
-          },
-        },
-      ]
-    );
-  };
-
-  const handleActualizar = async (data: Partial<Mascota>) => {
-    try {
-      await ServicioMascota.actualizar(mascotaId, data);
-      setModalVisible(false);
-      await cargarMascota();
-    } catch (error) {
-      Alert.alert(t('mascotas:mensajes.error'));
-    }
-  };
-
-  const calcularEdad = (fechaNacimiento?: Date): string => {
-    if (!fechaNacimiento) return 'Edad desconocida';
-    const hoy = new Date();
-    const nacimiento = new Date(fechaNacimiento);
-    const anos = hoy.getFullYear() - nacimiento.getFullYear();
-    const meses = hoy.getMonth() - nacimiento.getMonth();
-    
-    if (anos === 0) {
-      return `${meses} ${meses === 1 ? 'mes' : 'meses'}`;
-    }
-    return `${anos} ${anos === 1 ? 'año' : 'años'}`;
-  };
-
-  if (loading) {
-    return <LoadingScreen />;
+  const handleClose = () => {
+    Animated.parallel([
+      Animated.timing(slideAnim, {
+        toValue: SCREEN_HEIGHT,
+        duration: 200,
+        useNativeDriver: true,
+      }),
+      Animated.timing(opacityAnim, {
+        toValue: 0,
+        duration: 200,
+        useNativeDriver: true,
+      }),
+    ]).start(() => {
+      navigation.goBack()
+    })
   }
 
-  if (!mascota) {
-    return (
-      <Screen>
-        <Text style={styles.error}>Mascota no encontrada</Text>
-      </Screen>
-    );
+  const handleEdit = () => {
+    Alert.alert('Editar', 'Navegar a pantalla de edición')
+  }
+
+  const handlePaseo = () => {
+    Alert.alert('Paseo', 'Iniciar solicitud de paseo para ' + mascota.nombre)
+  }
+
+  const calcularEdad = (fecha?: Date) => {
+    if (!fecha) return ''
+    const hoy = new Date()
+    const nacimiento = new Date(fecha)
+    let edad = hoy.getFullYear() - nacimiento.getFullYear()
+    const m = hoy.getMonth() - nacimiento.getMonth()
+    if (m < 0 || (m === 0 && hoy.getDate() < nacimiento.getDate())) {
+      edad--
+    }
+    return `${edad} ${t('mascotas:campos.edad').toLowerCase()}`
   }
 
   return (
-    <Screen>
-      <Animated.View style={[styles.container, { opacity: fadeAnim }]}>
-        <ScrollView contentContainerStyle={styles.content}>
-          {/* Hero Section */}
-          <View style={styles.hero}>
-            <PetAvatar uri={mascota.foto} size="large" />
-            <Text style={styles.nombre}>{mascota.nombre}</Text>
-            <Text style={styles.subtitulo}>
-              {t(`mascotas:tipos.${mascota.especie}`)}
-              {mascota.raza && ` • ${mascota.raza}`}
-            </Text>
+    <View style={styles.container}>
+      {/* Backdrop con cierre al tocar */}
+      <Animated.View style={[styles.backdrop, { opacity: opacityAnim }]}>
+        <Pressable style={styles.backdropPress} onPress={handleClose} />
+      </Animated.View>
+
+      {/* Bottom Sheet */}
+      <Animated.View
+        style={[
+          styles.sheet,
+          { transform: [{ translateY: slideAnim }] },
+        ]}
+      >
+        <View style={styles.handle} />
+        
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+        >
+          {/* Imagen Hero */}
+          <View style={styles.heroContainer}>
+            {mascota.foto ? (
+              <Image source={{ uri: mascota.foto }} style={styles.heroImage} />
+            ) : (
+              <View style={styles.placeholderHero}>
+                <Icon name="paw" size={60} color={COLOR.SUBTEXTO} />
+              </View>
+            )}
+            <View style={styles.heroOverlay} />
           </View>
 
-          {/* Información Básica */}
-          <Card style={styles.seccion}>
-            <Text style={styles.tituloSeccion}>
-              {t('mascotas:detalle.informacion_basica')}
-            </Text>
-            {mascota.fecha_nacimiento && (
-              <View style={styles.campo}>
-                <Text style={styles.campoLabel}>{t('mascotas:campos.edad')}</Text>
-                <Text style={styles.campoValor}>{calcularEdad(mascota.fecha_nacimiento)}</Text>
+          <View style={styles.contentContainer}>
+            {/* Tarjeta Principal */}
+            <Card style={styles.mainCard} elevated>
+              <View style={styles.mainInfo}>
+                <View>
+                  <Text style={styles.name}>{mascota.nombre}</Text>
+                  <Text style={styles.breed}>
+                    {mascota.raza || t('mascotas:tipos.' + mascota.especie)}
+                  </Text>
+                </View>
+                <Badge
+                  label={t('mascotas:generos.' + mascota.genero)}
+                  variant={mascota.genero === 'macho' ? 'info' : 'exito'}
+                  size="sm"
+                />
               </View>
-            )}
-            {mascota.genero && (
-              <View style={styles.campo}>
-                <Text style={styles.campoLabel}>{t('mascotas:campos.genero')}</Text>
-                <Text style={styles.campoValor}>
-                  {t(`mascotas:generos.${mascota.genero}`)}
-                </Text>
-              </View>
-            )}
-            {mascota.tamano && (
-              <View style={styles.campo}>
-                <Text style={styles.campoLabel}>{t('mascotas:campos.tamano')}</Text>
-                <Text style={styles.campoValor}>
-                  {t(`mascotas:tamanos.${mascota.tamano.replace(' ', '_')}`)}
-                </Text>
-              </View>
-            )}
-            {mascota.peso && (
-              <View style={styles.campo}>
-                <Text style={styles.campoLabel}>{t('mascotas:campos.peso')}</Text>
-                <Text style={styles.campoValor}>{mascota.peso} kg</Text>
-              </View>
-            )}
-          </Card>
 
-          {/* Botones de Acción */}
-          <View style={styles.acciones}>
-            <Button
-              title={t('mascotas:detalle.editar')}
-              onPress={() => setModalVisible(true)}
-              style={styles.boton}
-            />
-            <Button
-              title={t('mascotas:detalle.eliminar')}
-              variant="bloque"
-              onPress={handleEliminar}
-              style={styles.boton}
-            />
+              <View style={styles.statsRow}>
+                <View style={styles.statItem}>
+                  <Text style={styles.statLabel}>{t('mascotas:campos.edad')}</Text>
+                  <Text style={styles.statValue}>
+                    {calcularEdad(mascota.fecha_nacimiento)}
+                  </Text>
+                </View>
+                <View style={styles.statDivider} />
+                <View style={styles.statItem}>
+                  <Text style={styles.statLabel}>{t('mascotas:campos.peso')}</Text>
+                  <Text style={styles.statValue}>{mascota.peso} kg</Text>
+                </View>
+                <View style={styles.statDivider} />
+                <View style={styles.statItem}>
+                  <Text style={styles.statLabel}>{t('mascotas:campos.tamano')}</Text>
+                  <Text style={styles.statValue}>
+                    {t('mascotas:tamanos.' + mascota.tamano?.replace(' ', '_'))}
+                  </Text>
+                </View>
+              </View>
+            </Card>
+
+            {/* Acciones */}
+            <View style={styles.actionsRow}>
+              <Button
+                title={t('mascotas:detalle.editar')}
+                onPress={handleEdit}
+                variant="secundario"
+                style={styles.actionButton}
+              />
+              <Button
+                title={t('paseos:lista.programar_btn')}
+                onPress={handlePaseo}
+                variant="primario"
+                style={styles.actionButton}
+              />
+            </View>
+
+            {/* Información Detallada (Expandible al scrollear) */}
+            <View style={styles.detailsSection}>
+              <View style={styles.section}>
+                <Text style={styles.sectionTitle}>{t('mascotas:detalle.sobre_mi')}</Text>
+                <Text style={styles.description}>
+                  {mascota.descripcion || t('mascotas:detalle.sin_descripcion')}
+                </Text>
+              </View>
+
+              <View style={styles.section}>
+                <Text style={styles.sectionTitle}>{t('mascotas:detalle.salud')}</Text>
+                <View style={styles.tagsContainer}>
+                  {mascota.esterilizado && (
+                    <Badge
+                      label={t('mascotas:campos.esterilizado')}
+                      variant="exito"
+                      style={styles.tag}
+                    />
+                  )}
+                  {mascota.vacunas?.map((v, i) => (
+                    <Badge
+                      key={i}
+                      label={`${t('mascotas:detalle.vacuna')}${v.nombre}`}
+                      variant="info"
+                      style={styles.tag}
+                    />
+                  ))}
+                  {mascota.condiciones_salud?.map((c, i) => (
+                    <Badge key={i} label={c} variant="alerta" style={styles.tag} />
+                  ))}
+                </View>
+              </View>
+
+              <View style={styles.section}>
+                <Text style={styles.sectionTitle}>
+                  {t('mascotas:detalle.comportamiento')}
+                </Text>
+                <View style={styles.infoRow}>
+                  <Icon name="bolt" size={16} color={COLOR.ENFASIS} />
+                  <Text style={styles.infoLabel}>
+                    {t('mascotas:campos.nivel_energia')}:
+                  </Text>
+                  <Text style={styles.infoValue}>
+                    {t('mascotas:energia.' + mascota.nivel_energia)}
+                  </Text>
+                </View>
+                <View style={styles.tagsContainer}>
+                  {mascota.condiciones_comportamiento?.map((c, i) => (
+                    <Badge key={i} label={c} variant="neutral" style={styles.tag} />
+                  ))}
+                </View>
+              </View>
+              
+              {/* Espacio extra para scroll */}
+              <View style={{ height: 40 }} />
+            </View>
           </View>
         </ScrollView>
       </Animated.View>
-
-      <CrearMascotaFlow
-        visible={modalVisible}
-        onClose={() => setModalVisible(false)}
-        onGuardar={handleActualizar}
-        mascotaInicial={mascota}
-      />
-    </Screen>
-  );
+    </View>
+  )
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    justifyContent: 'flex-end',
   },
-  content: {
-    padding: 16,
+  backdrop: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
-  hero: {
+  backdropPress: {
+    flex: 1,
+  },
+  sheet: {
+    backgroundColor: COLOR.BASE,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    maxHeight: '85%', // Ocupa casi toda la pantalla pero deja ver el fondo arriba
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 10,
+    elevation: 10,
+    overflow: 'hidden', // Para que la imagen respete el borde redondeado superior
+  },
+  handle: {
+    width: 40,
+    height: 4,
+    backgroundColor: 'rgba(255,255,255,0.5)', // Handle sobre la imagen
+    borderRadius: 2,
+    alignSelf: 'center',
+    marginTop: 12,
+    marginBottom: 8,
+    position: 'absolute', // Flotante sobre la imagen
+    zIndex: 10,
+    top: 0,
+  },
+  scrollContent: {
+    paddingBottom: 20,
+  },
+  heroContainer: {
+    height: 250,
+    width: '100%',
+    position: 'relative',
+  },
+  heroImage: {
+    width: '100%',
+    height: '100%',
+    resizeMode: 'cover',
+  },
+  placeholderHero: {
+    width: '100%',
+    height: '100%',
+    backgroundColor: COLOR.BLOQUE,
+    justifyContent: 'center',
     alignItems: 'center',
-    paddingVertical: 32,
   },
-  nombre: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: COLOR.TEXTO,
-    marginTop: 16,
+  heroOverlay: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 80,
+    backgroundColor: 'transparent', // Gradiente simulado si fuera necesario
   },
-  subtitulo: {
-    fontSize: 16,
-    color: COLOR.SUBTEXTO,
-    marginTop: 4,
+  contentContainer: {
+    paddingHorizontal: 20,
+    marginTop: -40, // Superponer tarjeta a la imagen
   },
-  seccion: {
-    marginBottom: 16,
+  mainCard: {
+    marginBottom: 24,
   },
-  tituloSeccion: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: COLOR.TEXTO,
-    marginBottom: 16,
-  },
-  campo: {
+  mainInfo: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingVertical: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: COLOR.BORDE,
+    alignItems: 'flex-start',
+    marginBottom: 20,
   },
-  campoLabel: {
-    fontSize: 14,
+  name: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: COLOR.TEXTO,
+    marginBottom: 4,
+  },
+  breed: {
+    fontSize: 16,
     color: COLOR.SUBTEXTO,
   },
-  campoValor: {
+  statsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: COLOR.SECUNDARIO,
+    borderRadius: 8,
+    padding: 12,
+  },
+  statItem: {
+    alignItems: 'center',
+    flex: 1,
+  },
+  statDivider: {
+    width: 1,
+    height: 24,
+    backgroundColor: COLOR.BORDE,
+  },
+  statLabel: {
+    fontSize: 12,
+    color: COLOR.SUBTEXTO,
+    marginBottom: 4,
+  },
+  statValue: {
     fontSize: 14,
+    fontWeight: '600',
     color: COLOR.TEXTO,
-    fontWeight: '500',
   },
-  acciones: {
+  actionsRow: {
+    flexDirection: 'row',
     gap: 12,
-    marginTop: 24,
+    marginBottom: 24,
   },
-  boton: {
-    width: '100%',
+  actionButton: {
+    flex: 1,
   },
-  error: {
-    fontSize: 16,
-    color: COLOR.ERROR,
-    textAlign: 'center',
-    marginTop: 32,
+  detailsSection: {
+    // Contenido extra
   },
-});
+  section: {
+    marginBottom: 24,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: COLOR.TEXTO,
+    marginBottom: 12,
+  },
+  description: {
+    fontSize: 15,
+    color: COLOR.SUBTEXTO,
+    lineHeight: 22,
+  },
+  tagsContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginTop: 8,
+  },
+  tag: {
+    marginVertical: 0,
+  },
+  infoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  infoLabel: {
+    fontSize: 15,
+    color: COLOR.SUBTEXTO,
+    marginLeft: 8,
+    marginRight: 8,
+  },
+  infoValue: {
+    fontSize: 15,
+    color: COLOR.TEXTO,
+    fontWeight: '600',
+  },
+})
+
+export default DetalleMascota
