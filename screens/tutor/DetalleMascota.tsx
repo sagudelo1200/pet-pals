@@ -9,6 +9,8 @@ import {
   Alert,
   Animated,
   Dimensions,
+  ActivityIndicator,
+  PanResponder,
 } from 'react-native'
 import { useTranslation } from 'react-i18next'
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native'
@@ -19,34 +21,7 @@ import Icon from '@/components/ui/Icon'
 import Badge from '@/components/ui/Badge'
 import type { Mascota } from '@/models/Mascota'
 import { AuthStackParamList } from '@/navigation/types'
-
-// Mock Data para desarrollo
-const MOCK_MASCOTA: Mascota = {
-  id: '1',
-  nombre: 'Max',
-  especie: 'perro',
-  raza: 'Golden Retriever',
-  fecha_nacimiento: new Date(new Date().setFullYear(new Date().getFullYear() - 3)), // 3 años
-  genero: 'macho',
-  tamano: 'grande',
-  peso: 28.5,
-  nivel_energia: 'alto',
-  esterilizado: true,
-  vacunas: [
-    { nombre: 'Rabia', fecha: new Date() },
-    { nombre: 'Séxtuple', fecha: new Date() },
-  ],
-  condiciones_salud: ['Alergia al pollo'],
-  condiciones_comportamiento: ['Se lleva bien con otros perros'],
-  descripcion:
-    'Max es un perro muy juguetón y cariñoso. Le encanta nadar y correr por el parque. Es muy sociable con personas y otros animales.',
-  foto: 'https://images.unsplash.com/photo-1552053831-71594a27632d?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60',
-  activo: true,
-  creado_en: new Date(),
-  actualizado_en: new Date(),
-  creado_por: 'user-1',
-  actualizado_por: 'user-1',
-}
+import { ServicioMascota } from '@/services/firebase'
 
 type DetalleMascotaRouteProp = RouteProp<AuthStackParamList, 'DetalleMascota'>
 
@@ -56,28 +31,50 @@ const DetalleMascota: React.FC = () => {
   const { t } = useTranslation()
   const navigation = useNavigation()
   const route = useRoute<DetalleMascotaRouteProp>()
-  const { mascotaId } = route.params
-  const [mascota] = useState<Mascota>(MOCK_MASCOTA)
+  const { mascotaId, mascota: mascotaParam } = route.params
+
+  const [mascota, setMascota] = useState<Mascota | null>(mascotaParam || null)
+  const [loading, setLoading] = useState(!mascotaParam)
+  const [error, setError] = useState<string | null>(null)
+  const [isExpanded, setIsExpanded] = useState(false)
+
+  // Ref para acceder al estado actualizado dentro del PanResponder
+  const isExpandedRef = useRef(false)
+
+  useEffect(() => {
+    isExpandedRef.current = isExpanded
+  }, [isExpanded])
+
+  // Constante para el estado parcial (altura oculta inicialmente)
+  // Calculado para dejar visible aprox 465px (Imagen + Info + Botones)
+  // Sheet height es 85% de pantalla. Offset = SheetHeight - VisibleHeight
+  const PARTIAL_OFFSET = Math.max(0, SCREEN_HEIGHT * 0.85 - 465)
 
   // Animaciones
   const slideAnim = useRef(new Animated.Value(SCREEN_HEIGHT)).current
   const opacityAnim = useRef(new Animated.Value(0)).current
+  const scrollViewRef = useRef<ScrollView>(null)
 
-  useEffect(() => {
-    Animated.parallel([
-      Animated.spring(slideAnim, {
-        toValue: 0,
-        useNativeDriver: true,
-        tension: 45,
-        friction: 8,
-      }),
-      Animated.timing(opacityAnim, {
-        toValue: 1,
-        duration: 300,
-        useNativeDriver: true,
-      }),
-    ]).start()
-  }, [])
+  // Funciones de animación
+  const animateTo = (toValue: number, callback?: () => void) => {
+    Animated.spring(slideAnim, {
+      toValue,
+      useNativeDriver: true,
+      tension: 45,
+      friction: 8,
+    }).start(callback)
+  }
+
+  const toExpanded = () => {
+    setIsExpanded(true)
+    animateTo(0)
+  }
+
+  const toPartial = () => {
+    setIsExpanded(false)
+    animateTo(PARTIAL_OFFSET)
+    scrollViewRef.current?.scrollTo({ y: 0, animated: true })
+  }
 
   const handleClose = () => {
     Animated.parallel([
@@ -96,18 +93,129 @@ const DetalleMascota: React.FC = () => {
     })
   }
 
+  // PanResponder para gestos
+  const panResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => false,
+      onMoveShouldSetPanResponder: (_, gestureState) => {
+        // Aumentar umbral para evitar disparos accidentales al tocar
+        return Math.abs(gestureState.dy) > 10
+      },
+      onPanResponderMove: (_, gestureState) => {
+        const expanded = isExpandedRef.current
+        const startValue = expanded ? 0 : PARTIAL_OFFSET
+        const newValue = startValue + gestureState.dy
+
+        // Permitir arrastrar hacia arriba con resistencia si ya está expandido
+        if (newValue < 0) {
+          slideAnim.setValue(newValue / 3)
+        } else {
+          slideAnim.setValue(newValue)
+        }
+      },
+      onPanResponderRelease: (_, gestureState) => {
+        const expanded = isExpandedRef.current
+
+        if (expanded) {
+          // Si está expandido
+          if (
+            gestureState.dy > 300 ||
+            (gestureState.dy > 200 && gestureState.vy > 1.5)
+          ) {
+            // Cerrar directamente si se baja mucho o muy rápido
+            handleClose()
+          } else if (gestureState.dy > 100 || gestureState.vy > 0.5) {
+            // Bajar a parcial si el gesto es moderado hacia abajo
+            toPartial()
+          } else {
+            // Volver a expandido si el movimiento fue pequeño o hacia arriba
+            toExpanded()
+          }
+        } else {
+          // Si está en parcial
+          if (gestureState.dy < -50 || gestureState.vy < -0.5) {
+            // Subir a expandido
+            toExpanded()
+          } else if (gestureState.dy > 100 || gestureState.vy > 0.5) {
+            // Cerrar si baja mucho
+            handleClose()
+          } else {
+            // Volver a parcial
+            toPartial()
+          }
+        }
+      },
+    })
+  ).current
+
+  useEffect(() => {
+    const cargarMascota = async () => {
+      if (mascotaParam) {
+        setLoading(false)
+        return
+      }
+
+      if (!mascotaId) {
+        setError('ID de mascota no proporcionado')
+        setLoading(false)
+        return
+      }
+
+      setLoading(true)
+      try {
+        const resultado = await ServicioMascota.obtenerPorId(mascotaId)
+        if (resultado.success && resultado.data) {
+          setMascota(resultado.data)
+        } else {
+          setError(t('mascotas:errores.error_cargar'))
+        }
+      } catch (e) {
+        setError(t('mascotas:errores.error_cargar'))
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    cargarMascota()
+
+    Animated.parallel([
+      Animated.spring(slideAnim, {
+        toValue: PARTIAL_OFFSET,
+        useNativeDriver: true,
+        tension: 45,
+        friction: 8,
+      }),
+      Animated.timing(opacityAnim, {
+        toValue: 1,
+        duration: 300,
+        useNativeDriver: true,
+      }),
+    ]).start()
+  }, [mascotaId, mascotaParam, t])
+
+  // handleClose movido arriba para usarlo en PanResponder
+
   const handleEdit = () => {
     Alert.alert('Editar', 'Navegar a pantalla de edición')
   }
 
   const handlePaseo = () => {
-    Alert.alert('Paseo', 'Iniciar solicitud de paseo para ' + mascota.nombre)
+    if (mascota) {
+      Alert.alert('Paseo', 'Iniciar solicitud de paseo para ' + mascota.nombre)
+    }
   }
 
   const calcularEdad = (fecha?: Date) => {
     if (!fecha) return ''
+    // Convertir Timestamp de Firebase a Date si es necesario
+    const nacimiento =
+      fecha instanceof Date
+        ? fecha
+        : (fecha as any).toDate
+          ? (fecha as any).toDate()
+          : new Date(fecha)
+
     const hoy = new Date()
-    const nacimiento = new Date(fecha)
     let edad = hoy.getFullYear() - nacimiento.getFullYear()
     const m = hoy.getMonth() - nacimiento.getMonth()
     if (m < 0 || (m === 0 && hoy.getDate() < nacimiento.getDate())) {
@@ -125,142 +233,187 @@ const DetalleMascota: React.FC = () => {
 
       {/* Bottom Sheet */}
       <Animated.View
-        style={[
-          styles.sheet,
-          { transform: [{ translateY: slideAnim }] },
-        ]}
+        style={[styles.sheet, { transform: [{ translateY: slideAnim }] }]}
       >
-        <View style={styles.handle} />
-        
-        <ScrollView
-          contentContainerStyle={styles.scrollContent}
-          showsVerticalScrollIndicator={false}
-        >
-          {/* Imagen Hero */}
-          <View style={styles.heroContainer}>
-            {mascota.foto ? (
-              <Image source={{ uri: mascota.foto }} style={styles.heroImage} />
-            ) : (
-              <View style={styles.placeholderHero}>
-                <Icon name="paw" size={60} color={COLOR.SUBTEXTO} />
-              </View>
-            )}
-            <View style={styles.heroOverlay} />
-          </View>
+        <View {...panResponder.panHandlers} style={styles.handleArea}>
+          <View style={styles.handle} />
+        </View>
 
-          <View style={styles.contentContainer}>
-            {/* Tarjeta Principal */}
-            <Card style={styles.mainCard} elevated>
-              <View style={styles.mainInfo}>
-                <View>
-                  <Text style={styles.name}>{mascota.nombre}</Text>
-                  <Text style={styles.breed}>
-                    {mascota.raza || t('mascotas:tipos.' + mascota.especie)}
-                  </Text>
+        {loading ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color={COLOR.PRIMARIO} />
+          </View>
+        ) : error || !mascota ? (
+          <View style={styles.errorContainer}>
+            <Icon name="alert-circle" size={48} color={COLOR.ERROR} />
+            <Text style={styles.errorText}>
+              {error || 'Mascota no encontrada'}
+            </Text>
+            <Button
+              title={t('comun:cerrar')}
+              onPress={handleClose}
+              variant="secundario"
+            />
+          </View>
+        ) : (
+          <ScrollView
+            ref={scrollViewRef}
+            contentContainerStyle={styles.scrollContent}
+            showsVerticalScrollIndicator={false}
+            scrollEnabled={isExpanded}
+          >
+            {/* Imagen Hero */}
+            <View style={styles.heroContainer} {...panResponder.panHandlers}>
+              {mascota.foto ? (
+                <Image
+                  source={{ uri: mascota.foto }}
+                  style={styles.heroImage}
+                />
+              ) : (
+                <View style={styles.placeholderHero}>
+                  <Icon name="paw" size={60} color={COLOR.SUBTEXTO} />
                 </View>
-                <Badge
-                  label={t('mascotas:generos.' + mascota.genero)}
-                  variant={mascota.genero === 'macho' ? 'info' : 'exito'}
-                  size="sm"
+              )}
+              <View style={styles.heroOverlay} />
+            </View>
+
+            <View style={styles.contentContainer}>
+              {/* Tarjeta Principal */}
+              <Card style={styles.mainCard} elevated>
+                <View style={styles.mainInfo}>
+                  <View>
+                    <Text style={styles.name}>{mascota.nombre}</Text>
+                    <Text style={styles.breed}>
+                      {mascota.raza || t('mascotas:tipos.' + mascota.especie)}
+                    </Text>
+                  </View>
+                  <Badge
+                    label={t('mascotas:generos.' + mascota.genero)}
+                    variant={mascota.genero === 'macho' ? 'info' : 'exito'}
+                    size="sm"
+                  />
+                </View>
+
+                <View style={styles.statsRow}>
+                  <View style={styles.statItem}>
+                    <Text style={styles.statLabel}>
+                      {t('mascotas:campos.edad')}
+                    </Text>
+                    <Text style={styles.statValue}>
+                      {calcularEdad(mascota.fecha_nacimiento)}
+                    </Text>
+                  </View>
+                  <View style={styles.statDivider} />
+                  <View style={styles.statItem}>
+                    <Text style={styles.statLabel}>
+                      {t('mascotas:campos.peso')}
+                    </Text>
+                    <Text style={styles.statValue}>{mascota.peso} kg</Text>
+                  </View>
+                  <View style={styles.statDivider} />
+                  <View style={styles.statItem}>
+                    <Text style={styles.statLabel}>
+                      {t('mascotas:campos.tamano')}
+                    </Text>
+                    <Text style={styles.statValue}>
+                      {t(
+                        'mascotas:tamanos.' + mascota.tamano?.replace(' ', '_')
+                      )}
+                    </Text>
+                  </View>
+                </View>
+              </Card>
+
+              {/* Acciones */}
+              <View style={styles.actionsRow}>
+                <Button
+                  title={t('mascotas:detalle.editar')}
+                  onPress={handleEdit}
+                  variant="secundario"
+                  style={styles.actionButton}
+                />
+                <Button
+                  title={t('paseos:lista.programar_btn')}
+                  onPress={handlePaseo}
+                  variant="primario"
+                  style={styles.actionButton}
                 />
               </View>
 
-              <View style={styles.statsRow}>
-                <View style={styles.statItem}>
-                  <Text style={styles.statLabel}>{t('mascotas:campos.edad')}</Text>
-                  <Text style={styles.statValue}>
-                    {calcularEdad(mascota.fecha_nacimiento)}
+              {/* Información Detallada (Expandible al scrollear) */}
+              <View style={styles.detailsSection}>
+                <View style={styles.section}>
+                  <Text style={styles.sectionTitle}>
+                    {t('mascotas:detalle.sobre_mi')}
+                  </Text>
+                  <Text style={styles.description}>
+                    {mascota.descripcion ||
+                      t('mascotas:detalle.sin_descripcion')}
                   </Text>
                 </View>
-                <View style={styles.statDivider} />
-                <View style={styles.statItem}>
-                  <Text style={styles.statLabel}>{t('mascotas:campos.peso')}</Text>
-                  <Text style={styles.statValue}>{mascota.peso} kg</Text>
-                </View>
-                <View style={styles.statDivider} />
-                <View style={styles.statItem}>
-                  <Text style={styles.statLabel}>{t('mascotas:campos.tamano')}</Text>
-                  <Text style={styles.statValue}>
-                    {t('mascotas:tamanos.' + mascota.tamano?.replace(' ', '_'))}
-                  </Text>
-                </View>
-              </View>
-            </Card>
 
-            {/* Acciones */}
-            <View style={styles.actionsRow}>
-              <Button
-                title={t('mascotas:detalle.editar')}
-                onPress={handleEdit}
-                variant="secundario"
-                style={styles.actionButton}
-              />
-              <Button
-                title={t('paseos:lista.programar_btn')}
-                onPress={handlePaseo}
-                variant="primario"
-                style={styles.actionButton}
-              />
+                <View style={styles.section}>
+                  <Text style={styles.sectionTitle}>
+                    {t('mascotas:detalle.salud')}
+                  </Text>
+                  <View style={styles.tagsContainer}>
+                    {mascota.esterilizado && (
+                      <Badge
+                        label={t('mascotas:campos.esterilizado')}
+                        variant="exito"
+                        style={styles.tag}
+                      />
+                    )}
+                    {mascota.vacunas?.map((v, i) => (
+                      <Badge
+                        key={i}
+                        label={`${t('mascotas:detalle.vacuna')}${v.nombre}`}
+                        variant="info"
+                        style={styles.tag}
+                      />
+                    ))}
+                    {mascota.condiciones_salud?.map((c, i) => (
+                      <Badge
+                        key={i}
+                        label={c}
+                        variant="alerta"
+                        style={styles.tag}
+                      />
+                    ))}
+                  </View>
+                </View>
+
+                <View style={styles.section}>
+                  <Text style={styles.sectionTitle}>
+                    {t('mascotas:detalle.comportamiento')}
+                  </Text>
+                  <View style={styles.infoRow}>
+                    <Icon name="bolt" size={16} color={COLOR.ENFASIS} />
+                    <Text style={styles.infoLabel}>
+                      {t('mascotas:campos.nivel_energia')}:
+                    </Text>
+                    <Text style={styles.infoValue}>
+                      {t('mascotas:energia.' + mascota.nivel_energia)}
+                    </Text>
+                  </View>
+                  <View style={styles.tagsContainer}>
+                    {mascota.condiciones_comportamiento?.map((c, i) => (
+                      <Badge
+                        key={i}
+                        label={c}
+                        variant="neutral"
+                        style={styles.tag}
+                      />
+                    ))}
+                  </View>
+                </View>
+
+                {/* Espacio extra para scroll */}
+                <View style={{ height: 40 }} />
+              </View>
             </View>
-
-            {/* Información Detallada (Expandible al scrollear) */}
-            <View style={styles.detailsSection}>
-              <View style={styles.section}>
-                <Text style={styles.sectionTitle}>{t('mascotas:detalle.sobre_mi')}</Text>
-                <Text style={styles.description}>
-                  {mascota.descripcion || t('mascotas:detalle.sin_descripcion')}
-                </Text>
-              </View>
-
-              <View style={styles.section}>
-                <Text style={styles.sectionTitle}>{t('mascotas:detalle.salud')}</Text>
-                <View style={styles.tagsContainer}>
-                  {mascota.esterilizado && (
-                    <Badge
-                      label={t('mascotas:campos.esterilizado')}
-                      variant="exito"
-                      style={styles.tag}
-                    />
-                  )}
-                  {mascota.vacunas?.map((v, i) => (
-                    <Badge
-                      key={i}
-                      label={`${t('mascotas:detalle.vacuna')}${v.nombre}`}
-                      variant="info"
-                      style={styles.tag}
-                    />
-                  ))}
-                  {mascota.condiciones_salud?.map((c, i) => (
-                    <Badge key={i} label={c} variant="alerta" style={styles.tag} />
-                  ))}
-                </View>
-              </View>
-
-              <View style={styles.section}>
-                <Text style={styles.sectionTitle}>
-                  {t('mascotas:detalle.comportamiento')}
-                </Text>
-                <View style={styles.infoRow}>
-                  <Icon name="bolt" size={16} color={COLOR.ENFASIS} />
-                  <Text style={styles.infoLabel}>
-                    {t('mascotas:campos.nivel_energia')}:
-                  </Text>
-                  <Text style={styles.infoValue}>
-                    {t('mascotas:energia.' + mascota.nivel_energia)}
-                  </Text>
-                </View>
-                <View style={styles.tagsContainer}>
-                  {mascota.condiciones_comportamiento?.map((c, i) => (
-                    <Badge key={i} label={c} variant="neutral" style={styles.tag} />
-                  ))}
-                </View>
-              </View>
-              
-              {/* Espacio extra para scroll */}
-              <View style={{ height: 40 }} />
-            </View>
-          </View>
-        </ScrollView>
+          </ScrollView>
+        )}
       </Animated.View>
     </View>
   )
@@ -290,17 +443,36 @@ const styles = StyleSheet.create({
     elevation: 10,
     overflow: 'hidden', // Para que la imagen respete el borde redondeado superior
   },
+  handleArea: {
+    width: '100%',
+    height: 40,
+    alignItems: 'center',
+    justifyContent: 'flex-start',
+    paddingTop: 12,
+    position: 'absolute',
+    zIndex: 20,
+    top: 0,
+  },
   handle: {
     width: 40,
     height: 4,
     backgroundColor: 'rgba(255,255,255,0.5)', // Handle sobre la imagen
     borderRadius: 2,
-    alignSelf: 'center',
-    marginTop: 12,
-    marginBottom: 8,
-    position: 'absolute', // Flotante sobre la imagen
-    zIndex: 10,
-    top: 0,
+  },
+  loadingContainer: {
+    height: 400, // Altura mínima para evitar colapso visual
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  errorContainer: {
+    padding: 40,
+    alignItems: 'center',
+    gap: 16,
+  },
+  errorText: {
+    fontSize: 16,
+    color: COLOR.TEXTO,
+    textAlign: 'center',
   },
   scrollContent: {
     paddingBottom: 20,

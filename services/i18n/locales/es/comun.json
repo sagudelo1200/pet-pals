@@ -3,6 +3,7 @@
   "reintentar": "Reintentar",
   "atras": "← Atrás",
   "error": "Error",
+  "cerrar": "Cerrar",
   "ok": "OK",
   "errores": {
     "NO_AUTENTICADO": "Debes iniciar sesión para continuar.",

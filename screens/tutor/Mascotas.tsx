@@ -77,7 +77,10 @@ export default function Mascotas({ navigation }: any) {
   }
 
   const handleVerDetalle = (mascota: Mascota) => {
-    navigation.navigate('DetalleMascota', { mascotaId: mascota.id })
+    navigation.navigate('DetalleMascota', {
+      mascotaId: mascota.id!,
+      mascota,
+    })
   }
 
   const renderPetCard = ({ item, index }: { item: Mascota; index: number }) => {

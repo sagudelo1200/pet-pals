@@ -100,14 +100,16 @@
   },
   "generos": {
     "macho": "Macho",
-    "hembra": "Hembra"
+    "hembra": "Hembra",
+    "undefined": "No definido"
   },
   "tamanos": {
     "muy_pequeno": "Muy pequeño",
     "pequeno": "Pequeño",
     "mediano": "Mediano",
     "grande": "Grande",
-    "gigante": "Gigante"
+    "gigante": "Gigante",
+    "undefined": "No definido"
   },
   "energia": {
     "bajo": "Bajo",

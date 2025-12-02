@@ -31,9 +31,11 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
   const slideAnim = useRef(new Animated.Value(SCREEN_HEIGHT)).current
   const opacityAnim = useRef(new Animated.Value(0)).current
   const [keyboardHeight, setKeyboardHeight] = useState(0)
+  const [showModal, setShowModal] = useState(visible)
 
   useEffect(() => {
     if (visible) {
+      setShowModal(true)
       Animated.parallel([
         Animated.spring(slideAnim, {
           toValue: 0,
@@ -59,7 +61,9 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
           duration: 200,
           useNativeDriver: true,
         }),
-      ]).start()
+      ]).start(() => {
+        setShowModal(false)
+      })
       // Reset keyboard height when modal closes
       setKeyboardHeight(0)
     }
@@ -91,7 +95,7 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
 
   return (
     <Modal
-      visible={visible}
+      visible={showModal}
       transparent
       animationType="none"
       onRequestClose={onClose}
@@ -130,7 +134,6 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: COLOR.BLOQUE,
   },
   container: {
     flex: 1,
