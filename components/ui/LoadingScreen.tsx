@@ -5,7 +5,7 @@ import { i18n } from '@/services/i18n'
 
 interface LoadingScreenProps {
   message?: string
-  messageType?: 'general' | 'auth' | 'mascota' | 'paseador' | 'custom'
+  messageType?: 'general' | 'auth' | 'mascota' | 'cuidador' | 'custom'
   customMessages?: string[]
   showSpinner?: boolean
   spinnerColor?: string
@@ -26,13 +26,6 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({
 }) => {
   const [currentMessage, setCurrentMessage] = useState<string>('')
 
-  const MINIMAL_FALLBACKS: Record<string, string[]> = {
-    general: ['⏳ Cargando...'],
-    auth: ['🔐 Verificando credenciales...'],
-    mascota: ['🐾 Cargando información de la mascota...'],
-    paseador: ['🗺️ Preparando paseo...'],
-  }
-
   const messageCollections = useMemo(() => {
     const loadFromI18n = (key: string) => {
       try {
@@ -47,16 +40,16 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({
       return undefined
     }
 
-    const general = loadFromI18n('general') || MINIMAL_FALLBACKS.general
-    const auth = loadFromI18n('auth') || MINIMAL_FALLBACKS.auth
-    const mascota = loadFromI18n('mascota') || MINIMAL_FALLBACKS.mascota
-    const paseador = loadFromI18n('paseador') || MINIMAL_FALLBACKS.paseador
+    const general = loadFromI18n('general') || ['Cargando...']
+    const auth = loadFromI18n('auth') || ['Verificando...']
+    const mascota = loadFromI18n('mascota') || ['Cargando mascota...']
+    const cuidador = loadFromI18n('cuidador') || ['Cargando cuidador...']
 
     return {
       general,
       auth,
       mascota,
-      paseador,
+      cuidador,
       custom: customMessages || [],
     }
   }, [customMessages, i18n.language])
@@ -66,6 +59,7 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({
       setCurrentMessage(message)
       return
     }
+    
     const messages =
       messageCollections[messageType as keyof typeof messageCollections] ||
       messageCollections.general
@@ -73,12 +67,12 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({
     const safeMessages =
       Array.isArray(messages) && messages.length > 0
         ? messages
-        : MINIMAL_FALLBACKS.general
+        : ['Cargando...']
 
     const randomMessage =
       safeMessages[Math.floor(Math.random() * safeMessages.length)]
     setCurrentMessage(randomMessage)
-  }, [message, messageType])
+  }, [message, messageType, messageCollections])
 
   return (
     <View style={[styles.container, containerStyle]}>

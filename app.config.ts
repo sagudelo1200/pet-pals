@@ -22,13 +22,13 @@ export default {
     assetBundlePatterns: ['**/*'],
     ios: {
       supportsTablet: true,
-      bundleIdentifier: 'com.petpals.app',
+      bundleIdentifier: 'com.pet-pals.app',
       infoPlist: {
         CFBundleAllowMixedLocalizations: true,
       },
     },
     android: {
-      package: 'com.petpals.app',
+      package: 'com.pet-pals.app',
       adaptiveIcon: {
         foregroundImage: './assets/splash.png',
         backgroundColor: '#1B5E20',
@@ -39,13 +39,13 @@ export default {
     },
     userInterfaceStyle: 'dark', // Forzar modo oscuro para evitar fondos blancos del sistema
     androidNavigationBar: {
-      backgroundColor: '#0F2521', // COLOR.BLOQUE
+      backgroundColor: '#121918', // COLOR.BLOQUE
       translucent: false, // IMPORTANTE: Evita que el sistema ponga una capa oscura encima
       barStyle: 'light-content',
     },
     androidStatusBar: {
       barStyle: 'light-content', // Iconos claros sobre fondo oscuro
-      backgroundColor: '#0F2521', // COLOR.BLOQUE - fondo oscuro consistente
+      backgroundColor: '#121918', // COLOR.BLOQUE - fondo oscuro consistente
       hidden: false,
       translucent: false, // Fondo sólido, no translúcido
     },
