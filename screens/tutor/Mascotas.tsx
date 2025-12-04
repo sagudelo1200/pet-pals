@@ -77,9 +77,27 @@ export default function Mascotas({ navigation }: any) {
   }
 
   const handleVerDetalle = (mascota: Mascota) => {
+    // Serializar fechas para evitar warnings de navegación
+    const mascotaSerializada = {
+      ...mascota,
+      fecha_nacimiento: mascota.fecha_nacimiento
+        ? new Date(mascota.fecha_nacimiento as any).toISOString()
+        : undefined,
+      vacunas: mascota.vacunas?.map(v => ({
+        ...v,
+        fecha: v.fecha ? new Date(v.fecha as any).toISOString() : undefined,
+      })),
+      creado_en: mascota.creado_en
+        ? new Date(mascota.creado_en as any).toISOString()
+        : undefined,
+      actualizado_en: mascota.actualizado_en
+        ? new Date(mascota.actualizado_en as any).toISOString()
+        : undefined,
+    }
+
     navigation.navigate('DetalleMascota', {
       mascotaId: mascota.id!,
-      mascota,
+      mascota: mascotaSerializada as unknown as Mascota,
     })
   }
 

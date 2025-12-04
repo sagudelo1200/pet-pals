@@ -114,7 +114,8 @@
   "energia": {
     "bajo": "Bajo",
     "medio": "Medio",
-    "alto": "Alto"
+    "alto": "Alto",
+    "undefined": "No definido"
   },
   "mensajes": {
     "creado": "{{nombre}} ha sido agregado a tu familia 🎉",

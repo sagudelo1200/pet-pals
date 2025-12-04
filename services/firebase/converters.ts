@@ -59,10 +59,13 @@ export function toDomain<T = any>(input: any): T {
 }
 
 export function toDb<T = any>(input: any): T {
-  if (input == null) return input as T
+  if (input === undefined) return undefined as any
+  if (input === null) return null as any
 
   if (Array.isArray(input)) {
-    return input.map(item => toDb(item)) as unknown as T
+    return input
+      .map(item => toDb(item))
+      .filter(item => item !== undefined) as unknown as T
   }
 
   if (isDate(input)) {
@@ -74,10 +77,12 @@ export function toDb<T = any>(input: any): T {
   if (isPlainObject(input)) {
     const out: any = {}
     for (const [k, v] of Object.entries(input)) {
+      if (v === undefined) continue
+
       if (isDate(v)) {
         out[k] = Timestamp.fromDate(v as Date)
       } else if (Array.isArray(v)) {
-        out[k] = v.map(item => toDb(item))
+        out[k] = v.map(item => toDb(item)).filter(item => item !== undefined)
       } else if (isPlainObject(v)) {
         out[k] = toDb(v)
       } else {

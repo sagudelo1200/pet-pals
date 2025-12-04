@@ -30,6 +30,8 @@ export function mapFirebaseError(err: unknown): ErrorCode {
   const anyErr = err as any
   const code: string | undefined = anyErr?.code
   // Normalizar códigos de Firebase
+  console.warn('Firebase error', code ? `{${code}}:` : ':', anyErr?.message)
+
   switch (code) {
     case 'permission-denied':
       return ERR.COMUN.PERMISOS_INSUFICIENTES
@@ -57,6 +59,8 @@ export function mapFirebaseError(err: unknown): ErrorCode {
     case 'auth/network-request-failed':
     case 'network-request-failed':
       return ERR.AUTH.ERROR_RED
+    case 'invalid-argument':
+      return ERR.COMUN.DATOS_INVALIDOS
     default:
       break
   }

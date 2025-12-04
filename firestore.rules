@@ -142,8 +142,12 @@ service cloud.firestore {
         && es_tutor()
         && campos_sistema_validos_actualizar()
         && request.resource.data.creado_por == resource.data.creado_por
+        && request.resource.data.id == resource.data.id
         && solo_campos_permitidos([
-      'nombre', 'raza', 'edad', 'descripcion',
+      'id', 'nombre', 'raza', 'edad', 'descripcion', 'foto', 'especie', 'genero',
+      'peso', 'tamano', 'nivel_energia', 'fecha_nacimiento', 'esterilizado',
+      'vacunas', 'condiciones_salud', 'condiciones_comportamiento', 'activo',
+      'preferencias_paseo', 'historial_medico',
       'creado_por', 'creado_en', 'actualizado_en', 'actualizado_por'
       ]);
       allow delete: if autenticado() && (es_tutor() || es_admin());

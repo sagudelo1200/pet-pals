@@ -4,6 +4,8 @@
   "atras": "← Atrás",
   "error": "Error",
   "cerrar": "Cerrar",
+  "guardar": "Guardar",
+  "cancelar": "Cancelar",
   "ok": "OK",
   "errores": {
     "NO_AUTENTICADO": "Debes iniciar sesión para continuar.",
