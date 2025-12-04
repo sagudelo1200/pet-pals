@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react'
-import { View, Text, ActivityIndicator, StyleSheet } from 'react-native'
+import { View, Text, Image, StyleSheet } from 'react-native'
 import { COLOR } from '@/constants'
 import { i18n } from '@/services/i18n'
 
@@ -77,10 +77,10 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({
   return (
     <View style={[styles.container, containerStyle]}>
       {showSpinner && (
-        <ActivityIndicator
-          size={spinnerSize}
-          color={spinnerColor}
-          style={styles.spinner}
+        <Image
+          source={require('@/assets/gif/perro_caminando.gif')}
+          style={styles.gif}
+          resizeMode="contain"
         />
       )}
       <Text style={[styles.text, textStyle]}>{currentMessage}</Text>
@@ -96,11 +96,13 @@ const styles = StyleSheet.create({
     backgroundColor: COLOR.BASE,
     padding: 20,
   },
-  spinner: {
-    marginBottom: 20,
+  gif: {
+    width: 150,
+    height: 150,
+    marginBottom: 21,
   },
   text: {
-    fontSize: 16,
+    fontSize: 15,
     textAlign: 'center',
     color: COLOR.TEXTO,
   },

@@ -441,7 +441,7 @@ const DetalleMascota: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'flex-end',
+    justifyContent: 'flex-end'
   },
   backdrop: {
     ...StyleSheet.absoluteFillObject,
@@ -461,6 +461,10 @@ const styles = StyleSheet.create({
     shadowRadius: 10,
     elevation: 10,
     overflow: 'hidden', // Para que la imagen respete el borde redondeado superior
+    borderTopWidth: 1,
+    borderLeftWidth: 1,
+    borderRightWidth: 1,
+    borderColor: COLOR.BORDE,
   },
   handleArea: {
     width: '100%',

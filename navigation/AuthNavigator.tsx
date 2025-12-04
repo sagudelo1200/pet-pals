@@ -80,7 +80,7 @@ const AuthNavigator: React.FC = () => {
   }, [user, cargando, roles, navigation])
 
   if (cargando || user) {
-    return <LoadingScreen messageType="auth" spinnerColor="#22A47C" />
+    return <LoadingScreen messageType="mascota" spinnerColor="#22A47C" />
   }
 
   // Si no hay usuario, mostramos el stack de autenticación (Bienvenida / Ingresar / Registro)

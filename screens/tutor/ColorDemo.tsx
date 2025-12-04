@@ -1,5 +1,5 @@
 // screens/tutor/ColorDemo.tsx
-import React from 'react'
+import React, { useState } from 'react'
 import { View, StyleSheet, TouchableOpacity, Platform } from 'react-native'
 import { Text, theme } from 'galio-framework'
 import { COLOR } from '@/constants'
@@ -16,11 +16,85 @@ import {
   Button,
 } from '@/components/ui'
 import Screen from '@/components/ui/Screen'
+import { ServicioMascota } from '@/services/firebase'
+import { ServicioAuth } from '@/services/firebase/auth'
+import type { Mascota } from '@/models/Mascota'
+import { Alert } from 'react-native'
 
 type ColorKey = keyof typeof COLOR
 
 const ColorDemo: React.FC = () => {
   const colorKeys = Object.keys(COLOR) as ColorKey[]
+  const [creandoMascota, setCreandoMascota] = useState(false)
+
+  const crearMascotaSemilla = async () => {
+    const currentUser = ServicioAuth.obtenerUsuarioActual()
+    if (!currentUser) {
+      Alert.alert('Error', 'Debes estar autenticado para crear una mascota')
+      return
+    }
+
+    setCreandoMascota(true)
+
+    const mascotaData: Omit<
+      Mascota,
+      'id' | 'creado_en' | 'actualizado_en' | 'creado_por' | 'actualizado_por'
+    > = {
+      nombre: 'Max',
+      foto: 'https://cdn.pixabay.com/photo/2023/02/20/23/11/dog-7803251_1280.jpg',
+      especie: 'perro',
+      raza: 'Border Collie',
+      fecha_nacimiento: new Date('2020-03-15'),
+      genero: 'macho',
+      tamano: 'mediano',
+      peso: 25,
+      esterilizado: true,
+      vacunas: [
+        { nombre: 'Rabia', fecha: new Date('2023-06-10') },
+        { nombre: 'Parvovirus', fecha: new Date('2023-06-10') },
+        { nombre: 'Moquillo', fecha: new Date('2023-06-10') },
+        { nombre: 'Hepatitis', fecha: new Date('2023-06-10') },
+      ],
+      condiciones_salud: ['Alergia leve al polen', 'Displasia de cadera grado 1'],
+      historial_medico:
+        'Cirugía de esterilización realizada en 2021. Chequeo anual completo en junio 2023 con resultados normales. Tratamiento preventivo contra pulgas y garrapatas al día.',
+      nivel_energia: 'alto',
+      condiciones_comportamiento: [
+        'Sociable con otros perros',
+        'Amigable con niños',
+        'Puede tirar de la correa',
+        'Le encanta nadar',
+      ],
+      preferencias_paseo: [
+        'Prefiere parques con áreas abiertas',
+        'Le gusta jugar con pelota',
+        'Necesita al menos 45 minutos de ejercicio',
+        'Disfruta de caminatas matutinas',
+      ],
+      descripcion:
+        'Max es un Border Collie de 4 años, muy enérgico y cariñoso. Le encanta jugar y correr, especialmente en espacios abiertos. Es excelente con niños y otros perros. Necesita ejercicio diario para mantenerse feliz y saludable.',
+      activo: true,
+    }
+
+    try {
+      const resultado = await ServicioMascota.crear(mascotaData)
+
+      if (resultado.success && resultado.data) {
+        Alert.alert(
+          '✅ Mascota creada',
+          `${resultado.data.nombre} ha sido creado exitosamente.\n\nID: ${resultado.data.id}`,
+          [{ text: 'OK' }]
+        )
+      } else {
+        Alert.alert('Error', resultado.error || 'No se pudo crear la mascota')
+      }
+    } catch (error) {
+      Alert.alert('Error', 'Ocurrió un error inesperado')
+      console.error('Error creando mascota:', error)
+    } finally {
+      setCreandoMascota(false)
+    }
+  }
 
   return (
     <Screen
@@ -277,6 +351,24 @@ const ColorDemo: React.FC = () => {
           size="lg"
           variant="primario"
           onPress={() => {}}
+          fullWidth
+        />
+      </View>
+
+      {/* Sección de Semillas */}
+      <View style={{ height: 40 }} />
+      <Text style={styles.sectionTitle}>🌱 Semillas (Datos de Prueba)</Text>
+
+      <View style={styles.card}>
+        <Text style={styles.cardTitle}>Crear Mascota de Prueba</Text>
+        <Text style={{ color: COLOR.SUBTEXTO, marginBottom: 12 }}>
+          Crea una mascota completa con todos los campos poblados para pruebas.
+        </Text>
+        <Button
+          title={creandoMascota ? 'Creando...' : '🐾 Crear Mascota "Max"'}
+          variant="primario"
+          onPress={crearMascotaSemilla}
+          disabled={creandoMascota}
           fullWidth
         />
       </View>
