@@ -169,7 +169,7 @@ export class ServicioAuth {
 
       // 2. Verificar si existe en Firestore
       const docUser = await ServicioUsuario.obtenerPorId(user.uid)
-      
+
       // 3. Si no existe, crearlo
       if (!docUser.success || !docUser.data) {
         const nuevoUsuario = {
@@ -179,13 +179,19 @@ export class ServicioAuth {
           roles: ['tutor'], // Rol por defecto
           verificado: true, // Google emails suelen estar verificados
           estado: 'activo',
-          foto: user.photoURL || null
+          foto: user.photoURL || null,
         }
-        
-        const resCreacion = await ServicioUsuario.crearConUid(user.uid, nuevoUsuario as any)
+
+        const resCreacion = await ServicioUsuario.crearConUid(
+          user.uid,
+          nuevoUsuario as any
+        )
         if (!resCreacion.success) {
-          console.error('Error creando usuario Firestore tras Google Auth:', resCreacion.error)
-          // No hacemos rollback del auth aquí para no bloquear el login, 
+          console.error(
+            'Error creando usuario Firestore tras Google Auth:',
+            resCreacion.error
+          )
+          // No hacemos rollback del auth aquí para no bloquear el login,
           // pero idealmente deberíamos manejar esto.
         }
       }

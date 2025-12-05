@@ -1,5 +1,13 @@
 import React, { useState } from 'react'
-import { StyleSheet, Text, View, ViewStyle, Modal, Pressable, ScrollView } from 'react-native'
+import {
+  StyleSheet,
+  Text,
+  View,
+  ViewStyle,
+  Modal,
+  Pressable,
+  ScrollView,
+} from 'react-native'
 import { COLOR } from '@/constants'
 import Icon from './Icon'
 
@@ -49,7 +57,7 @@ const Picker: React.FC<PickerProps> = ({
   return (
     <View style={containerStyle} testID={testID}>
       {label && <Text style={styles.label}>{label}</Text>}
-      
+
       <Pressable
         onPress={() => !disabled && setModalVisible(true)}
         style={[
@@ -94,7 +102,7 @@ const Picker: React.FC<PickerProps> = ({
         >
           <Pressable
             style={styles.modalContent}
-            onPress={(e) => e.stopPropagation()}
+            onPress={e => e.stopPropagation()}
           >
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>{label || 'Selecciona'}</Text>
@@ -108,7 +116,7 @@ const Picker: React.FC<PickerProps> = ({
             </View>
 
             <ScrollView style={styles.optionsList}>
-              {options.map((option) => {
+              {options.map(option => {
                 const isSelected = option.value === value
                 return (
                   <Pressable

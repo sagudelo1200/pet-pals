@@ -61,19 +61,20 @@ const PetCard: React.FC<PetCardProps> = ({
   // Calcular edad desde fecha de nacimiento
   const calcularEdad = (): string => {
     if (!pet.fecha_nacimiento) return ''
-    
-    const nacimiento = pet.fecha_nacimiento instanceof Date 
-      ? pet.fecha_nacimiento 
-      : new Date(pet.fecha_nacimiento)
-    
+
+    const nacimiento =
+      pet.fecha_nacimiento instanceof Date
+        ? pet.fecha_nacimiento
+        : new Date(pet.fecha_nacimiento)
+
     const hoy = new Date()
     const diffMs = hoy.getTime() - nacimiento.getTime()
     const diffMeses = Math.floor(diffMs / (1000 * 60 * 60 * 24 * 30.44))
-    
+
     if (diffMeses < 12) {
       return `${diffMeses} ${diffMeses === 1 ? 'mes' : 'meses'}`
     }
-    
+
     const anos = Math.floor(diffMeses / 12)
     return `${anos} ${anos === 1 ? 'año' : 'años'}`
   }
@@ -116,28 +117,20 @@ const PetCard: React.FC<PetCardProps> = ({
             <Text style={styles.nombre} numberOfLines={1}>
               {pet.nombre}
             </Text>
-            
+
             {pet.raza && (
               <Text style={styles.raza} numberOfLines={1}>
                 {pet.raza}
               </Text>
             )}
-            
+
             <View style={styles.metaRow}>
-              {edad && (
-                <Text style={styles.meta}>
-                  {edad}
-                </Text>
-              )}
+              {edad && <Text style={styles.meta}>{edad}</Text>}
               {pet.tamano && edad && (
                 <Text style={styles.metaSeparator}>•</Text>
               )}
               {pet.tamano && (
-                <Chip
-                  label={pet.tamano}
-                  size="sm"
-                  style={styles.chip}
-                />
+                <Chip label={pet.tamano} size="sm" style={styles.chip} />
               )}
             </View>
           </View>
@@ -147,7 +140,7 @@ const PetCard: React.FC<PetCardProps> = ({
             <View style={styles.actions}>
               {onEdit && (
                 <Pressable
-                  onPress={(e) => {
+                  onPress={e => {
                     e.stopPropagation()
                     onEdit()
                   }}
@@ -155,15 +148,18 @@ const PetCard: React.FC<PetCardProps> = ({
                   accessibilityLabel={`Editar ${pet.nombre}`}
                   accessibilityRole="button"
                   hitSlop={8}
-                  android_ripple={{ color: 'rgba(230, 243, 239, 0.08)', borderless: true }}
+                  android_ripple={{
+                    color: 'rgba(230, 243, 239, 0.08)',
+                    borderless: true,
+                  }}
                 >
                   <Icon name="edit" size={18} color={COLOR.ENFASIS} />
                 </Pressable>
               )}
-              
+
               {onDelete && (
                 <Pressable
-                  onPress={(e) => {
+                  onPress={e => {
                     e.stopPropagation()
                     onDelete()
                   }}
@@ -171,7 +167,10 @@ const PetCard: React.FC<PetCardProps> = ({
                   accessibilityLabel={`Eliminar ${pet.nombre}`}
                   accessibilityRole="button"
                   hitSlop={8}
-                  android_ripple={{ color: 'rgba(224, 106, 106, 0.08)', borderless: true }}
+                  android_ripple={{
+                    color: 'rgba(224, 106, 106, 0.08)',
+                    borderless: true,
+                  }}
                 >
                   <Icon name="trash" size={18} color={COLOR.ERROR} />
                 </Pressable>
@@ -189,8 +188,8 @@ const PetCard: React.FC<PetCardProps> = ({
                   pet.nivel_energia === 'alto'
                     ? 'bolt'
                     : pet.nivel_energia === 'medio'
-                    ? 'walking'
-                    : 'bed'
+                      ? 'walking'
+                      : 'bed'
                 }
                 size={14}
                 color={COLOR.SUBTEXTO}

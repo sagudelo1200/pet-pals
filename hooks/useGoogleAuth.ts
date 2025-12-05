@@ -10,8 +10,10 @@ WebBrowser.maybeCompleteAuthSession()
 export const useGoogleAuth = () => {
   const [request, , promptAsync] = Google.useAuthRequest({
     // Temporalmente usando el Client ID original para pruebas
-    webClientId: '374615502033-0q5rd5d0hpq3gf3camocoj85hlab3jjs.apps.googleusercontent.com',
-    androidClientId: '374615502033-0q5rd5d0hpq3gf3camocoj85hlab3jjs.apps.googleusercontent.com',
+    webClientId:
+      '374615502033-0q5rd5d0hpq3gf3camocoj85hlab3jjs.apps.googleusercontent.com',
+    androidClientId:
+      '374615502033-0q5rd5d0hpq3gf3camocoj85hlab3jjs.apps.googleusercontent.com',
   })
 
   // Log para depuración (puedes verlo en la terminal de Metro)
@@ -28,22 +30,24 @@ export const useGoogleAuth = () => {
     try {
       setLoading(true)
       setError(null)
-      
+
       console.log('🔵 Iniciando Google Auth...')
       const result = await promptAsync()
-      
+
       console.log('🔵 Resultado de Google Auth:', {
         type: result?.type,
         hasParams: !!(result as any)?.params,
         hasAuthentication: !!(result as any)?.authentication,
       })
-      
+
       if (result?.type === 'success') {
         // Intentar obtener id_token de params (implícito) o authentication (PKCE/nativo)
-        const id_token = (result as any).params?.id_token || (result as any).authentication?.idToken
-        
+        const id_token =
+          (result as any).params?.id_token ||
+          (result as any).authentication?.idToken
+
         console.log('🔵 Token obtenido:', id_token ? 'SÍ' : 'NO')
-        
+
         if (!id_token) {
           console.error('❌ No se encontró id_token en la respuesta:', result)
           throw new Error('No se pudo obtener el token de Google')
@@ -51,10 +55,10 @@ export const useGoogleAuth = () => {
 
         console.log('🔵 Creando credential de Firebase...')
         const credential = GoogleAuthProvider.credential(id_token)
-        
+
         console.log('🔵 Llamando a ServicioAuth.ingresarConGoogle...')
         const authResult = await ServicioAuth.ingresarConGoogle(credential)
-        
+
         console.log('🔵 Resultado de ingresarConGoogle:', authResult)
         return authResult
       } else {

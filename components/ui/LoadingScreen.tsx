@@ -59,7 +59,7 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({
       setCurrentMessage(message)
       return
     }
-    
+
     const messages =
       messageCollections[messageType as keyof typeof messageCollections] ||
       messageCollections.general

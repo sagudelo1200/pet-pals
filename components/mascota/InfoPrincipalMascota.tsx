@@ -11,6 +11,7 @@ interface InfoPrincipalMascotaProps {
   mascota: Mascota
   isEditMode: boolean
   editedData: Partial<Mascota>
+  // eslint-disable-next-line
   onUpdateField: <K extends keyof Mascota>(field: K, value: Mascota[K]) => void
 }
 

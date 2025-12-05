@@ -62,7 +62,9 @@ const TarjetaPaseo: React.FC<TarjetaPaseoProps> = ({ paseo, onPress }) => {
         <View style={styles.petInfo}>
           <PetAvatar uri={paseo.mascotaFoto} size="small" />
           <View style={styles.petText}>
-            <Text style={styles.petName}>{paseo.mascotaNombre || 'Mascota'}</Text>
+            <Text style={styles.petName}>
+              {paseo.mascotaNombre || 'Mascota'}
+            </Text>
             <Text style={styles.serviceType}>
               {paseo.tipo_paseo === 'programado' ? 'Programado' : 'A demanda'}
             </Text>
@@ -87,13 +89,15 @@ const TarjetaPaseo: React.FC<TarjetaPaseoProps> = ({ paseo, onPress }) => {
         <View style={styles.detailRow}>
           <Icon name="calendar-alt" size={14} color={COLOR.SUBTEXTO} />
           <Text style={styles.detailText}>
-            {paseo.fecha_hora_inicio && formatDate(new Date(paseo.fecha_hora_inicio))}
+            {paseo.fecha_hora_inicio &&
+              formatDate(new Date(paseo.fecha_hora_inicio))}
           </Text>
         </View>
         <View style={styles.detailRow}>
           <Icon name="clock" size={14} color={COLOR.SUBTEXTO} />
           <Text style={styles.detailText}>
-            {paseo.fecha_hora_inicio && formatTime(new Date(paseo.fecha_hora_inicio))}
+            {paseo.fecha_hora_inicio &&
+              formatTime(new Date(paseo.fecha_hora_inicio))}
             {paseo.duracion_estimada ? ` • ${paseo.duracion_estimada} min` : ''}
           </Text>
         </View>

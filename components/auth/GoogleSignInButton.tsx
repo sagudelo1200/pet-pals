@@ -13,7 +13,9 @@ export const GoogleSignInButton = () => {
   useEffect(() => {
     if (error) {
       Alert.alert(
-        t('auth:errores.tituloGoogle', { defaultValue: 'Error de autenticación' }),
+        t('auth:errores.tituloGoogle', {
+          defaultValue: 'Error de autenticación',
+        }),
         error
       )
     }
@@ -25,7 +27,9 @@ export const GoogleSignInButton = () => {
     const result = await signIn()
     if (result && !result.success && result.error) {
       Alert.alert(
-        t('auth:errores.tituloGoogle', { defaultValue: 'Error de autenticación' }),
+        t('auth:errores.tituloGoogle', {
+          defaultValue: 'Error de autenticación',
+        }),
         result.error
       )
     }

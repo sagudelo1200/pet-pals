@@ -174,10 +174,12 @@ const DatePicker: React.FC<DatePickerProps> = ({
         >
           <Pressable
             style={styles.modalContent}
-            onPress={(e) => e.stopPropagation()}
+            onPress={e => e.stopPropagation()}
           >
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>{label || 'Selecciona una fecha'}</Text>
+              <Text style={styles.modalTitle}>
+                {label || 'Selecciona una fecha'}
+              </Text>
               <Pressable
                 onPress={() => setShowPicker(false)}
                 style={styles.closeButton}
@@ -191,8 +193,12 @@ const DatePicker: React.FC<DatePickerProps> = ({
               current={value ? formatDateForCalendar(value) : undefined}
               onDayPress={handleDayPress}
               markedDates={markedDates}
-              maxDate={maximumDate ? formatDateForCalendar(maximumDate) : undefined}
-              minDate={minimumDate ? formatDateForCalendar(minimumDate) : undefined}
+              maxDate={
+                maximumDate ? formatDateForCalendar(maximumDate) : undefined
+              }
+              minDate={
+                minimumDate ? formatDateForCalendar(minimumDate) : undefined
+              }
               theme={{
                 calendarBackground: COLOR.SECUNDARIO,
                 textSectionTitleColor: COLOR.SUBTEXTO,

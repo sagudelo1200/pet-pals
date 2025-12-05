@@ -1,5 +1,13 @@
 import React, { useState } from 'react'
-import { StyleSheet, Text, View, ViewStyle, Pressable, Alert, Image } from 'react-native'
+import {
+  StyleSheet,
+  Text,
+  View,
+  ViewStyle,
+  Pressable,
+  Alert,
+  Image,
+} from 'react-native'
 import { COLOR } from '@/constants'
 import Icon from './Icon'
 import * as ImagePickerLib from 'expo-image-picker'
@@ -32,9 +40,10 @@ const ImagePicker: React.FC<ImagePickerProps> = ({
 
   const requestPermissions = async (type: 'camera' | 'library') => {
     try {
-      const permission = type === 'camera'
-        ? await ImagePickerLib.requestCameraPermissionsAsync()
-        : await ImagePickerLib.requestMediaLibraryPermissionsAsync()
+      const permission =
+        type === 'camera'
+          ? await ImagePickerLib.requestCameraPermissionsAsync()
+          : await ImagePickerLib.requestMediaLibraryPermissionsAsync()
 
       if (!permission.granted) {
         Alert.alert(
@@ -130,7 +139,7 @@ const ImagePicker: React.FC<ImagePickerProps> = ({
   return (
     <View style={containerStyle} testID={testID}>
       {label && <Text style={styles.label}>{label}</Text>}
-      
+
       <Pressable
         onPress={() => !disabled && !loading && showOptions()}
         style={[
@@ -160,10 +169,7 @@ const ImagePicker: React.FC<ImagePickerProps> = ({
               />
             </View>
             <Text
-              style={[
-                styles.placeholderText,
-                disabled && styles.textDisabled,
-              ]}
+              style={[styles.placeholderText, disabled && styles.textDisabled]}
             >
               {loading ? 'Cargando...' : placeholder}
             </Text>

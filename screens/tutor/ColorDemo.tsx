@@ -55,7 +55,10 @@ const ColorDemo: React.FC = () => {
         { nombre: 'Moquillo', fecha: new Date('2023-06-10') },
         { nombre: 'Hepatitis', fecha: new Date('2023-06-10') },
       ],
-      condiciones_salud: ['Alergia leve al polen', 'Displasia de cadera grado 1'],
+      condiciones_salud: [
+        'Alergia leve al polen',
+        'Displasia de cadera grado 1',
+      ],
       historial_medico:
         'Cirugía de esterilización realizada en 2021. Chequeo anual completo en junio 2023 con resultados normales. Tratamiento preventivo contra pulgas y garrapatas al día.',
       nivel_energia: 'alto',
