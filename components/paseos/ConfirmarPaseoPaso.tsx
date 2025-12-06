@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { StyleSheet, View, Text, Alert, Image } from 'react-native'
+import { StyleSheet, View, Text, Alert, Image, ScrollView } from 'react-native'
 import { useTranslation } from 'react-i18next'
 import { COLOR } from '@/constants'
 import { Button, Card, Icon } from '@/components/ui'
@@ -43,14 +43,19 @@ export const ConfirmarPaseoPaso = ({ petIds, fecha, hora, walkerId, onConfirm, o
         {/* Sección Mascotas */}
         <View style={styles.section}>
           <Text style={styles.label}>{t('paseos:pasos.confirmar.resumen_mascotas')}</Text>
-          <View style={styles.petsRow}>
+          <ScrollView 
+            horizontal 
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.petsRow}
+            style={styles.petsScroll}
+          >
             {mascotas.map(pet => (
               <View key={pet.id} style={styles.petItem}>
                 <PetAvatar uri={pet.imagen} size="medium" />
                 <Text style={styles.petName}>{pet.nombre}</Text>
               </View>
             ))}
-          </View>
+          </ScrollView>
         </View>
 
         <View style={styles.divider} />
@@ -148,6 +153,10 @@ const styles = StyleSheet.create({
   petsRow: {
     flexDirection: 'row',
     gap: 12,
+    paddingRight: 16, // Padding for last item
+  },
+  petsScroll: {
+    flexGrow: 0, // Don't take all space if not needed
   },
   petItem: {
     alignItems: 'center',

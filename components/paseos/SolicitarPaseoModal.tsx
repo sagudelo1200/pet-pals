@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { View, StyleSheet } from 'react-native'
+import { COLOR } from '@/constants'
 import { BottomSheet } from '../ui'
 import { SeleccionarMascotaPaso } from './SeleccionarMascotaPaso'
 import { FechaHoraPaso } from './FechaHoraPaso'
@@ -121,13 +122,46 @@ export const SolicitarPaseoModal = ({ visible, onClose }: Props) => {
     }
   }
 
+  // Map steps to index for indicator
+  const stepsOrder: Step[] = ['SELECT_PET', 'DATE_TIME', 'SELECT_WALKER', 'CONFIRM']
+  const currentStepIndex = stepsOrder.indexOf(step)
+  const totalPasos = stepsOrder.length
+
   return (
     <BottomSheet visible={visible} onClose={onClose}>
       {renderContent()}
+      
+      <View style={styles.indicador}>
+        {Array.from({ length: totalPasos }).map((_, index) => (
+          <View
+            key={index}
+            style={[
+              styles.punto,
+              index === currentStepIndex && styles.puntoActivo,
+            ]}
+          />
+        ))}
+      </View>
     </BottomSheet>
   )
 }
 
 const styles = StyleSheet.create({
-  // BottomSheet handles its own container styles, we just provide content.
+  indicador: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 8,
+    marginTop: 20,
+    marginBottom: 8,
+  },
+  punto: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: COLOR.BORDE,
+  },
+  puntoActivo: {
+    backgroundColor: COLOR.PRIMARIO,
+    width: 24,
+  },
 })
