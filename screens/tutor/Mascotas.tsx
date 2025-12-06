@@ -40,9 +40,16 @@ export default function Mascotas({ navigation }: any) {
   }, [loading, mascotas.length])
 
   // Refrescar lista cuando volvemos a esta pantalla desde DetalleMascota
+  // Refrescar lista SOLO si hay cambios confirmados desde DetalleMascota
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
-      refrescar()
+      // @ts-ignore
+      const params = navigation.getState().routes.find(r => r.name === 'Mascotas')?.params
+      if (params?.refresh) {
+        refrescar()
+        // Limpiar params para evitar bucle infinito si se queda montado con params
+        navigation.setParams({ refresh: undefined })
+      }
     })
     return unsubscribe
   }, [navigation, refrescar])

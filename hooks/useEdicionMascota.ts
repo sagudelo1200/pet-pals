@@ -18,6 +18,7 @@ export const useEdicionMascota = (
   const [isEditMode, setIsEditMode] = useState(false)
   const [editedData, setEditedData] = useState<Partial<Mascota>>({})
   const [saving, setSaving] = useState(false)
+  const [cambiosRealizados, setCambiosRealizados] = useState(false)
 
   useEffect(() => {
     const cargarMascota = async () => {
@@ -88,6 +89,7 @@ export const useEdicionMascota = (
       if (resultado.success && resultado.data) {
         // 5. Confirmar con datos reales del servidor (ej. timestamps actualizados)
         setMascota(resultado.data)
+        setCambiosRealizados(true)
 
       } else {
         throw new Error(resultado.error || 'Error al guardar')
@@ -185,6 +187,7 @@ export const useEdicionMascota = (
     isEditMode,
     editedData,
     saving,
+    cambiosRealizados,
     iniciarEdicion,
     cancelarEdicion,
     guardarCambios,

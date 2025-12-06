@@ -24,7 +24,7 @@ export type AuthFlowParamList = {
 // Tabs principales de la aplicación
 export type TutorTabParamList = {
   Inicio: undefined
-  Mascotas: undefined
+  Mascotas: { refresh?: number } | undefined
   Paseos: undefined
   MiCuenta: undefined
   Colors: undefined

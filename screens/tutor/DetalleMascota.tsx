@@ -64,7 +64,14 @@ const DetalleMascota: React.FC = () => {
   // Hooks
   const { slideAnim, opacityAnim, panResponder, isExpanded, expandir, cerrar } =
     useAnimacionModal({
-      onClose: () => navigation.goBack(),
+      onClose: () => {
+        if (cambiosRealizados) {
+          // @ts-ignore - Navegación entre stacks compleja de tipar
+          navigation.navigate('Mascotas', { refresh: Date.now() })
+        } else {
+          navigation.goBack()
+        }
+      },
       onCollapse: () => {
         scrollViewRef.current?.scrollTo({ y: 0, animated: true })
       },
@@ -83,6 +90,7 @@ const DetalleMascota: React.FC = () => {
     cambiarFoto,
     actualizarCampo,
     eliminarMascota,
+    cambiosRealizados,
   } = useEdicionMascota(mascotaId, mascotaNormalizada)
 
   const handleEdit = () => {
@@ -215,8 +223,9 @@ const DetalleMascota: React.FC = () => {
                               text: t('mascotas:eliminar.confirmar'),
                               style: 'destructive',
                               onPress: async () => {
-                                // Optimistic UI: Navegamos atrás inmediatamente
-                                navigation.goBack() 
+                                // Optimistic UI: Navegamos atrás con refresh
+                                // @ts-ignore
+                                navigation.navigate('Mascotas', { refresh: Date.now() })
                                 // Ejecutamos la eliminación pero no bloqueamos la UI
                                 eliminarMascota()
                               },
