@@ -6,6 +6,8 @@ import { FechaHoraPaso } from './FechaHoraPaso'
 
 import { SeleccionarCuidadorPaso } from './SeleccionarCuidadorPaso'
 
+import { ConfirmarPaseoPaso } from './ConfirmarPaseoPaso'
+
 interface Props {
   visible: boolean
   onClose: () => void
@@ -24,9 +26,16 @@ export const SolicitarPaseoModal = ({ visible, onClose }: Props) => {
     walkerId: null as string | null,
   })
 
-  // Reset steps on close/open if needed, OR keep state?
-  // User didn't specify, but typically we reset if closed.
-  // We'll leave as is for now.
+  // Reset function to clear state when flow ends
+  const resetFlow = () => {
+    setStep('SELECT_PET')
+    setRequestData({
+      petIds: [],
+      fecha: null,
+      hora: null,
+      walkerId: null,
+    })
+  }
 
   const handlePetSelected = (petIds: string[]) => {
     setRequestData(prev => ({ ...prev, petIds }))
@@ -40,8 +49,12 @@ export const SolicitarPaseoModal = ({ visible, onClose }: Props) => {
 
   const handleWalkerSelected = (walkerId: string) => {
     setRequestData(prev => ({ ...prev, walkerId }))
-    // Goto Confirm (not implemented yet)
-    console.log('Walker selected:', walkerId)
+    setStep('CONFIRM')
+  }
+
+  const handleConfirmacionFinal = () => {
+    onClose()
+    resetFlow()
   }
 
   const handleBack = () => {
@@ -49,6 +62,8 @@ export const SolicitarPaseoModal = ({ visible, onClose }: Props) => {
       setStep('SELECT_PET')
     } else if (step === 'SELECT_WALKER') {
       setStep('DATE_TIME')
+    } else if (step === 'CONFIRM') {
+      setStep('SELECT_WALKER')
     }
   }
 
@@ -72,6 +87,17 @@ export const SolicitarPaseoModal = ({ visible, onClose }: Props) => {
         return (
           <SeleccionarCuidadorPaso
             onNext={handleWalkerSelected}
+            onBack={handleBack}
+          />
+        )
+      case 'CONFIRM':
+        return (
+          <ConfirmarPaseoPaso
+            petIds={requestData.petIds}
+            fecha={requestData.fecha}
+            hora={requestData.hora}
+            walkerId={requestData.walkerId}
+            onConfirm={handleConfirmacionFinal}
             onBack={handleBack}
           />
         )

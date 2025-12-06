@@ -49,7 +49,15 @@
       "verificado": "Verificado"
     },
     "confirmar": {
-      "titulo": "Revisa y confirma"
+      "titulo": "Revisa y confirma",
+      "resumen_mascotas": "Mascotas",
+      "resumen_fecha": "Fecha y Hora",
+      "resumen_cuidador": "Cuidador",
+      "costo_servicio": "Costo del servicio",
+      "total": "Total a pagar",
+      "btn_confirmar": "Confirmar Solicitud",
+      "exito_titulo": "¡Solicitud Enviada!",
+      "exito_msg": "Tu solicitud ha sido enviada a {{name}}."
     }
   },
   "solicitado": {
