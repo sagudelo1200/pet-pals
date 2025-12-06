@@ -11,7 +11,9 @@
     "peso_invalido": "El peso debe ser un número positivo",
     "error_guardar": "No pudimos guardar los datos. Intenta nuevamente",
     "error_eliminar": "No pudimos eliminar la mascota. Intenta nuevamente",
-    "error_cargar": "No pudimos cargar tus mascotas. Intenta nuevamente"
+    "error_cargar": "No pudimos cargar tus mascotas. Intenta nuevamente",
+    "error_cargar_imagen": "No pudimos cargar la imagen seleccionada.",
+    "sincronizacion_fallida": "Error de sincronización"
   },
   "lista": {
     "titulo": "Tus Mascotas",
@@ -76,8 +78,8 @@
     "vacuna": "Vacuna: "
   },
   "eliminar": {
-    "titulo": "¿Eliminar mascota?",
-    "mensaje": "Esta acción no se puede deshacer. ¿Estás seguro de que quieres eliminar a {{nombre}}?",
+    "titulo": "¿Quieres eliminar a {{nombre}}?",
+    "mensaje": "Esta acción no se puede deshacer. ¿Seguro que quieres eliminar tu mascota?",
     "confirmar": "Sí, eliminar",
     "cancelar": "Cancelar"
   },
@@ -131,6 +133,7 @@
     "eliminado": "Mascota eliminada",
     "error": "Ocurrió un error. Intenta nuevamente.",
     "permisos_galeria": "Necesitamos permisos para acceder a tu galería",
-    "permisos_camara": "Necesitamos permisos para acceder a tu cámara"
+    "permisos_camara": "Necesitamos permisos para acceder a tu cámara",
+    "rollback_realizado": "No se pudieron guardar los cambios. Se han revertido a la versión anterior."
   }
 }

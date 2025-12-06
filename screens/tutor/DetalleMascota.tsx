@@ -82,6 +82,7 @@ const DetalleMascota: React.FC = () => {
     guardarCambios,
     cambiarFoto,
     actualizarCampo,
+    eliminarMascota,
   } = useEdicionMascota(mascotaId, mascotaNormalizada)
 
   const handleEdit = () => {
@@ -198,6 +199,37 @@ const DetalleMascota: React.FC = () => {
 
               {/* Información Detallada */}
               <DetalleInfoMascota mascota={mascota} />
+
+               {/* Botón Eliminar (Visible solo en modo visualización) */}
+               {!isEditMode && (
+                <View style={styles.deleteContainer}>
+                  <Button
+                    title={t('comun:eliminar')} 
+                    onPress={() => {
+                        Alert.alert(
+                          t('mascotas:eliminar.titulo', { nombre: mascota.nombre }),
+                          t('mascotas:eliminar.mensaje'),
+                          [
+                            { text: t('mascotas:eliminar.cancelar'), style: 'cancel' },
+                            {
+                              text: t('mascotas:eliminar.confirmar'),
+                              style: 'destructive',
+                              onPress: async () => {
+                                // Optimistic UI: Navegamos atrás inmediatamente
+                                navigation.goBack() 
+                                // Ejecutamos la eliminación pero no bloqueamos la UI
+                                eliminarMascota()
+                              },
+                            },
+                          ]
+                        )
+                    }}
+                    variant="secundario" // Base transparente/borde
+                    style={styles.deleteButton}
+                    textStyle={styles.deleteText}
+                  />
+                </View>
+              )}
             </View>
           </ScrollView>
         )}
@@ -266,11 +298,11 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   scrollContent: {
-    paddingBottom: 20,
+    paddingBottom: 60,
   },
   contentContainer: {
-    paddingHorizontal: 20,
-    marginTop: -40,
+    paddingHorizontal: 21,
+    marginTop: -42,
   },
   actionsRow: {
     flexDirection: 'row',
@@ -279,6 +311,22 @@ const styles = StyleSheet.create({
   },
   actionButton: {
     flex: 1,
+  },
+  deleteContainer: {
+    marginTop: 30,
+    alignItems: 'center',
+    marginBottom: 21,
+  },
+  deleteButton: {
+    borderColor: COLOR.ERROR,
+    backgroundColor: 'transparent',
+    borderWidth: 1,
+    paddingHorizontal: 30,
+    height: 42,
+  },
+  deleteText: {
+    color: COLOR.ERROR,
+    fontSize: 14,
   },
 })
 

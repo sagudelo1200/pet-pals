@@ -24,7 +24,7 @@ import type { Mascota } from '@/models/Mascota'
 
 export default function Mascotas({ navigation }: any) {
   const { t } = useTranslation()
-  const { mascotas, loading, error, refrescar, crear, eliminar } = useMascotas()
+  const { mascotas, loading, error, refrescar, crear } = useMascotas()
   const [modalVisible, setModalVisible] = useState(false)
   const [mascotaEditando, setMascotaEditando] = useState<Mascota | undefined>()
   const fadeAnim = useRef(new Animated.Value(1)).current
@@ -52,37 +52,14 @@ export default function Mascotas({ navigation }: any) {
     setModalVisible(true)
   }
 
-  const handleAbrirEditar = (mascota: Mascota) => {
-    setMascotaEditando(mascota)
-    setModalVisible(true)
-  }
+
 
   const handleGuardar = async (data: Partial<Mascota>) => {
     await crear(data)
     setModalVisible(false)
   }
 
-  const handleEliminar = (mascota: Mascota) => {
-    Alert.alert(
-      t('mascotas:eliminar.titulo'),
-      t('mascotas:eliminar.mensaje', { nombre: mascota.nombre }),
-      [
-        {
-          text: t('mascotas:eliminar.cancelar'),
-          style: 'cancel',
-        },
-        {
-          text: t('mascotas:eliminar.confirmar'),
-          style: 'destructive',
-          onPress: async () => {
-            if (mascota.id) {
-              await eliminar(mascota.id)
-            }
-          },
-        },
-      ]
-    )
-  }
+
 
   const handleVerDetalle = (mascota: Mascota) => {
     // Serializar fechas para evitar warnings de navegación
@@ -114,8 +91,7 @@ export default function Mascotas({ navigation }: any) {
       <PetCard
         pet={item}
         onPress={() => handleVerDetalle(item)}
-        onEdit={() => handleAbrirEditar(item)}
-        onDelete={() => handleEliminar(item)}
+
         animationDelay={index * 100}
       />
     )

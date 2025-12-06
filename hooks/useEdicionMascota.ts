@@ -27,7 +27,7 @@ export const useEdicionMascota = (
       }
 
       if (!mascotaId) {
-        setError('ID de mascota no proporcionado')
+        setError(t('mascotas:errores.MASCOTA_NO_ENCONTRADA'))
         setLoading(false)
         return
       }
@@ -63,7 +63,7 @@ export const useEdicionMascota = (
 
   const guardarCambios = async () => {
     if (!mascota || !editedData.nombre || editedData.nombre.trim().length < 2) {
-      Alert.alert('Error', 'El nombre debe tener al menos 2 caracteres')
+      Alert.alert(t('comun:error'), t('mascotas:errores.nombre_muy_corto'))
       return
     }
 
@@ -96,9 +96,10 @@ export const useEdicionMascota = (
       // 6. Rollback en caso de error
       console.error('Error guardando mascota:', error)
       setMascota(previousMascota)
+      setMascota(previousMascota)
       Alert.alert(
-        'Error de sincronización',
-        'No se pudieron guardar los cambios. Se han revertido a la versión anterior.'
+        t('mascotas:errores.sincronizacion_fallida'),
+        t('mascotas:mensajes.rollback_realizado')
       )
     } finally {
       setSaving(false)
@@ -110,8 +111,8 @@ export const useEdicionMascota = (
       const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync()
       if (status !== 'granted') {
         Alert.alert(
-          'Permisos requeridos',
-          'Necesitamos acceso a tu galería para cambiar la foto.'
+          t('comun:permisos_requeridos'),
+          t('mascotas:mensajes.permisos_galeria')
         )
         return
       }
@@ -152,7 +153,21 @@ export const useEdicionMascota = (
       }
     } catch (error) {
       console.error('Error al seleccionar imagen:', error)
-      Alert.alert('Error', 'No pudimos cargar la imagen seleccionada.')
+      Alert.alert(t('comun:error'), t('mascotas:errores.error_cargar_imagen'))
+    }
+  }
+
+  const eliminarMascota = async () => {
+    if (!mascota) return { success: false, error: 'No mascota' }
+    
+    // UI Optimista: No esperamos a que termine para dar feedback visual
+    // La navegación debe ocurrir inmediatamente en el componente
+    try {
+      await ServicioMascota.eliminar(mascota.id)
+      return { success: true }
+    } catch (e) {
+      console.error('Error al eliminar mascota:', e)
+      return { success: false, error: e }
     }
   }
 
@@ -175,5 +190,6 @@ export const useEdicionMascota = (
     guardarCambios,
     cambiarFoto,
     actualizarCampo,
+    eliminarMascota,
   }
 }

@@ -17,8 +17,6 @@ import type { Mascota } from '@/models/Mascota'
 interface PetCardProps {
   pet: Mascota
   onPress?: () => void
-  onEdit?: () => void
-  onDelete?: () => void
   style?: ViewStyle | ViewStyle[]
   animationDelay?: number
   testID?: string
@@ -31,8 +29,6 @@ interface PetCardProps {
 const PetCard: React.FC<PetCardProps> = ({
   pet,
   onPress,
-  onEdit,
-  onDelete,
   style,
   animationDelay = 0,
   testID,
@@ -115,48 +111,8 @@ const PetCard: React.FC<PetCardProps> = ({
             </View>
           </View>
 
-          {/* Acciones */}
-          {(onEdit || onDelete) && (
-            <View style={styles.actions}>
-              {onEdit && (
-                <Pressable
-                  onPress={e => {
-                    e.stopPropagation()
-                    onEdit()
-                  }}
-                  style={styles.actionButton}
-                  accessibilityLabel={`Editar ${pet.nombre}`}
-                  accessibilityRole="button"
-                  hitSlop={8}
-                  android_ripple={{
-                    color: 'rgba(230, 243, 239, 0.08)',
-                    borderless: true,
-                  }}
-                >
-                  <Icon name="edit" size={18} color={COLOR.ENFASIS} />
-                </Pressable>
-              )}
+          
 
-              {onDelete && (
-                <Pressable
-                  onPress={e => {
-                    e.stopPropagation()
-                    onDelete()
-                  }}
-                  style={styles.actionButton}
-                  accessibilityLabel={`Eliminar ${pet.nombre}`}
-                  accessibilityRole="button"
-                  hitSlop={8}
-                  android_ripple={{
-                    color: 'rgba(224, 106, 106, 0.08)',
-                    borderless: true,
-                  }}
-                >
-                  <Icon name="trash" size={18} color={COLOR.ERROR} />
-                </Pressable>
-              )}
-            </View>
-          )}
         </View>
 
         {/* Indicador de nivel de energía */}
@@ -245,16 +201,6 @@ const styles = StyleSheet.create({
   },
   chip: {
     marginLeft: 0,
-  },
-  actions: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginLeft: 8,
-  },
-  actionButton: {
-    padding: 8,
-    borderRadius: 20,
-    marginLeft: 4,
   },
   footer: {
     borderTopWidth: 1,
