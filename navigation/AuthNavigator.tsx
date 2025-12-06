@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react'
-import { useAuth } from '@/services/context/AuthContext'
+import { useAuth } from '@/context/AuthContext'
 import { LoadingScreen } from '@/components/ui'
 import { useNavigation, CommonActions } from '@react-navigation/native'
 import { createStackNavigator } from '@react-navigation/stack'

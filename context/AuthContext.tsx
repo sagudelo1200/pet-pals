@@ -6,10 +6,10 @@ import React, {
   ReactNode,
 } from 'react'
 import { User } from 'firebase/auth'
-import { ServicioAuth } from '../firebase/auth'
-import { AuthUser, AuthContextType, AuthResult } from '../firebase/types'
-import { ServicioUsuario } from '../firebase/usuario'
-import { RolUsuario, Usuario } from '../../models/Usuario'
+import { ServicioAuth } from '@/services/firebase/auth'
+import { AuthUser, AuthContextType, AuthResult } from '@/services/firebase/types'
+import { ServicioUsuario } from '@/services/firebase/usuario'
+import { RolUsuario, Usuario } from '@/models/Usuario'
 
 /** Contexto de autenticación (provee user, roles y helpers). */
 const AuthContext = createContext<AuthContextType | undefined>(undefined)

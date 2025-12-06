@@ -2,7 +2,7 @@ import React, { useEffect } from 'react'
 import { StyleSheet, Alert, View, Text } from 'react-native'
 import { Button } from '@/components/ui'
 import { useGoogleAuth } from '@/hooks/useGoogleAuth'
-import { useAuth } from '@/services/context/AuthContext'
+import { useAuth } from '@/context/AuthContext'
 import { useTranslation } from 'react-i18next'
 
 export const GoogleSignInButton = () => {

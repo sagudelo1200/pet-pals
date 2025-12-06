@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { ServicioMascota, ServicioAuth } from '@/services/firebase'
-import { useAuth } from '@/services/context/AuthContext'
+import { useAuth } from '@/context/AuthContext'
 import type { Mascota } from '@/models/Mascota'
 
 interface MascotasContextType {
