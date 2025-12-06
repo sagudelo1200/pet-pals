@@ -51,7 +51,7 @@ export const ConfirmarPaseoPaso = ({ petIds, fecha, hora, walkerId, onConfirm, o
           >
             {mascotas.map(pet => (
               <View key={pet.id} style={styles.petItem}>
-                <PetAvatar uri={pet.imagen} size="medium" />
+                <PetAvatar uri={pet.foto} size="medium" />
                 <Text style={styles.petName}>{pet.nombre}</Text>
               </View>
             ))}

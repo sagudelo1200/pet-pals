@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react'
-import { MOCK_MASCOTAS, MOCK_CUIDADORES } from '@/mocks/paseos.mock'
+import { useMascotas } from '@/hooks/useMascotas'
+import { MOCK_CUIDADORES } from '@/mocks/paseos.mock'
 
 interface ConfirmarPaseoProps {
   petIds: string[]
@@ -9,9 +10,10 @@ interface ConfirmarPaseoProps {
 
 export const useConfirmarPaseo = ({ petIds, walkerId, hora }: ConfirmarPaseoProps) => {
   const [loading, setLoading] = useState(false)
+  const { mascotas: todasLasMascotas } = useMascotas()
 
   // Obtener datos completos de los ID
-  const mascotas = MOCK_MASCOTAS.filter(p => petIds.includes(p.id))
+  const mascotas = todasLasMascotas.filter(p => petIds.includes(p.id))
   const cuidador = MOCK_CUIDADORES.find(w => w.id === walkerId)
 
   // Cálculo simple de costos (Simulado)

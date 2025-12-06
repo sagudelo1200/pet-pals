@@ -31,7 +31,7 @@ export const SeleccionarMascotaPaso = ({ initialSelectedIds, onNext, onCancel }:
         activeOpacity={0.8}
       >
         <PetAvatar
-          uri={item.imagen}
+          uri={item.foto}
           size="medium"
         />
         <Text style={[styles.name, isSelected && styles.nameSelected, { fontWeight: 'bold' }]}>

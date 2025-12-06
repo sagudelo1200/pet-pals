@@ -8,6 +8,8 @@ import { COLOR } from './constants'
 import { StatusBar } from 'react-native'
 import './services/i18n'
 
+import { MascotasProvider } from './context/MascotasContext'
+
 // Componente principal - Solo configuración global
 export default function App(): React.ReactElement {
   const navTheme: Theme = {
@@ -26,12 +28,14 @@ export default function App(): React.ReactElement {
   return (
     <SafeAreaProvider>
       <AuthProvider>
-        <GalioProvider>
-          <StatusBar barStyle="light-content" backgroundColor={COLOR.BLOQUE} translucent={false} />
-          <NavigationContainer theme={navTheme}>
-            <RootNavigator />
-          </NavigationContainer>
-        </GalioProvider>
+        <MascotasProvider>
+          <GalioProvider>
+            <StatusBar barStyle="light-content" backgroundColor={COLOR.BLOQUE} translucent={false} />
+            <NavigationContainer theme={navTheme}>
+              <RootNavigator />
+            </NavigationContainer>
+          </GalioProvider>
+        </MascotasProvider>
       </AuthProvider>
     </SafeAreaProvider>
   )
