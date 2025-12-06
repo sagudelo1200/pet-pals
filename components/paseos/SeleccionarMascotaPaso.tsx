@@ -46,7 +46,7 @@ export const SeleccionarMascotaPaso = ({ initialSelectedIds, onNext, onCancel }:
 
   return (
     <View style={styles.container}>
-      <Text style={[styles.title, { fontWeight: 'bold' }]}>
+      <Text style={styles.title}>
         {t('paseos:pasos.seleccionar_mascota.titulo')}
       </Text>
       <Text style={styles.subtitle}>
@@ -66,13 +66,13 @@ export const SeleccionarMascotaPaso = ({ initialSelectedIds, onNext, onCancel }:
       <View style={styles.actions}>
         <Button
           title={t('comun:cancelar')}
-          variant="secundario"
+          variant="bloque"
           onPress={onCancel}
           style={{ flex: 1 }}
         />
         <Button
           title={t('comun:continuar')}
-          variant={mascotasSeleccionadas.length > 0 ? 'primario' : 'inactivo'}
+          variant="primario"
           onPress={handleContinuar}
           disabled={mascotasSeleccionadas.length === 0}
           style={{ flex: 1 }}
@@ -88,12 +88,13 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 24,
+    fontWeight: '700',
     color: COLOR.TEXTO,
     textAlign: 'center',
     marginBottom: 8,
   },
   subtitle: {
-    fontSize: 16,
+    fontSize: 14,
     color: COLOR.SUBTEXTO,
     textAlign: 'center',
     marginBottom: 32,

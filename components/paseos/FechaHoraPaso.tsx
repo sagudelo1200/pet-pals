@@ -49,7 +49,7 @@ export const FechaHoraPaso = ({ initialDate, initialTime, onNext, onBack }: Prop
 
   return (
     <View style={styles.container}>
-      <Text style={[styles.title, { fontWeight: 'bold' }]}>
+      <Text style={styles.title}>
         {t('paseos:pasos.fecha_hora.titulo')}
       </Text>
 
@@ -99,13 +99,13 @@ export const FechaHoraPaso = ({ initialDate, initialTime, onNext, onBack }: Prop
       <View style={styles.actions}>
         <Button
           title={t('comun:atras')}
-          variant="secundario"
+          variant="bloque"
           onPress={() => onBack({ fecha: fecha || null, hora: hora || null })}
           style={{ flex: 1 }}
         />
         <Button
           title={t('comun:continuar')}
-          variant={esValido ? 'primario' : 'inactivo'}
+          variant="primario"
           onPress={handleContinuar}
           disabled={!esValido}
           style={{ flex: 1 }}
@@ -121,6 +121,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 24,
+    fontWeight: '700',
     color: COLOR.TEXTO,
     textAlign: 'center',
     marginBottom: 24,

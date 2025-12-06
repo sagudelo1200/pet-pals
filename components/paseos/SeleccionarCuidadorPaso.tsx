@@ -62,7 +62,7 @@ export const SeleccionarCuidadorPaso = ({ initialWalkerId, onNext, onBack }: Pro
 
   return (
     <View style={styles.container}>
-      <Text style={[styles.title, { fontWeight: 'bold' }]}>
+      <Text style={styles.title}>
         {t('paseos:pasos.seleccionar_cuidador.titulo')}
       </Text>
       
@@ -82,13 +82,13 @@ export const SeleccionarCuidadorPaso = ({ initialWalkerId, onNext, onBack }: Pro
       <View style={styles.actions}>
         <Button
           title={t('comun:atras')}
-          variant="secundario"
+          variant="bloque"
           onPress={() => onBack(cuidadorSeleccionado)}
           style={{ flex: 1 }}
         />
         <Button
           title={t('comun:continuar')}
-          variant={cuidadorSeleccionado ? 'primario' : 'inactivo'}
+          variant="primario"
           onPress={handleContinuar}
           disabled={!cuidadorSeleccionado}
           style={{ flex: 1 }}
@@ -108,6 +108,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 24,
+    fontWeight: '700',
     color: COLOR.TEXTO,
     textAlign: 'center',
     marginBottom: 8,

@@ -35,7 +35,7 @@ export const ConfirmarPaseoPaso = ({ petIds, fecha, hora, walkerId, onConfirm, o
 
   return (
     <View style={styles.container}>
-      <Text style={[styles.title, { fontWeight: 'bold' }]}>
+      <Text style={styles.title}>
         {t('paseos:pasos.confirmar.titulo')}
       </Text>
 
@@ -99,7 +99,7 @@ export const ConfirmarPaseoPaso = ({ petIds, fecha, hora, walkerId, onConfirm, o
       <View style={styles.actions}>
         <Button
           title={t('comun:atras')}
-          variant="secundario"
+          variant="bloque"
           onPress={onBack}
           disabled={loading}
           style={{ flex: 1 }}
@@ -122,6 +122,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 24,
+    fontWeight: '700',
     color: COLOR.TEXTO,
     textAlign: 'center',
     marginBottom: 16,
