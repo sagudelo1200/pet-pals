@@ -42,7 +42,11 @@
       "placeholder_fecha": "Selecciona una fecha"
     },
     "seleccionar_cuidador": {
-      "titulo": "Elige un Cuidador"
+      "titulo": "Elige un Cuidador",
+      "lista_titulo": "Cuidadores cerca de ti",
+      "distancia": "a {{distancia}}",
+      "tarifa": "${{precio}} / hora",
+      "verificado": "Verificado"
     },
     "confirmar": {
       "titulo": "Revisa y confirma"

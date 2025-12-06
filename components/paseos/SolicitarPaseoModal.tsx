@@ -4,6 +4,8 @@ import { BottomSheet } from '../ui'
 import { SeleccionarMascotaPaso } from './SeleccionarMascotaPaso'
 import { FechaHoraPaso } from './FechaHoraPaso'
 
+import { SeleccionarCuidadorPaso } from './SeleccionarCuidadorPaso'
+
 interface Props {
   visible: boolean
   onClose: () => void
@@ -19,6 +21,7 @@ export const SolicitarPaseoModal = ({ visible, onClose }: Props) => {
     petIds: [] as string[],
     fecha: null as Date | null,
     hora: null as string | null,
+    walkerId: null as string | null,
   })
 
   // Reset steps on close/open if needed, OR keep state?
@@ -32,13 +35,20 @@ export const SolicitarPaseoModal = ({ visible, onClose }: Props) => {
 
   const handleDateTimeSelected = (data: { fecha: Date; hora: string }) => {
     setRequestData(prev => ({ ...prev, fecha: data.fecha, hora: data.hora }))
-    // Next step: Select Walker (not implemented yet)
-    console.log('Date/Time selected:', data)
+    setStep('SELECT_WALKER')
+  }
+
+  const handleWalkerSelected = (walkerId: string) => {
+    setRequestData(prev => ({ ...prev, walkerId }))
+    // Goto Confirm (not implemented yet)
+    console.log('Walker selected:', walkerId)
   }
 
   const handleBack = () => {
     if (step === 'DATE_TIME') {
       setStep('SELECT_PET')
+    } else if (step === 'SELECT_WALKER') {
+      setStep('DATE_TIME')
     }
   }
 
@@ -55,6 +65,13 @@ export const SolicitarPaseoModal = ({ visible, onClose }: Props) => {
         return (
           <FechaHoraPaso
             onNext={handleDateTimeSelected}
+            onBack={handleBack}
+          />
+        )
+      case 'SELECT_WALKER':
+        return (
+          <SeleccionarCuidadorPaso
+            onNext={handleWalkerSelected}
             onBack={handleBack}
           />
         )
