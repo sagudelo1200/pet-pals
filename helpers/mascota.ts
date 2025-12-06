@@ -13,10 +13,10 @@ export interface EdadMascota {
 
 /**
  * Calcula la edad exacta de una mascota desde su fecha de nacimiento
- * 
+ *
  * @param fechaNacimiento - Fecha de nacimiento de la mascota (Date, Timestamp de Firebase, o string ISO)
  * @returns Objeto con la edad desglosada o null si no hay fecha
- * 
+ *
  * @example
  * const edad = calcularEdadMascota(new Date('2023-01-15'))
  * // { años: 1, meses: 11, dias: 20, totalMeses: 23, totalDias: 690 }
@@ -67,17 +67,17 @@ export const calcularEdadMascota = (
 
 /**
  * Formatea la edad de una mascota de forma legible y apropiada según su edad
- * 
+ *
  * Formato según edad:
  * - < 1 mes: "X días"
  * - < 12 meses: "X meses"
  * - 1 año con meses: "1 año X meses"
  * - ≥ 2 años: "X años"
- * 
+ *
  * @param fechaNacimiento - Fecha de nacimiento de la mascota
  * @param t - Función de traducción de i18next (opcional)
  * @returns String formateado con la edad o string vacío si no hay fecha
- * 
+ *
  * @example
  * formatearEdadMascota(new Date('2024-11-01'), t) // "1 mes"
  * formatearEdadMascota(new Date('2023-06-15'), t) // "1 año 6 meses"

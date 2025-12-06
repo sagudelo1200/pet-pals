@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react'
 import * as WebBrowser from 'expo-web-browser'
 import * as Google from 'expo-auth-session/providers/google'
-import * as AuthSession from 'expo-auth-session'
 import { GoogleAuthProvider } from 'firebase/auth'
 import { ServicioAuth } from '@/services/firebase/auth'
 

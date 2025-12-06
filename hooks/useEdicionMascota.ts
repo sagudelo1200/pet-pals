@@ -90,7 +90,6 @@ export const useEdicionMascota = (
         // 5. Confirmar con datos reales del servidor (ej. timestamps actualizados)
         setMascota(resultado.data)
         setCambiosRealizados(true)
-
       } else {
         throw new Error(resultado.error || 'Error al guardar')
       }
@@ -161,7 +160,7 @@ export const useEdicionMascota = (
 
   const eliminarMascota = async () => {
     if (!mascota) return { success: false, error: 'No mascota' }
-    
+
     // UI Optimista: No esperamos a que termine para dar feedback visual
     // La navegación debe ocurrir inmediatamente en el componente
     try {

@@ -110,9 +110,6 @@ const PetCard: React.FC<PetCardProps> = ({
               )}
             </View>
           </View>
-
-          
-
         </View>
 
         {/* Indicador de nivel de energía */}

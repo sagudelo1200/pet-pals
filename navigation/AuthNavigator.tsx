@@ -85,7 +85,10 @@ const AuthNavigator: React.FC = () => {
 
   // Si no hay usuario, mostramos el stack de autenticación (Bienvenida / Ingresar / Registro)
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false }} initialRouteName="Bienvenida">
+    <Stack.Navigator
+      screenOptions={{ headerShown: false }}
+      initialRouteName="Bienvenida"
+    >
       <Stack.Screen name="Bienvenida" component={Bienvenida} />
       <Stack.Screen name="Ingresar" component={Ingresar} />
       <Stack.Screen name="Registro" component={Registro} />

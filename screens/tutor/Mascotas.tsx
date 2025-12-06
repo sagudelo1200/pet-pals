@@ -44,7 +44,10 @@ export default function Mascotas({ navigation }: any) {
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
       // @ts-ignore
-      const params = navigation.getState().routes.find(r => r.name === 'Mascotas')?.params
+      const params = navigation
+        .getState()
+        // @ts-ignore
+        .routes.find(r => r.name === 'Mascotas')?.params
       if (params?.refresh) {
         refrescar()
         // Limpiar params para evitar bucle infinito si se queda montado con params
@@ -59,14 +62,10 @@ export default function Mascotas({ navigation }: any) {
     setModalVisible(true)
   }
 
-
-
   const handleGuardar = async (data: Partial<Mascota>) => {
     await crear(data)
     setModalVisible(false)
   }
-
-
 
   const handleVerDetalle = (mascota: Mascota) => {
     // Serializar fechas para evitar warnings de navegación
@@ -98,7 +97,6 @@ export default function Mascotas({ navigation }: any) {
       <PetCard
         pet={item}
         onPress={() => handleVerDetalle(item)}
-
         animationDelay={index * 100}
       />
     )

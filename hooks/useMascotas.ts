@@ -8,8 +8,11 @@ interface UseMascotasReturn {
   loading: boolean
   error: string | null
   refrescar: () => Promise<void>
+  // eslint-disable-next-line
   crear: (data: Partial<Mascota>) => Promise<void>
+  // eslint-disable-next-line
   actualizar: (id: string, data: Partial<Mascota>) => Promise<void>
+  // eslint-disable-next-line
   eliminar: (id: string) => Promise<void>
 }
 
@@ -85,6 +88,7 @@ export const useMascotas = (): UseMascotasReturn => {
             setError(t('mascotas:errores.error_guardar'))
           }
         })
+        // eslint-disable-next-line
         .catch(err => {
           // Revertir en caso de excepción
           setMascotas(mascotasAnteriores)
@@ -118,8 +122,6 @@ export const useMascotas = (): UseMascotasReturn => {
     },
     [cargarMascotas, t]
   )
-
-
 
   const eliminar = useCallback(
     async (id: string) => {

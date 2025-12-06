@@ -24,8 +24,6 @@ export const InfoPrincipalMascota: React.FC<InfoPrincipalMascotaProps> = ({
 }) => {
   const { t } = useTranslation()
 
-
-
   return (
     <Card style={styles.mainCard} elevated>
       <View style={styles.mainInfo}>

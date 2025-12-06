@@ -208,30 +208,37 @@ const DetalleMascota: React.FC = () => {
               {/* Información Detallada */}
               <DetalleInfoMascota mascota={mascota} />
 
-               {/* Botón Eliminar (Visible solo en modo visualización) */}
-               {!isEditMode && (
+              {/* Botón Eliminar (Visible solo en modo visualización) */}
+              {!isEditMode && (
                 <View style={styles.deleteContainer}>
                   <Button
-                    title={t('comun:eliminar')} 
+                    title={t('comun:eliminar')}
                     onPress={() => {
-                        Alert.alert(
-                          t('mascotas:eliminar.titulo', { nombre: mascota.nombre }),
-                          t('mascotas:eliminar.mensaje'),
-                          [
-                            { text: t('mascotas:eliminar.cancelar'), style: 'cancel' },
-                            {
-                              text: t('mascotas:eliminar.confirmar'),
-                              style: 'destructive',
-                              onPress: async () => {
-                                // Optimistic UI: Navegamos atrás con refresh
-                                // @ts-ignore
-                                navigation.navigate('Mascotas', { refresh: Date.now() })
-                                // Ejecutamos la eliminación pero no bloqueamos la UI
-                                eliminarMascota()
-                              },
+                      Alert.alert(
+                        t('mascotas:eliminar.titulo', {
+                          nombre: mascota.nombre,
+                        }),
+                        t('mascotas:eliminar.mensaje'),
+                        [
+                          {
+                            text: t('mascotas:eliminar.cancelar'),
+                            style: 'cancel',
+                          },
+                          {
+                            text: t('mascotas:eliminar.confirmar'),
+                            style: 'destructive',
+                            onPress: async () => {
+                              // Optimistic UI: Navegamos atrás con refresh
+                              // @ts-ignore
+                              navigation.navigate('Mascotas', {
+                                refresh: Date.now(),
+                              })
+                              // Ejecutamos la eliminación pero no bloqueamos la UI
+                              eliminarMascota()
                             },
-                          ]
-                        )
+                          },
+                        ]
+                      )
                     }}
                     variant="secundario" // Base transparente/borde
                     style={styles.deleteButton}
