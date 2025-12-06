@@ -53,6 +53,10 @@ export default function Mascotas({ navigation }: any) {
         // Limpiar params para evitar bucle infinito si se queda montado con params
         navigation.setParams({ refresh: undefined })
       }
+      if (params?.openCreate) {
+        handleAbrirCrear()
+        navigation.setParams({ openCreate: undefined })
+      }
     })
     return unsubscribe
   }, [navigation, refrescar])

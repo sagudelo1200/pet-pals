@@ -5,10 +5,13 @@ import { COLOR } from '@/constants'
 import Screen from '@/components/ui/Screen'
 import TarjetaPaseo from '@/components/ui/TarjetaPaseo'
 import Chip from '@/components/ui/Chip'
-import Fab from '@/components/ui/Fab'
+import ValidatedFab from '@/components/ui/Fab'
 import { SolicitarPaseoModal } from '@/components/paseos/SolicitarPaseoModal'
 import PaseadorPerrosSvg from '@/assets/imgs/undraw/paseador_perros.svg'
 import type { Paseo } from '@/models/Paseo'
+import { useMascotas } from '@/hooks/useMascotas'
+import { Alert } from 'react-native'
+import { useNavigation } from '@react-navigation/native'
 
 // Mock Data
 const MOCK_PASEOS: (Partial<Paseo> & {
@@ -50,6 +53,29 @@ const Paseos: React.FC = () => {
   const { t } = useTranslation()
   const [activeTab, setActiveTab] = useState<TabTipo>('proximos')
   const [modalVisible, setModalVisible] = useState(false)
+  const { mascotas } = useMascotas()
+  const navigation = useNavigation()
+
+  const handleSolicitar = () => {
+    if (mascotas.length === 0) {
+      Alert.alert(
+        t('paseos:errores.SIN_MASCOTAS_TITULO'),
+        t('paseos:errores.SIN_MASCOTAS_MSG'),
+        [
+          { text: 'Cancelar', style: 'cancel' },
+          { 
+            text: 'Crear Mascota', 
+            onPress: () => {
+              // @ts-ignore
+              navigation.navigate('Mascotas', { openCreate: true })
+            }
+          }
+        ]
+      )
+      return
+    }
+    setModalVisible(true)
+  }
 
   const paseosFiltrados = MOCK_PASEOS.filter(p => {
     if (activeTab === 'proximos') {
@@ -73,8 +99,8 @@ const Paseos: React.FC = () => {
     <Screen
       style={styles.container}
       floating={
-        <Fab
-          onPress={() => setModalVisible(true)}
+        <ValidatedFab
+          onPress={handleSolicitar}
           style={styles.fab}
         />
       }

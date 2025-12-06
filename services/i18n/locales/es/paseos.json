@@ -22,7 +22,9 @@
     "PASEO_NO_ES_MULTIPLE": "Este paseo no admite múltiples mascotas.",
     "ESTADO_DEL_PASEO_NO_ACEPTA_MASCOTAS": "El estado actual del paseo no permite agregar mascotas.",
     "LIMITE_DE_MASCOTAS_SUPERADO": "Se alcanzó el límite permitido de mascotas para este paseo.",
-    "MASCOTA_YA_AGREGADA": "Esta mascota ya está agregada al paseo."
+    "MASCOTA_YA_AGREGADA": "Esta mascota ya está agregada al paseo.",
+    "SIN_MASCOTAS_TITULO": "¡Ups! No tienes mascotas",
+    "SIN_MASCOTAS_MSG": "Para solicitar un paseo, primero debes registrar una mascota."
   },
   "boton_solicitar": "Solicitar paseo",
   "flujo": {
