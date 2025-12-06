@@ -5,6 +5,8 @@ import { COLOR } from '@/constants'
 import Screen from '@/components/ui/Screen'
 import TarjetaPaseo from '@/components/ui/TarjetaPaseo'
 import Chip from '@/components/ui/Chip'
+import Fab from '@/components/ui/Fab'
+import { SolicitarPaseoModal } from '@/components/paseos/SolicitarPaseoModal'
 import PaseadorPerrosSvg from '@/assets/imgs/undraw/paseador_perros.svg'
 import type { Paseo } from '@/models/Paseo'
 
@@ -47,6 +49,7 @@ type TabTipo = 'proximos' | 'historial'
 const Paseos: React.FC = () => {
   const { t } = useTranslation()
   const [activeTab, setActiveTab] = useState<TabTipo>('proximos')
+  const [modalVisible, setModalVisible] = useState(false)
 
   const paseosFiltrados = MOCK_PASEOS.filter(p => {
     if (activeTab === 'proximos') {
@@ -67,7 +70,15 @@ const Paseos: React.FC = () => {
   )
 
   return (
-    <Screen style={styles.container}>
+    <Screen
+      style={styles.container}
+      floating={
+        <Fab
+          onPress={() => setModalVisible(true)}
+          style={styles.fab}
+        />
+      }
+    >
       <View style={styles.header}>
         <Text style={styles.titulo}>{t('paseos:titulo')}</Text>
         <Text style={styles.subtitulo}>{t('paseos:subtitulo')}</Text>
@@ -95,6 +106,11 @@ const Paseos: React.FC = () => {
         contentContainerStyle={styles.listContent}
         ListEmptyComponent={renderEmptyState}
         showsVerticalScrollIndicator={false}
+      />
+
+      <SolicitarPaseoModal
+        visible={modalVisible}
+        onClose={() => setModalVisible(false)}
       />
     </Screen>
   )
@@ -141,9 +157,15 @@ const styles = StyleSheet.create({
   },
   emptyTitle: {
     marginTop: 20,
-    fontSize: 16,
     color: COLOR.SUBTEXTO,
     textAlign: 'center',
+  },
+  fab: {
+    position: 'absolute',
+    bottom: 90,
+    right: 21,
+    zIndex: 1000,
+    elevation: 9,
   },
 })
 

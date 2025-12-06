@@ -23,5 +23,40 @@
     "ESTADO_DEL_PASEO_NO_ACEPTA_MASCOTAS": "El estado actual del paseo no permite agregar mascotas.",
     "LIMITE_DE_MASCOTAS_SUPERADO": "Se alcanzó el límite permitido de mascotas para este paseo.",
     "MASCOTA_YA_AGREGADA": "Esta mascota ya está agregada al paseo."
+  },
+  "boton_solicitar": "Solicitar paseo",
+  "flujo": {
+    "titulo": "Solicitar Paseo",
+    "cargando": "Cargando..."
+  },
+  "pasos": {
+    "seleccionar_mascota": {
+      "emocional": "Tu amigo merece el mejor paseo",
+      "titulo": "¿Con quién vamos?",
+      "placeholder": "Selecciona una mascota"
+    },
+    "fecha_hora": {
+      "titulo": "¿Cuándo lo hacemos?",
+      "fecha_label": "Fecha del paseo",
+      "hora_label": "Horario preferido",
+      "placeholder_fecha": "Selecciona una fecha"
+    },
+    "seleccionar_cuidador": {
+      "titulo": "Elige un Cuidador"
+    },
+    "confirmar": {
+      "titulo": "Revisa y confirma"
+    }
+  },
+  "solicitado": {
+    "titulo": "Solicitud enviada",
+    "chat": "Chatear con {{name}}"
+  },
+  "en_curso": {
+    "titulo": "Paseo en curso"
+  },
+  "resumen": {
+    "titulo": "Resumen del paseo",
+    "rating": "¿Cómo fue?"
   }
 }
