@@ -2,6 +2,7 @@ import React from 'react'
 import { View, Text, StyleSheet } from 'react-native'
 import { useTranslation } from 'react-i18next'
 import { COLOR } from '@/constants'
+import { formatearEdadMascota } from '@/helpers'
 import Card from '@/components/ui/Card'
 import Badge from '@/components/ui/Badge'
 import { TextInput, DatePicker } from '@/components/ui'
@@ -23,23 +24,7 @@ export const InfoPrincipalMascota: React.FC<InfoPrincipalMascotaProps> = ({
 }) => {
   const { t } = useTranslation()
 
-  const calcularEdad = (fecha?: Date | any) => {
-    if (!fecha) return ''
-    const nacimiento =
-      fecha instanceof Date
-        ? fecha
-        : fecha.toDate
-          ? fecha.toDate()
-          : new Date(fecha)
 
-    const hoy = new Date()
-    let edad = hoy.getFullYear() - nacimiento.getFullYear()
-    const m = hoy.getMonth() - nacimiento.getMonth()
-    if (m < 0 || (m === 0 && hoy.getDate() < nacimiento.getDate())) {
-      edad--
-    }
-    return `${edad} ${t('mascotas:campos.edad').toLowerCase()}`
-  }
 
   return (
     <Card style={styles.mainCard} elevated>
@@ -107,7 +92,7 @@ export const InfoPrincipalMascota: React.FC<InfoPrincipalMascotaProps> = ({
               numberOfLines={1}
               adjustsFontSizeToFit
             >
-              {calcularEdad(mascota.fecha_nacimiento)}
+              {formatearEdadMascota(mascota.fecha_nacimiento, t)}
             </Text>
           </View>
           <View style={styles.statDivider} />

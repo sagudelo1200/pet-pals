@@ -10,6 +10,7 @@ interface UseMascotasReturn {
   refrescar: () => Promise<void>
   crear: (data: Partial<Mascota>) => Promise<void>
   actualizar: (id: string, data: Partial<Mascota>) => Promise<void>
+  actualizarLocal: (mascotaActualizada: Mascota) => void
   eliminar: (id: string) => Promise<void>
 }
 
@@ -119,6 +120,12 @@ export const useMascotas = (): UseMascotasReturn => {
     [cargarMascotas, t]
   )
 
+  const actualizarLocal = useCallback((mascotaActualizada: Mascota) => {
+    setMascotas(prev =>
+      prev.map(m => (m.id === mascotaActualizada.id ? mascotaActualizada : m))
+    )
+  }, [])
+
   const eliminar = useCallback(
     async (id: string) => {
       // Optimistic update: Guardamos estado anterior
@@ -156,6 +163,7 @@ export const useMascotas = (): UseMascotasReturn => {
     refrescar,
     crear,
     actualizar,
+    actualizarLocal,
     eliminar,
   }
 }

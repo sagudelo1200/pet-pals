@@ -93,6 +93,14 @@
     "esterilizado": "Esterilizado",
     "nivel_energia": "Nivel de energía"
   },
+  "edad": {
+    "dia": "día",
+    "dias": "días",
+    "mes": "mes",
+    "meses": "meses",
+    "año": "año",
+    "años": "años"
+  },
   "tipos": {
     "perro": "Perro",
     "gato": "Gato",

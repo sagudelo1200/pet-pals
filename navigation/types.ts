@@ -8,7 +8,11 @@ export type AuthStackParamList = {
   TutorApp: undefined
   CuidadorApp: undefined
   AdminApp: undefined
-  DetalleMascota: { mascotaId: string; mascota?: Mascota }
+  DetalleMascota: {
+    mascotaId: string
+    mascota?: Mascota
+    onMascotaActualizada?: (mascota: Mascota) => void
+  }
 }
 
 // Flujo interno de autenticación (pantallas del stack de Auth)

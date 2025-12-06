@@ -24,7 +24,8 @@ import type { Mascota } from '@/models/Mascota'
 
 export default function Mascotas({ navigation }: any) {
   const { t } = useTranslation()
-  const { mascotas, loading, error, refrescar, crear, eliminar } = useMascotas()
+  const { mascotas, loading, error, refrescar, crear, actualizarLocal, eliminar } =
+    useMascotas()
   const [modalVisible, setModalVisible] = useState(false)
   const [mascotaEditando, setMascotaEditando] = useState<Mascota | undefined>()
   const fadeAnim = useRef(new Animated.Value(1)).current
@@ -98,6 +99,7 @@ export default function Mascotas({ navigation }: any) {
     navigation.navigate('DetalleMascota', {
       mascotaId: mascota.id!,
       mascota: mascotaSerializada as unknown as Mascota,
+      onMascotaActualizada: actualizarLocal,
     })
   }
 

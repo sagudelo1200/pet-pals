@@ -33,7 +33,7 @@ const DetalleMascota: React.FC = () => {
   const { t } = useTranslation()
   const navigation = useNavigation()
   const route = useRoute<DetalleMascotaRouteProp>()
-  const { mascotaId, mascota: mascotaParam } = route.params
+  const { mascotaId, mascota: mascotaParam, onMascotaActualizada } = route.params
 
   // Normalizar fechas si vienen como strings (por serialización de navegación)
   const mascotaNormalizada = useMemo(() => {
@@ -82,7 +82,7 @@ const DetalleMascota: React.FC = () => {
     guardarCambios,
     cambiarFoto,
     actualizarCampo,
-  } = useEdicionMascota(mascotaId, mascotaNormalizada)
+  } = useEdicionMascota(mascotaId, mascotaNormalizada, onMascotaActualizada)
 
   const handleEdit = () => {
     iniciarEdicion()

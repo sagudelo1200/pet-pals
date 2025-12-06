@@ -8,6 +8,7 @@ import {
   ViewStyle,
 } from 'react-native'
 import { COLOR } from '@/constants'
+import { formatearEdadMascota } from '@/helpers'
 import Avatar from './Avatar'
 import Icon from './Icon'
 import Chip from './Chip'
@@ -58,28 +59,7 @@ const PetCard: React.FC<PetCardProps> = ({
     ]).start()
   }, [animationDelay])
 
-  // Calcular edad desde fecha de nacimiento
-  const calcularEdad = (): string => {
-    if (!pet.fecha_nacimiento) return ''
-
-    const nacimiento =
-      pet.fecha_nacimiento instanceof Date
-        ? pet.fecha_nacimiento
-        : new Date(pet.fecha_nacimiento)
-
-    const hoy = new Date()
-    const diffMs = hoy.getTime() - nacimiento.getTime()
-    const diffMeses = Math.floor(diffMs / (1000 * 60 * 60 * 24 * 30.44))
-
-    if (diffMeses < 12) {
-      return `${diffMeses} ${diffMeses === 1 ? 'mes' : 'meses'}`
-    }
-
-    const anos = Math.floor(diffMeses / 12)
-    return `${anos} ${anos === 1 ? 'año' : 'años'}`
-  }
-
-  const edad = calcularEdad()
+  const edad = formatearEdadMascota(pet.fecha_nacimiento)
 
   return (
     <Animated.View
