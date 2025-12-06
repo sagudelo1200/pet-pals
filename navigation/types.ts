@@ -11,7 +11,6 @@ export type AuthStackParamList = {
   DetalleMascota: {
     mascotaId: string
     mascota?: Mascota
-    onMascotaActualizada?: (mascota: Mascota) => void
   }
 }
 

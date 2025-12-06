@@ -7,8 +7,7 @@ import type { Mascota } from '@/models/Mascota'
 
 export const useEdicionMascota = (
   mascotaId: string,
-  mascotaParam?: Mascota,
-  onMascotaActualizada?: (mascota: Mascota) => void
+  mascotaParam?: Mascota
 ) => {
   const { t } = useTranslation()
 
@@ -89,8 +88,7 @@ export const useEdicionMascota = (
       if (resultado.success && resultado.data) {
         // 5. Confirmar con datos reales del servidor (ej. timestamps actualizados)
         setMascota(resultado.data)
-        // 6. Notificar al componente padre para sincronizar la lista
-        onMascotaActualizada?.(resultado.data)
+
       } else {
         throw new Error(resultado.error || 'Error al guardar')
       }

@@ -24,8 +24,7 @@ import type { Mascota } from '@/models/Mascota'
 
 export default function Mascotas({ navigation }: any) {
   const { t } = useTranslation()
-  const { mascotas, loading, error, refrescar, crear, actualizarLocal, eliminar } =
-    useMascotas()
+  const { mascotas, loading, error, refrescar, crear, eliminar } = useMascotas()
   const [modalVisible, setModalVisible] = useState(false)
   const [mascotaEditando, setMascotaEditando] = useState<Mascota | undefined>()
   const fadeAnim = useRef(new Animated.Value(1)).current
@@ -39,6 +38,14 @@ export default function Mascotas({ navigation }: any) {
       }).start()
     }
   }, [loading, mascotas.length])
+
+  // Refrescar lista cuando volvemos a esta pantalla desde DetalleMascota
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('focus', () => {
+      refrescar()
+    })
+    return unsubscribe
+  }, [navigation, refrescar])
 
   const handleAbrirCrear = () => {
     setMascotaEditando(undefined)
@@ -99,7 +106,6 @@ export default function Mascotas({ navigation }: any) {
     navigation.navigate('DetalleMascota', {
       mascotaId: mascota.id!,
       mascota: mascotaSerializada as unknown as Mascota,
-      onMascotaActualizada: actualizarLocal,
     })
   }
 
