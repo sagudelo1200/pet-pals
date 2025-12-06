@@ -58,7 +58,10 @@ export const SeleccionarMascotaPaso = ({ initialSelectedIds, onNext, onCancel }:
         renderItem={renderItem}
         keyExtractor={item => item.id}
         horizontal
-        contentContainerStyle={styles.listContent}
+        contentContainerStyle={[
+          styles.listContent,
+          mascotas.length < 3 && styles.listContentCentered,
+        ]}
         showsHorizontalScrollIndicator={false}
         ItemSeparatorComponent={() => <View style={{ width: 16 }} />}
       />
@@ -103,6 +106,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingBottom: 24,
     alignItems: 'center', // Center items vertically if they differ in height
+  },
+  listContentCentered: {
+    flexGrow: 1,
+    justifyContent: 'center',
   },
   card: {
     width: 120,
