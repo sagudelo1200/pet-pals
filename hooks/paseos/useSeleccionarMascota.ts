@@ -5,12 +5,12 @@ import { useMascotas } from '@/hooks/useMascotas'
 import { MAX_MASCOTAS_POR_PASEO } from '@/constants/limits'
 import { MOCK_MASCOTAS } from '@/mocks/paseos.mock'
 
-export const useSeleccionarMascota = () => {
+export const useSeleccionarMascota = (initialSelectedIds: string[] = []) => {
   const { t } = useTranslation()
   const { mascotas: mascotasReales } = useMascotas()
   // Mock data as per incremental strategy
   const [mascotas, setMascotas] = useState(MOCK_MASCOTAS)
-  const [mascotasSeleccionadas, setMascotasSeleccionadas] = useState<string[]>([])
+  const [mascotasSeleccionadas, setMascotasSeleccionadas] = useState<string[]>(initialSelectedIds)
 
   const toggleMascota = useCallback((id: string) => {
     setMascotasSeleccionadas(prev => {

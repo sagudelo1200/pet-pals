@@ -6,13 +6,14 @@ import { Button, PetAvatar } from '@/components/ui'
 import { useSeleccionarMascota } from '@/hooks/paseos/useSeleccionarMascota'
 
 interface Props {
+  initialSelectedIds?: string[]
   onNext: (petIds: string[]) => void
   onCancel: () => void
 }
 
-export const SeleccionarMascotaPaso = ({ onNext, onCancel }: Props) => {
+export const SeleccionarMascotaPaso = ({ initialSelectedIds, onNext, onCancel }: Props) => {
   const { t } = useTranslation()
-  const { mascotas, mascotasSeleccionadas, toggleMascota } = useSeleccionarMascota()
+  const { mascotas, mascotasSeleccionadas, toggleMascota } = useSeleccionarMascota(initialSelectedIds)
 
   const handleContinuar = () => {
     if (mascotasSeleccionadas.length > 0) {

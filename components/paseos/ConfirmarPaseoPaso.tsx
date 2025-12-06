@@ -59,7 +59,9 @@ export const ConfirmarPaseoPaso = ({ petIds, fecha, hora, walkerId, onConfirm, o
         <View style={styles.section}>
           <Text style={styles.label}>{t('paseos:pasos.confirmar.resumen_fecha')}</Text>
           <View style={styles.row}>
-            <Icon name="calendar" size={16} color={COLOR.PRIMARIO} style={{ marginRight: 8 }} />
+            <View style={{ width: 20, alignItems: 'center', marginRight: 8 }}>
+              <Icon name="calendar" size={16} color={COLOR.PRIMARIO} />
+            </View>
             <Text style={styles.value}>{formatDate(fecha)} - {hora}</Text>
           </View>
         </View>

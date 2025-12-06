@@ -2,10 +2,26 @@ import { useState } from 'react'
 
 export type Periodo = 'manana' | 'tarde' | 'noche'
 
-export const useFechaHora = () => {
-  const [fecha, setFecha] = useState<Date | undefined>(undefined)
-  const [periodo, setPeriodo] = useState<Periodo | null>(null)
-  const [hora, setHora] = useState<string | null>(null)
+interface UseFechaHoraProps {
+  initialDate?: Date | null
+  initialTime?: string | null
+}
+
+export const useFechaHora = ({ initialDate, initialTime }: UseFechaHoraProps = {}) => {
+  const [fecha, setFecha] = useState<Date | undefined>(initialDate || undefined)
+  const [hora, setHora] = useState<string | null>(initialTime || null)
+  
+  // Calcular periodo inicial basado en la hora guardada
+  const getInitialPeriod = (): Periodo | null => {
+    if (!initialTime) return null
+    // Simple check based on known slots
+    if (['07:00', '08:00', '09:00', '10:00', '11:00'].includes(initialTime)) return 'manana'
+    if (['12:00', '13:00', '14:00', '15:00', '16:00', '17:00'].includes(initialTime)) return 'tarde'
+    if (['18:00', '19:00', '20:00'].includes(initialTime)) return 'noche'
+    return null
+  }
+
+  const [periodo, setPeriodo] = useState<Periodo | null>(getInitialPeriod())
 
   // Slots hardcoded por ahora
   const slotsPorPeriodo: Record<Periodo, string[]> = {

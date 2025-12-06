@@ -6,13 +6,14 @@ import { Button, Icon, Badge } from '@/components/ui'
 import { useSeleccionarCuidador } from '@/hooks/paseos/useSeleccionarCuidador'
 
 interface Props {
+  initialWalkerId?: string | null
   onNext: (walkerId: string) => void
-  onBack: () => void
+  onBack: (walkerId?: string | null) => void
 }
 
-export const SeleccionarCuidadorPaso = ({ onNext, onBack }: Props) => {
+export const SeleccionarCuidadorPaso = ({ initialWalkerId, onNext, onBack }: Props) => {
   const { t } = useTranslation()
-  const { cuidadores, cuidadorSeleccionado, seleccionarCuidador } = useSeleccionarCuidador()
+  const { cuidadores, cuidadorSeleccionado, seleccionarCuidador } = useSeleccionarCuidador(initialWalkerId)
 
   const handleContinuar = () => {
     if (cuidadorSeleccionado) {
@@ -82,7 +83,7 @@ export const SeleccionarCuidadorPaso = ({ onNext, onBack }: Props) => {
         <Button
           title={t('comun:atras')}
           variant="secundario"
-          onPress={onBack}
+          onPress={() => onBack(cuidadorSeleccionado)}
           style={{ flex: 1 }}
         />
         <Button

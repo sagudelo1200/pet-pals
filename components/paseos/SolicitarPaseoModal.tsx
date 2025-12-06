@@ -37,6 +37,13 @@ export const SolicitarPaseoModal = ({ visible, onClose }: Props) => {
     })
   }
 
+  // Reset state when modal is closed
+  React.useEffect(() => {
+    if (!visible) {
+      resetFlow()
+    }
+  }, [visible])
+
   const handlePetSelected = (petIds: string[]) => {
     setRequestData(prev => ({ ...prev, petIds }))
     setStep('DATE_TIME')
@@ -57,7 +64,11 @@ export const SolicitarPaseoModal = ({ visible, onClose }: Props) => {
     resetFlow()
   }
 
-  const handleBack = () => {
+  const handleBack = (dataToSave?: Partial<typeof requestData>) => {
+    if (dataToSave) {
+      setRequestData(prev => ({ ...prev, ...dataToSave }))
+    }
+
     if (step === 'DATE_TIME') {
       setStep('SELECT_PET')
     } else if (step === 'SELECT_WALKER') {
@@ -72,6 +83,7 @@ export const SolicitarPaseoModal = ({ visible, onClose }: Props) => {
       case 'SELECT_PET':
         return (
           <SeleccionarMascotaPaso
+            initialSelectedIds={requestData.petIds}
             onNext={handlePetSelected}
             onCancel={onClose}
           />
@@ -79,15 +91,18 @@ export const SolicitarPaseoModal = ({ visible, onClose }: Props) => {
       case 'DATE_TIME':
         return (
           <FechaHoraPaso
+            initialDate={requestData.fecha}
+            initialTime={requestData.hora}
             onNext={handleDateTimeSelected}
-            onBack={handleBack}
+            onBack={(data) => handleBack(data)}
           />
         )
       case 'SELECT_WALKER':
         return (
           <SeleccionarCuidadorPaso
+            initialWalkerId={requestData.walkerId}
             onNext={handleWalkerSelected}
-            onBack={handleBack}
+            onBack={(walkerId) => handleBack({ walkerId: walkerId || null })}
           />
         )
       case 'CONFIRM':

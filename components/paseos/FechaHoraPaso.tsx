@@ -8,11 +8,13 @@ import Chip from '@/components/ui/Chip'
 import { useFechaHora } from '@/hooks/paseos/useFechaHora'
 
 interface Props {
+  initialDate?: Date | null
+  initialTime?: string | null
   onNext: (data: { fecha: Date; hora: string }) => void
-  onBack: () => void
+  onBack: (data?: { fecha: Date | null; hora: string | null }) => void
 }
 
-export const FechaHoraPaso = ({ onNext, onBack }: Props) => {
+export const FechaHoraPaso = ({ initialDate, initialTime, onNext, onBack }: Props) => {
   const { t } = useTranslation()
   const { 
     fecha, 
@@ -23,7 +25,7 @@ export const FechaHoraPaso = ({ onNext, onBack }: Props) => {
     seleccionarPeriodo, 
     seleccionarHora, 
     esValido 
-  } = useFechaHora()
+  } = useFechaHora({ initialDate, initialTime })
 
   const handleContinuar = () => {
     if (fecha && hora) {
@@ -98,7 +100,7 @@ export const FechaHoraPaso = ({ onNext, onBack }: Props) => {
         <Button
           title={t('comun:atras')}
           variant="secundario"
-          onPress={onBack}
+          onPress={() => onBack({ fecha: fecha || null, hora: hora || null })}
           style={{ flex: 1 }}
         />
         <Button
