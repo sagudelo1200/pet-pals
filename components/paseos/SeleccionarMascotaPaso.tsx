@@ -122,6 +122,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: COLOR.TEXTO,
     textAlign: 'center',
+    width: '100%',
   },
   nameSelected: {
     color: COLOR.PRIMARIO,
@@ -130,6 +131,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: COLOR.SUBTEXTO,
     textAlign: 'center',
+    width: '100%',
   },
   actions: {
     flexDirection: 'row',
