@@ -1,3 +1,5 @@
+import { Paseo, PaseoStatus } from '../models/Paseo'
+
 export const MOCK_TUTOR = {
   id: 'tutor_1',
   nombre: 'Santiago',
@@ -76,3 +78,21 @@ export const MOCK_CUIDADORES = [
     imagen: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=200'
   }
 ]
+
+export const MOCK_PASEO_PENDIENTE: Paseo = {
+  id: 'paseo_mock_1',
+  creado_en: new Date(),
+  actualizado_en: new Date(),
+  creado_por: 'tutor_1',
+  actualizado_por: 'tutor_1',
+  tipo_paseo: 'solicitado',
+  fecha_hora_inicio: new Date(Date.now() + 3600000), // En 1 hora
+  duracion_estimada: 60,
+  precio: 25000,
+  estado: PaseoStatus.PENDIENTE,
+  ubicacion_inicio: 'Calle 123 #45-67',
+  ubicacion_fin: 'Parque Principal',
+  es_multiple: false,
+  cupo_maximo_mascotas: 1,
+  mascotas_count: 1
+}

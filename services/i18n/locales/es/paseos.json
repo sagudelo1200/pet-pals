@@ -6,12 +6,31 @@
     "vacio_completados": "Aún no has completado ningún paseo",
     "programar_btn": "Programar Paseo"
   },
-  "estado": {
-    "pendiente": "Pendiente",
-    "confirmado": "Confirmado",
-    "en_progreso": "En Progreso",
-    "completado": "Completado",
-    "cancelado": "Cancelado"
+  "estados": {
+    "PENDIENTE": "Pendiente",
+    "ACEPTADO": "Aceptado",
+    "PROGRAMADO": "Programado",
+    "EN_RUTA": "En camino",
+    "EN_PROGRESO": "En progreso",
+    "FINALIZADO": "Finalizado",
+    "COMPLETADO": "Completado",
+    "CANCELADO": "Cancelado",
+    "RECHAZADO": "Rechazado",
+    "ERROR": "Error"
+  },
+  "eventos": {
+    "ACEPTAR": "Aceptar paseo",
+    "RECHAZAR": "Rechazar paseo",
+    "PROGRAMAR": "Programar paseo",
+    "INICIAR_RUTA": "Iniciar ruta",
+    "LLEGAR": "Llegar al destino",
+    "INICIAR_PASEO": "Iniciar paseo",
+    "FINALIZAR_PASEO": "Finalizar paseo",
+    "CONFIRMAR_COMPLETADO": "Confirmar completado",
+    "CANCELAR": "Cancelar paseo"
+  },
+  "ui": {
+    "confirmCancel": "¿Estás seguro de cancelar este paseo?"
   },
   "tarjeta": {
     "cuidador": "Cuidador:",

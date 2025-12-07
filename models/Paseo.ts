@@ -10,12 +10,18 @@ export type TipoPaseo = 'solicitado' | 'programado'
  * Estados posibles de un paseo.
  * Controla el flujo desde solicitud hasta conclusión o cancelación.
  */
-export type EstadoPaseo =
-  | 'pendiente'
-  | 'confirmado'
-  | 'en_progreso'
-  | 'completado'
-  | 'cancelado'
+export enum PaseoStatus {
+  PENDIENTE = 'PENDIENTE',
+  ACEPTADO = 'ACEPTADO',
+  PROGRAMADO = 'PROGRAMADO',
+  EN_RUTA = 'EN_RUTA',
+  EN_PROGRESO = 'EN_PROGRESO',
+  FINALIZADO = 'FINALIZADO',
+  COMPLETADO = 'COMPLETADO',
+  CANCELADO = 'CANCELADO',
+  RECHAZADO = 'RECHAZADO',
+  ERROR = 'ERROR',
+}
 
 /**
  * Representa un servicio de paseo de mascota.
@@ -39,7 +45,7 @@ export interface Paseo extends BaseModel {
   /** Costo del servicio en la moneda local. */
   precio: number
   /** Estado actual del paseo. */
-  estado: EstadoPaseo
+  estado: PaseoStatus
   /** Ubicación de inicio (dirección o coordenadas). */
   ubicacion_inicio?: string
   /** Ubicación de término (dirección o coordenadas). */
