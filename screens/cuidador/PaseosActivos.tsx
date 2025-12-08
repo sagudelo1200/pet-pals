@@ -12,20 +12,20 @@ const PaseosActivos: React.FC = () => {
     <Screen style={styles.container} includeTopInset>
       <View style={styles.header}>
         <Text style={styles.titulo}>
-          {t('cuidador:activos.titulo', 'Paseos Activos')}
+          {t('cuidador:activos.titulo')}
         </Text>
         <Text style={styles.subtitulo}>
-          {t('cuidador:activos.subtitulo', 'Paseos aceptados y en progreso')}
+          {t('cuidador:activos.subtitulo')}
         </Text>
       </View>
 
       <View style={styles.emptyState}>
         <Icon name="walking" size={64} color={COLOR.SUBTEXTO} style={{ opacity: 0.3 }} />
         <Text style={styles.emptyText}>
-          {t('cuidador:activos.sin_activos', 'No tienes paseos activos')}
+          {t('cuidador:activos.sin_activos')}
         </Text>
         <Text style={styles.emptySubtext}>
-          {t('cuidador:activos.sin_activos_desc', 'Los paseos que aceptes aparecerán aquí')}
+          {t('cuidador:activos.sin_activos_desc')}
         </Text>
       </View>
     </Screen>

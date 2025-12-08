@@ -71,7 +71,7 @@ export const DetallePaseo = () => {
             <Pressable onPress={() => navigation.goBack()} style={styles.backButton}>
                 <Icon name="arrow-left" size={24} color={COLOR.TEXTO} />
             </Pressable>
-            <Text style={styles.titulo}>{t('paseos:detalle.titulo', 'Detalle del Paseo')}</Text>
+            <Text style={styles.titulo}>{t('paseos:detalle.titulo')}</Text>
         </View>
 
         <ScrollView contentContainerStyle={styles.content}>

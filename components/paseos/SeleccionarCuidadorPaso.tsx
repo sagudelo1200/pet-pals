@@ -74,7 +74,7 @@ export const SeleccionarCuidadorPaso = ({ initialWalkerId, onNext, onBack }: Pro
     <View style={styles.centerContent}>
       <ActivityIndicator size="large" color={COLOR.PRIMARIO} />
       <Text style={styles.loadingText}>
-        {t('paseos:pasos.seleccionar_cuidador.cargando', 'Cargando cuidadores...')}
+        {t('paseos:pasos.seleccionar_cuidador.cargando')}
       </Text>
     </View>
   )
@@ -86,7 +86,7 @@ export const SeleccionarCuidadorPaso = ({ initialWalkerId, onNext, onBack }: Pro
         {t('paseos:pasos.seleccionar_cuidador.error')}
       </Text>
       <Button
-        title={t('comun:reintentar', 'Reintentar')}
+        title={t('comun:reintentar')}
         variant="bloque"
         onPress={recargar}
         style={{ marginTop: 16 }}

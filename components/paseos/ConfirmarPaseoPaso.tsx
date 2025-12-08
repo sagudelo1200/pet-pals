@@ -24,7 +24,7 @@ export const ConfirmarPaseoPaso = ({ petIds, fecha, hora, walkerId, onConfirm, o
     if (success) {
       Alert.alert(
         t('paseos:pasos.confirmar.exito_titulo'),
-        t('paseos:pasos.confirmar.exito_msg', { name: cuidador?.nombre || 'Tutor' }),
+        t('paseos:pasos.confirmar.exito_msg', { name: cuidador?.nombre || 'Cuidador' }),
         [{ text: 'OK', onPress: onConfirm }]
       )
     } else if (error) {

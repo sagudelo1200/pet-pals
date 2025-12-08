@@ -12,20 +12,20 @@ const SolicitudesPaseos: React.FC = () => {
     <Screen style={styles.container} includeTopInset>
       <View style={styles.header}>
         <Text style={styles.titulo}>
-          {t('cuidador:solicitudes.titulo', 'Solicitudes de Paseo')}
+          {t('cuidador:solicitudes.titulo')}
         </Text>
         <Text style={styles.subtitulo}>
-          {t('cuidador:solicitudes.subtitulo', 'Paseos disponibles para aceptar')}
+          {t('cuidador:solicitudes.subtitulo')}
         </Text>
       </View>
 
       <View style={styles.emptyState}>
         <Icon name="bell" size={64} color={COLOR.SUBTEXTO} style={{ opacity: 0.3 }} />
         <Text style={styles.emptyText}>
-          {t('cuidador:solicitudes.sin_solicitudes', 'No hay solicitudes disponibles')}
+          {t('cuidador:solicitudes.sin_solicitudes')}
         </Text>
         <Text style={styles.emptySubtext}>
-          {t('cuidador:solicitudes.sin_solicitudes_desc', 'Las nuevas solicitudes aparecerán aquí')}
+          {t('cuidador:solicitudes.sin_solicitudes_desc')}
         </Text>
       </View>
     </Screen>

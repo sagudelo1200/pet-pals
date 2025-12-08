@@ -10,6 +10,8 @@
   "guardar": "Guardar",
   "cancelar": "Cancelar",
   "ok": "OK",
+  "seleccionar_rol_titulo": "Selecciona tu rol",
+  "seleccionar_rol_subtitulo": "Tienes acceso a múltiples roles",
   "errores": {
     "NO_AUTENTICADO": "Debes iniciar sesión para continuar.",
     "PERMISOS_INSUFICIENTES": "No tienes permisos para realizar esta acción.",

@@ -89,9 +89,9 @@ const TarjetaPaseo: React.FC<TarjetaPaseoProps> = ({ paseo, onPress }) => {
       </View>
 
       <View style={styles.footer}>
-        <Text style={styles.walkerLabel}>{t('paseos:tarjeta.cuidador', 'Cuidador')}</Text>
+        <Text style={styles.walkerLabel}>{t('paseos:tarjeta.cuidador')}</Text>
         <Text style={styles.walkerName}>
-          {paseo.cuidadorNombre || t('paseos:tarjeta.sin_cuidador', 'Por asignar')}
+          {paseo.cuidadorNombre || t('paseos:tarjeta.sin_cuidador')}
         </Text>
       </View>
     </Card>

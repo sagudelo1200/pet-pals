@@ -95,5 +95,8 @@
   "resumen": {
     "titulo": "Resumen del paseo",
     "rating": "¿Cómo fue?"
+  },
+  "detalle": {
+    "titulo": "Detalle del Paseo"
   }
 }

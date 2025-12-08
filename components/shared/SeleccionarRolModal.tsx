@@ -45,10 +45,10 @@ export const SeleccionarRolModal: React.FC<Props> = ({
     <BottomSheet visible={visible} onClose={onClose}>
       <View style={styles.container}>
         <Text style={styles.titulo}>
-          {t('comun:seleccionar_rol_titulo', 'Selecciona tu rol')}
+          {t('comun:seleccionar_rol_titulo')}
         </Text>
         <Text style={styles.subtitulo}>
-          {t('comun:seleccionar_rol_subtitulo', 'Tienes acceso a múltiples roles')}
+          {t('comun:seleccionar_rol_subtitulo')}
         </Text>
 
         <View style={styles.rolesContainer}>
