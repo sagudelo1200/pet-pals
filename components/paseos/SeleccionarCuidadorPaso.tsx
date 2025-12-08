@@ -1,5 +1,13 @@
 import React from 'react'
-import { StyleSheet, View, FlatList, TouchableOpacity, Image, Text, ActivityIndicator } from 'react-native'
+import {
+  StyleSheet,
+  View,
+  FlatList,
+  TouchableOpacity,
+  Image,
+  Text,
+  ActivityIndicator,
+} from 'react-native'
 import { useTranslation } from 'react-i18next'
 import { COLOR } from '@/constants'
 import { Button, Icon } from '@/components/ui'
@@ -7,19 +15,25 @@ import { useSeleccionarCuidador } from '@/hooks/paseos/useSeleccionarCuidador'
 
 interface Props {
   initialWalkerId?: string | null
-  onNext: (walkerId: string) => void
-  onBack: (walkerId?: string | null) => void
+  // eslint-disable-next-line no-unused-vars
+  onNext(walkerId: string): void
+  // eslint-disable-next-line no-unused-vars
+  onBack(walkerId?: string | null): void
 }
 
-export const SeleccionarCuidadorPaso = ({ initialWalkerId, onNext, onBack }: Props) => {
+export const SeleccionarCuidadorPaso = ({
+  initialWalkerId,
+  onNext,
+  onBack,
+}: Props) => {
   const { t } = useTranslation()
-  const { 
-    cuidadores, 
-    cargando, 
-    error, 
-    cuidadorSeleccionado, 
+  const {
+    cuidadores,
+    cargando,
+    error,
+    cuidadorSeleccionado,
     seleccionarCuidador,
-    recargar 
+    recargar,
   } = useSeleccionarCuidador(initialWalkerId)
 
   const handleContinuar = () => {
@@ -30,37 +44,32 @@ export const SeleccionarCuidadorPaso = ({ initialWalkerId, onNext, onBack }: Pro
 
   const renderItem = ({ item }: { item: any }) => {
     const isSelected = cuidadorSeleccionado === item.id
-    
+
     return (
       <TouchableOpacity
         style={[styles.card, isSelected && styles.cardSelected]}
         onPress={() => seleccionarCuidador(item.id)}
         activeOpacity={0.8}
       >
-        <Image 
-          source={{ uri: item.imagen }} 
-          style={styles.avatar}
-        />
-        
+        <Image source={{ uri: item.imagen }} style={styles.avatar} />
+
         <View style={styles.info}>
           <View style={styles.header}>
-            <Text style={[styles.name, { fontWeight: 'bold' }]}>{item.nombre}</Text>
+            <Text style={[styles.name, { fontWeight: 'bold' }]}>
+              {item.nombre}
+            </Text>
             {item.insignias.includes('verificado') && (
-               <Icon name="check-circle" size={16} color={COLOR.PRIMARIO} />
+              <Icon name="check-circle" size={16} color={COLOR.PRIMARIO} />
             )}
           </View>
-          
+
           <View style={styles.ratingRow}>
             <Icon name="star" size={14} color={COLOR.ENFASIS} />
             <Text style={styles.rating}>{item.calificacion.toFixed(1)}</Text>
-            <Text style={styles.distance}>
-              • {item.distancia}
-            </Text>
+            <Text style={styles.distance}>• {item.distancia}</Text>
           </View>
 
-          <Text style={styles.price}>
-            {item.tarifa}
-          </Text>
+          <Text style={styles.price}>{item.tarifa}</Text>
         </View>
 
         <View style={styles.radio}>
@@ -97,7 +106,12 @@ export const SeleccionarCuidadorPaso = ({ initialWalkerId, onNext, onBack }: Pro
   const renderEmpty = () => (
     <View style={styles.centerContent}>
       <View style={styles.iconWrapper}>
-        <Icon name="users" size={64} color={COLOR.SUBTEXTO} />
+        <Icon
+          name="users"
+          size={64}
+          color={COLOR.SUBTEXTO}
+          containerStyle={{ width: 120 }}
+        />
       </View>
       <Text style={styles.emptyText}>
         {t('paseos:pasos.seleccionar_cuidador.sin_cuidadores')}
@@ -105,6 +119,12 @@ export const SeleccionarCuidadorPaso = ({ initialWalkerId, onNext, onBack }: Pro
       <Text style={styles.emptySubtext}>
         {t('paseos:pasos.seleccionar_cuidador.sin_cuidadores_desc')}
       </Text>
+      <Button
+        title={t('comun:reintentar')}
+        variant="bloque"
+        onPress={recargar}
+        style={{ marginTop: 24, minWidth: 200 }}
+      />
     </View>
   )
 
@@ -113,7 +133,7 @@ export const SeleccionarCuidadorPaso = ({ initialWalkerId, onNext, onBack }: Pro
       <Text style={styles.title}>
         {t('paseos:pasos.seleccionar_cuidador.titulo')}
       </Text>
-      
+
       {!cargando && !error && (
         <Text style={styles.subtitle}>
           {t('paseos:pasos.seleccionar_cuidador.lista_titulo')}
@@ -257,7 +277,7 @@ const styles = StyleSheet.create({
     paddingVertical: 40,
   },
   iconWrapper: {
-    width: 80,
+    minWidth: 100,
     height: 80,
     justifyContent: 'center',
     alignItems: 'center',
