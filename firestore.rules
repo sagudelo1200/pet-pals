@@ -176,7 +176,18 @@ service cloud.firestore {
         && (!('id_cuidador' in request.resource.data) || 
       request.resource.data.id_cuidador != request.auth.uid);
 
-      allow update: if es_actor_paseo_doc(resource)
+      allow update: if (
+      es_actor_paseo_doc(resource) || 
+      (
+      resource.data.estado == 'PENDIENTE' && 
+      (
+      !('id_cuidador' in resource.data) || 
+      resource.data.id_cuidador == request.auth.uid
+      ) &&
+      request.resource.data.id_cuidador == request.auth.uid &&
+      request.resource.data.estado == 'ACEPTADO'
+      )
+      )
         && campos_sistema_validos_actualizar()
         && request.resource.data.creado_por == resource.data.creado_por
       // Validar que el cuidador no sea el mismo que el creador

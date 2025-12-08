@@ -12,6 +12,9 @@ import {
   where,
   orderBy,
   type Query,
+  runTransaction,
+  doc,
+  serverTimestamp,
 } from 'firebase/firestore'
 import { db } from '@/firebase.config'
 
@@ -23,10 +26,12 @@ export class ServicioPaseo {
    * Filtra por estado PENDIENTE y ordena por fecha de creación descendente.
    */
   static getQuerySolicitudesPendientes(): Query {
+    const { limit } = require('firebase/firestore')
     return query(
       collection(db, this.COLLECTION),
       where('estado', '==', PaseoStatus.PENDIENTE),
-      orderBy('creado_en', 'desc')
+      orderBy('creado_en', 'desc'),
+      limit(30) // Límite duro para controlar costos de lectura
     )
   }
 
@@ -47,6 +52,52 @@ export class ServicioPaseo {
     }
 
     return ServicioCrudBase.crear<Paseo>(this.COLLECTION, payload as any)
+  }
+
+  /**
+   * Permite a un cuidador aceptar una solicitud de paseo pendiente.
+   * Utiliza una transacción para asegurar atomicidad y evitar condiciones de carrera.
+   */
+  static async aceptarSolicitud(paseoId: string): Promise<CrudResult<void>> {
+    const currentUser = ServicioAuth.obtenerUsuarioActual()
+    if (!currentUser) return { success: false, error: ERR.COMUN.NO_AUTENTICADO }
+
+    try {
+      await runTransaction(db, async transaction => {
+        const paseoRef = doc(db, this.COLLECTION, paseoId)
+        const paseoDoc = await transaction.get(paseoRef)
+
+        if (!paseoDoc.exists()) {
+          throw new Error(ERR.COMUN.DOCUMENTO_NO_ENCONTRADO)
+        }
+
+        const data = paseoDoc.data() as Paseo
+
+        // Validaciones de negocio estrictas
+        if (data.estado !== PaseoStatus.PENDIENTE) {
+          throw new Error('El paseo ya no está disponible (estado incorrecto)')
+        }
+        // Permitir si no tiene cuidador (mercado abierto) O si el cuidador asignado soy yo (solicitud directa)
+        if (data.id_cuidador && data.id_cuidador !== currentUser.uid) {
+          throw new Error('El paseo ya fue tomado por otro cuidador')
+        }
+        if (data.creado_por === currentUser.uid) {
+          throw new Error('No puedes aceptar tu propio paseo')
+        }
+
+        // Actualizar documento
+        transaction.update(paseoRef, {
+          id_cuidador: currentUser.uid,
+          estado: PaseoStatus.ACEPTADO,
+          actualizado_en: serverTimestamp(),
+          actualizado_por: currentUser.uid,
+        })
+      })
+
+      return { success: true }
+    } catch (error) {
+      return { success: false, error: mapFirebaseError(error) }
+    }
   }
 
   /**

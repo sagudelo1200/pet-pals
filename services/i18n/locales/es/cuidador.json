@@ -36,6 +36,8 @@
     "raza_desconocida": "Raza desconocida",
     "rechazar": "Rechazar",
     "aceptar": "Aceptar Solicitud",
+    "confirmar_aceptar": "¿Estás seguro de que deseas aceptar este paseo? Te comprometes a realizar el servicio.",
+    "exito_aceptar": "¡Has aceptado el paseo exitosamente!",
     "ubicacion": "Ubicación"
   },
   "activos": {

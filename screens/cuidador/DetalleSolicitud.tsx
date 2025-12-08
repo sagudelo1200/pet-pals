@@ -85,14 +85,50 @@ export const DetalleSolicitud = () => {
     }
   }
 
-  const handleAceptar = () => {
-    // TODO: Implementar lógica de aceptación (Fase 3)
-    Alert.alert('Info', t('cuidador:solicitudes.fase3_aceptar'))
+  const handleAceptar = async () => {
+    if (!paseo) return
+
+    Alert.alert(
+      t('cuidador:solicitudes.aceptar'),
+      t('cuidador:solicitudes.confirmar_aceptar'),
+      [
+        { text: t('comun:cancelar'), style: 'cancel' },
+        {
+          text: t('cuidador:solicitudes.aceptar'),
+          onPress: async () => {
+            setCargando(true)
+            const res = await ServicioPaseo.aceptarSolicitud(paseo.id)
+            setCargando(false)
+
+            if (res.success) {
+              Alert.alert(
+                t('comun:exito'),
+                t('cuidador:solicitudes.exito_aceptar'),
+                [
+                  {
+                    text: 'OK',
+                    onPress: () => {
+                      // Navegar a la pestaña de Activos o volver
+                      // Por ahora volvemos atrás, idealmente ir a "Mis Paseos"
+                      navigation.goBack()
+                    },
+                  },
+                ]
+              )
+            } else {
+              Alert.alert(t('comun:error'), res.error || 'Error desconocido')
+            }
+          },
+        },
+      ]
+    )
   }
 
   const handleRechazar = () => {
-    // TODO: Implementar lógica de rechazo (Fase 3)
-    Alert.alert('Info', t('cuidador:solicitudes.fase3_rechazar'))
+    // Simplemente volvemos atrás, ya que rechazar una solicitud pública
+    // solo significa "no me interesa ahora".
+    // En el futuro podríamos guardar una lista de "ignorados" localmente.
+    navigation.goBack()
   }
 
   if (cargando) {
