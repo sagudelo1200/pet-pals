@@ -1,5 +1,5 @@
-import React, { useState } from 'react'
-import { StyleSheet, View, Text, FlatList } from 'react-native'
+import React, { useState, useRef, useMemo } from 'react'
+import { StyleSheet, View, Text, FlatList, Dimensions } from 'react-native'
 import { useTranslation } from 'react-i18next'
 import { COLOR } from '@/constants'
 import Screen from '@/components/ui/Screen'
@@ -12,7 +12,6 @@ import type { Paseo } from '@/models/Paseo'
 import { useMascotas } from '@/hooks/useMascotas'
 import { Alert } from 'react-native'
 import { useNavigation } from '@react-navigation/native'
-
 import { usePaseos } from '@/hooks/paseos/usePaseos'
 
 type TabTipo = 'proximos' | 'historial'
@@ -23,13 +22,13 @@ const Paseos: React.FC = () => {
   const [modalVisible, setModalVisible] = useState(false)
   const { mascotas } = useMascotas()
   const navigation = useNavigation()
-  const { paseos, cargando } = usePaseos()
+  const { paseos, cargando, refetch } = usePaseos()
 
   const handleSolicitar = () => {
     if (mascotas.length === 0) {
       Alert.alert(
-        t('paseos:errores.SIN_MASCOTAS_TITULO'),
-        t('paseos:errores.SIN_MASCOTAS_MSG'),
+        t('paseos:errores.SIN_MASCOTAS_TITULO', 'Sin Mascotas'),
+        t('paseos:errores.SIN_MASCOTAS_MSG', 'Necesitas registrar una mascota primero.'),
         [
           { text: 'Cancelar', style: 'cancel' },
           { 
@@ -46,20 +45,24 @@ const Paseos: React.FC = () => {
     setModalVisible(true)
   }
 
-  const paseosFiltrados = (paseos || []).filter(p => {
-    if (activeTab === 'proximos') {
-      return ['PENDIENTE', 'ACEPTADO', 'EN_RUTA', 'EN_PROGRESO', 'PROGRAMADO'].includes(p.estado)
-    }
-    return ['COMPLETADO', 'FINALIZADO', 'CANCELADO', 'RECHAZADO'].includes(p.estado)
-  })
+  // Filtrado de datos
+  const proximos = useMemo(() => (paseos || []).filter(p => 
+    ['PENDIENTE', 'ACEPTADO', 'EN_RUTA', 'EN_PROGRESO', 'PROGRAMADO'].includes(p.estado)
+  ), [paseos])
+
+  const historial = useMemo(() => (paseos || []).filter(p => 
+    ['COMPLETADO', 'FINALIZADO', 'CANCELADO', 'RECHAZADO'].includes(p.estado)
+  ), [paseos])
+
+  const paseosFiltrados = activeTab === 'proximos' ? proximos : historial
 
   const renderEmptyState = () => (
     <View style={styles.emptyState}>
       <PaseadorPerrosSvg width={200} height={160} style={{ opacity: 0.8 }} />
       <Text style={styles.emptyTitle}>
         {activeTab === 'proximos'
-          ? t('paseos:lista.vacio_proximos')
-          : t('paseos:lista.vacio_completados')}
+          ? t('paseos:lista.vacio_proximos', 'No tienes paseos próximos')
+          : t('paseos:lista.vacio_completados', 'No tienes historial de paseos')}
       </Text>
     </View>
   )
@@ -75,8 +78,8 @@ const Paseos: React.FC = () => {
       }
     >
       <View style={styles.header}>
-        <Text style={styles.titulo}>{t('paseos:titulo')}</Text>
-        <Text style={styles.subtitulo}>{t('paseos:subtitulo')}</Text>
+        <Text style={styles.titulo}>{t('paseos:titulo', 'Mis Paseos')}</Text>
+        <Text style={styles.subtitulo}>{t('paseos:subtitulo', 'Gestiona tus solicitudes de paseo')}</Text>
       </View>
 
       <View style={styles.tabs}>
@@ -110,6 +113,7 @@ const Paseos: React.FC = () => {
         ListEmptyComponent={renderEmptyState}
         showsVerticalScrollIndicator={false}
         refreshing={cargando}
+        onRefresh={refetch}
       />
 
       <SolicitarPaseoModal
@@ -150,7 +154,7 @@ const styles = StyleSheet.create({
   },
   listContent: {
     paddingHorizontal: 20,
-    paddingBottom: 20,
+    paddingBottom: 160, // Tab bar (~50px) + FAB (~50px) + extra margin
     flexGrow: 1,
   },
   emptyState: {
@@ -167,7 +171,7 @@ const styles = StyleSheet.create({
   fab: {
     position: 'absolute',
     bottom: 90,
-    right: 21,
+    right: 20,
     zIndex: 1000,
     elevation: 9,
   },

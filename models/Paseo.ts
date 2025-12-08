@@ -52,4 +52,10 @@ export interface Paseo extends BaseModel {
   ubicacion_fin?: string
   /** Referencia al documento de tracking GPS si aplica. */
   tracking_gps?: string
+  /** Nombre de la primera mascota para visualización en listas. */
+  mascota_nombre_visual?: string
+  /** Foto de la primera mascota para visualización en listas. */
+  mascota_foto_visual?: string
+  /** Lista de fotos (hasta 4) para paseos múltiples. */
+  mascotas_fotos_visual?: string[]
 }

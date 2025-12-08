@@ -75,6 +75,30 @@ export class ServicioPaseo {
           }
       }
     }
+    
+    // Preparar datos visuales
+    let visualData: any = {}
+    if (unique.length > 0) {
+      // Obtener datos de mascotas (limitado a 4 para visualización)
+      const fotos: string[] = []
+      let primerNombre = ''
+      
+      const limit = Math.min(unique.length, 4)
+      for (let i = 0; i < limit; i++) {
+        const m = await ServicioCrudBase.obtenerPorId<Mascota>('mascotas', unique[i])
+        if (m.success && m.data) {
+           const d = m.data as any
+           if (i === 0) primerNombre = d.nombre
+           if (d.foto_url || d.foto) fotos.push(d.foto_url || d.foto)
+        }
+      }
+
+      visualData = {
+         mascota_nombre_visual: primerNombre,
+         mascota_foto_visual: fotos[0], // Mantener compatibilidad
+         mascotas_fotos_visual: fotos
+      }
+    }
 
     // Crear paseo
     const paseoRes = await ServicioCrudBase.crear<Paseo>(this.COLLECTION, {
@@ -84,6 +108,7 @@ export class ServicioPaseo {
       es_multiple: (data as any).es_multiple ?? unique.length !== 1,
       cupo_maximo_mascotas: max,
       mascotas_count: unique.length,
+      ...visualData,
     } as any)
 
     if (!paseoRes.success || !paseoRes.data) return paseoRes

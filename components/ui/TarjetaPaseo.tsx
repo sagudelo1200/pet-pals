@@ -5,9 +5,9 @@ import { COLOR } from '@/constants'
 import Card from './Card'
 import Icon from './Icon'
 import { PetAvatar } from './PetAvatar'
+import { AvatarGroup } from './AvatarGroup'
 import { BadgeEstadoPaseo } from '@/components/paseos/BadgeEstadoPaseo'
 import type { Paseo } from '@/models/Paseo'
-import { PaseoStatus } from '@/models/Paseo'
 
 interface TarjetaPaseoProps {
   paseo: Partial<Paseo> & {
@@ -36,14 +36,27 @@ const TarjetaPaseo: React.FC<TarjetaPaseoProps> = ({ paseo, onPress }) => {
     })
   }
 
+  // Lógica de visualización de nombre de mascota
+  const nombreMascota = 
+    paseo.mascota_nombre_visual || 
+    paseo.mascotaNombre || 
+    (paseo.es_multiple ? 'Varias Mascotas' : 'Mascota')
+  
+  const fotoMascota = paseo.mascota_foto_visual || paseo.mascotaFoto
+  const fotosMultiples = paseo.mascotas_fotos_visual
+
   return (
     <Card onPress={onPress} style={styles.card}>
       <View style={styles.header}>
         <View style={styles.petInfo}>
-          <PetAvatar uri={paseo.mascotaFoto} size="small" />
+          {fotosMultiples && fotosMultiples.length > 1 ? (
+             <AvatarGroup uris={fotosMultiples} size="small" />
+          ) : (
+             <PetAvatar uri={fotoMascota} size="small" />
+          )}
           <View style={styles.petText}>
             <Text style={styles.petName}>
-              {paseo.mascotaNombre || 'Mascota'}
+              {nombreMascota}
             </Text>
             <Text style={styles.serviceType}>
               {paseo.tipo_paseo === 'programado' ? 'Programado' : 'A demanda'}
@@ -76,9 +89,9 @@ const TarjetaPaseo: React.FC<TarjetaPaseoProps> = ({ paseo, onPress }) => {
       </View>
 
       <View style={styles.footer}>
-        <Text style={styles.walkerLabel}>{t('paseos:tarjeta.cuidador')}</Text>
+        <Text style={styles.walkerLabel}>{t('paseos:tarjeta.cuidador', 'Cuidador')}</Text>
         <Text style={styles.walkerName}>
-          {paseo.cuidadorNombre || t('paseos:tarjeta.sin_cuidador')}
+          {paseo.cuidadorNombre || t('paseos:tarjeta.sin_cuidador', 'Por asignar')}
         </Text>
       </View>
     </Card>
