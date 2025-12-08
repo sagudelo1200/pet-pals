@@ -27,23 +27,36 @@ export const useEstadisticasCuidador = (): EstadisticasCuidador => {
     const cargarEstadisticas = async () => {
       try {
         // Solicitudes disponibles (sin cuidador asignado)
-        const solicitudesRes = await ServicioPaseo.obtenerPorEstado(PaseoStatus.PENDIENTE)
-        const solicitudes = solicitudesRes.success ? solicitudesRes.data || [] : []
+        const solicitudesRes = await ServicioPaseo.obtenerPorEstado(
+          PaseoStatus.PENDIENTE
+        )
+        const solicitudes = solicitudesRes.success
+          ? solicitudesRes.data || []
+          : []
         const solicitudesSinAsignar = solicitudes.filter(p => !p.id_cuidador)
 
-        // Paseos activos del cuidador
-        const activosRes = await ServicioPaseo.obtenerPorCuidadorYEstado(
+        // Optimización: Consultar todos los paseos del cuidador en una sola query
+        const todosRes = await ServicioPaseo.obtenerPorCuidadorYEstado(
           user.uid,
-          [PaseoStatus.ACEPTADO, PaseoStatus.EN_RUTA, PaseoStatus.EN_PROGRESO]
+          [
+            PaseoStatus.ACEPTADO,
+            PaseoStatus.EN_RUTA,
+            PaseoStatus.EN_PROGRESO,
+            PaseoStatus.COMPLETADO,
+          ]
         )
-        const activos = activosRes.success ? activosRes.data || [] : []
+        const todos = todosRes.success ? todosRes.data || [] : []
 
-        // Paseos completados del cuidador
-        const completadosRes = await ServicioPaseo.obtenerPorCuidadorYEstado(
-          user.uid,
-          [PaseoStatus.COMPLETADO]
+        const activos = todos.filter(p =>
+          [
+            PaseoStatus.ACEPTADO,
+            PaseoStatus.EN_RUTA,
+            PaseoStatus.EN_PROGRESO,
+          ].includes(p.estado)
         )
-        const completados = completadosRes.success ? completadosRes.data || [] : []
+        const completados = todos.filter(
+          p => p.estado === PaseoStatus.COMPLETADO
+        )
 
         setEstadisticas({
           solicitudesPendientes: solicitudesSinAsignar.length,

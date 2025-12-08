@@ -1,10 +1,5 @@
 import { useMemo } from 'react'
-import {
-  collection,
-  query,
-  where,
-  orderBy
-} from 'firebase/firestore'
+import { collection, query, where, orderBy, limit } from 'firebase/firestore'
 import { db } from '@/firebase.config'
 import { useCollection } from '@/hooks/useCollection'
 import { ServicioAuth } from '@/services/firebase/auth'
@@ -21,21 +16,24 @@ export function usePaseos() {
   // Crear query memoizada
   const q = useMemo(() => {
     if (!uid) return null
-    
+
     return query(
       collection(db, 'paseos'),
       where('creado_por', '==', uid),
-      orderBy('fecha_hora_inicio', 'desc')
+      orderBy('fecha_hora_inicio', 'desc'),
+      limit(50)
     )
   }, [uid])
 
   // Usar useCollection con listen=true
-  const { data, cargando, error, refetch } = useCollection<Paseo>(q, { listen: true })
+  const { data, cargando, error, refetch } = useCollection<Paseo>(q, {
+    listen: true,
+  })
 
   return {
     paseos: data,
     cargando,
     error,
-    refetch
+    refetch,
   }
 }

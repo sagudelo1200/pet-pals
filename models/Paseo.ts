@@ -36,6 +36,8 @@ export interface Paseo extends BaseModel {
   cupo_maximo_mascotas?: number
   /** Contador actual de mascotas unidas a este paseo (subcolección). */
   mascotas_count?: number
+  /** IDs de las mascotas participantes (para optimización de consultas). */
+  mascota_ids?: string[]
   /** Tipo de paseo (a demanda o programado). */
   tipo_paseo: TipoPaseo
   /** Fecha y hora de inicio del paseo. */

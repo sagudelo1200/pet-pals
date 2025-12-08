@@ -62,41 +62,47 @@ export class ServicioPaseo {
       return { success: false, error: ERR.PASEOS.LIMITE_DE_MASCOTAS_SUPERADO }
 
     // Validar que todas las mascotas pertenecen al usuario actual (si hay)
+    // Optimización: Consultar todas las mascotas en paralelo una sola vez
+    const mascotasData: any[] = []
     if (unique.length > 0) {
-      for (const mid of unique) {
-        const m = await ServicioCrudBase.obtenerPorId<Mascota>('mascotas', mid)
-        if (!m.success || !m.data)
+      const resultados = await Promise.all(
+        unique.map(mid =>
+          ServicioCrudBase.obtenerPorId<Mascota>('mascotas', mid)
+        )
+      )
+
+      for (const res of resultados) {
+        if (!res.success || !res.data)
           return { success: false, error: ERR.MASCOTAS.MASCOTA_NO_ENCONTRADA }
-        const ownerOk = (m.data as any).creado_por === uid
-        if (!ownerOk)
+
+        const m = res.data as any
+        if (m.creado_por !== uid)
           return {
             success: false,
             error: ERR.MASCOTAS.MASCOTA_NO_PERTENECE_AL_USUARIO,
           }
+        mascotasData.push(m)
       }
     }
-    
+
     // Preparar datos visuales
     let visualData: any = {}
-    if (unique.length > 0) {
+    if (mascotasData.length > 0) {
       // Obtener datos de mascotas (limitado a 4 para visualización)
       const fotos: string[] = []
       let primerNombre = ''
-      
-      const limit = Math.min(unique.length, 4)
+
+      const limit = Math.min(mascotasData.length, 4)
       for (let i = 0; i < limit; i++) {
-        const m = await ServicioCrudBase.obtenerPorId<Mascota>('mascotas', unique[i])
-        if (m.success && m.data) {
-           const d = m.data as any
-           if (i === 0) primerNombre = d.nombre
-           if (d.foto_url || d.foto) fotos.push(d.foto_url || d.foto)
-        }
+        const d = mascotasData[i]
+        if (i === 0) primerNombre = d.nombre
+        if (d.foto_url || d.foto) fotos.push(d.foto_url || d.foto)
       }
 
       visualData = {
-         mascota_nombre_visual: primerNombre,
-         mascota_foto_visual: fotos[0], // Mantener compatibilidad
-         mascotas_fotos_visual: fotos
+        mascota_nombre_visual: primerNombre,
+        mascota_foto_visual: fotos[0], // Mantener compatibilidad
+        mascotas_fotos_visual: fotos,
       }
     }
 
@@ -108,6 +114,7 @@ export class ServicioPaseo {
       es_multiple: (data as any).es_multiple ?? unique.length !== 1,
       cupo_maximo_mascotas: max,
       mascotas_count: unique.length,
+      mascota_ids: unique, // Campo optimizado para búsquedas
       ...visualData,
     } as any)
 
@@ -155,31 +162,25 @@ export class ServicioPaseo {
   static async obtenerPorMascota(
     mascotaId: string
   ): Promise<CrudResult<Paseo[]>> {
-    // Buscar paseos donde la mascota participe usando collectionGroup sobre la subcolección 'mascotas'
+    // Optimización: Usar array-contains sobre el campo mascota_ids
     try {
       const { db } = await import('@/firebase.config')
-      const { collectionGroup, query, where, getDocs, documentId } =
-        await import('firebase/firestore')
+      const { collection, query, where, getDocs, orderBy } = await import(
+        'firebase/firestore'
+      )
 
       const q = query(
-        collectionGroup(db, 'mascotas'),
-        where(documentId(), '==', mascotaId)
+        collection(db, this.COLLECTION),
+        where('mascota_ids', 'array-contains', mascotaId),
+        orderBy('fecha_hora_inicio', 'desc')
       )
+
       const snap = await getDocs(q)
-      const paseoIds = new Set<string>()
+      const results: Paseo[] = []
       snap.forEach(d => {
-        const parent = d.ref.parent.parent
-        if (parent) paseoIds.add(parent.id)
+        results.push({ id: d.id, ...d.data() } as Paseo)
       })
 
-      const results: Paseo[] = []
-      for (const id of paseoIds) {
-        const res = await ServicioCrudBase.obtenerPorId<Paseo>(
-          this.COLLECTION,
-          id
-        )
-        if (res.success && res.data) results.push(res.data)
-      }
       return { success: true, data: results }
     } catch (e: any) {
       return { success: false, error: mapFirebaseError(e) }
@@ -215,7 +216,9 @@ export class ServicioPaseo {
   ): Promise<CrudResult<Paseo[]>> {
     try {
       const { db } = await import('@/firebase.config')
-      const { collection, query, where, getDocs } = await import('firebase/firestore')
+      const { collection, query, where, getDocs } = await import(
+        'firebase/firestore'
+      )
 
       const q = query(
         collection(db, this.COLLECTION),
@@ -247,4 +250,3 @@ export class ServicioPaseo {
     })
   }
 }
-
