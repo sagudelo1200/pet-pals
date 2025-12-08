@@ -7,33 +7,73 @@ import { Paseo } from '@/models/Paseo'
 
 /**
  * Hook para obtener la agenda de paseos del cuidador actual.
- * Filtra por paseos donde el usuario es el cuidador asignado.
+ * Separa los paseos en 'proximos' (activos) y 'historial' (pasados).
  */
 export function useAgendaCuidador() {
   const user = ServicioAuth.obtenerUsuarioActual()
   const uid = user?.uid
 
-  // Crear query memoizada
-  const q = useMemo(() => {
+  // Query para paseos próximos (Activos)
+  const qProximos = useMemo(() => {
     if (!uid) return null
 
     return query(
       collection(db, 'paseos'),
       where('id_cuidador', '==', uid),
-      orderBy('fecha_hora_inicio', 'desc'),
+      where('estado', 'in', [
+        'ACEPTADO',
+        'EN_RUTA',
+        'EN_PROGRESO',
+        'PROGRAMADO',
+      ]),
+      orderBy('fecha_hora_inicio', 'asc') // Los más cercanos primero
+    )
+  }, [uid])
+
+  // Query para historial (Inactivos)
+  const qHistorial = useMemo(() => {
+    if (!uid) return null
+
+    return query(
+      collection(db, 'paseos'),
+      where('id_cuidador', '==', uid),
+      where('estado', 'in', [
+        'COMPLETADO',
+        'FINALIZADO',
+        'CANCELADO',
+        'RECHAZADO',
+      ]),
+      orderBy('fecha_hora_inicio', 'desc'), // Los más recientes primero
       limit(50)
     )
   }, [uid])
 
-  // Usar useCollection con listen=true para actualizaciones en tiempo real
-  const { data, cargando, error, refetch } = useCollection<Paseo>(q, {
+  const {
+    data: proximosData,
+    cargando: l1,
+    error: e1,
+    refetch: r1,
+  } = useCollection<Paseo>(qProximos, {
+    listen: true,
+  })
+
+  const {
+    data: historialData,
+    cargando: l2,
+    error: e2,
+    refetch: r2,
+  } = useCollection<Paseo>(qHistorial, {
     listen: true,
   })
 
   return {
-    paseos: data,
-    cargando,
-    error,
-    refetch,
+    proximos: proximosData || [],
+    historial: historialData || [],
+    cargando: l1 || l2,
+    error: e1 || e2,
+    refetch: () => {
+      r1()
+      r2()
+    },
   }
 }

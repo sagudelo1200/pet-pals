@@ -1,5 +1,5 @@
-import React from 'react'
-import { Platform } from 'react-native'
+import React, { useMemo } from 'react'
+import { Platform, View, Text, StyleSheet } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
 import { Icon } from '@/components/ui'
@@ -10,12 +10,20 @@ import MiCuenta from '@/screens/shared/MiCuenta'
 import { CuidadorTabParamList } from './types'
 import { COLOR } from '@/constants'
 import { useTranslation } from 'react-i18next'
+import { useSolicitudesCuidador } from '@/hooks/cuidador/useSolicitudesCuidador'
+import { useAgendaCuidador } from '@/hooks/cuidador/useAgendaCuidador'
 
 const Tab = createBottomTabNavigator<CuidadorTabParamList>()
 
 export default function CuidadorTabNavigator(): React.ReactElement {
   const insets = useSafeAreaInsets()
   const { t } = useTranslation()
+  const { solicitudes } = useSolicitudesCuidador()
+  const { proximos } = useAgendaCuidador()
+
+  const solicitudesCount = solicitudes?.length || 0
+
+  const agendaCount = proximos?.length || 0
 
   return (
     <Tab.Navigator
@@ -68,8 +76,15 @@ export default function CuidadorTabNavigator(): React.ReactElement {
         component={SolicitudesPaseos}
         options={{
           title: t('cuidador:tabs.solicitudes'),
-          tabBarIcon: ({ color, size }) => (
-            <Icon name="bell" size={size} color={color} />
+          tabBarIcon: ({ color, size, focused }) => (
+            <View style={styles.iconWrapper}>
+              <Icon name="bell" size={size} color={color} />
+              {solicitudesCount > 0 && (
+                <View style={styles.badgeContainer}>
+                  <Text style={styles.badgeText}>{solicitudesCount}</Text>
+                </View>
+              )}
+            </View>
           ),
         }}
       />
@@ -78,8 +93,15 @@ export default function CuidadorTabNavigator(): React.ReactElement {
         component={AgendaScreen}
         options={{
           title: t('cuidador:tabs.agenda'),
-          tabBarIcon: ({ color, size }) => (
-            <Icon name="calendar-alt" size={size} color={color} />
+          tabBarIcon: ({ color, size, focused }) => (
+            <View style={styles.iconWrapper}>
+              <Icon name="calendar-alt" size={size} color={color} />
+              {agendaCount > 0 && (
+                <View style={styles.badgeContainer}>
+                  <Text style={styles.badgeText}>{agendaCount}</Text>
+                </View>
+              )}
+            </View>
           ),
         }}
       />
@@ -96,3 +118,36 @@ export default function CuidadorTabNavigator(): React.ReactElement {
     </Tab.Navigator>
   )
 }
+
+const styles = StyleSheet.create({
+  iconWrapper: {
+    width: 36,
+    height: 36,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  badgeContainer: {
+    position: 'absolute',
+    top: 2,
+    right: -6,
+    minWidth: 18,
+    height: 18,
+    paddingHorizontal: 5,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: 'rgba(0,0,0,0.06)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  badgeText: {
+    color: COLOR.BASE,
+    fontSize: 11,
+    fontWeight: '700',
+  },
+})

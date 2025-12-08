@@ -6,6 +6,7 @@ import { COLOR } from '@/constants'
 import Screen from '@/components/ui/Screen'
 import TarjetaPaseo from '@/components/ui/TarjetaPaseo'
 import Chip from '@/components/ui/Chip'
+import EmptyState from '@/components/ui/EmptyState'
 import PaseadorPerrosSvg from '@/assets/imgs/undraw/paseador_perros.svg'
 import { useAgendaCuidador } from '@/hooks/cuidador/useAgendaCuidador'
 import { NativeStackNavigationProp } from '@react-navigation/native-stack'
@@ -18,26 +19,7 @@ const AgendaScreen: React.FC = () => {
   const [activeTab, setActiveTab] = useState<TabTipo>('proximos')
   const navigation =
     useNavigation<NativeStackNavigationProp<AuthStackParamList>>()
-  const { paseos, cargando, refetch } = useAgendaCuidador()
-
-  // Filtrado de datos
-  const proximos = useMemo(
-    () =>
-      (paseos || []).filter(p =>
-        ['ACEPTADO', 'EN_RUTA', 'EN_PROGRESO', 'PROGRAMADO'].includes(p.estado)
-      ),
-    [paseos]
-  )
-
-  const historial = useMemo(
-    () =>
-      (paseos || []).filter(p =>
-        ['COMPLETADO', 'FINALIZADO', 'CANCELADO', 'RECHAZADO'].includes(
-          p.estado
-        )
-      ),
-    [paseos]
-  )
+  const { proximos, historial, cargando, refetch } = useAgendaCuidador()
 
   const paseosFiltrados = activeTab === 'proximos' ? proximos : historial
 
@@ -48,19 +30,21 @@ const AgendaScreen: React.FC = () => {
   }
 
   const renderEmptyState = () => (
-    <View style={styles.emptyState}>
-      <PaseadorPerrosSvg width={200} height={160} style={{ opacity: 0.8 }} />
-      <Text style={styles.emptyTitle}>
-        {activeTab === 'proximos'
+    <EmptyState
+      image={
+        <PaseadorPerrosSvg width={200} height={160} style={{ opacity: 0.8 }} />
+      }
+      title={
+        activeTab === 'proximos'
           ? t('cuidador:agenda.vacio_proximos')
-          : t('cuidador:agenda.vacio_historial')}
-      </Text>
-      <Text style={styles.emptySubtitle}>
-        {activeTab === 'proximos'
+          : t('cuidador:agenda.vacio_historial')
+      }
+      description={
+        activeTab === 'proximos'
           ? t('cuidador:agenda.vacio_proximos_sub')
-          : ''}
-      </Text>
-    </View>
+          : undefined
+      }
+    />
   )
 
   return (
@@ -135,26 +119,6 @@ const styles = StyleSheet.create({
     padding: 20,
     paddingTop: 10,
     flexGrow: 1,
-  },
-  emptyState: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 40,
-  },
-  emptyTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: COLOR.TEXTO,
-    marginTop: 20,
-    textAlign: 'center',
-  },
-  emptySubtitle: {
-    fontSize: 14,
-    color: COLOR.SUBTEXTO,
-    marginTop: 8,
-    textAlign: 'center',
-    paddingHorizontal: 40,
   },
 })
 

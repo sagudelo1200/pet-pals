@@ -5,13 +5,13 @@ import { StackNavigationProp } from '@react-navigation/stack'
 import { useTranslation } from 'react-i18next'
 import Screen from '@/components/ui/Screen'
 import { COLOR } from '@/constants'
-import Icon from '@/components/ui/Icon'
 import { useSolicitudesCuidador } from '@/hooks/cuidador/useSolicitudesCuidador'
 import { TarjetaSolicitud } from '@/components/cuidador/TarjetaSolicitud'
 import { Paseo } from '@/models/Paseo'
 import { AuthStackParamList } from '@/navigation/types'
 import Skeleton from '@/components/ui/Skeleton'
 import Card from '@/components/ui/Card'
+import EmptyState from '@/components/ui/EmptyState'
 
 const SolicitudesPaseos: React.FC = () => {
   const { t } = useTranslation()
@@ -55,20 +55,11 @@ const SolicitudesPaseos: React.FC = () => {
   )
 
   const renderEmpty = () => (
-    <View style={styles.emptyState}>
-      <Icon
-        name="bell-slash"
-        size={64}
-        color={COLOR.SUBTEXTO}
-        style={{ opacity: 0.3 }}
-      />
-      <Text style={styles.emptyText}>
-        {t('cuidador:solicitudes.sin_solicitudes')}
-      </Text>
-      <Text style={styles.emptySubtext}>
-        {t('cuidador:solicitudes.sin_solicitudes_desc')}
-      </Text>
-    </View>
+    <EmptyState
+      iconName="bell-slash"
+      title={t('cuidador:solicitudes.sin_solicitudes')}
+      description={t('cuidador:solicitudes.sin_solicitudes_desc')}
+    />
   )
 
   return (
@@ -140,27 +131,6 @@ const styles = StyleSheet.create({
   },
   skeletonFooter: {
     marginTop: 8,
-  },
-  emptyState: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 40,
-    marginTop: 40,
-  },
-  emptyText: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: COLOR.TEXTO,
-    marginTop: 16,
-    textAlign: 'center',
-  },
-  emptySubtext: {
-    fontSize: 14,
-    color: COLOR.SUBTEXTO,
-    marginTop: 8,
-    textAlign: 'center',
-    lineHeight: 20,
   },
 })
 

@@ -1,24 +1,17 @@
 import React, { useEffect, useState } from 'react'
-import {
-  StyleSheet,
-  View,
-  Text,
-  ScrollView,
-  Alert,
-  Pressable,
-} from 'react-native'
+import { StyleSheet, View, Text, ScrollView, Alert } from 'react-native'
 import { useRoute, useNavigation } from '@react-navigation/native'
 import { useTranslation } from 'react-i18next'
 import { COLOR } from '@/constants'
 import Screen from '@/components/ui/Screen'
 import Button from '@/components/ui/Button'
 import Card from '@/components/ui/Card'
-import Icon from '@/components/ui/Icon'
 import { BadgeEstadoPaseo } from '@/components/paseos/BadgeEstadoPaseo'
 import { useEstadoPaseo } from '@/hooks/paseos/useEstadoPaseo'
 import { ServicioPaseo } from '@/services/firebase/paseo'
 import { Paseo } from '@/models/Paseo'
 import LoadingScreen from '@/components/ui/LoadingScreen'
+import ScreenHeader from '@/components/ui/ScreenHeader'
 
 export const DetallePaseo = () => {
   const { t } = useTranslation()
@@ -80,16 +73,7 @@ export const DetallePaseo = () => {
 
   return (
     <Screen style={styles.container} includeTopInset>
-      <View style={styles.header}>
-        <Pressable
-          onPress={() => navigation.goBack()}
-          style={styles.backButton}
-        >
-          <Icon name="arrow-left" size={24} color={COLOR.TEXTO} />
-        </Pressable>
-        <Text style={styles.titulo}>{t('paseos:detalle.titulo')}</Text>
-        <View style={{ width: 40 }} />
-      </View>
+      <ScreenHeader title={t('paseos:detalle.titulo')} />
 
       <ScrollView contentContainerStyle={styles.content}>
         <Card style={styles.card}>
@@ -173,24 +157,6 @@ export const DetallePaseo = () => {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 10,
-    paddingVertical: 10,
-  },
-  backButton: {
-    width: 40,
-    height: 40,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  titulo: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: COLOR.TEXTO,
-  },
   content: { padding: 16 },
   card: { padding: 16, marginBottom: 24 },
   statusRow: {

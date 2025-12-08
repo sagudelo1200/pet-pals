@@ -1,5 +1,11 @@
 import React from 'react'
-import { StyleSheet, View, Text, ScrollView, RefreshControl } from 'react-native'
+import {
+  StyleSheet,
+  View,
+  Text,
+  ScrollView,
+  RefreshControl,
+} from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
 import { useTranslation } from 'react-i18next'
 import { useNavigation } from '@react-navigation/native'
@@ -8,7 +14,7 @@ import Screen from '@/components/ui/Screen'
 import { EstadisticaCard } from '@/components/cuidador/EstadisticaCard'
 import TarjetaPaseo from '@/components/ui/TarjetaPaseo'
 import { useEstadisticasCuidador } from '@/hooks/cuidador/useEstadisticasCuidador'
-import { usePaseos } from '@/hooks/paseos/usePaseos'
+import { useAgendaCuidador } from '@/hooks/cuidador/useAgendaCuidador'
 import { useAuth } from '@/context/AuthContext'
 import LoadingScreen from '@/components/ui/LoadingScreen'
 import PaseadorPerrosSvg from '@/assets/imgs/undraw/paseador_perros.svg'
@@ -18,25 +24,15 @@ const Dashboard: React.FC = () => {
   const navigation = useNavigation()
   const { user } = useAuth()
   const estadisticas = useEstadisticasCuidador()
-  const { paseos, cargando, refetch } = usePaseos()
+  const { proximos, cargando, refetch } = useAgendaCuidador()
 
   // Filtrar próximos paseos del cuidador (hoy y futuros)
-  const proximosPaseos = paseos
-    ?.filter(p => 
-      p.id_cuidador === user?.uid &&
-      ['ACEPTADO', 'EN_RUTA', 'EN_PROGRESO'].includes(p.estado)
-    )
-    .sort((a, b) => 
-      new Date(a.fecha_hora_inicio).getTime() - new Date(b.fecha_hora_inicio).getTime()
-    )
-    .slice(0, 3) || []
+  const proximosPaseos = (proximos || []).slice(0, 3)
 
   const renderEmptyState = () => (
     <View style={styles.emptyState}>
       <PaseadorPerrosSvg width={150} height={120} style={{ opacity: 0.6 }} />
-      <Text style={styles.emptyText}>
-        {t('cuidador:dashboard.sin_paseos')}
-      </Text>
+      <Text style={styles.emptyText}>{t('cuidador:dashboard.sin_paseos')}</Text>
     </View>
   )
 
@@ -46,7 +42,7 @@ const Dashboard: React.FC = () => {
 
   return (
     <Screen style={styles.container} includeTopInset>
-      <ScrollView 
+      <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
         refreshControl={
@@ -65,9 +61,7 @@ const Dashboard: React.FC = () => {
           style={styles.headerGradient}
         >
           <View style={styles.header}>
-            <Text style={styles.titulo}>
-              {t('cuidador:dashboard.titulo')}
-            </Text>
+            <Text style={styles.titulo}>{t('cuidador:dashboard.titulo')}</Text>
             <Text style={styles.subtitulo}>
               {t('cuidador:dashboard.subtitulo')}
             </Text>
@@ -114,25 +108,21 @@ const Dashboard: React.FC = () => {
               {t('cuidador:dashboard.proximos_paseos')}
             </Text>
             {proximosPaseos.length > 0 && (
-              <Text style={styles.sectionCount}>
-                {proximosPaseos.length}
-              </Text>
+              <Text style={styles.sectionCount}>{proximosPaseos.length}</Text>
             )}
           </View>
-          {proximosPaseos.length > 0 ? (
-            proximosPaseos.map(paseo => (
-              <TarjetaPaseo
-                key={paseo.id}
-                paseo={paseo}
-                onPress={() => {
-                  // @ts-ignore
-                  navigation.navigate('DetallePaseo', { id: paseo.id })
-                }}
-              />
-            ))
-          ) : (
-            renderEmptyState()
-          )}
+          {proximosPaseos.length > 0
+            ? proximosPaseos.map(paseo => (
+                <TarjetaPaseo
+                  key={paseo.id}
+                  paseo={paseo}
+                  onPress={() => {
+                    // @ts-ignore
+                    navigation.navigate('DetallePaseo', { id: paseo.id })
+                  }}
+                />
+              ))
+            : renderEmptyState()}
         </View>
       </ScrollView>
     </Screen>

@@ -9,6 +9,7 @@ import Button from './Button'
  */
 export interface EmptyStateProps {
   iconName?: React.ComponentProps<typeof Icon>['name']
+  image?: React.ReactNode
   title: string
   description?: string
   actionLabel?: string
@@ -21,7 +22,8 @@ export interface EmptyStateProps {
  * EmptyState: ícono + título + descripción y acción primaria opcional.
  */
 const EmptyState: React.FC<EmptyStateProps> = ({
-  iconName = 'paw',
+  iconName,
+  image,
   title,
   description,
   actionLabel,
@@ -31,7 +33,9 @@ const EmptyState: React.FC<EmptyStateProps> = ({
 }) => {
   return (
     <View style={[styles.container, style]} testID={testID}>
-      {iconName ? (
+      {image ? (
+        <View style={styles.imageWrap}>{image}</View>
+      ) : iconName ? (
         <View style={styles.iconWrap}>
           <Icon name={iconName} size={36} color={COLOR.ENFASIS} />
         </View>
@@ -65,6 +69,11 @@ const styles = StyleSheet.create({
     borderRadius: 999,
     backgroundColor: COLOR.SECUNDARIO,
     marginBottom: 10,
+  },
+  imageWrap: {
+    marginBottom: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   title: {
     color: COLOR.TEXTO,

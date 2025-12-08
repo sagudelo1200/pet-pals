@@ -22,6 +22,7 @@ export type ButtonVariant =
   | 'base'
   | 'inactivo'
   | 'ghost'
+  | 'contorno'
 
 interface Props {
   title?: string
@@ -72,6 +73,7 @@ const Button: React.FC<Props> = ({
       case 'inactivo':
         return COLOR.INACTIVO
       case 'ghost':
+      case 'contorno':
         return 'transparent'
       case 'bloque':
       default:
@@ -159,6 +161,8 @@ const Button: React.FC<Props> = ({
           backgroundColor:
             pressed && !(disabled || loading) ? pressedBg : bgColor,
           opacity: disabled || loading ? 0.6 : 1,
+          borderWidth: variant === 'contorno' ? 1 : 0,
+          borderColor: variant === 'contorno' ? COLOR.BORDE : 'transparent',
         },
       ]}
     >

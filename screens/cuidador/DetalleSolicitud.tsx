@@ -1,14 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import {
-  StyleSheet,
-  View,
-  Text,
-  ScrollView,
-  Image,
-  Alert,
-  ActivityIndicator,
-  Pressable,
-} from 'react-native'
+import { StyleSheet, View, Text, ScrollView, Image, Alert } from 'react-native'
 import { useRoute, useNavigation } from '@react-navigation/native'
 import { useTranslation } from 'react-i18next'
 import { COLOR } from '@/constants'
@@ -22,6 +13,7 @@ import { Paseo } from '@/models/Paseo'
 import { PerfilPublico } from '@/models/PerfilPublico'
 import { Mascota } from '@/models/Mascota'
 import Skeleton from '@/components/ui/Skeleton'
+import ScreenHeader from '@/components/ui/ScreenHeader'
 
 export const DetalleSolicitud = () => {
   const { t } = useTranslation()
@@ -134,19 +126,12 @@ export const DetalleSolicitud = () => {
 
   if (cargando) {
     return (
-      <Screen style={styles.container} includeTopInset>
-        <View style={styles.header}>
-          <Pressable
-            onPress={() => navigation.goBack()}
-            style={styles.backButton}
-          >
-            <Icon name="arrow-left" size={24} color={COLOR.TEXTO} />
-          </Pressable>
-          <Text style={styles.headerTitle}>
-            {t('cuidador:solicitudes.detalle_titulo')}
-          </Text>
-          <View style={{ width: 40 }} />
-        </View>
+      <Screen
+        style={styles.container}
+        contentContainerStyle={{ flex: 1 }}
+        includeTopInset
+      >
+        <ScreenHeader title={t('cuidador:solicitudes.detalle_titulo')} />
 
         <View style={{ padding: 20 }}>
           <View style={{ alignItems: 'center', marginBottom: 30 }}>
@@ -203,21 +188,18 @@ export const DetalleSolicitud = () => {
   }).format(paseo.precio)
 
   return (
-    <Screen style={styles.container} includeTopInset>
-      <View style={styles.header}>
-        <Pressable
-          onPress={() => navigation.goBack()}
-          style={styles.backButton}
-        >
-          <Icon name="arrow-left" size={24} color={COLOR.TEXTO} />
-        </Pressable>
-        <Text style={styles.headerTitle}>
-          {t('cuidador:solicitudes.detalle_titulo')}
-        </Text>
-        <View style={{ width: 40 }} />
-      </View>
+    <Screen
+      style={styles.container}
+      contentContainerStyle={{ flex: 1 }}
+      includeTopInset
+    >
+      <ScreenHeader title={t('cuidador:solicitudes.detalle_titulo')} />
 
-      <ScrollView contentContainerStyle={styles.content}>
+      <ScrollView
+        contentContainerStyle={styles.content}
+        style={{ flex: 1 }}
+        showsVerticalScrollIndicator={false}
+      >
         {/* Sección Principal: Fecha y Precio */}
         <View style={styles.mainInfo}>
           <Text style={styles.precio}>{precioStr}</Text>
@@ -318,7 +300,7 @@ export const DetalleSolicitud = () => {
       <View style={styles.footer}>
         <Button
           title={t('cuidador:solicitudes.rechazar')}
-          variant="outline"
+          variant="contorno"
           style={styles.btnAction}
           textStyle={{ color: COLOR.ERROR }}
           onPress={handleRechazar}
@@ -326,7 +308,7 @@ export const DetalleSolicitud = () => {
         <View style={{ width: 16 }} />
         <Button
           title={t('cuidador:solicitudes.aceptar')}
-          variant="primary"
+          variant="primario"
           style={styles.btnAction}
           onPress={handleAceptar}
         />
@@ -340,27 +322,9 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: COLOR.BASE,
   },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 10,
-    paddingVertical: 10,
-  },
-  backButton: {
-    width: 40,
-    height: 40,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: COLOR.TEXTO,
-  },
   content: {
     padding: 20,
-    paddingBottom: 100,
+    paddingBottom: 140,
   },
   mainInfo: {
     alignItems: 'center',
@@ -484,7 +448,7 @@ const styles = StyleSheet.create({
     borderTopColor: COLOR.BORDE,
     padding: 20,
     flexDirection: 'row',
-    paddingBottom: 30, // Safe area
+    paddingBottom: 40, // Safe area + extra spacing
   },
   btnAction: {
     flex: 1,
