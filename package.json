@@ -22,7 +22,7 @@
     "type": "git",
     "url": "git+https://github.com/sagudelo1200/pet-pals-native.git"
   },
-    "dependencies": {
+  "dependencies": {
     "@expo/metro-runtime": "~6.1.2",
     "@react-native-async-storage/async-storage": "2.2.0",
     "@react-native-community/datetimepicker": "8.4.4",

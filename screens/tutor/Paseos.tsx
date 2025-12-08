@@ -1,6 +1,7 @@
-import React, { useState, useRef, useMemo } from 'react'
-import { StyleSheet, View, Text, FlatList, Dimensions } from 'react-native'
+import React, { useState, useMemo } from 'react'
+import { StyleSheet, View, Text, FlatList, Alert } from 'react-native'
 import { useTranslation } from 'react-i18next'
+import { useNavigation } from '@react-navigation/native'
 import { COLOR } from '@/constants'
 import Screen from '@/components/ui/Screen'
 import TarjetaPaseo from '@/components/ui/TarjetaPaseo'
@@ -10,8 +11,6 @@ import { SolicitarPaseoModal } from '@/components/paseos/SolicitarPaseoModal'
 import PaseadorPerrosSvg from '@/assets/imgs/undraw/paseador_perros.svg'
 import type { Paseo } from '@/models/Paseo'
 import { useMascotas } from '@/hooks/useMascotas'
-import { Alert } from 'react-native'
-import { useNavigation } from '@react-navigation/native'
 import { usePaseos } from '@/hooks/paseos/usePaseos'
 
 type TabTipo = 'proximos' | 'historial'
@@ -27,8 +26,8 @@ const Paseos: React.FC = () => {
   const handleSolicitar = () => {
     if (mascotas.length === 0) {
       Alert.alert(
-        t('paseos:errores.SIN_MASCOTAS_TITULO', 'Sin Mascotas'),
-        t('paseos:errores.SIN_MASCOTAS_MSG', 'Necesitas registrar una mascota primero.'),
+        t('paseos:errores.SIN_MASCOTAS_TITULO'),
+        t('paseos:errores.SIN_MASCOTAS_MSG'),
         [
           { text: 'Cancelar', style: 'cancel' },
           { 
@@ -61,8 +60,8 @@ const Paseos: React.FC = () => {
       <PaseadorPerrosSvg width={200} height={160} style={{ opacity: 0.8 }} />
       <Text style={styles.emptyTitle}>
         {activeTab === 'proximos'
-          ? t('paseos:lista.vacio_proximos', 'No tienes paseos próximos')
-          : t('paseos:lista.vacio_completados', 'No tienes historial de paseos')}
+          ? t('paseos:lista.vacio_proximos')
+          : t('paseos:lista.vacio_completados')}
       </Text>
     </View>
   )
@@ -78,8 +77,8 @@ const Paseos: React.FC = () => {
       }
     >
       <View style={styles.header}>
-        <Text style={styles.titulo}>{t('paseos:titulo', 'Mis Paseos')}</Text>
-        <Text style={styles.subtitulo}>{t('paseos:subtitulo', 'Gestiona tus solicitudes de paseo')}</Text>
+        <Text style={styles.titulo}>{t('paseos:titulo')}</Text>
+        <Text style={styles.subtitulo}>{t('paseos:subtitulo')}</Text>
       </View>
 
       <View style={styles.tabs}>
@@ -154,7 +153,7 @@ const styles = StyleSheet.create({
   },
   listContent: {
     paddingHorizontal: 20,
-    paddingBottom: 160, // Tab bar (~50px) + FAB (~50px) + extra margin
+    paddingBottom: 160,
     flexGrow: 1,
   },
   emptyState: {
