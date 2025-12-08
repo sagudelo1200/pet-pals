@@ -15,6 +15,8 @@ import { Mascota } from '@/models/Mascota'
 import Skeleton from '@/components/ui/Skeleton'
 import ScreenHeader from '@/components/ui/ScreenHeader'
 
+import { useGestionPaseoCuidador } from '@/hooks/cuidador/useGestionPaseoCuidador'
+
 export const DetalleSolicitud = () => {
   const { t } = useTranslation()
   const route = useRoute()
@@ -24,14 +26,20 @@ export const DetalleSolicitud = () => {
   const [paseo, setPaseo] = useState<Paseo | null>(null)
   const [perfilTutor, setPerfilTutor] = useState<PerfilPublico | null>(null)
   const [mascotas, setMascotas] = useState<Mascota[]>([])
-  const [cargando, setCargando] = useState(true)
+  const [cargandoDatos, setCargandoDatos] = useState(true)
+
+  const {
+    aceptarSolicitud,
+    rechazarSolicitud,
+    cargando: cargandoAccion,
+  } = useGestionPaseoCuidador()
 
   useEffect(() => {
     cargarDatos()
   }, [paseoId])
 
   const cargarDatos = async () => {
-    setCargando(true)
+    setCargandoDatos(true)
     try {
       // 1. Cargar Paseo
       const resPaseo = await ServicioPaseo.obtenerPorId(paseoId)
@@ -53,8 +61,6 @@ export const DetalleSolicitud = () => {
         if (resPerfil.success && resPerfil.data) {
           setPerfilTutor(resPerfil.data)
         } else {
-          // Si no existe perfil público (migración), podríamos intentar buscar por campo creado_por
-          // o simplemente dejarlo nulo para mostrar placeholder.
           console.log('No se encontró perfil público para el tutor')
         }
       }
@@ -74,57 +80,20 @@ export const DetalleSolicitud = () => {
       console.error(error)
       Alert.alert(t('comun:error'), t('cuidador:solicitudes.error_datos'))
     } finally {
-      setCargando(false)
+      setCargandoDatos(false)
     }
   }
 
-  const handleAceptar = async () => {
+  const handleAceptar = () => {
     if (!paseo) return
-
-    Alert.alert(
-      t('cuidador:solicitudes.aceptar'),
-      t('cuidador:solicitudes.confirmar_aceptar'),
-      [
-        { text: t('comun:cancelar'), style: 'cancel' },
-        {
-          text: t('cuidador:solicitudes.aceptar'),
-          onPress: async () => {
-            setCargando(true)
-            const res = await ServicioPaseo.aceptarSolicitud(paseo.id)
-            setCargando(false)
-
-            if (res.success) {
-              Alert.alert(
-                t('comun:exito'),
-                t('cuidador:solicitudes.exito_aceptar'),
-                [
-                  {
-                    text: 'OK',
-                    onPress: () => {
-                      // Navegar a la pestaña de Activos o volver
-                      // Por ahora volvemos atrás, idealmente ir a "Mis Paseos"
-                      navigation.goBack()
-                    },
-                  },
-                ]
-              )
-            } else {
-              Alert.alert(t('comun:error'), res.error || 'Error desconocido')
-            }
-          },
-        },
-      ]
-    )
+    aceptarSolicitud(paseo)
   }
 
   const handleRechazar = () => {
-    // Simplemente volvemos atrás, ya que rechazar una solicitud pública
-    // solo significa "no me interesa ahora".
-    // En el futuro podríamos guardar una lista de "ignorados" localmente.
-    navigation.goBack()
+    rechazarSolicitud()
   }
 
-  if (cargando) {
+  if (cargandoDatos) {
     return (
       <Screen
         style={styles.container}
@@ -311,6 +280,7 @@ export const DetalleSolicitud = () => {
           variant="primario"
           style={styles.btnAction}
           onPress={handleAceptar}
+          loading={cargandoAccion}
         />
       </View>
     </Screen>
