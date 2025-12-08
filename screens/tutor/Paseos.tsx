@@ -13,39 +13,7 @@ import { useMascotas } from '@/hooks/useMascotas'
 import { Alert } from 'react-native'
 import { useNavigation } from '@react-navigation/native'
 
-// Mock Data
-const MOCK_PASEOS: (Partial<Paseo> & {
-  id: string
-  mascotaNombre: string
-  cuidadorNombre?: string
-})[] = [
-  {
-    id: '1',
-    mascotaNombre: 'Max',
-    tipo_paseo: 'programado',
-    estado: 'pendiente',
-    fecha_hora_inicio: new Date(Date.now() + 86400000), // Mañana
-    duracion_estimada: 30,
-  },
-  {
-    id: '2',
-    mascotaNombre: 'Luna',
-    tipo_paseo: 'solicitado',
-    estado: 'confirmado',
-    fecha_hora_inicio: new Date(Date.now() + 172800000), // Pasado mañana
-    duracion_estimada: 45,
-    cuidadorNombre: 'Carlos Ruiz',
-  },
-  {
-    id: '3',
-    mascotaNombre: 'Rocky',
-    tipo_paseo: 'programado',
-    estado: 'completado',
-    fecha_hora_inicio: new Date(Date.now() - 86400000), // Ayer
-    duracion_estimada: 60,
-    cuidadorNombre: 'Ana García',
-  },
-]
+import { usePaseos } from '@/hooks/paseos/usePaseos'
 
 type TabTipo = 'proximos' | 'historial'
 
@@ -55,6 +23,7 @@ const Paseos: React.FC = () => {
   const [modalVisible, setModalVisible] = useState(false)
   const { mascotas } = useMascotas()
   const navigation = useNavigation()
+  const { paseos, cargando } = usePaseos()
 
   const handleSolicitar = () => {
     if (mascotas.length === 0) {
@@ -77,11 +46,11 @@ const Paseos: React.FC = () => {
     setModalVisible(true)
   }
 
-  const paseosFiltrados = MOCK_PASEOS.filter(p => {
+  const paseosFiltrados = (paseos || []).filter(p => {
     if (activeTab === 'proximos') {
-      return ['pendiente', 'confirmado', 'en_progreso'].includes(p.estado || '')
+      return ['PENDIENTE', 'ACEPTADO', 'EN_RUTA', 'EN_PROGRESO', 'PROGRAMADO'].includes(p.estado)
     }
-    return ['completado', 'cancelado'].includes(p.estado || '')
+    return ['COMPLETADO', 'FINALIZADO', 'CANCELADO', 'RECHAZADO'].includes(p.estado)
   })
 
   const renderEmptyState = () => (
@@ -128,10 +97,19 @@ const Paseos: React.FC = () => {
       <FlatList
         data={paseosFiltrados}
         keyExtractor={item => item.id}
-        renderItem={({ item }) => <TarjetaPaseo paseo={item} />}
+        renderItem={({ item }) => (
+          <TarjetaPaseo 
+            paseo={item} 
+            onPress={() => {
+              // @ts-ignore
+              navigation.navigate('DetallePaseo', { id: item.id })
+            }}
+          />
+        )}
         contentContainerStyle={styles.listContent}
         ListEmptyComponent={renderEmptyState}
         showsVerticalScrollIndicator={false}
+        refreshing={cargando}
       />
 
       <SolicitarPaseoModal

@@ -17,15 +17,19 @@ interface Props {
 
 export const ConfirmarPaseoPaso = ({ petIds, fecha, hora, walkerId, onConfirm, onBack }: Props) => {
   const { t } = useTranslation()
-  const { mascotas, cuidador, total, loading, confirmarReserva } = useConfirmarPaseo({ petIds, walkerId, hora })
+  const { mascotas, cuidador, total, loading, error, confirmarReserva } = useConfirmarPaseo({ petIds, walkerId, fecha, hora })
 
   const handleConfirmar = async () => {
-    await confirmarReserva()
-    Alert.alert(
-      t('paseos:pasos.confirmar.exito_titulo'),
-      t('paseos:pasos.confirmar.exito_msg', { name: cuidador?.nombre }),
-      [{ text: 'OK', onPress: onConfirm }]
-    )
+    const success = await confirmarReserva()
+    if (success) {
+      Alert.alert(
+        t('paseos:pasos.confirmar.exito_titulo'),
+        t('paseos:pasos.confirmar.exito_msg', { name: cuidador?.nombre || 'Tutor' }),
+        [{ text: 'OK', onPress: onConfirm }]
+      )
+    } else if (error) {
+       Alert.alert('Error', error)
+    }
   }
 
   const formatDate = (date: Date | null) => {

@@ -72,5 +72,5 @@ export function mapFirebaseError(err: unknown): ErrorCode {
     if (values.includes(message)) return message as ErrorCode
   }
 
-  return ERR.COMUN.ERROR_DESCONOCIDO
+  return (ERR.COMUN.ERROR_DESCONOCIDO + ': ' + (anyErr?.message || anyErr?.code || JSON.stringify(anyErr))) as ErrorCode
 }

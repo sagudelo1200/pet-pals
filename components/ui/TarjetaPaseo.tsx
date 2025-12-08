@@ -4,9 +4,10 @@ import { useTranslation } from 'react-i18next'
 import { COLOR } from '@/constants'
 import Card from './Card'
 import Icon from './Icon'
-import Chip from './Chip'
 import { PetAvatar } from './PetAvatar'
-import type { Paseo, EstadoPaseo } from '@/models/Paseo'
+import { BadgeEstadoPaseo } from '@/components/paseos/BadgeEstadoPaseo'
+import type { Paseo } from '@/models/Paseo'
+import { PaseoStatus } from '@/models/Paseo'
 
 interface TarjetaPaseoProps {
   paseo: Partial<Paseo> & {
@@ -19,27 +20,6 @@ interface TarjetaPaseoProps {
 
 const TarjetaPaseo: React.FC<TarjetaPaseoProps> = ({ paseo, onPress }) => {
   const { t } = useTranslation()
-
-  const getStatusColor = (estado: EstadoPaseo) => {
-    switch (estado) {
-      case 'pendiente':
-        return COLOR.SUBTEXTO
-      case 'confirmado':
-        return COLOR.PRIMARIO
-      case 'en_progreso':
-        return COLOR.ENFASIS
-      case 'completado':
-        return COLOR.EXITO
-      case 'cancelado':
-        return COLOR.ERROR
-      default:
-        return COLOR.SUBTEXTO
-    }
-  }
-
-  const getStatusLabel = (estado: EstadoPaseo) => {
-    return t(`paseos:estado.${estado}`)
-  }
 
   const formatDate = (date: Date) => {
     return date.toLocaleDateString('es-ES', {
@@ -71,15 +51,7 @@ const TarjetaPaseo: React.FC<TarjetaPaseoProps> = ({ paseo, onPress }) => {
           </View>
         </View>
         {paseo.estado && (
-          <Chip
-            label={getStatusLabel(paseo.estado)}
-            size="sm"
-            style={{
-              backgroundColor: 'transparent',
-              borderColor: getStatusColor(paseo.estado),
-              borderWidth: 1,
-            }}
-          />
+          <BadgeEstadoPaseo estado={paseo.estado} />
         )}
       </View>
 

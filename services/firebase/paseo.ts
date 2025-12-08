@@ -164,4 +164,20 @@ export class ServicioPaseo {
   static async obtenerPorEstado(estado: string): Promise<CrudResult<Paseo[]>> {
     return ServicioCrudBase.buscar<Paseo>(this.COLLECTION, 'estado', estado)
   }
+
+  /**
+   * Actualiza el estado del paseo de forma atómica.
+   * Útil para transiciones de la máquina de estados.
+   */
+  static async actualizarEstado(
+    id: string,
+    nuevoEstado: string,
+    meta: Record<string, any> = {}
+  ): Promise<CrudResult<Paseo>> {
+    const data: any = {
+      estado: nuevoEstado,
+      ...meta,
+    }
+    return this.actualizar(id, data)
+  }
 }

@@ -37,6 +37,7 @@ export async function addMascotasAlPaseo(
 
       const ref = doc(col, mascotaId)
       const base = {
+        id: mascotaId,
         id_paseo: paseoId,
         id_mascota: mascotaId,
         id_usuario: ownerId,
@@ -115,6 +116,7 @@ export async function addMascotaAlPaseo(
       // Crear subdocumento (con denormalización) y aumentar contador
       // No envolver sentinelas de servidor (serverTimestamp) con `toDb`
       tx.set(subRef, {
+        id: mascotaId,
         id_paseo: paseoId,
         id_mascota: mascotaId,
         id_usuario: (m.data as any).creado_por || uid,

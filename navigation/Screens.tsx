@@ -5,6 +5,7 @@ import CuidadorTabNavigator from '@/navigation/CuidadorTabNavigator'
 import AdminTabNavigator from '@/navigation/AdminTabNavigator'
 import AuthNavigator from './AuthNavigator'
 import DetalleMascota from '@/screens/tutor/DetalleMascota'
+import { DetallePaseo } from '@/screens/tutor/DetallePaseo'
 import { AuthStackParamList } from './types'
 
 // Stack principal con autenticación
@@ -27,6 +28,7 @@ export default function RootNavigator(): React.ReactElement {
           cardStyle: { backgroundColor: 'transparent' },
         }}
       />
+      <Stack.Screen name="DetallePaseo" component={DetallePaseo} />
     </Stack.Navigator>
   )
 }

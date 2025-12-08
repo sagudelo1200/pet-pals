@@ -12,6 +12,9 @@ export type AuthStackParamList = {
     mascotaId: string
     mascota?: Mascota
   }
+  DetallePaseo: {
+    id: string
+  }
 }
 
 // Flujo interno de autenticación (pantallas del stack de Auth)
