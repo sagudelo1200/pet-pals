@@ -40,6 +40,6 @@ export type TutorTabParamList = {
 export type CuidadorTabParamList = {
   Dashboard: undefined
   Solicitudes: undefined
-  Activos: undefined
+  Agenda: undefined
   MiCuenta: undefined
 }

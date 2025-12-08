@@ -5,7 +5,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
 import { Icon } from '@/components/ui'
 import Dashboard from '@/screens/cuidador/Dashboard'
 import SolicitudesPaseos from '@/screens/cuidador/SolicitudesPaseos'
-import PaseosActivos from '@/screens/cuidador/PaseosActivos'
+import AgendaScreen from '@/screens/cuidador/AgendaScreen'
 import MiCuenta from '@/screens/shared/MiCuenta'
 import { CuidadorTabParamList } from './types'
 import { COLOR } from '@/constants'
@@ -74,12 +74,12 @@ export default function CuidadorTabNavigator(): React.ReactElement {
         }}
       />
       <Tab.Screen
-        name="Activos"
-        component={PaseosActivos}
+        name="Agenda"
+        component={AgendaScreen}
         options={{
-          title: t('cuidador:tabs.activos'),
+          title: t('cuidador:tabs.agenda'),
           tabBarIcon: ({ color, size }) => (
-            <Icon name="walking" size={size} color={color} />
+            <Icon name="calendar-alt" size={size} color={color} />
           ),
         }}
       />

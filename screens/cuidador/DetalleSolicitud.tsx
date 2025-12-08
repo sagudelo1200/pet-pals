@@ -21,6 +21,7 @@ import { ServicioCrudBase } from '@/services/firebase/crud'
 import { Paseo } from '@/models/Paseo'
 import { PerfilPublico } from '@/models/PerfilPublico'
 import { Mascota } from '@/models/Mascota'
+import Skeleton from '@/components/ui/Skeleton'
 
 export const DetalleSolicitud = () => {
   const { t } = useTranslation()
@@ -133,8 +134,48 @@ export const DetalleSolicitud = () => {
 
   if (cargando) {
     return (
-      <Screen style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={COLOR.ENFASIS} />
+      <Screen style={styles.container} includeTopInset>
+        <View style={styles.header}>
+          <Pressable
+            onPress={() => navigation.goBack()}
+            style={styles.backButton}
+          >
+            <Icon name="arrow-left" size={24} color={COLOR.TEXTO} />
+          </Pressable>
+          <Text style={styles.headerTitle}>
+            {t('cuidador:solicitudes.detalle_titulo')}
+          </Text>
+          <View style={{ width: 40 }} />
+        </View>
+
+        <View style={{ padding: 20 }}>
+          <View style={{ alignItems: 'center', marginBottom: 30 }}>
+            <Skeleton width={120} height={36} style={{ marginBottom: 10 }} />
+            <Skeleton width={200} height={16} />
+          </View>
+
+          <Card style={{ marginBottom: 20, padding: 16 }}>
+            <Skeleton width={100} height={16} style={{ marginBottom: 15 }} />
+            <Skeleton width="100%" height={14} style={{ marginBottom: 8 }} />
+            <Skeleton width="80%" height={14} />
+          </Card>
+
+          <Card style={{ marginBottom: 20, padding: 16 }}>
+            <Skeleton width={100} height={16} style={{ marginBottom: 15 }} />
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <Skeleton
+                circle
+                width={50}
+                height={50}
+                style={{ marginRight: 15 }}
+              />
+              <View>
+                <Skeleton width={120} height={16} style={{ marginBottom: 8 }} />
+                <Skeleton width={80} height={14} />
+              </View>
+            </View>
+          </Card>
+        </View>
       </Screen>
     )
   }
@@ -298,11 +339,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: COLOR.BASE,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
   },
   header: {
     flexDirection: 'row',

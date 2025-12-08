@@ -11,8 +11,20 @@
   "tabs": {
     "dashboard": "Inicio",
     "solicitudes": "Solicitudes",
-    "activos": "Activos",
+    "agenda": "Agenda",
     "mi_cuenta": "Mi Cuenta"
+  },
+  "agenda": {
+    "titulo": "Mi Agenda",
+    "subtitulo": "Gestiona tus paseos activos y futuros",
+    "tabs": {
+      "proximos": "Próximos",
+      "historial": "Historial"
+    },
+    "vacio_proximos": "No tienes paseos programados",
+    "vacio_proximos_sub": "Acepta solicitudes para llenar tu agenda",
+    "vacio_historial": "No tienes paseos finalizados",
+    "asignado_a_ti": "Asignado a ti"
   },
   "solicitudes": {
     "titulo": "Solicitudes de Paseo",
