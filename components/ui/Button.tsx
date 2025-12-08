@@ -4,9 +4,11 @@ import {
   Pressable,
   StyleSheet,
   Text,
+  View,
   ViewStyle,
 } from 'react-native'
 import { COLOR } from '@/constants'
+import Icon from './Icon'
 
 export type ButtonVariant =
   | 'primario'
@@ -19,9 +21,11 @@ export type ButtonVariant =
   | 'enfasis'
   | 'base'
   | 'inactivo'
+  | 'ghost'
 
 interface Props {
-  title: string
+  title?: string
+  icon?: string
   onPress: () => void
   disabled?: boolean
   loading?: boolean
@@ -35,6 +39,7 @@ interface Props {
 
 const Button: React.FC<Props> = ({
   title,
+  icon,
   onPress,
   disabled,
   loading,
@@ -66,6 +71,8 @@ const Button: React.FC<Props> = ({
         return COLOR.BASE
       case 'inactivo':
         return COLOR.INACTIVO
+      case 'ghost':
+        return 'transparent'
       case 'bloque':
       default:
         return COLOR.BLOQUE
@@ -159,7 +166,20 @@ const Button: React.FC<Props> = ({
         // Mientras carga, mostramos spinner y ocultamos el texto
         <ActivityIndicator size="small" color={COLOR.TEXTO} />
       ) : (
-        <Text style={[styles.text, { fontSize }, textStyle]}>{title}</Text>
+        <>
+          {icon && (
+            <View style={{ marginRight: title ? 8 : 0 }}>
+              <Icon
+                name={icon as any}
+                size={fontSize + 4}
+                color={textStyle?.color || COLOR.TEXTO}
+              />
+            </View>
+          )}
+          {title && (
+            <Text style={[styles.text, { fontSize }, textStyle]}>{title}</Text>
+          )}
+        </>
       )}
     </Pressable>
   )

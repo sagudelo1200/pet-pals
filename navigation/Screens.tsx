@@ -6,6 +6,7 @@ import AdminTabNavigator from '@/navigation/AdminTabNavigator'
 import AuthNavigator from './AuthNavigator'
 import DetalleMascota from '@/screens/tutor/DetalleMascota'
 import { DetallePaseo } from '@/screens/tutor/DetallePaseo'
+import { DetalleSolicitud } from '@/screens/cuidador/DetalleSolicitud'
 import { AuthStackParamList } from './types'
 
 // Stack principal con autenticación
@@ -29,6 +30,7 @@ export default function RootNavigator(): React.ReactElement {
         }}
       />
       <Stack.Screen name="DetallePaseo" component={DetallePaseo} />
+      <Stack.Screen name="DetalleSolicitud" component={DetalleSolicitud} />
     </Stack.Navigator>
   )
 }

@@ -1,14 +1,34 @@
 import { ServicioCrudBase } from './crud'
-import { Paseo } from '../../models/Paseo'
+import { Paseo, PaseoStatus } from '../../models/Paseo'
 import { CrudResult } from './types'
 import { ServicioAuth } from './auth'
 import type { Mascota } from '@/models/Mascota'
 import { addMascotasAlPaseo } from './paseo-mascota'
 import { MAX_MASCOTAS_POR_PASEO, ERR } from '@/constants'
 import { mapFirebaseError } from './errors'
+import {
+  collection,
+  query,
+  where,
+  orderBy,
+  type Query,
+} from 'firebase/firestore'
+import { db } from '@/firebase.config'
 
 export class ServicioPaseo {
   private static readonly COLLECTION = 'paseos'
+
+  /**
+   * Obtiene la query para escuchar solicitudes pendientes en tiempo real.
+   * Filtra por estado PENDIENTE y ordena por fecha de creación descendente.
+   */
+  static getQuerySolicitudesPendientes(): Query {
+    return query(
+      collection(db, this.COLLECTION),
+      where('estado', '==', PaseoStatus.PENDIENTE),
+      orderBy('creado_en', 'desc')
+    )
+  }
 
   static async crear(
     data: Omit<

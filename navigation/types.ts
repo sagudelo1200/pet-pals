@@ -15,6 +15,9 @@ export type AuthStackParamList = {
   DetallePaseo: {
     id: string
   }
+  DetalleSolicitud: {
+    paseoId: string
+  }
 }
 
 // Flujo interno de autenticación (pantallas del stack de Auth)

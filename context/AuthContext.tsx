@@ -7,9 +7,14 @@ import React, {
 } from 'react'
 import { User } from 'firebase/auth'
 import { ServicioAuth } from '@/services/firebase/auth'
-import { AuthUser, AuthContextType, AuthResult } from '@/services/firebase/types'
+import {
+  AuthUser,
+  AuthContextType,
+  AuthResult,
+} from '@/services/firebase/types'
 import { ServicioUsuario } from '@/services/firebase/usuario'
 import { RolUsuario, Usuario } from '@/models/Usuario'
+import { useSincronizacionPerfil } from '@/hooks/useSincronizacionPerfil'
 
 /** Contexto de autenticación (provee user, roles y helpers). */
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -37,6 +42,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [cargando, setCargando] = useState<boolean>(true)
   const [roles, setRoles] = useState<RolUsuario[] | undefined>(undefined)
   const [profile, setProfile] = useState<Usuario | null | undefined>(undefined)
+
+  // Hook de sincronización automática de perfil público (Lazy Migration)
+  useSincronizacionPerfil(profile)
+
   // Escuchar cambios de autenticación al montar el provider
   useEffect(() => {
     const unsubscribe = ServicioAuth.escucharEstadoAuth(

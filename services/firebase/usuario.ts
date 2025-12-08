@@ -1,13 +1,65 @@
 import { ServicioCrudBase } from './crud'
 import { Usuario } from '../../models/Usuario'
+import { PerfilPublico } from '../../models/PerfilPublico'
 import { CrudResult } from './types'
 import { db } from '@/firebase.config'
-import { doc, setDoc } from 'firebase/firestore'
+import { doc, setDoc, writeBatch, serverTimestamp } from 'firebase/firestore'
 import { toDb, nowServerTimestamp } from './converters'
 import { mapFirebaseError } from './errors'
 
 export class ServicioUsuario {
   private static readonly COLLECTION = 'usuarios'
+  private static readonly PUBLIC_COLLECTION = 'perfil_publico'
+
+  /**
+   * Actualiza los datos del usuario y sincroniza los campos relevantes
+   * con el perfil público en una transacción atómica (batch).
+   * Esto prepara el terreno para futuras Cloud Functions.
+   */
+  static async actualizarPerfilCompleto(
+    uid: string,
+    datosUsuario: Partial<Usuario>
+  ): Promise<CrudResult<void>> {
+    try {
+      const batch = writeBatch(db)
+
+      // 1. Referencia y datos para colección privada 'usuarios'
+      const usuarioRef = doc(db, this.COLLECTION, uid)
+      const datosUsuarioDb = {
+        ...toDb(datosUsuario),
+        actualizado_en: serverTimestamp(),
+        actualizado_por: uid,
+      }
+      batch.update(usuarioRef, datosUsuarioDb)
+
+      // 2. Referencia y datos para colección pública 'perfil_publico'
+      // Solo sincronizamos campos visuales compartidos
+      const perfilRef = doc(db, this.PUBLIC_COLLECTION, uid)
+      const datosPerfilPublico: Partial<PerfilPublico> = {}
+
+      if (datosUsuario.nombre) datosPerfilPublico.nombre = datosUsuario.nombre
+      if (datosUsuario.foto) datosPerfilPublico.foto = datosUsuario.foto
+      // Si hay otros campos compartidos, agregarlos aquí
+
+      if (Object.keys(datosPerfilPublico).length > 0) {
+        // Usamos set con merge: true para no sobrescribir otros datos del perfil público (como ratings)
+        // O update si estamos seguros que existe. Para seguridad, set con merge es mejor aquí.
+        batch.set(
+          perfilRef,
+          {
+            ...datosPerfilPublico,
+            actualizado_en: serverTimestamp(),
+          },
+          { merge: true }
+        )
+      }
+
+      await batch.commit()
+      return { success: true, data: undefined }
+    } catch (error) {
+      return { success: false, error: mapFirebaseError(error) }
+    }
+  }
 
   static async crear(
     data: Omit<

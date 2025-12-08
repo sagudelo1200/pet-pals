@@ -120,26 +120,25 @@ service cloud.firestore {
 
     // PERFIL PUBLICO
     match /perfil_publico/{docId} {
-      // Permitir lectura pública de perfiles verificados
-      // Permitir lectura de propio perfil independiente de verificación
-      allow read: if resource.data.verificacion == 'verificado' || 
-                     (autenticado() && resource.data.creado_por == request.auth.uid);
-      
+      // Permitir lectura a cualquier usuario autenticado o si el perfil es verificado (público)
+      allow read: if autenticado() || resource.data.verificacion == 'verificado';
+
       allow create: if autenticado()
         && (request.resource.data.creado_por == request.auth.uid || es_admin())
         && tiene_campos_sistema_basicos()
         && campos_sistema_validos_crear();
-      
+
       allow update: if autenticado()
         && (resource.data.creado_por == request.auth.uid || es_admin())
         && campos_sistema_validos_actualizar();
-      
+
       allow delete: if es_admin();
     }
 
     // MASCOTAS
     match /mascotas/{id} {
-      allow read: if autenticado() && (es_tutor() || es_admin());
+      // Permitir lectura si es tutor (dueño), admin, o si es cuidador (para ver detalles en solicitudes)
+      allow read: if autenticado() && (es_tutor() || es_admin() || tiene_rol_actual('cuidador'));
       allow create: if autenticado()
         && es_creador()
         && tiene_campos_sistema_basicos()
@@ -165,25 +164,25 @@ service cloud.firestore {
       // 1. Eres actor del paseo (creador o cuidador asignado)
       // 2. El paseo está PENDIENTE y no tiene cuidador asignado (para que cuidadores puedan ver solicitudes)
       allow read: if es_actor_paseo_doc(resource) || 
-                     (autenticado() && 
-                      resource.data.estado == 'PENDIENTE' && 
-                      !('id_cuidador' in resource.data));
-      
+      (autenticado() && 
+      resource.data.estado == 'PENDIENTE' && 
+      !('id_cuidador' in resource.data));
+
       allow create: if autenticado()
         && es_creador()
         && tiene_campos_sistema_basicos()
         && campos_sistema_validos_crear()
-        // Validar que el cuidador no sea el mismo que el creador
+      // Validar que el cuidador no sea el mismo que el creador
         && (!('id_cuidador' in request.resource.data) || 
-            request.resource.data.id_cuidador != request.auth.uid);
-      
+      request.resource.data.id_cuidador != request.auth.uid);
+
       allow update: if es_actor_paseo_doc(resource)
         && campos_sistema_validos_actualizar()
         && request.resource.data.creado_por == resource.data.creado_por
-        // Validar que el cuidador no sea el mismo que el creador
+      // Validar que el cuidador no sea el mismo que el creador
         && (!('id_cuidador' in request.resource.data) || 
-            request.resource.data.id_cuidador != resource.data.creado_por);
-      
+      request.resource.data.id_cuidador != resource.data.creado_por);
+
       allow delete: if es_actor_paseo_doc(resource);
     }
 

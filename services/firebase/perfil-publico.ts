@@ -12,17 +12,24 @@ export class ServicioPerfilPublico {
   /**
    * Crear un perfil público
    */
-  static async crear(data: Partial<PerfilPublico>): Promise<CrudResult<PerfilPublico>> {
+  static async crear(
+    data: Partial<PerfilPublico>
+  ): Promise<CrudResult<PerfilPublico>> {
     return ServicioCrudBase.crear<PerfilPublico>(this.COLLECTION, data as any)
   }
 
   /**
    * Crear un perfil público con un ID específico (UID del usuario)
    */
-  static async crearConId(uid: string, data: Partial<PerfilPublico>): Promise<CrudResult<PerfilPublico>> {
+  static async crearConId(
+    uid: string,
+    data: Partial<PerfilPublico>
+  ): Promise<CrudResult<PerfilPublico>> {
     try {
       const { db } = await import('@/firebase.config')
-      const { doc, setDoc, serverTimestamp } = await import('firebase/firestore')
+      const { doc, setDoc, serverTimestamp } = await import(
+        'firebase/firestore'
+      )
 
       const docRef = doc(db, this.COLLECTION, uid)
       const dataConCamposSistema = {
@@ -30,10 +37,11 @@ export class ServicioPerfilPublico {
         id: uid,
         creado_en: serverTimestamp(),
         actualizado_en: serverTimestamp(),
+        actualizado_por: uid,
       }
 
       await setDoc(docRef, dataConCamposSistema)
-      
+
       return {
         success: true,
         data: { ...dataConCamposSistema, id: uid } as unknown as PerfilPublico,
@@ -53,8 +61,15 @@ export class ServicioPerfilPublico {
   /**
    * Actualizar perfil público
    */
-  static async actualizar(id: string, data: Partial<PerfilPublico>): Promise<CrudResult<PerfilPublico>> {
-    return ServicioCrudBase.actualizar<PerfilPublico>(this.COLLECTION, id, data as any)
+  static async actualizar(
+    id: string,
+    data: Partial<PerfilPublico>
+  ): Promise<CrudResult<PerfilPublico>> {
+    return ServicioCrudBase.actualizar<PerfilPublico>(
+      this.COLLECTION,
+      id,
+      data as any
+    )
   }
 
   /**
@@ -68,10 +83,13 @@ export class ServicioPerfilPublico {
    * Obtener cuidadores disponibles (perfiles verificados)
    * Ordenados por rating de mayor a menor
    */
-  static async obtenerCuidadoresDisponibles(): Promise<CrudResult<PerfilPublico[]>> {
+  static async obtenerCuidadoresDisponibles(): Promise<
+    CrudResult<PerfilPublico[]>
+  > {
     try {
       const { db } = await import('@/firebase.config')
-      const { collection, query, where, orderBy, limit, getDocs } = await import('firebase/firestore')
+      const { collection, query, where, orderBy, limit, getDocs } =
+        await import('firebase/firestore')
 
       const q = query(
         collection(db, this.COLLECTION),
@@ -82,7 +100,7 @@ export class ServicioPerfilPublico {
 
       const snapshot = await getDocs(q)
       const perfiles: PerfilPublico[] = []
-      
+
       snapshot.forEach(doc => {
         perfiles.push({ id: doc.id, ...doc.data() } as PerfilPublico)
       })
@@ -96,10 +114,14 @@ export class ServicioPerfilPublico {
   /**
    * Obtener perfil público por UID de usuario
    */
-  static async obtenerPorUsuario(uid: string): Promise<CrudResult<PerfilPublico>> {
+  static async obtenerPorUsuario(
+    uid: string
+  ): Promise<CrudResult<PerfilPublico>> {
     try {
       const { db } = await import('@/firebase.config')
-      const { collection, query, where, getDocs } = await import('firebase/firestore')
+      const { collection, query, where, getDocs } = await import(
+        'firebase/firestore'
+      )
 
       const q = query(
         collection(db, this.COLLECTION),
@@ -107,15 +129,15 @@ export class ServicioPerfilPublico {
       )
 
       const snapshot = await getDocs(q)
-      
+
       if (snapshot.empty) {
         return { success: false, error: 'PERFIL_NO_ENCONTRADO' }
       }
 
       const doc = snapshot.docs[0]
-      return { 
-        success: true, 
-        data: { id: doc.id, ...doc.data() } as PerfilPublico 
+      return {
+        success: true,
+        data: { id: doc.id, ...doc.data() } as PerfilPublico,
       }
     } catch (e: any) {
       return { success: false, error: mapFirebaseError(e) }
