@@ -96,9 +96,14 @@ export const SeleccionarCuidadorPaso = ({ initialWalkerId, onNext, onBack }: Pro
 
   const renderEmpty = () => (
     <View style={styles.centerContent}>
-      <Icon name="users" size={48} color={COLOR.SUBTEXTO} />
+      <View style={styles.iconWrapper}>
+        <Icon name="users" size={64} color={COLOR.SUBTEXTO} />
+      </View>
       <Text style={styles.emptyText}>
-        {t('paseos:pasos.seleccionar_cuidador.sin_cuidadores', 'No hay cuidadores disponibles')}
+        {t('paseos:pasos.seleccionar_cuidador.sin_cuidadores')}
+      </Text>
+      <Text style={styles.emptySubtext}>
+        {t('paseos:pasos.seleccionar_cuidador.sin_cuidadores_desc')}
       </Text>
     </View>
   )
@@ -251,6 +256,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 40,
   },
+  iconWrapper: {
+    width: 80,
+    height: 80,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
   loadingText: {
     marginTop: 16,
     fontSize: 14,
@@ -264,9 +276,17 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     marginTop: 16,
+    fontSize: 16,
+    fontWeight: '600',
+    color: COLOR.TEXTO,
+    textAlign: 'center',
+  },
+  emptySubtext: {
+    marginTop: 8,
     fontSize: 14,
     color: COLOR.SUBTEXTO,
     textAlign: 'center',
+    paddingHorizontal: 40,
   },
   actions: {
     flexDirection: 'row',

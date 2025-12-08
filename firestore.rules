@@ -172,11 +172,17 @@ service cloud.firestore {
       allow create: if autenticado()
         && es_creador()
         && tiene_campos_sistema_basicos()
-        && campos_sistema_validos_crear();
+        && campos_sistema_validos_crear()
+        // Validar que el cuidador no sea el mismo que el creador
+        && (!('id_cuidador' in request.resource.data) || 
+            request.resource.data.id_cuidador != request.auth.uid);
       
       allow update: if es_actor_paseo_doc(resource)
         && campos_sistema_validos_actualizar()
-        && request.resource.data.creado_por == resource.data.creado_por;
+        && request.resource.data.creado_por == resource.data.creado_por
+        // Validar que el cuidador no sea el mismo que el creador
+        && (!('id_cuidador' in request.resource.data) || 
+            request.resource.data.id_cuidador != resource.data.creado_por);
       
       allow delete: if es_actor_paseo_doc(resource);
     }

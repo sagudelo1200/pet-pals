@@ -70,7 +70,8 @@
       "verificado": "Verificado",
       "cargando": "Cargando cuidadores...",
       "error": "Error al cargar cuidadores",
-      "sin_cuidadores": "No hay cuidadores disponibles en este momento"
+      "sin_cuidadores": "¡Pronto habrá cuidadores disponibles!",
+      "sin_cuidadores_desc": "Estamos trabajando para conectarte con los mejores cuidadores para tu mascota"
     },
     "confirmar": {
       "titulo": "Revisa y confirma",

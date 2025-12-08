@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useAuth } from '@/context/AuthContext'
 import { ServicioPerfilPublico } from '@/services/firebase/perfil-publico'
 import type { PerfilPublico } from '@/models/PerfilPublico'
 
@@ -13,6 +14,7 @@ interface CuidadorListItem {
 }
 
 export const useSeleccionarCuidador = (initialWalkerId: string | null = null) => {
+  const { user } = useAuth()
   const [cuidadores, setCuidadores] = useState<CuidadorListItem[]>([])
   const [cargando, setCargando] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -31,17 +33,19 @@ export const useSeleccionarCuidador = (initialWalkerId: string | null = null) =>
 
       if (resultado.success && resultado.data) {
         // Mapear PerfilPublico a CuidadorListItem
-        const cuidadoresMapeados: CuidadorListItem[] = resultado.data.map(perfil => ({
-          id: perfil.id,
-          nombre: perfil.nombre,
-          imagen: perfil.foto || 'https://via.placeholder.com/60',
-          calificacion: perfil.rating_promedio || 0,
-          distancia: '2.5 km', // TODO: Calcular distancia real con geolocalización
-          tarifa: perfil.tarifa_por_hora 
-            ? `$${perfil.tarifa_por_hora.toLocaleString()}/hr` 
-            : 'A consultar',
-          insignias: perfil.verificacion === 'verificado' ? ['verificado'] : [],
-        }))
+        const cuidadoresMapeados: CuidadorListItem[] = resultado.data
+          .filter(perfil => perfil.id !== user?.uid) // Excluir al usuario actual
+          .map(perfil => ({
+            id: perfil.id,
+            nombre: perfil.nombre,
+            imagen: perfil.foto || 'https://via.placeholder.com/60',
+            calificacion: perfil.rating_promedio || 0,
+            distancia: '2.5 km', // TODO: Calcular distancia real con geolocalización
+            tarifa: perfil.tarifa_por_hora 
+              ? `$${perfil.tarifa_por_hora.toLocaleString()}/hr` 
+              : 'A consultar',
+            insignias: perfil.verificacion === 'verificado' ? ['verificado'] : [],
+          }))
 
         setCuidadores(cuidadoresMapeados)
       } else {
