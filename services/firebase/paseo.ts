@@ -205,4 +205,46 @@ export class ServicioPaseo {
     }
     return this.actualizar(id, data)
   }
+
+  /**
+   * Obtener paseos del cuidador filtrados por estados.
+   */
+  static async obtenerPorCuidadorYEstado(
+    cuidadorId: string,
+    estados: string[]
+  ): Promise<CrudResult<Paseo[]>> {
+    try {
+      const { db } = await import('@/firebase.config')
+      const { collection, query, where, getDocs } = await import('firebase/firestore')
+
+      const q = query(
+        collection(db, this.COLLECTION),
+        where('id_cuidador', '==', cuidadorId),
+        where('estado', 'in', estados)
+      )
+
+      const snapshot = await getDocs(q)
+      const paseos: Paseo[] = []
+      snapshot.forEach(doc => {
+        paseos.push({ id: doc.id, ...doc.data() } as Paseo)
+      })
+
+      return { success: true, data: paseos }
+    } catch (e: any) {
+      return { success: false, error: mapFirebaseError(e) }
+    }
+  }
+
+  /**
+   * Asignar cuidador a un paseo.
+   */
+  static async asignarCuidador(
+    paseoId: string,
+    cuidadorId: string
+  ): Promise<CrudResult<Paseo>> {
+    return this.actualizar(paseoId, {
+      id_cuidador: cuidadorId,
+    })
+  }
 }
+

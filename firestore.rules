@@ -155,14 +155,23 @@ service cloud.firestore {
 
     // PASEOS
     match /paseos/{id} {
-      allow read: if es_actor_paseo_doc(resource);
+      // Permitir lectura si:
+      // 1. Eres actor del paseo (creador o cuidador asignado)
+      // 2. El paseo está PENDIENTE y no tiene cuidador asignado (para que cuidadores puedan ver solicitudes)
+      allow read: if es_actor_paseo_doc(resource) || 
+                     (autenticado() && 
+                      resource.data.estado == 'PENDIENTE' && 
+                      !('id_cuidador' in resource.data));
+      
       allow create: if autenticado()
         && es_creador()
         && tiene_campos_sistema_basicos()
         && campos_sistema_validos_crear();
+      
       allow update: if es_actor_paseo_doc(resource)
         && campos_sistema_validos_actualizar()
         && request.resource.data.creado_por == resource.data.creado_por;
+      
       allow delete: if es_actor_paseo_doc(resource);
     }
 

@@ -35,6 +35,8 @@ export type TutorTabParamList = {
 
 // Tabs para el rol de Cuidador
 export type CuidadorTabParamList = {
-  Paseos: undefined
+  Dashboard: undefined
+  Solicitudes: undefined
+  Activos: undefined
   MiCuenta: undefined
 }
