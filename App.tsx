@@ -3,6 +3,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context'
 import { NavigationContainer, DarkTheme, Theme } from '@react-navigation/native'
 import { GalioProvider } from 'galio-framework'
 import { AuthProvider } from './context/AuthContext'
+import { RolProvider } from './context/RolContext'
 import { RootNavigator } from './navigation'
 import { COLOR } from './constants'
 import { StatusBar } from 'react-native'
@@ -28,14 +29,16 @@ export default function App(): React.ReactElement {
   return (
     <SafeAreaProvider>
       <AuthProvider>
-        <MascotasProvider>
-          <GalioProvider>
-            <StatusBar barStyle="light-content" backgroundColor={COLOR.BLOQUE} translucent={false} />
-            <NavigationContainer theme={navTheme}>
-              <RootNavigator />
-            </NavigationContainer>
-          </GalioProvider>
-        </MascotasProvider>
+        <RolProvider>
+          <MascotasProvider>
+            <GalioProvider>
+              <StatusBar barStyle="light-content" backgroundColor={COLOR.BLOQUE} translucent={false} />
+              <NavigationContainer theme={navTheme}>
+                <RootNavigator />
+              </NavigationContainer>
+            </GalioProvider>
+          </MascotasProvider>
+        </RolProvider>
       </AuthProvider>
     </SafeAreaProvider>
   )

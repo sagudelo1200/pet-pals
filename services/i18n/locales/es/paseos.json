@@ -67,7 +67,10 @@
       "lista_titulo": "Cuidadores cerca de ti",
       "distancia": "a {{distancia}}",
       "tarifa": "${{precio}} / hora",
-      "verificado": "Verificado"
+      "verificado": "Verificado",
+      "cargando": "Cargando cuidadores...",
+      "error": "Error al cargar cuidadores",
+      "sin_cuidadores": "No hay cuidadores disponibles en este momento"
     },
     "confirmar": {
       "titulo": "Revisa y confirma",

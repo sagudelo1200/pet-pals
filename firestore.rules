@@ -120,14 +120,20 @@ service cloud.firestore {
 
     // PERFIL PUBLICO
     match /perfil_publico/{docId} {
-      allow read: if true;
+      // Permitir lectura pública de perfiles verificados
+      // Permitir lectura de propio perfil independiente de verificación
+      allow read: if resource.data.verificacion == 'verificado' || 
+                     (autenticado() && resource.data.creado_por == request.auth.uid);
+      
       allow create: if autenticado()
         && (request.resource.data.creado_por == request.auth.uid || es_admin())
         && tiene_campos_sistema_basicos()
         && campos_sistema_validos_crear();
+      
       allow update: if autenticado()
         && (resource.data.creado_por == request.auth.uid || es_admin())
         && campos_sistema_validos_actualizar();
+      
       allow delete: if es_admin();
     }
 

@@ -1,8 +1,8 @@
 import React from 'react'
-import { StyleSheet, View, FlatList, TouchableOpacity, Image, Text } from 'react-native'
+import { StyleSheet, View, FlatList, TouchableOpacity, Image, Text, ActivityIndicator } from 'react-native'
 import { useTranslation } from 'react-i18next'
 import { COLOR } from '@/constants'
-import { Button, Icon, Badge } from '@/components/ui'
+import { Button, Icon } from '@/components/ui'
 import { useSeleccionarCuidador } from '@/hooks/paseos/useSeleccionarCuidador'
 
 interface Props {
@@ -13,7 +13,14 @@ interface Props {
 
 export const SeleccionarCuidadorPaso = ({ initialWalkerId, onNext, onBack }: Props) => {
   const { t } = useTranslation()
-  const { cuidadores, cuidadorSeleccionado, seleccionarCuidador } = useSeleccionarCuidador(initialWalkerId)
+  const { 
+    cuidadores, 
+    cargando, 
+    error, 
+    cuidadorSeleccionado, 
+    seleccionarCuidador,
+    recargar 
+  } = useSeleccionarCuidador(initialWalkerId)
 
   const handleContinuar = () => {
     if (cuidadorSeleccionado) {
@@ -30,7 +37,10 @@ export const SeleccionarCuidadorPaso = ({ initialWalkerId, onNext, onBack }: Pro
         onPress={() => seleccionarCuidador(item.id)}
         activeOpacity={0.8}
       >
-        <Image source={{ uri: item.imagen }} style={styles.avatar} />
+        <Image 
+          source={{ uri: item.imagen }} 
+          style={styles.avatar}
+        />
         
         <View style={styles.info}>
           <View style={styles.header}>
@@ -42,14 +52,14 @@ export const SeleccionarCuidadorPaso = ({ initialWalkerId, onNext, onBack }: Pro
           
           <View style={styles.ratingRow}>
             <Icon name="star" size={14} color={COLOR.ENFASIS} />
-            <Text style={styles.rating}>{item.calificacion}</Text>
+            <Text style={styles.rating}>{item.calificacion.toFixed(1)}</Text>
             <Text style={styles.distance}>
-              • {t('paseos:pasos.seleccionar_cuidador.distancia', { distancia: item.distancia })}
+              • {item.distancia}
             </Text>
           </View>
 
           <Text style={styles.price}>
-            {t('paseos:pasos.seleccionar_cuidador.tarifa', { precio: item.tarifa })}
+            {item.tarifa}
           </Text>
         </View>
 
@@ -60,24 +70,67 @@ export const SeleccionarCuidadorPaso = ({ initialWalkerId, onNext, onBack }: Pro
     )
   }
 
+  const renderLoading = () => (
+    <View style={styles.centerContent}>
+      <ActivityIndicator size="large" color={COLOR.PRIMARIO} />
+      <Text style={styles.loadingText}>
+        {t('paseos:pasos.seleccionar_cuidador.cargando', 'Cargando cuidadores...')}
+      </Text>
+    </View>
+  )
+
+  const renderError = () => (
+    <View style={styles.centerContent}>
+      <Icon name="exclamation-circle" size={48} color={COLOR.ERROR} />
+      <Text style={styles.errorText}>
+        {t('paseos:pasos.seleccionar_cuidador.error')}
+      </Text>
+      <Button
+        title={t('comun:reintentar', 'Reintentar')}
+        variant="bloque"
+        onPress={recargar}
+        style={{ marginTop: 16 }}
+      />
+    </View>
+  )
+
+  const renderEmpty = () => (
+    <View style={styles.centerContent}>
+      <Icon name="users" size={48} color={COLOR.SUBTEXTO} />
+      <Text style={styles.emptyText}>
+        {t('paseos:pasos.seleccionar_cuidador.sin_cuidadores', 'No hay cuidadores disponibles')}
+      </Text>
+    </View>
+  )
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>
         {t('paseos:pasos.seleccionar_cuidador.titulo')}
       </Text>
       
-      <Text style={styles.subtitle}>
-        {t('paseos:pasos.seleccionar_cuidador.lista_titulo')}
-      </Text>
+      {!cargando && !error && (
+        <Text style={styles.subtitle}>
+          {t('paseos:pasos.seleccionar_cuidador.lista_titulo')}
+        </Text>
+      )}
 
-      <FlatList
-        data={cuidadores}
-        renderItem={renderItem}
-        keyExtractor={item => item.id}
-        contentContainerStyle={styles.listContent}
-        style={styles.list}
-        showsVerticalScrollIndicator={false}
-      />
+      {cargando ? (
+        renderLoading()
+      ) : error ? (
+        renderError()
+      ) : cuidadores.length === 0 ? (
+        renderEmpty()
+      ) : (
+        <FlatList
+          data={cuidadores}
+          renderItem={renderItem}
+          keyExtractor={item => item.id}
+          contentContainerStyle={styles.listContent}
+          style={styles.list}
+          showsVerticalScrollIndicator={false}
+        />
+      )}
 
       <View style={styles.actions}>
         <Button
@@ -90,7 +143,7 @@ export const SeleccionarCuidadorPaso = ({ initialWalkerId, onNext, onBack }: Pro
           title={t('comun:continuar')}
           variant="primario"
           onPress={handleContinuar}
-          disabled={!cuidadorSeleccionado}
+          disabled={!cuidadorSeleccionado || cargando}
           style={{ flex: 1 }}
         />
       </View>
@@ -101,10 +154,10 @@ export const SeleccionarCuidadorPaso = ({ initialWalkerId, onNext, onBack }: Pro
 const styles = StyleSheet.create({
   container: {
     padding: 16,
-    height: 500, // Fixed height to ensure BottomSheet expands
+    height: 500,
   },
   list: {
-    flex: 1, // Allow list to scroll within the container
+    flex: 1,
   },
   title: {
     fontSize: 24,
@@ -140,6 +193,7 @@ const styles = StyleSheet.create({
     height: 60,
     borderRadius: 30,
     marginRight: 12,
+    backgroundColor: COLOR.BORDE,
   },
   info: {
     flex: 1,
@@ -190,6 +244,29 @@ const styles = StyleSheet.create({
     height: 10,
     borderRadius: 5,
     backgroundColor: COLOR.PRIMARIO,
+  },
+  centerContent: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 40,
+  },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 14,
+    color: COLOR.SUBTEXTO,
+  },
+  errorText: {
+    marginTop: 16,
+    fontSize: 14,
+    color: COLOR.TEXTO,
+    textAlign: 'center',
+  },
+  emptyText: {
+    marginTop: 16,
+    fontSize: 14,
+    color: COLOR.SUBTEXTO,
+    textAlign: 'center',
   },
   actions: {
     flexDirection: 'row',

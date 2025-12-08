@@ -30,6 +30,9 @@ export interface PerfilPublico extends BaseModel {
   /** Cantidad total de paseos realizados */
   cantidad_paseos_realizados?: number
 
+  /** Tarifa por hora en la moneda local */
+  tarifa_por_hora?: number
+
   /** Estado de verificación del perfil para confianza y seguridad */
   verificacion: EstadoVerificacion
 }
