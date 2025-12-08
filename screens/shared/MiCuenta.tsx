@@ -15,8 +15,14 @@ const MiCuenta = () => {
   const navigation = useNavigation<any>()
   const insets = useSafeAreaInsets()
   const { cerrarSesion, cargando: cargandoAuth, user, profile } = useAuth()
-  const { rolActivo, cambiarRolActivo, tieneMultiplesRoles, rolesDisponibles } = useRol()
-  const { cambiarRol, cargando: cargandoRol, esTutor, esCuidador } = useCambiarRol()
+  const { rolActivo, cambiarRolActivo, tieneMultiplesRoles, rolesDisponibles } =
+    useRol()
+  const {
+    cambiarRol,
+    cargando: cargandoRol,
+    esTutor,
+    esCuidador,
+  } = useCambiarRol()
   const { t } = useTranslation()
   const correo = user?.email ?? (profile as any)?.correo ?? '—'
   const nombre = user?.displayName ?? (profile as any)?.nombre ?? '—'
@@ -40,7 +46,7 @@ const MiCuenta = () => {
 
   const handleActivarRol = async (rol: 'tutor' | 'cuidador') => {
     const resultado = await cambiarRol(rol)
-    
+
     if (resultado.success) {
       Alert.alert(
         '¡Éxito!',
@@ -54,7 +60,9 @@ const MiCuenta = () => {
               // Reiniciar navegación
               navigation.reset({
                 index: 0,
-                routes: [{ name: rol === 'tutor' ? 'TutorApp' : 'CuidadorApp' }],
+                routes: [
+                  { name: rol === 'tutor' ? 'TutorApp' : 'CuidadorApp' },
+                ],
               })
             },
           },
@@ -75,7 +83,10 @@ const MiCuenta = () => {
   }
 
   return (
-    <Screen style={[styles.container, { paddingBottom: TAB_BAR_HEIGHT }]}>
+    <Screen
+      style={[styles.container, { paddingBottom: TAB_BAR_HEIGHT }]}
+      includeTopInset
+    >
       <View style={styles.content}>
         <Text style={styles.text}>{t('perfil:titulo')}</Text>
         <Text style={styles.subText}>{t('perfil:descripcion')}</Text>
@@ -95,9 +106,9 @@ const MiCuenta = () => {
             </Text>
 
             <View style={styles.rolesButtons}>
-              {rolesDisponibles.map((rol) => {
+              {rolesDisponibles.map(rol => {
                 if (rol === rolActivo || rol === 'admin') return null
-                
+
                 const configMap = {
                   tutor: {
                     icon: 'home' as const,
@@ -110,7 +121,7 @@ const MiCuenta = () => {
                     titulo: 'Cuidador',
                   },
                 }
-                
+
                 const config = configMap[rol as 'tutor' | 'cuidador']
                 if (!config) return null
 
@@ -119,7 +130,9 @@ const MiCuenta = () => {
                     key={rol}
                     title={`Cambiar a ${config.titulo}`}
                     variant={rol === 'tutor' ? 'primario' : 'exito'}
-                    onPress={() => handleCambiarRolActivo(rol as 'tutor' | 'cuidador')}
+                    onPress={() =>
+                      handleCambiarRolActivo(rol as 'tutor' | 'cuidador')
+                    }
                     style={{ marginBottom: 12 }}
                   />
                 )
@@ -138,7 +151,9 @@ const MiCuenta = () => {
                 <Card style={styles.roleCard}>
                   <Icon name="home" size={32} color={COLOR.PRIMARIO} />
                   <Text style={styles.roleCardTitle}>Tutor</Text>
-                  <Text style={styles.roleCardDesc}>Solicita paseos para tus mascotas</Text>
+                  <Text style={styles.roleCardDesc}>
+                    Solicita paseos para tus mascotas
+                  </Text>
                   <Button
                     title="Activar Tutor"
                     variant="primario"
@@ -154,7 +169,9 @@ const MiCuenta = () => {
                 <Card style={styles.roleCard}>
                   <Icon name="walking" size={32} color={COLOR.EXITO} />
                   <Text style={styles.roleCardTitle}>Cuidador</Text>
-                  <Text style={styles.roleCardDesc}>Ofrece servicios de paseo</Text>
+                  <Text style={styles.roleCardDesc}>
+                    Ofrece servicios de paseo
+                  </Text>
                   <Button
                     title="Activar Cuidador"
                     variant="exito"
@@ -178,7 +195,9 @@ const MiCuenta = () => {
           loading={cargandoAuth}
           variant="secundario"
           title={
-            cargandoAuth ? t('perfil:cerrando_sesion') : t('perfil:cerrar_sesion')
+            cargandoAuth
+              ? t('perfil:cerrando_sesion')
+              : t('perfil:cerrar_sesion')
           }
         />
       </View>
@@ -197,6 +216,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'flex-start',
     paddingHorizontal: 20,
+    paddingTop: 20,
     width: '100%',
   },
   text: {

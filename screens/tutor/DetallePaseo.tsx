@@ -62,10 +62,12 @@ export const DetallePaseo = () => {
   }
 
   const ejecutar = async (evento: any, payload?: any) => {
-    const exito = await transicion(evento, payload)
-    if (exito) {
+    const resultado = await transicion(evento, payload)
+    if (resultado.success) {
       // Recargar datos para asegurar consistencia
       cargarPaseo()
+    } else {
+      Alert.alert('Error', resultado.error || 'Error desconocido')
     }
   }
 

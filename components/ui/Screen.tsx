@@ -104,14 +104,19 @@ const Screen: React.FC<ScreenProps> = ({
     </TouchableWithoutFeedback>
   )
 
-  const safeAreaEdges = includeTopInset
-    ? (['top', 'left', 'right', 'bottom'] as const)
-    : (['left', 'right', 'bottom'] as const)
+  const safeAreaEdges = ['left', 'right', 'bottom'] as const
 
   return (
     <SafeAreaView
       edges={safeAreaEdges}
-      style={[{ flex: 1, backgroundColor: COLOR.BASE }, style]}
+      style={[
+        {
+          flex: 1,
+          backgroundColor: COLOR.BASE,
+          paddingTop: includeTopInset ? insets.top : 0,
+        },
+        style,
+      ]}
     >
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}

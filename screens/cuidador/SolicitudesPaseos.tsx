@@ -12,6 +12,7 @@ import { AuthStackParamList } from '@/navigation/types'
 import Skeleton from '@/components/ui/Skeleton'
 import Card from '@/components/ui/Card'
 import EmptyState from '@/components/ui/EmptyState'
+import DiaEnElParqueSvg from '@/assets/imgs/undraw/dia_en_el_parque.svg'
 
 const SolicitudesPaseos: React.FC = () => {
   const { t } = useTranslation()
@@ -56,7 +57,9 @@ const SolicitudesPaseos: React.FC = () => {
 
   const renderEmpty = () => (
     <EmptyState
-      iconName="bell-slash"
+      image={
+        <DiaEnElParqueSvg width={200} height={160} style={{ opacity: 0.8 }} />
+      }
       title={t('cuidador:solicitudes.sin_solicitudes')}
       description={t('cuidador:solicitudes.sin_solicitudes_desc')}
     />

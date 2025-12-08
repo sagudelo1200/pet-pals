@@ -57,5 +57,21 @@
     "subtitulo": "Paseos aceptados y en progreso",
     "sin_activos": "No tienes paseos activos",
     "sin_activos_desc": "Los paseos que aceptes aparecerán aquí"
+  },
+  "paseo": {
+    "detalle_titulo": "Paseo en Curso",
+    "iniciar_ruta": "Iniciar Ruta",
+    "confirmar_ruta": "¿Estás listo para ir a recoger a la mascota?",
+    "iniciar_paseo": "Iniciar Paseo",
+    "confirmar_inicio": "¿Ya tienes a la mascota y estás listo para comenzar?",
+    "finalizar_paseo": "Finalizar Paseo",
+    "confirmar_fin": "¿Has entregado a la mascota y terminado el servicio?",
+    "paseo_finalizado": "Paseo finalizado correctamente",
+    "ver_mapa": "Ver ubicación en mapa",
+    "mascotas": "Mascotas del paseo",
+    "accion_ir_a_recoger": "Ir a Recoger",
+    "accion_empezar": "Empezar Paseo",
+    "accion_terminar": "Finalizar Paseo",
+    "accion_ver_detalle": "Ver Detalle"
   }
 }

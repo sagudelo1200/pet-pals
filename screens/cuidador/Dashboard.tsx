@@ -89,7 +89,7 @@ const Dashboard: React.FC = () => {
             gradientColors={['#8B5CF615', '#8B5CF605']}
             onPress={() => {
               // @ts-ignore
-              navigation.navigate('Activos')
+              navigation.navigate('Agenda')
             }}
           />
           <EstadisticaCard
@@ -144,7 +144,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   titulo: {
-    fontSize: 32,
+    fontSize: 28,
     fontWeight: '800',
     color: COLOR.TEXTO,
     marginBottom: 6,

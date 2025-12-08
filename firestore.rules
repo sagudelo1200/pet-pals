@@ -176,23 +176,27 @@ service cloud.firestore {
         && (!('id_cuidador' in request.resource.data) || 
       request.resource.data.id_cuidador != request.auth.uid);
 
-      allow update: if (
-      es_actor_paseo_doc(resource) || 
+      allow update: if autenticado() && (
+      // Caso 1: Aceptar solicitud (PENDIENTE -> ACEPTADO)
       (
-      resource.data.estado == 'PENDIENTE' && 
-      (
-      !('id_cuidador' in resource.data) || 
-      resource.data.id_cuidador == request.auth.uid
-      ) &&
+      resource.data.estado == 'PENDIENTE' &&
+      (!('id_cuidador' in resource.data) || resource.data.id_cuidador == request.auth.uid) &&
       request.resource.data.id_cuidador == request.auth.uid &&
       request.resource.data.estado == 'ACEPTADO'
+      ) ||
+      // Caso 2: El Creador actualiza (cualquier cosa valida)
+      (
+      resource.data.creado_por == request.auth.uid
+      ) ||
+      // Caso 3: El Cuidador asignado actualiza (estado, ubicacion, etc)
+      (
+      resource.data.id_cuidador == request.auth.uid &&
+      request.resource.data.id_cuidador == request.auth.uid // No puede cambiarse a otro cuidador
+      ) ||
+      // Caso 4: Admin
+      es_admin()
       )
-      )
-        && campos_sistema_validos_actualizar()
-        && request.resource.data.creado_por == resource.data.creado_por
-      // Validar que el cuidador no sea el mismo que el creador
-        && (!('id_cuidador' in request.resource.data) || 
-      request.resource.data.id_cuidador != resource.data.creado_por);
+        && campos_sistema_validos_actualizar();
 
       allow delete: if es_actor_paseo_doc(resource);
     }

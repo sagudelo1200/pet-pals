@@ -25,8 +25,12 @@ const AgendaScreen: React.FC = () => {
 
   const handlePressPaseo = (paseoId: string) => {
     // Navegar al detalle del paseo (Modo Ejecución)
-    // Por ahora usamos DetallePaseo genérico, pero luego será la pantalla de ejecución
-    navigation.navigate('DetallePaseo', { id: paseoId })
+    if (activeTab === 'proximos') {
+      navigation.navigate('DetallePaseoActivo', { paseoId })
+    } else {
+      // Para historial, usamos la vista de detalle genérica (solo lectura)
+      navigation.navigate('DetallePaseo', { id: paseoId })
+    }
   }
 
   const renderEmptyState = () => (
@@ -48,7 +52,7 @@ const AgendaScreen: React.FC = () => {
   )
 
   return (
-    <Screen style={styles.container}>
+    <Screen style={styles.container} includeTopInset>
       <View style={styles.header}>
         <Text style={styles.titulo}>{t('cuidador:agenda.titulo')}</Text>
         <Text style={styles.subtitulo}>{t('cuidador:agenda.subtitulo')}</Text>
