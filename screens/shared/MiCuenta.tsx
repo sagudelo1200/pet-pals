@@ -1,7 +1,14 @@
-import React, { useCallback, useState } from 'react'
-import { Alert, Platform, Text, View, StyleSheet } from 'react-native'
+import React, { useCallback } from 'react'
+import {
+  Alert,
+  Platform,
+  Text,
+  View,
+  StyleSheet,
+  ScrollView,
+} from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { Button, Card, Icon } from '@/components/ui'
+import { Button, Card, Icon, Avatar } from '@/components/ui'
 import Screen from '@/components/ui/Screen'
 import { tErrorMaybe } from '@/services/i18n'
 import { useAuth } from '@/context/AuthContext'
@@ -10,6 +17,7 @@ import { useCambiarRol } from '@/hooks/useCambiarRol'
 import { useNavigation } from '@react-navigation/native'
 import { COLOR } from '@/constants'
 import { useTranslation } from 'react-i18next'
+import { LinearGradient } from 'expo-linear-gradient'
 
 const MiCuenta = () => {
   const navigation = useNavigation<any>()
@@ -17,15 +25,11 @@ const MiCuenta = () => {
   const { cerrarSesion, cargando: cargandoAuth, user, profile } = useAuth()
   const { rolActivo, cambiarRolActivo, tieneMultiplesRoles, rolesDisponibles } =
     useRol()
-  const {
-    cambiarRol,
-    cargando: cargandoRol,
-    esTutor,
-    esCuidador,
-  } = useCambiarRol()
+  const { cambiarRol, cargando: cargandoRol, esCuidador } = useCambiarRol()
   const { t } = useTranslation()
   const correo = user?.email ?? (profile as any)?.correo ?? '—'
   const nombre = user?.displayName ?? (profile as any)?.nombre ?? '—'
+  const foto = user?.photoURL ?? (profile as any)?.foto
 
   const TAB_BAR_HEIGHT =
     Platform.OS === 'ios'
@@ -49,158 +53,218 @@ const MiCuenta = () => {
 
     if (resultado.success) {
       Alert.alert(
-        '¡Éxito!',
-        `Ahora eres ${rol}. ${rol === 'cuidador' ? 'Tu perfil público ha sido creado.' : ''}`,
+        t('perfil:exito'),
+        t('perfil:rol_activado', {
+          rol,
+          extra: rol === 'cuidador' ? t('perfil:perfil_publico_creado') : '',
+        }),
         [
           {
             text: 'OK',
             onPress: () => {
               // Cambiar al nuevo rol activo
               void cambiarRolActivo(rol)
-              // Reiniciar navegación
-              navigation.reset({
-                index: 0,
-                routes: [
-                  { name: rol === 'tutor' ? 'TutorApp' : 'CuidadorApp' },
-                ],
-              })
+              // Navegar manteniendo la vista en MiCuenta
+              navigation.navigate(
+                rol === 'tutor' ? 'TutorApp' : 'CuidadorApp',
+                {
+                  screen: 'MiCuenta',
+                }
+              )
             },
           },
         ]
       )
     } else {
-      Alert.alert('Error', resultado.error || 'No se pudo cambiar el rol')
+      Alert.alert(
+        t('perfil:error'),
+        resultado.error || t('perfil:error_cambiar_rol')
+      )
     }
   }
 
   const handleCambiarRolActivo = async (rol: 'tutor' | 'cuidador') => {
     await cambiarRolActivo(rol)
-    // Reiniciar navegación
-    navigation.reset({
-      index: 0,
-      routes: [{ name: rol === 'tutor' ? 'TutorApp' : 'CuidadorApp' }],
+    // Navegar manteniendo la vista en MiCuenta
+    navigation.navigate(rol === 'tutor' ? 'TutorApp' : 'CuidadorApp', {
+      screen: 'MiCuenta',
     })
   }
 
   return (
     <Screen
       style={[styles.container, { paddingBottom: TAB_BAR_HEIGHT }]}
-      includeTopInset
+      includeTopInset={false}
     >
-      <View style={styles.content}>
-        <Text style={styles.text}>{t('perfil:titulo')}</Text>
-        <Text style={styles.subText}>{t('perfil:descripcion')}</Text>
-        <Text style={styles.nameText}>
-          {t('perfil:nombre_label', { nombre })}
-        </Text>
-        <Text style={styles.emailText}>
-          {t('perfil:sesion_label', { correo })}
-        </Text>
+      <ScrollView contentContainerStyle={styles.scrollContent}>
+        {/* Header Premium con Gradiente */}
+        <LinearGradient
+          colors={[COLOR.PRIMARIO, COLOR.ENFASIS]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={[styles.headerGradient, { paddingTop: insets.top + 20 }]}
+        >
+          <View style={styles.profileHeader}>
+            <Avatar
+              uri={foto}
+              name={nombre}
+              size={80}
+              backgroundColor="rgba(255,255,255,0.2)"
+              color="#FFF"
+              containerStyle={styles.avatar}
+            />
+            <Text style={styles.nameText}>{nombre}</Text>
+            <Text style={styles.emailText}>{correo}</Text>
+            <View style={styles.roleBadge}>
+              <Icon
+                name={rolActivo === 'cuidador' ? 'user-md' : 'user'}
+                size={14}
+                color="#FFF"
+                containerStyle={{ marginRight: 6 }}
+              />
+              <Text style={styles.roleText}>
+                {rolActivo === 'cuidador'
+                  ? t('perfil:cuidador')
+                  : t('perfil:tutor')}
+              </Text>
+            </View>
+          </View>
+        </LinearGradient>
 
-        {/* Cambiar entre roles si tiene múltiples */}
-        {tieneMultiplesRoles && (
-          <View style={styles.rolesSection}>
-            <Text style={styles.rolesSectionTitle}>Cambiar de Rol</Text>
-            <Text style={styles.rolesSectionSubtitle}>
-              Rol actual: {rolActivo === 'tutor' ? 'Tutor' : 'Cuidador'}
+        <View style={styles.content}>
+          {/* Sección de Acciones Principales */}
+          <View style={styles.actionsContainer}>
+            {rolActivo === 'cuidador' && (
+              <Card
+                style={styles.actionCard}
+                onPress={() => navigation.navigate('PerfilCuidador')}
+              >
+                <View style={styles.actionRow}>
+                  <View
+                    style={[
+                      styles.iconBox,
+                      { backgroundColor: COLOR.INACTIVO },
+                    ]}
+                  >
+                    <Icon name="id-card" size={20} color={COLOR.PRIMARIO} />
+                  </View>
+                  <View style={styles.actionInfo}>
+                    <Text style={styles.actionTitle}>
+                      {t('perfil:perfil_publico')}
+                    </Text>
+                    <Text style={styles.actionDesc}>
+                      {t('perfil:gestiona_info_visible')}
+                    </Text>
+                  </View>
+                  <Icon name="chevron-right" size={16} color={COLOR.SUBTEXTO} />
+                </View>
+              </Card>
+            )}
+
+            {/* TODO: Agregar más opciones como "Mis Mascotas" para tutor, etc. */}
+          </View>
+
+          {/* Sección de Roles */}
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>
+              {t('perfil:gestionar_roles')}
             </Text>
 
-            <View style={styles.rolesButtons}>
-              {rolesDisponibles.map(rol => {
-                if (rol === rolActivo || rol === 'admin') return null
-
-                const configMap = {
-                  tutor: {
-                    icon: 'home' as const,
-                    color: COLOR.PRIMARIO,
-                    titulo: 'Tutor',
-                  },
-                  cuidador: {
-                    icon: 'walking' as const,
-                    color: COLOR.EXITO,
-                    titulo: 'Cuidador',
-                  },
-                }
-
-                const config = configMap[rol as 'tutor' | 'cuidador']
-                if (!config) return null
-
-                return (
-                  <Button
+            {tieneMultiplesRoles ? (
+              <View style={styles.rolesContainer}>
+                {rolesDisponibles.map(rol => (
+                  <Card
                     key={rol}
-                    title={`Cambiar a ${config.titulo}`}
-                    variant={rol === 'tutor' ? 'primario' : 'exito'}
+                    style={[
+                      styles.roleCard,
+                      rolActivo === rol && styles.activeRoleCard,
+                    ]}
                     onPress={() =>
-                      handleCambiarRolActivo(rol as 'tutor' | 'cuidador')
+                      rol !== rolActivo && handleCambiarRolActivo(rol as any)
                     }
-                    style={{ marginBottom: 12 }}
+                  >
+                    <View style={styles.roleCardContent}>
+                      <Icon
+                        name={rol === 'cuidador' ? 'walking' : 'paw'}
+                        size={24}
+                        color={
+                          rolActivo === rol ? COLOR.PRIMARIO : COLOR.SUBTEXTO
+                        }
+                      />
+                      <Text
+                        style={[
+                          styles.roleCardTitle,
+                          rolActivo === rol && styles.activeRoleText,
+                        ]}
+                      >
+                        {rol === 'cuidador'
+                          ? t('perfil:modo_cuidador')
+                          : t('perfil:modo_tutor')}
+                      </Text>
+                      {rolActivo === rol && (
+                        <View style={styles.activeIndicator}>
+                          <Icon name="check" size={12} color="#FFF" />
+                        </View>
+                      )}
+                    </View>
+                  </Card>
+                ))}
+              </View>
+            ) : (
+              <Card style={styles.promoCard}>
+                <View style={styles.promoContent}>
+                  <Icon
+                    name={esCuidador ? 'paw' : 'walking'}
+                    size={32}
+                    color={COLOR.PRIMARIO}
                   />
-                )
-              })}
-            </View>
+                  <View style={{ flex: 1, marginLeft: 16 }}>
+                    <Text style={styles.promoTitle}>
+                      {esCuidador
+                        ? t('perfil:tienes_mascota')
+                        : t('perfil:quieres_ser_cuidador')}
+                    </Text>
+                    <Text style={styles.promoDesc}>
+                      {esCuidador
+                        ? t('perfil:activa_tutor_desc')
+                        : t('perfil:gana_dinero_desc')}
+                    </Text>
+                  </View>
+                </View>
+                <Button
+                  title={
+                    esCuidador
+                      ? t('perfil:activar_modo_tutor')
+                      : t('perfil:convertirme_cuidador')
+                  }
+                  variant="contorno"
+                  size="sm"
+                  style={{ marginTop: 16 }}
+                  onPress={() =>
+                    handleActivarRol(esCuidador ? 'tutor' : 'cuidador')
+                  }
+                  loading={cargandoRol}
+                />
+              </Card>
+            )}
           </View>
-        )}
 
-        {/* Activar nuevos roles */}
-        {(!esTutor || !esCuidador) && (
-          <View style={styles.rolesSection}>
-            <Text style={styles.rolesSectionTitle}>Activar Nuevo Rol</Text>
+          {/* Botón Cerrar Sesión */}
+          <Button
+            title={t('perfil:cerrar_sesion')}
+            variant="ghost"
+            textStyle={{ color: COLOR.ERROR }}
+            style={styles.logoutButton}
+            onPress={handleLogout}
+            loading={cargandoAuth}
+            icon="sign-out-alt"
+          />
 
-            <View style={styles.rolesButtons}>
-              {!esTutor && (
-                <Card style={styles.roleCard}>
-                  <Icon name="home" size={32} color={COLOR.PRIMARIO} />
-                  <Text style={styles.roleCardTitle}>Tutor</Text>
-                  <Text style={styles.roleCardDesc}>
-                    Solicita paseos para tus mascotas
-                  </Text>
-                  <Button
-                    title="Activar Tutor"
-                    variant="primario"
-                    onPress={() => handleActivarRol('tutor')}
-                    disabled={cargandoRol}
-                    loading={cargandoRol}
-                    style={{ marginTop: 12 }}
-                  />
-                </Card>
-              )}
-
-              {!esCuidador && (
-                <Card style={styles.roleCard}>
-                  <Icon name="walking" size={32} color={COLOR.EXITO} />
-                  <Text style={styles.roleCardTitle}>Cuidador</Text>
-                  <Text style={styles.roleCardDesc}>
-                    Ofrece servicios de paseo
-                  </Text>
-                  <Button
-                    title="Activar Cuidador"
-                    variant="exito"
-                    onPress={() => handleActivarRol('cuidador')}
-                    disabled={cargandoRol}
-                    loading={cargandoRol}
-                    style={{ marginTop: 12 }}
-                  />
-                </Card>
-              )}
-            </View>
-          </View>
-        )}
-      </View>
-
-      <View style={styles.footer}>
-        <Button
-          style={styles.logoutButton as any}
-          onPress={() => void handleLogout()}
-          disabled={cargandoAuth}
-          loading={cargandoAuth}
-          variant="secundario"
-          title={
-            cargandoAuth
-              ? t('perfil:cerrando_sesion')
-              : t('perfil:cerrar_sesion')
-          }
-        />
-      </View>
+          <Text style={styles.versionText}>
+            {t('perfil:version', { version: '1.0.0' })}
+          </Text>
+        </View>
+      </ScrollView>
     </Screen>
   )
 }
@@ -208,84 +272,173 @@ const MiCuenta = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    alignItems: 'center',
     backgroundColor: COLOR.BASE,
   },
-  content: {
-    flex: 1,
+  scrollContent: {
+    flexGrow: 1,
+  },
+  headerGradient: {
+    paddingBottom: 40,
+    borderBottomLeftRadius: 30,
+    borderBottomRightRadius: 30,
     alignItems: 'center',
-    justifyContent: 'flex-start',
-    paddingHorizontal: 20,
-    paddingTop: 20,
-    width: '100%',
   },
-  text: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    textAlign: 'center',
-    color: COLOR.TEXTO,
+  profileHeader: {
+    alignItems: 'center',
   },
-  subText: {
-    fontSize: 16,
-    textAlign: 'center',
-    marginTop: 10,
-    color: COLOR.SUBTEXTO,
+  avatar: {
+    marginBottom: 16,
+    borderWidth: 4,
+    borderColor: 'rgba(255,255,255,0.2)',
   },
   nameText: {
-    marginTop: 14,
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#FFF',
+    marginBottom: 4,
+  },
+  emailText: {
+    fontSize: 14,
+    color: 'rgba(255,255,255,0.8)',
+    marginBottom: 12,
+  },
+  roleBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+  },
+  roleText: {
+    color: '#FFF',
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  content: {
+    paddingHorizontal: 20,
+    marginTop: -20, // Overlap con el header
+  },
+  actionsContainer: {
+    marginBottom: 24,
+  },
+  actionCard: {
+    padding: 16,
+    marginBottom: 12,
+    borderRadius: 16,
+    backgroundColor: COLOR.BLOQUE,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.05,
+    shadowRadius: 12,
+    elevation: 4,
+  },
+  actionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  iconBox: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 16,
+  },
+  actionInfo: {
+    flex: 1,
+  },
+  actionTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: COLOR.TEXTO,
+    marginBottom: 2,
+  },
+  actionDesc: {
+    fontSize: 13,
+    color: COLOR.SUBTEXTO,
+  },
+  section: {
+    marginBottom: 32,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: COLOR.TEXTO,
+    marginBottom: 16,
+    marginLeft: 4,
+  },
+  rolesContainer: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  roleCard: {
+    flex: 1,
+    padding: 16,
+    borderRadius: 16,
+    backgroundColor: COLOR.BLOQUE,
+    borderWidth: 1,
+    borderColor: 'transparent',
+  },
+  activeRoleCard: {
+    borderColor: COLOR.PRIMARIO,
+    backgroundColor: COLOR.SECUNDARIO,
+  },
+  roleCardContent: {
+    alignItems: 'center',
+    position: 'relative',
+  },
+  roleCardTitle: {
+    marginTop: 12,
+    fontSize: 14,
+    fontWeight: '600',
+    color: COLOR.SUBTEXTO,
+  },
+  activeRoleText: {
+    color: COLOR.PRIMARIO,
+  },
+  activeIndicator: {
+    position: 'absolute',
+    top: -8,
+    right: -8,
+    backgroundColor: COLOR.PRIMARIO,
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  promoCard: {
+    padding: 20,
+    borderRadius: 16,
+    backgroundColor: COLOR.BLOQUE,
+  },
+  promoContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  promoTitle: {
     fontSize: 16,
     fontWeight: '700',
     color: COLOR.TEXTO,
-    textAlign: 'center',
+    marginBottom: 4,
   },
-  emailText: {
-    marginTop: 16,
+  promoDesc: {
     fontSize: 14,
     color: COLOR.SUBTEXTO,
-    textAlign: 'center',
-  },
-  rolesSection: {
-    marginTop: 32,
-    width: '100%',
-  },
-  rolesSectionTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: COLOR.TEXTO,
-    marginBottom: 8,
-  },
-  rolesSectionSubtitle: {
-    fontSize: 14,
-    color: COLOR.SUBTEXTO,
-    marginBottom: 16,
-  },
-  rolesButtons: {
-    gap: 16,
-  },
-  roleCard: {
-    padding: 20,
-    alignItems: 'center',
-  },
-  roleCardTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: COLOR.TEXTO,
-    marginTop: 12,
-  },
-  roleCardDesc: {
-    fontSize: 14,
-    color: COLOR.SUBTEXTO,
-    textAlign: 'center',
-    marginTop: 4,
-  },
-  footer: {
-    alignSelf: 'stretch',
-    alignItems: 'center',
-    padding: 20,
+    lineHeight: 20,
   },
   logoutButton: {
-    alignSelf: 'center',
-    minWidth: 220,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: COLOR.ERROR,
+    flexDirection: 'row',
+  },
+  versionText: {
+    textAlign: 'center',
+    color: COLOR.SUBTEXTO,
+    fontSize: 12,
+    opacity: 0.6,
   },
 })
 

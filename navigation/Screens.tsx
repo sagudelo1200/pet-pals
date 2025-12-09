@@ -8,6 +8,7 @@ import DetalleMascota from '@/screens/tutor/DetalleMascota'
 import { DetallePaseo } from '@/screens/tutor/DetallePaseo'
 import { DetalleSolicitud } from '@/screens/cuidador/DetalleSolicitud'
 import { DetallePaseoActivo } from '@/screens/cuidador/DetallePaseoActivo'
+import PerfilCuidador from '@/screens/cuidador/PerfilCuidador'
 import { AuthStackParamList } from './types'
 
 // Stack principal con autenticación
@@ -33,6 +34,7 @@ export default function RootNavigator(): React.ReactElement {
       <Stack.Screen name="DetallePaseo" component={DetallePaseo} />
       <Stack.Screen name="DetalleSolicitud" component={DetalleSolicitud} />
       <Stack.Screen name="DetallePaseoActivo" component={DetallePaseoActivo} />
+      <Stack.Screen name="PerfilCuidador" component={PerfilCuidador} />
     </Stack.Navigator>
   )
 }

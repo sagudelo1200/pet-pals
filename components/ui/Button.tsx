@@ -193,6 +193,7 @@ const styles = StyleSheet.create({
   button: {
     height: 48,
     borderRadius: 12, // Más redondeado y moderno
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     // Eliminamos sombras para look minimalista/plano

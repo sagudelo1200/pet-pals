@@ -21,6 +21,7 @@ export type AuthStackParamList = {
   DetallePaseoActivo: {
     paseoId: string
   }
+  PerfilCuidador: undefined
 }
 
 // Flujo interno de autenticación (pantallas del stack de Auth)
