@@ -24,20 +24,41 @@ export enum PaseoStatus {
 }
 
 /**
+ * Modalidad del paseo que define si acepta mascotas de otros tutores.
+ * 'privado' = Solo las mascotas del tutor que creó el paseo
+ * 'compartido' = Acepta que otros tutores unan sus mascotas (paseo grupal)
+ */
+export type ModalidadPaseo = 'privado' | 'compartido'
+
+/**
  * Representa un servicio de paseo de mascota.
  * Contiene información sobre quién solicita, quién pasea, duración, precio y localización.
  */
 export interface Paseo extends BaseModel {
   /** ID del cuidador asignado al servicio (puede no estar asignado inicialmente). */
   id_cuidador?: string
-  /** Indica si el paseo admite múltiples mascotas. */
+
+  /**
+   * Modalidad del paseo: 'privado' (solo mis mascotas) o 'compartido' (acepta otros tutores).
+   * Define si el paseo permite que otros tutores unan sus mascotas.
+   */
+  modalidad?: ModalidadPaseo
+
+  /**
+   * Indica si el paseo tiene múltiples mascotas (más de 1).
+   * Es independiente de la modalidad: puede haber paseos privados con múltiples mascotas
+   * del mismo tutor, o paseos compartidos con una sola mascota inicial.
+   */
   es_multiple?: boolean
-  /** Cupo máximo de mascotas para este paseo (no debe superar el límite global). */
+
+  /** Cupo máximo de mascotas TOTALES para este paseo (incluyendo de todos los tutores). */
   cupo_maximo_mascotas?: number
   /** Contador actual de mascotas unidas a este paseo (subcolección). */
   mascotas_count?: number
   /** IDs de las mascotas participantes (para optimización de consultas). */
   mascota_ids?: string[]
+  /** IDs de los tutores participantes (para paseos compartidos). */
+  tutor_ids?: string[]
   /** Tipo de paseo (a demanda o programado). */
   tipo_paseo: TipoPaseo
   /** Fecha y hora de inicio del paseo. */

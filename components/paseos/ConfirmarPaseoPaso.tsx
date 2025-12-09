@@ -13,6 +13,8 @@ interface Props {
   hora: string | null
   duracion: number | null
   walkerId: string | null
+  esCompartido: boolean
+  onCompartidoChange: (value: boolean) => void
   onConfirm: () => void
   onBack: () => void
 }
@@ -23,17 +25,18 @@ export const ConfirmarPaseoPaso = ({
   hora,
   duracion,
   walkerId,
+  esCompartido,
+  onCompartidoChange,
   onConfirm,
   onBack,
 }: Props) => {
   const { t } = useTranslation()
-  const [isMultiple, setIsMultiple] = useState(false)
   const { mascotas, cuidador, total, loading, error, confirmarReserva } =
-    useConfirmarPaseo({ petIds, walkerId, fecha, hora })
+    useConfirmarPaseo({ petIds, walkerId, fecha, hora, esCompartido })
 
-  const MULTIPLE_DISCOUNT = 0.15 // 15% descuento
+  const COMPARTIDO_DISCOUNT = 0.15 // 15% descuento para paseos compartidos
   const subtotal = total
-  const descuento = isMultiple ? subtotal * MULTIPLE_DISCOUNT : 0
+  const descuento = esCompartido ? subtotal * COMPARTIDO_DISCOUNT : 0
   const totalConDescuento = subtotal - descuento
 
   const handleConfirmar = async () => {
@@ -120,26 +123,26 @@ export const ConfirmarPaseoPaso = ({
 
         <View style={styles.divider} />
 
-        {/* Paseo Múltiple Option - Always visible savings banner */}
+        {/* Paseo Compartido Option - Always visible savings banner */}
         <View style={styles.section}>
           <View style={styles.savingsBanner}>
             <Icon
-              name={isMultiple ? 'check-circle' : 'star'}
+              name={esCompartido ? 'check-circle' : 'star'}
               size={14}
               color={COLOR.EXITO}
             />
             <Text style={styles.savingsText}>
               {t('paseos:pasos.confirmar.ahorro_mensaje', {
-                descuento: Math.round(MULTIPLE_DISCOUNT * 100),
+                descuento: Math.round(COMPARTIDO_DISCOUNT * 100),
               })}
             </Text>
           </View>
           <View style={{ marginTop: 8 }}>
             <Switch
-              value={isMultiple}
-              onValueChange={setIsMultiple}
-              label={t('paseos:pasos.confirmar.paseo_multiple_label')}
-              description={t('paseos:pasos.confirmar.paseo_multiple_desc')}
+              value={esCompartido}
+              onValueChange={onCompartidoChange}
+              label={t('paseos:pasos.confirmar.paseo_compartido_label')}
+              description={t('paseos:pasos.confirmar.paseo_compartido_desc')}
             />
           </View>
         </View>
@@ -154,10 +157,10 @@ export const ConfirmarPaseoPaso = ({
             </Text>
             <Text style={styles.priceValue}>${subtotal.toLocaleString()}</Text>
           </View>
-          {isMultiple && (
+          {esCompartido && (
             <View style={styles.priceRow}>
               <Text style={[styles.priceLabel, styles.discountText]}>
-                {t('paseos:pasos.confirmar.descuento_multiple')}
+                {t('paseos:pasos.confirmar.descuento_compartido')}
               </Text>
               <Text style={[styles.priceValue, styles.discountText]}>
                 -${descuento.toLocaleString()}

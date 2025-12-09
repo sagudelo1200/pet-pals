@@ -102,8 +102,12 @@ service cloud.firestore {
       p.data.id_cuidador == request.auth.uid ||
       es_admin()
       );
-    }    function puede_unirse_a_paseo_doc(p) {
-      return p != null && p.data.es_multiple == true && estado_permite_unirse(p.data.estado);
+    }
+
+    function puede_unirse_a_paseo_doc(p) {
+      // Solo paseos con modalidad 'compartido' permiten que OTROS tutores se unan
+      // (es_multiple deprecated - NO significa que otros puedan unirse)
+      return p != null && p.data.modalidad == 'compartido' && estado_permite_unirse(p.data.estado);
     }
 
     // USUARIOS

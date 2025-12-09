@@ -4,12 +4,14 @@ import { ServicioPaseo } from '@/services/firebase/paseo'
 import { ServicioPerfilPublico } from '@/services/firebase/perfil-publico'
 import { PaseoStatus } from '@/models/Paseo'
 import type { PerfilPublico } from '@/models/PerfilPublico'
+import { useAuth } from '@/context/AuthContext'
 
 interface ConfirmarPaseoProps {
   petIds: string[]
   walkerId: string | null
   fecha: Date | null
   hora: string | null
+  esCompartido: boolean
 }
 
 interface CuidadorInfo {
@@ -24,10 +26,12 @@ export const useConfirmarPaseo = ({
   walkerId,
   fecha,
   hora,
+  esCompartido,
 }: ConfirmarPaseoProps) => {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [cuidador, setCuidador] = useState<CuidadorInfo | null>(null)
+  const { user } = useAuth()
   const { mascotas: todasLasMascotas } = useMascotas()
 
   // Obtener datos completos de los ID
@@ -101,8 +105,10 @@ export const useConfirmarPaseo = ({
           id_cuidador: walkerId || undefined,
           cuidador_nombre_visual: cuidador?.nombre,
           cuidador_foto_visual: cuidador?.imagen,
-          es_multiple: mascotas.length > 1,
-          cupo_maximo_mascotas: mascotas.length,
+          modalidad: esCompartido ? 'compartido' : 'privado',
+          es_multiple: mascotas.length > 1, // Indica si tiene más de 1 mascota
+          cupo_maximo_mascotas: esCompartido ? 10 : mascotas.length,
+          tutor_ids: user?.uid ? [user.uid] : [],
         },
         petIds
       )
@@ -119,7 +125,17 @@ export const useConfirmarPaseo = ({
     } finally {
       setLoading(false)
     }
-  }, [fecha, hora, total, walkerId, petIds, mascotas.length])
+  }, [
+    fecha,
+    hora,
+    total,
+    walkerId,
+    petIds,
+    mascotas.length,
+    esCompartido,
+    cuidador,
+    user,
+  ])
 
   return {
     mascotas,

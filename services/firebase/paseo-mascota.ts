@@ -89,10 +89,11 @@ export async function addMascotaAlPaseo(
       // Convertir a dominio para garantizar Date en campos de fecha si se usan
       const paseo = toDomain(paseoSnap.data()) as any
 
-      // Verificar estado y es_multiple
+      // Verificar estado y modalidad
+      // Solo paseos con modalidad 'compartido' permiten que OTROS tutores se unan
       const estado = paseo.estado as string
-      const esMultiple = !!paseo.es_multiple
-      if (!esMultiple) throw new Error(ERR.PASEOS.PASEO_NO_ES_MULTIPLE)
+      const esCompartido = paseo.modalidad === 'compartido'
+      if (!esCompartido) throw new Error(ERR.PASEOS.PASEO_NO_ES_MULTIPLE)
       if (!(estado === 'pendiente' || estado === 'confirmado')) {
         throw new Error(ERR.PASEOS.ESTADO_DEL_PASEO_NO_ACEPTA_MASCOTAS)
       }

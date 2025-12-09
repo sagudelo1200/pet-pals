@@ -181,8 +181,8 @@ export class ServicioPaseo {
     const paseoRes = await ServicioCrudBase.crear<Paseo>(this.COLLECTION, {
       ...(data as any),
       creado_por: uid,
-      // Si no vienen mascotas: por defecto es múltiple (propuesta de cuidador)
-      es_multiple: (data as any).es_multiple ?? unique.length !== 1,
+      // es_multiple indica si tiene más de 1 mascota (independiente de modalidad)
+      es_multiple: (data as any).es_multiple ?? unique.length > 1,
       cupo_maximo_mascotas: max,
       mascotas_count: unique.length,
       mascota_ids: unique, // Campo optimizado para búsquedas

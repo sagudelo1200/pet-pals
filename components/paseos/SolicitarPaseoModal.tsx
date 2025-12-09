@@ -30,6 +30,7 @@ export const SolicitarPaseoModal = ({ visible, onClose }: Props) => {
     hora: null as string | null,
     duracion: null as number | null,
     walkerId: null as string | null,
+    esCompartido: false,
   })
 
   // Reset function to clear state when flow ends
@@ -41,6 +42,7 @@ export const SolicitarPaseoModal = ({ visible, onClose }: Props) => {
       hora: null,
       duracion: null,
       walkerId: null,
+      esCompartido: false,
     })
   }
 
@@ -130,6 +132,10 @@ export const SolicitarPaseoModal = ({ visible, onClose }: Props) => {
             hora={requestData.hora}
             duracion={requestData.duracion}
             walkerId={requestData.walkerId}
+            esCompartido={requestData.esCompartido}
+            onCompartidoChange={value =>
+              setRequestData(prev => ({ ...prev, esCompartido: value }))
+            }
             onConfirm={handleConfirmacionFinal}
             onBack={handleBack}
           />
