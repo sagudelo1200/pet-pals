@@ -19,7 +19,12 @@ interface CuidadorInfo {
   tarifa: number
 }
 
-export const useConfirmarPaseo = ({ petIds, walkerId, fecha, hora }: ConfirmarPaseoProps) => {
+export const useConfirmarPaseo = ({
+  petIds,
+  walkerId,
+  fecha,
+  hora,
+}: ConfirmarPaseoProps) => {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [cuidador, setCuidador] = useState<CuidadorInfo | null>(null)
@@ -38,7 +43,7 @@ export const useConfirmarPaseo = ({ petIds, walkerId, fecha, hora }: ConfirmarPa
 
       try {
         const resultado = await ServicioPerfilPublico.obtenerPorId(walkerId)
-        
+
         if (resultado.success && resultado.data) {
           const perfil = resultado.data
           setCuidador({
@@ -63,11 +68,12 @@ export const useConfirmarPaseo = ({ petIds, walkerId, fecha, hora }: ConfirmarPa
   const tarifaBase = cuidador?.tarifa || 15000
   const tarifaMascotaAdicional = 5000 // Tarifa adicional por mascota extra
   const numMascotas = mascotas.length
-  
+
   // Si es más de una, sumamos extra por cada adicional
-  const total = numMascotas > 0 
-    ? tarifaBase + ((numMascotas - 1) * tarifaMascotaAdicional)
-    : 0
+  const total =
+    numMascotas > 0
+      ? tarifaBase + (numMascotas - 1) * tarifaMascotaAdicional
+      : 0
 
   const confirmarReserva = useCallback(async () => {
     if (!fecha || !hora) {
@@ -77,24 +83,29 @@ export const useConfirmarPaseo = ({ petIds, walkerId, fecha, hora }: ConfirmarPa
 
     setLoading(true)
     setError(null)
-    
+
     try {
       // Combinar fecha y hora
       const fechaInicio = new Date(fecha)
       const [hours, minutes] = hora.split(':').map(Number)
       fechaInicio.setHours(hours, minutes, 0, 0)
 
-      const result = await ServicioPaseo.crearConMascotas({
-        tipo_paseo: 'solicitado',
-        estado: PaseoStatus.PENDIENTE,
-        fecha_hora_inicio: fechaInicio,
-        duracion_estimada: 60, // Default 1h
-        precio: total,
-        ubicacion_inicio: 'Ubicación actual', // TODO: Obtener ubicación real
-        id_cuidador: walkerId || undefined,
-        es_multiple: mascotas.length > 1,
-        cupo_maximo_mascotas: mascotas.length
-      }, petIds)
+      const result = await ServicioPaseo.crearConMascotas(
+        {
+          tipo_paseo: 'solicitado',
+          estado: PaseoStatus.PENDIENTE,
+          fecha_hora_inicio: fechaInicio,
+          duracion_estimada: 60, // Default 1h
+          precio: total,
+          ubicacion_inicio: 'Ubicación actual', // TODO: Obtener ubicación real
+          id_cuidador: walkerId || undefined,
+          cuidador_nombre_visual: cuidador?.nombre,
+          cuidador_foto_visual: cuidador?.imagen,
+          es_multiple: mascotas.length > 1,
+          cupo_maximo_mascotas: mascotas.length,
+        },
+        petIds
+      )
 
       if (!result.success) {
         throw new Error(result.error)
@@ -116,6 +127,6 @@ export const useConfirmarPaseo = ({ petIds, walkerId, fecha, hora }: ConfirmarPa
     total,
     loading,
     error,
-    confirmarReserva
+    confirmarReserva,
   }
 }

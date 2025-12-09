@@ -14,26 +14,32 @@ interface Props {
   onClose: () => void
 }
 
-type Step = 'SELECT_PET' | 'DATE_TIME' | 'SELECT_WALKER' | 'CONFIRM'
+type Step =
+  | 'SELECCIONAR_MASCOTA'
+  | 'FECHA_HORA'
+  | 'SELECCIONAR_CUIDADOR'
+  | 'CONFIRMAR'
 
 export const SolicitarPaseoModal = ({ visible, onClose }: Props) => {
-  const [step, setStep] = useState<Step>('SELECT_PET')
-  
+  const [step, setStep] = useState<Step>('SELECCIONAR_MASCOTA')
+
   // State for flow data
   const [requestData, setRequestData] = useState({
     petIds: [] as string[],
     fecha: null as Date | null,
     hora: null as string | null,
+    duracion: null as number | null,
     walkerId: null as string | null,
   })
 
   // Reset function to clear state when flow ends
   const resetFlow = () => {
-    setStep('SELECT_PET')
+    setStep('SELECCIONAR_MASCOTA')
     setRequestData({
       petIds: [],
       fecha: null,
       hora: null,
+      duracion: null,
       walkerId: null,
     })
   }
@@ -47,17 +53,26 @@ export const SolicitarPaseoModal = ({ visible, onClose }: Props) => {
 
   const handlePetSelected = (petIds: string[]) => {
     setRequestData(prev => ({ ...prev, petIds }))
-    setStep('DATE_TIME')
+    setStep('FECHA_HORA')
   }
 
-  const handleDateTimeSelected = (data: { fecha: Date; hora: string }) => {
-    setRequestData(prev => ({ ...prev, fecha: data.fecha, hora: data.hora }))
-    setStep('SELECT_WALKER')
+  const handleDateTimeSelected = (data: {
+    fecha: Date
+    hora: string
+    duracion: number
+  }) => {
+    setRequestData(prev => ({
+      ...prev,
+      fecha: data.fecha,
+      hora: data.hora,
+      duracion: data.duracion,
+    }))
+    setStep('SELECCIONAR_CUIDADOR')
   }
 
   const handleWalkerSelected = (walkerId: string) => {
     setRequestData(prev => ({ ...prev, walkerId }))
-    setStep('CONFIRM')
+    setStep('CONFIRMAR')
   }
 
   const handleConfirmacionFinal = () => {
@@ -70,18 +85,18 @@ export const SolicitarPaseoModal = ({ visible, onClose }: Props) => {
       setRequestData(prev => ({ ...prev, ...dataToSave }))
     }
 
-    if (step === 'DATE_TIME') {
-      setStep('SELECT_PET')
-    } else if (step === 'SELECT_WALKER') {
-      setStep('DATE_TIME')
-    } else if (step === 'CONFIRM') {
-      setStep('SELECT_WALKER')
+    if (step === 'FECHA_HORA') {
+      setStep('SELECCIONAR_MASCOTA')
+    } else if (step === 'SELECCIONAR_CUIDADOR') {
+      setStep('FECHA_HORA')
+    } else if (step === 'CONFIRMAR') {
+      setStep('SELECCIONAR_CUIDADOR')
     }
   }
 
   const renderContent = () => {
     switch (step) {
-      case 'SELECT_PET':
+      case 'SELECCIONAR_MASCOTA':
         return (
           <SeleccionarMascotaPaso
             initialSelectedIds={requestData.petIds}
@@ -89,29 +104,31 @@ export const SolicitarPaseoModal = ({ visible, onClose }: Props) => {
             onCancel={onClose}
           />
         )
-      case 'DATE_TIME':
+      case 'FECHA_HORA':
         return (
           <FechaHoraPaso
             initialDate={requestData.fecha}
             initialTime={requestData.hora}
+            initialDuration={requestData.duracion}
             onNext={handleDateTimeSelected}
-            onBack={(data) => handleBack(data)}
+            onBack={data => handleBack(data)}
           />
         )
-      case 'SELECT_WALKER':
+      case 'SELECCIONAR_CUIDADOR':
         return (
           <SeleccionarCuidadorPaso
             initialWalkerId={requestData.walkerId}
             onNext={handleWalkerSelected}
-            onBack={(walkerId) => handleBack({ walkerId: walkerId || null })}
+            onBack={walkerId => handleBack({ walkerId: walkerId || null })}
           />
         )
-      case 'CONFIRM':
+      case 'CONFIRMAR':
         return (
           <ConfirmarPaseoPaso
             petIds={requestData.petIds}
             fecha={requestData.fecha}
             hora={requestData.hora}
+            duracion={requestData.duracion}
             walkerId={requestData.walkerId}
             onConfirm={handleConfirmacionFinal}
             onBack={handleBack}
@@ -123,14 +140,19 @@ export const SolicitarPaseoModal = ({ visible, onClose }: Props) => {
   }
 
   // Map steps to index for indicator
-  const stepsOrder: Step[] = ['SELECT_PET', 'DATE_TIME', 'SELECT_WALKER', 'CONFIRM']
+  const stepsOrder: Step[] = [
+    'SELECCIONAR_MASCOTA',
+    'FECHA_HORA',
+    'SELECCIONAR_CUIDADOR',
+    'CONFIRMAR',
+  ]
   const currentStepIndex = stepsOrder.indexOf(step)
   const totalPasos = stepsOrder.length
 
   return (
     <BottomSheet visible={visible} onClose={onClose}>
       {renderContent()}
-      
+
       <View style={styles.indicador}>
         {Array.from({ length: totalPasos }).map((_, index) => (
           <View

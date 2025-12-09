@@ -60,7 +60,10 @@
       "titulo": "¿Cuándo lo hacemos?",
       "fecha_label": "Fecha del paseo",
       "hora_label": "Horario preferido",
-      "placeholder_fecha": "Selecciona una fecha"
+      "placeholder_fecha": "Selecciona una fecha",
+      "placeholder_hora": "Selecciona hora",
+      "duracion_label": "Duración",
+      "placeholder_duracion": "Minutos"
     },
     "seleccionar_cuidador": {
       "titulo": "Elige un Cuidador",
@@ -78,7 +81,11 @@
       "resumen_mascotas": "Mascotas",
       "resumen_fecha": "Fecha y Hora",
       "resumen_cuidador": "Cuidador",
+      "paseo_multiple_label": "Paseo múltiple",
+      "paseo_multiple_desc": "Mi mascota puede pasear con otros perros",
+      "ahorro_mensaje": "¡Ahorras {{descuento}}% con paseo múltiple!",
       "costo_servicio": "Costo del servicio",
+      "descuento_multiple": "Descuento paseo múltiple",
       "total": "Total a pagar",
       "btn_confirmar": "Confirmar Solicitud",
       "exito_titulo": "¡Solicitud Enviada!",

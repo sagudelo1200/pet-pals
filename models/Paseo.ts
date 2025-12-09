@@ -66,4 +66,8 @@ export interface Paseo extends BaseModel {
   mascota_foto_visual?: string
   /** Lista de fotos (hasta 4) para paseos múltiples. */
   mascotas_fotos_visual?: string[]
+  /** Nombre del cuidador para visualización en listas. */
+  cuidador_nombre_visual?: string
+  /** Foto del cuidador para visualización en listas. */
+  cuidador_foto_visual?: string
 }

@@ -3,6 +3,7 @@ import { StyleSheet, View, Text, Alert, Image, ScrollView } from 'react-native'
 import { useTranslation } from 'react-i18next'
 import { COLOR } from '@/constants'
 import { Button, Card, Icon } from '@/components/ui'
+import Switch from '@/components/ui/Switch'
 import { useConfirmarPaseo } from '@/hooks/paseos/useConfirmarPaseo'
 import { PetAvatar } from '@/components/ui/PetAvatar'
 
@@ -10,25 +11,43 @@ interface Props {
   petIds: string[]
   fecha: Date | null
   hora: string | null
+  duracion: number | null
   walkerId: string | null
   onConfirm: () => void
   onBack: () => void
 }
 
-export const ConfirmarPaseoPaso = ({ petIds, fecha, hora, walkerId, onConfirm, onBack }: Props) => {
+export const ConfirmarPaseoPaso = ({
+  petIds,
+  fecha,
+  hora,
+  duracion,
+  walkerId,
+  onConfirm,
+  onBack,
+}: Props) => {
   const { t } = useTranslation()
-  const { mascotas, cuidador, total, loading, error, confirmarReserva } = useConfirmarPaseo({ petIds, walkerId, fecha, hora })
+  const [isMultiple, setIsMultiple] = useState(false)
+  const { mascotas, cuidador, total, loading, error, confirmarReserva } =
+    useConfirmarPaseo({ petIds, walkerId, fecha, hora })
+
+  const MULTIPLE_DISCOUNT = 0.15 // 15% descuento
+  const subtotal = total
+  const descuento = isMultiple ? subtotal * MULTIPLE_DISCOUNT : 0
+  const totalConDescuento = subtotal - descuento
 
   const handleConfirmar = async () => {
     const success = await confirmarReserva()
     if (success) {
       Alert.alert(
         t('paseos:pasos.confirmar.exito_titulo'),
-        t('paseos:pasos.confirmar.exito_msg', { name: cuidador?.nombre || 'Cuidador' }),
+        t('paseos:pasos.confirmar.exito_msg', {
+          name: cuidador?.nombre || 'Cuidador',
+        }),
         [{ text: 'OK', onPress: onConfirm }]
       )
     } else if (error) {
-       Alert.alert('Error', error)
+      Alert.alert('Error', error)
     }
   }
 
@@ -39,16 +58,16 @@ export const ConfirmarPaseoPaso = ({ petIds, fecha, hora, walkerId, onConfirm, o
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>
-        {t('paseos:pasos.confirmar.titulo')}
-      </Text>
+      <Text style={styles.title}>{t('paseos:pasos.confirmar.titulo')}</Text>
 
       <Card style={styles.card} elevated>
         {/* Sección Mascotas */}
         <View style={styles.section}>
-          <Text style={styles.label}>{t('paseos:pasos.confirmar.resumen_mascotas')}</Text>
-          <ScrollView 
-            horizontal 
+          <Text style={styles.label}>
+            {t('paseos:pasos.confirmar.resumen_mascotas')}
+          </Text>
+          <ScrollView
+            horizontal
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.petsRow}
             style={styles.petsScroll}
@@ -66,12 +85,16 @@ export const ConfirmarPaseoPaso = ({ petIds, fecha, hora, walkerId, onConfirm, o
 
         {/* Sección Fecha y Hora */}
         <View style={styles.section}>
-          <Text style={styles.label}>{t('paseos:pasos.confirmar.resumen_fecha')}</Text>
+          <Text style={styles.label}>
+            {t('paseos:pasos.confirmar.resumen_fecha')}
+          </Text>
           <View style={styles.row}>
             <View style={{ width: 20, alignItems: 'center', marginRight: 8 }}>
               <Icon name="calendar" size={16} color={COLOR.PRIMARIO} />
             </View>
-            <Text style={styles.value}>{formatDate(fecha)} - {hora}</Text>
+            <Text style={styles.value}>
+              {formatDate(fecha)} - {hora}
+            </Text>
           </View>
         </View>
 
@@ -79,25 +102,79 @@ export const ConfirmarPaseoPaso = ({ petIds, fecha, hora, walkerId, onConfirm, o
 
         {/* Sección Cuidador */}
         <View style={styles.section}>
-          <Text style={styles.label}>{t('paseos:pasos.confirmar.resumen_cuidador')}</Text>
+          <Text style={styles.label}>
+            {t('paseos:pasos.confirmar.resumen_cuidador')}
+          </Text>
           <View style={styles.row}>
-             {cuidador && (
-               <>
-                 <Image source={{ uri: cuidador.imagen }} style={styles.avatarMini} />
-                 <Text style={styles.value}>{cuidador.nombre}</Text>
-               </>
-             )}
+            {cuidador && (
+              <>
+                <Image
+                  source={{ uri: cuidador.imagen }}
+                  style={styles.avatarMini}
+                />
+                <Text style={styles.value}>{cuidador.nombre}</Text>
+              </>
+            )}
           </View>
         </View>
 
         <View style={styles.divider} />
 
-        {/* Total Price */}
-        <View style={styles.totalRow}>
-          <Text style={styles.totalLabel}>{t('paseos:pasos.confirmar.total')}</Text>
-          <Text style={styles.totalValue}>${total.toLocaleString()}</Text>
+        {/* Paseo Múltiple Option - Always visible savings banner */}
+        <View style={styles.section}>
+          <View style={styles.savingsBanner}>
+            <Icon
+              name={isMultiple ? 'check-circle' : 'star'}
+              size={14}
+              color={COLOR.EXITO}
+            />
+            <Text style={styles.savingsText}>
+              {t('paseos:pasos.confirmar.ahorro_mensaje', {
+                descuento: Math.round(MULTIPLE_DISCOUNT * 100),
+              })}
+            </Text>
+          </View>
+          <View style={{ marginTop: 8 }}>
+            <Switch
+              value={isMultiple}
+              onValueChange={setIsMultiple}
+              label={t('paseos:pasos.confirmar.paseo_multiple_label')}
+              description={t('paseos:pasos.confirmar.paseo_multiple_desc')}
+            />
+          </View>
         </View>
 
+        <View style={styles.divider} />
+
+        {/* Price Breakdown */}
+        <View style={styles.priceSection}>
+          <View style={styles.priceRow}>
+            <Text style={styles.priceLabel}>
+              {t('paseos:pasos.confirmar.costo_servicio')}
+            </Text>
+            <Text style={styles.priceValue}>${subtotal.toLocaleString()}</Text>
+          </View>
+          {isMultiple && (
+            <View style={styles.priceRow}>
+              <Text style={[styles.priceLabel, styles.discountText]}>
+                {t('paseos:pasos.confirmar.descuento_multiple')}
+              </Text>
+              <Text style={[styles.priceValue, styles.discountText]}>
+                -${descuento.toLocaleString()}
+              </Text>
+            </View>
+          )}
+        </View>
+
+        {/* Total Price */}
+        <View style={styles.totalRow}>
+          <Text style={styles.totalLabel}>
+            {t('paseos:pasos.confirmar.total')}
+          </Text>
+          <Text style={styles.totalValue}>
+            ${totalConDescuento.toLocaleString()}
+          </Text>
+        </View>
       </Card>
 
       <View style={styles.actions}>
@@ -122,85 +199,126 @@ export const ConfirmarPaseoPaso = ({ petIds, fecha, hora, walkerId, onConfirm, o
 
 const styles = StyleSheet.create({
   container: {
-    padding: 16,
+    padding: 12,
   },
   title: {
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: '700',
     color: COLOR.TEXTO,
     textAlign: 'center',
-    marginBottom: 16,
-  },
-  card: {
-    padding: 16,
-    backgroundColor: COLOR.BLOQUE, // Fixed COLOR
-    borderRadius: 16,
-  },
-  section: {
     marginBottom: 12,
   },
-  label: {
-    fontSize: 12,
-    color: COLOR.SUBTEXTO,
+  card: {
+    padding: 12,
+    backgroundColor: COLOR.BLOQUE, // Fixed COLOR
+    borderRadius: 12,
+  },
+  section: {
     marginBottom: 8,
+  },
+  label: {
+    fontSize: 10,
+    color: COLOR.SUBTEXTO,
+    marginBottom: 6,
     textTransform: 'uppercase',
-    letterSpacing: 1,
+    letterSpacing: 0.5,
+    fontWeight: '600',
   },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   value: {
-    fontSize: 16,
+    fontSize: 14,
     color: COLOR.TEXTO,
     fontWeight: '500',
   },
   petsRow: {
     flexDirection: 'row',
-    gap: 12,
-    paddingRight: 16, // Padding for last item
+    gap: 8,
+    paddingRight: 8,
   },
   petsScroll: {
-    flexGrow: 0, // Don't take all space if not needed
+    flexGrow: 0,
   },
   petItem: {
     alignItems: 'center',
   },
   petName: {
-    fontSize: 12,
+    fontSize: 11,
     color: COLOR.TEXTO,
-    marginTop: 4,
+    marginTop: 3,
   },
   avatarMini: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    marginRight: 8,
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    marginRight: 6,
   },
   divider: {
     height: 1,
     backgroundColor: COLOR.BORDE,
-    marginVertical: 12,
+    marginVertical: 8,
   },
   totalRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop: 4,
+    marginTop: 6,
+    paddingTop: 8,
+    borderTopWidth: 2,
+    borderTopColor: COLOR.BORDE,
   },
   totalLabel: {
-    fontSize: 16,
-    fontWeight: 'bold',
+    fontSize: 15,
+    fontWeight: '700',
     color: COLOR.TEXTO,
   },
   totalValue: {
-    fontSize: 20,
-    fontWeight: 'bold',
+    fontSize: 18,
+    fontWeight: '700',
     color: COLOR.PRIMARIO,
+  },
+  savingsBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(76, 175, 80, 0.15)',
+    padding: 10,
+    borderRadius: 8,
+    marginTop: 6,
+    gap: 6,
+    borderWidth: 1,
+    borderColor: 'rgba(76, 175, 80, 0.3)',
+  },
+  savingsText: {
+    fontSize: 12,
+    color: COLOR.EXITO,
+    fontWeight: '700',
+    flex: 1,
+  },
+  priceSection: {
+    marginBottom: 6,
+  },
+  priceRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 4,
+  },
+  priceLabel: {
+    fontSize: 13,
+    color: COLOR.SUBTEXTO,
+  },
+  priceValue: {
+    fontSize: 13,
+    color: COLOR.TEXTO,
+    fontWeight: '500',
+  },
+  discountText: {
+    color: COLOR.EXITO,
   },
   actions: {
     flexDirection: 'row',
     gap: 12,
-    marginTop: 24,
+    marginTop: 16,
   },
 })

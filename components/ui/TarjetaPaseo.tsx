@@ -37,11 +37,11 @@ const TarjetaPaseo: React.FC<TarjetaPaseoProps> = ({ paseo, onPress }) => {
   }
 
   // Lógica de visualización de nombre de mascota
-  const nombreMascota = 
-    paseo.mascota_nombre_visual || 
-    paseo.mascotaNombre || 
+  const nombreMascota =
+    paseo.mascota_nombre_visual ||
+    paseo.mascotaNombre ||
     (paseo.es_multiple ? 'Varias Mascotas' : 'Mascota')
-  
+
   const fotoMascota = paseo.mascota_foto_visual || paseo.mascotaFoto
   const fotosMultiples = paseo.mascotas_fotos_visual
 
@@ -50,22 +50,18 @@ const TarjetaPaseo: React.FC<TarjetaPaseoProps> = ({ paseo, onPress }) => {
       <View style={styles.header}>
         <View style={styles.petInfo}>
           {fotosMultiples && fotosMultiples.length > 1 ? (
-             <AvatarGroup uris={fotosMultiples} size="small" />
+            <AvatarGroup uris={fotosMultiples} size="small" />
           ) : (
-             <PetAvatar uri={fotoMascota} size="small" />
+            <PetAvatar uri={fotoMascota} size="small" />
           )}
           <View style={styles.petText}>
-            <Text style={styles.petName}>
-              {nombreMascota}
-            </Text>
+            <Text style={styles.petName}>{nombreMascota}</Text>
             <Text style={styles.serviceType}>
               {paseo.tipo_paseo === 'programado' ? 'Programado' : 'A demanda'}
             </Text>
           </View>
         </View>
-        {paseo.estado && (
-          <BadgeEstadoPaseo estado={paseo.estado} />
-        )}
+        {paseo.estado && <BadgeEstadoPaseo estado={paseo.estado} />}
       </View>
 
       <View style={styles.divider} />
@@ -91,7 +87,9 @@ const TarjetaPaseo: React.FC<TarjetaPaseoProps> = ({ paseo, onPress }) => {
       <View style={styles.footer}>
         <Text style={styles.walkerLabel}>{t('paseos:tarjeta.cuidador')}</Text>
         <Text style={styles.walkerName}>
-          {paseo.cuidadorNombre || t('paseos:tarjeta.sin_cuidador')}
+          {paseo.cuidador_nombre_visual ||
+            paseo.cuidadorNombre ||
+            t('paseos:tarjeta.sin_cuidador')}
         </Text>
       </View>
     </Card>
