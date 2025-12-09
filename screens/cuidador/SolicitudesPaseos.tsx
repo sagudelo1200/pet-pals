@@ -84,9 +84,9 @@ const SolicitudesPaseos: React.FC = () => {
           style={{ flex: 1 }}
           contentContainerStyle={[
             styles.listContent,
-            solicitudes.length === 0 && { justifyContent: 'center', flex: 1 },
+            solicitudes.length === 0 && { justifyContent: 'center' },
           ]}
-          ListEmptyComponent={renderEmpty}
+          ListEmptyComponent={renderEmpty()}
           showsVerticalScrollIndicator={false}
         />
       )}

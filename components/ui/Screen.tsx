@@ -93,7 +93,7 @@ const Screen: React.FC<ScreenProps> = ({
       )
     })()
   ) : (
-    <View style={contentContainerStyle as any}>{children}</View>
+    <View style={[{ flex: 1 }, contentContainerStyle as any]}>{children}</View>
   )
 
   const Wrapped = disableDismiss ? (

@@ -1,5 +1,5 @@
 import React from 'react'
-import { StyleSheet, View, Platform, Alert } from 'react-native'
+import { StyleSheet, View, Platform, Alert, ScrollView } from 'react-native'
 import { theme, Text } from 'galio-framework'
 import { useNavigation } from '@react-navigation/native'
 import { BottomTabNavigationProp } from '@react-navigation/bottom-tabs'
@@ -34,101 +34,105 @@ const Dashboard: React.FC = () => {
   }
 
   return (
-    <Screen
-      scroll
-      style={styles.container}
-      contentContainerStyle={styles.content}
-    >
+    <Screen style={styles.container} includeTopInset>
       <ScreenHeader
         title={t('tutor:dashboard.titulo')}
         subtitle={t('tutor:dashboard.subtitulo')}
         showBack={false}
       />
-      {/* Próximo paseo */}
-      <Card
-        title={t('tutor:dashboard.proximo_paseo')}
-        subtitle="Hoy, 5:30 PM"
-        right={<Badge label="Confirmado" variant="exito" size="sm" />}
-        style={{ marginBottom: 16 }}
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}
       >
-        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-          <Avatar name="Luna" />
-          <Spacer horizontal size={12} />
-          <View style={{ flex: 1 }}>
-            <Text style={{ color: COLOR.TEXTO, fontWeight: '700' }}>Luna</Text>
-            <Text style={{ color: COLOR.SUBTEXTO }}>
-              Con Juan - Punto de encuentro parque central
-            </Text>
+        {/* Próximo paseo */}
+        <Card
+          title={t('tutor:dashboard.proximo_paseo')}
+          subtitle="Hoy, 5:30 PM"
+          right={<Badge label="Confirmado" variant="exito" size="sm" />}
+          style={{ marginBottom: 16 }}
+        >
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <Avatar name="Luna" />
+            <Spacer horizontal size={12} />
+            <View style={{ flex: 1 }}>
+              <Text style={{ color: COLOR.TEXTO, fontWeight: '700' }}>
+                Luna
+              </Text>
+              <Text style={{ color: COLOR.SUBTEXTO }}>
+                Con Juan - Punto de encuentro parque central
+              </Text>
+            </View>
+            <Button title="Detalles" size="sm" onPress={handleAlert} />
           </View>
-          <Button title="Detalles" size="sm" onPress={handleAlert} />
-        </View>
-      </Card>
+        </Card>
 
-      {/* Acciones rápidas */}
-      <Card
-        title={t('tutor:dashboard.acciones_rapidas')}
-        subtitle={t('tutor:dashboard.lo_mas_usado')}
-        style={{ marginBottom: 16 }}
-      >
-        <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
-          <Chip
-            label={t('tutor:dashboard.solicitar_paseo')}
-            leftIconName="walking"
-            onPress={handleAlert}
-          />
-          <Spacer horizontal size={8} />
-          <Chip
-            label={t('tutor:dashboard.agregar_mascota')}
-            leftIconName="paw"
-            onPress={handleMascotasPress}
-          />
-          <Spacer horizontal size={8} />
-          <Chip
-            label={t('tutor:dashboard.ver_historial')}
-            leftIconName="history"
-            onPress={handleAlert}
-          />
-        </View>
-      </Card>
+        {/* Acciones rápidas */}
+        <Card
+          title={t('tutor:dashboard.acciones_rapidas')}
+          subtitle={t('tutor:dashboard.lo_mas_usado')}
+          style={{ marginBottom: 16 }}
+        >
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
+            <Chip
+              label={t('tutor:dashboard.solicitar_paseo')}
+              leftIconName="walking"
+              onPress={handleAlert}
+            />
+            <Spacer horizontal size={8} />
+            <Chip
+              label={t('tutor:dashboard.agregar_mascota')}
+              leftIconName="paw"
+              onPress={handleMascotasPress}
+            />
+            <Spacer horizontal size={8} />
+            <Chip
+              label={t('tutor:dashboard.ver_historial')}
+              leftIconName="history"
+              onPress={handleAlert}
+            />
+          </View>
+        </Card>
 
-      {/* Actividad reciente */}
-      <Card
-        title={t('tutor:dashboard.actividad_reciente')}
-        subtitle={t('tutor:dashboard.ultimos_movimientos')}
-      >
-        <View>
-          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-            <Icon name="walking" size={16} color={COLOR.SUBTEXTO} />
-            <Spacer horizontal size={8} />
-            <Text style={{ color: COLOR.TEXTO, flex: 1 }}>
-              Paseo completado con Max - 10:00 AM
-            </Text>
-            <Badge label="Completado" variant="exito" size="sm" />
+        {/* Actividad reciente */}
+        <Card
+          title={t('tutor:dashboard.actividad_reciente')}
+          subtitle={t('tutor:dashboard.ultimos_movimientos')}
+        >
+          <View>
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <Icon name="walking" size={16} color={COLOR.SUBTEXTO} />
+              <Spacer horizontal size={8} />
+              <Text style={{ color: COLOR.TEXTO, flex: 1 }}>
+                Paseo completado con Max - 10:00 AM
+              </Text>
+              <Badge label="Completado" variant="exito" size="sm" />
+            </View>
+            <Spacer size={10} />
+            <Divider />
+            <Spacer size={10} />
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <Icon name="map-marker-alt" size={16} color={COLOR.SUBTEXTO} />
+              <Spacer horizontal size={8} />
+              <Text style={{ color: COLOR.TEXTO, flex: 1 }}>
+                Punto de encuentro actualizado
+              </Text>
+              <Badge label="Info" variant="info" size="sm" />
+            </View>
+            <Spacer size={10} />
+            <Divider />
+            <Spacer size={10} />
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <Icon name="star" size={16} color={COLOR.SUBTEXTO} />
+              <Spacer horizontal size={8} />
+              <Text style={{ color: COLOR.TEXTO, flex: 1 }}>
+                Valoraste a Ana con 5 estrellas
+              </Text>
+              <Badge label="¡Gracias!" variant="enfasis" size="sm" />
+            </View>
           </View>
-          <Spacer size={10} />
-          <Divider />
-          <Spacer size={10} />
-          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-            <Icon name="map-marker-alt" size={16} color={COLOR.SUBTEXTO} />
-            <Spacer horizontal size={8} />
-            <Text style={{ color: COLOR.TEXTO, flex: 1 }}>
-              Punto de encuentro actualizado
-            </Text>
-            <Badge label="Info" variant="info" size="sm" />
-          </View>
-          <Spacer size={10} />
-          <Divider />
-          <Spacer size={10} />
-          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-            <Icon name="star" size={16} color={COLOR.SUBTEXTO} />
-            <Spacer horizontal size={8} />
-            <Text style={{ color: COLOR.TEXTO, flex: 1 }}>
-              Valoraste a Ana con 5 estrellas
-            </Text>
-            <Badge label="¡Gracias!" variant="enfasis" size="sm" />
-          </View>
-        </View>
-      </Card>
+        </Card>
+      </ScrollView>
     </Screen>
   )
 }

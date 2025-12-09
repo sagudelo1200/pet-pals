@@ -87,9 +87,9 @@ const AgendaScreen: React.FC = () => {
         style={{ flex: 1 }}
         contentContainerStyle={[
           styles.listContent,
-          paseosFiltrados.length === 0 && { justifyContent: 'center', flex: 1 },
+          paseosFiltrados.length === 0 && { justifyContent: 'center' },
         ]}
-        ListEmptyComponent={!cargando ? renderEmptyState : null}
+        ListEmptyComponent={!cargando ? renderEmptyState() : null}
         refreshing={cargando}
         onRefresh={refetch}
       />
