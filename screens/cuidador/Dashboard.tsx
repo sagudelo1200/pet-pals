@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useCallback } from 'react'
 import {
   StyleSheet,
   View,
@@ -8,7 +8,7 @@ import {
 } from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
 import { useTranslation } from 'react-i18next'
-import { useNavigation } from '@react-navigation/native'
+import { useNavigation, useFocusEffect } from '@react-navigation/native'
 import { COLOR } from '@/constants'
 import Screen from '@/components/ui/Screen'
 import { EstadisticaCard } from '@/components/cuidador/EstadisticaCard'
@@ -25,6 +25,17 @@ const Dashboard: React.FC = () => {
   const { user } = useAuth()
   const estadisticas = useEstadisticasCuidador()
   const { proximos, cargando, refetch } = useAgendaCuidador()
+
+  // Recargar estadísticas al enfocar la pantalla
+  useFocusEffect(
+    useCallback(() => {
+      estadisticas.refetch()
+    }, [])
+  )
+
+  const handleRefresh = async () => {
+    await Promise.all([refetch(), estadisticas.refetch()])
+  }
 
   // Filtrar próximos paseos del cuidador (hoy y futuros)
   const proximosPaseos = (proximos || []).slice(0, 3)
@@ -47,8 +58,8 @@ const Dashboard: React.FC = () => {
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl
-            refreshing={cargando}
-            onRefresh={refetch}
+            refreshing={cargando || estadisticas.cargando}
+            onRefresh={handleRefresh}
             tintColor={COLOR.PRIMARIO}
           />
         }

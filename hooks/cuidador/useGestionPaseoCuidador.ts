@@ -5,12 +5,51 @@ import { useNavigation } from '@react-navigation/native'
 import { ServicioPaseo } from '@/services/firebase/paseo'
 import { Paseo } from '@/models/Paseo'
 
+import { useAuth } from '@/context/AuthContext'
+import { ServicioCrudBase } from '@/services/firebase/crud'
+import { PerfilPublico } from '@/models/PerfilPublico'
+
 export const useGestionPaseoCuidador = () => {
   const { t } = useTranslation()
   const navigation = useNavigation()
+  const { user } = useAuth()
   const [cargando, setCargando] = useState(false)
 
   const aceptarSolicitud = async (paseo: Paseo, onSuccess?: () => void) => {
+    if (!user) return
+
+    setCargando(true)
+
+    // Validación 1: Perfil Público
+    const perfilRes = await ServicioCrudBase.obtenerPorId<PerfilPublico>(
+      'perfil_publico',
+      user.uid
+    )
+
+    if (!perfilRes.success || !perfilRes.data) {
+      setCargando(false)
+      Alert.alert(
+        t('cuidador:solicitudes.perfil_incompleto_titulo'),
+        t('cuidador:solicitudes.perfil_incompleto_desc'),
+        [
+          { text: t('comun:cancelar'), style: 'cancel' },
+          {
+            text: t('cuidador:solicitudes.ir_a_perfil'),
+            onPress: () => {
+              // TODO: Navegar a edición de perfil (Fase 5)
+              Alert.alert(
+                'Info',
+                'La edición de perfil estará disponible pronto.'
+              )
+            },
+          },
+        ]
+      )
+      return
+    }
+
+    setCargando(false)
+
     Alert.alert(
       t('cuidador:solicitudes.aceptar'),
       t('cuidador:solicitudes.confirmar_aceptar'),

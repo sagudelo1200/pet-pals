@@ -50,7 +50,10 @@
     "aceptar": "Aceptar Solicitud",
     "confirmar_aceptar": "¿Estás seguro de que deseas aceptar este paseo? Te comprometes a realizar el servicio.",
     "exito_aceptar": "¡Has aceptado el paseo exitosamente!",
-    "ubicacion": "Ubicación"
+    "ubicacion": "Ubicación",
+    "perfil_incompleto_titulo": "Perfil Incompleto",
+    "perfil_incompleto_desc": "Debes completar tu perfil público de cuidador antes de poder aceptar solicitudes de paseo.",
+    "ir_a_perfil": "Ir a Mi Perfil"
   },
   "activos": {
     "titulo": "Paseos Activos",
