@@ -13,6 +13,8 @@ export const useGoogleAuth = () => {
       '374615502033-0q5rd5d0hpq3gf3camocoj85hlab3jjs.apps.googleusercontent.com',
     androidClientId:
       '374615502033-0q5rd5d0hpq3gf3camocoj85hlab3jjs.apps.googleusercontent.com',
+    iosClientId:
+      '374615502033-3cogr45do5grmi50epjg1ojhmpsmelba.apps.googleusercontent.com',
   })
 
   // Log para depuración (puedes verlo en la terminal de Metro)
