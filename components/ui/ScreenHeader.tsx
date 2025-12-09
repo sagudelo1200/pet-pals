@@ -33,15 +33,13 @@ export const ScreenHeader: React.FC<ScreenHeaderProps> = ({
 
   return (
     <View style={[styles.container, style]}>
-      <View style={styles.leftContainer}>
-        {showBack ? (
+      {showBack && (
+        <View style={styles.leftContainer}>
           <Pressable onPress={handleBack} style={styles.backButton}>
             <Icon name="arrow-left" size={24} color={COLOR.TEXTO} />
           </Pressable>
-        ) : (
-          <View style={styles.placeholder} />
-        )}
-      </View>
+        </View>
+      )}
 
       <View style={styles.titleContainer}>
         <Text style={styles.title} numberOfLines={1}>
@@ -54,9 +52,7 @@ export const ScreenHeader: React.FC<ScreenHeaderProps> = ({
         )}
       </View>
 
-      <View style={styles.rightContainer}>
-        {rightAction ? rightAction : <View style={styles.placeholder} />}
-      </View>
+      <View style={styles.rightContainer}>{rightAction}</View>
     </View>
   )
 }
@@ -66,18 +62,17 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingHorizontal: 20,
+    paddingVertical: 16,
     backgroundColor: COLOR.BASE,
     borderBottomWidth: 1,
     borderBottomColor: COLOR.BORDE,
   },
   leftContainer: {
-    width: 40,
+    marginRight: 12,
     alignItems: 'flex-start',
   },
   rightContainer: {
-    width: 40,
     alignItems: 'flex-end',
   },
   backButton: {
@@ -85,22 +80,25 @@ const styles = StyleSheet.create({
     height: 40,
     justifyContent: 'center',
     alignItems: 'center',
+    marginLeft: -8,
   },
   titleContainer: {
     flex: 1,
-    alignItems: 'center',
+    justifyContent: 'center',
   },
   title: {
-    fontSize: 18,
-    fontWeight: '700',
+    fontSize: 24,
+    fontWeight: '800',
     color: COLOR.TEXTO,
-    textAlign: 'center',
+    textAlign: 'left',
+    letterSpacing: -0.5,
   },
   subtitle: {
-    fontSize: 12,
+    fontSize: 14,
     color: COLOR.SUBTEXTO,
-    textAlign: 'center',
+    textAlign: 'left',
     marginTop: 2,
+    fontWeight: '500',
   },
   placeholder: {
     width: 40,

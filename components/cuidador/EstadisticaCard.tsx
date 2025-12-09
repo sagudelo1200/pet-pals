@@ -14,6 +14,7 @@ interface EstadisticaCardProps {
   color?: string
   gradientColors?: [string, string]
   onPress?: () => void
+  variant?: 'horizontal' | 'vertical'
 }
 
 export const EstadisticaCard: React.FC<EstadisticaCardProps> = ({
@@ -23,29 +24,55 @@ export const EstadisticaCard: React.FC<EstadisticaCardProps> = ({
   color = COLOR.PRIMARIO,
   gradientColors,
   onPress,
+  variant = 'horizontal',
 }) => {
-  const defaultGradient: [string, string] = [
-    `${color}15`,
-    `${color}05`,
-  ]
+  const defaultGradient: [string, string] = [`${color}15`, `${color}05`]
 
   const gradient = gradientColors || defaultGradient
+  const isVertical = variant === 'vertical'
 
   const content = (
-    <View style={styles.content}>
-      <LinearGradient
-        colors={gradient}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={[styles.iconContainer]}
+    <View style={[styles.content, isVertical && styles.contentVertical]}>
+      <View
+        style={[
+          styles.topRow,
+          isVertical && { width: '100%', justifyContent: 'space-between' },
+        ]}
       >
-        <Icon name={icono} size={24} color={color} />
-      </LinearGradient>
-      <View style={styles.textContainer}>
-        <Text style={styles.valor}>{valor}</Text>
-        <Text style={styles.titulo}>{titulo}</Text>
+        <LinearGradient
+          colors={gradient}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={[
+            styles.iconContainer,
+            isVertical && styles.iconContainerSmall,
+          ]}
+        >
+          <Icon name={icono} size={isVertical ? 20 : 24} color={color} />
+        </LinearGradient>
+        {isVertical && onPress && (
+          <Icon name="arrow-right" size={16} color={COLOR.SUBTEXTO} />
+        )}
       </View>
-      {onPress && (
+
+      <View
+        style={[
+          styles.textContainer,
+          isVertical && styles.textContainerVertical,
+        ]}
+      >
+        <Text style={[styles.valor, isVertical && styles.valorSmall]}>
+          {valor}
+        </Text>
+        <Text
+          style={[styles.titulo, isVertical && styles.tituloSmall]}
+          numberOfLines={1}
+        >
+          {titulo}
+        </Text>
+      </View>
+
+      {!isVertical && onPress && (
         <Icon name="chevron-right" size={20} color={COLOR.SUBTEXTO} />
       )}
     </View>
@@ -53,12 +80,9 @@ export const EstadisticaCard: React.FC<EstadisticaCardProps> = ({
 
   if (onPress) {
     return (
-      <Pressable 
-        onPress={onPress} 
-        style={({ pressed }) => [
-          styles.pressable,
-          pressed && styles.pressed
-        ]}
+      <Pressable
+        onPress={onPress}
+        style={({ pressed }) => [styles.pressable, pressed && styles.pressed]}
       >
         <Card style={styles.card}>{content}</Card>
       </Pressable>
@@ -91,6 +115,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 16,
   },
+  contentVertical: {
+    flexDirection: 'column',
+    alignItems: 'flex-start',
+    gap: 12,
+  },
+  topRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
   iconContainer: {
     width: 52,
     height: 52,
@@ -98,8 +131,16 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  iconContainerSmall: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+  },
   textContainer: {
     flex: 1,
+  },
+  textContainerVertical: {
+    width: '100%',
   },
   valor: {
     fontSize: 32,
@@ -108,10 +149,17 @@ const styles = StyleSheet.create({
     marginBottom: 2,
     letterSpacing: -0.5,
   },
+  valorSmall: {
+    fontSize: 24,
+    marginBottom: 4,
+  },
   titulo: {
     fontSize: 13,
     color: COLOR.SUBTEXTO,
     fontWeight: '600',
     letterSpacing: 0.2,
+  },
+  tituloSmall: {
+    fontSize: 12,
   },
 })

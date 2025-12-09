@@ -72,17 +72,7 @@ const Dashboard: React.FC = () => {
       >
         {/* Estadísticas con diseño premium */}
         <View style={styles.estadisticas}>
-          <EstadisticaCard
-            titulo={t('cuidador:dashboard.solicitudes_pendientes')}
-            valor={estadisticas.solicitudesPendientes}
-            icono="bell"
-            color={COLOR.INFO}
-            gradientColors={['#3B82F615', '#3B82F605']}
-            onPress={() => {
-              // @ts-ignore
-              navigation.navigate('Solicitudes')
-            }}
-          />
+          {/* Principal: Paseos Activos */}
           <EstadisticaCard
             titulo={t('cuidador:dashboard.paseos_activos')}
             valor={estadisticas.paseosActivos}
@@ -94,13 +84,36 @@ const Dashboard: React.FC = () => {
               navigation.navigate('Agenda')
             }}
           />
-          <EstadisticaCard
-            titulo={t('cuidador:dashboard.paseos_completados')}
-            valor={estadisticas.paseosCompletados}
-            icono="check-circle"
-            color={COLOR.EXITO}
-            gradientColors={['#10B98115', '#10B98105']}
-          />
+
+          <View style={{ height: 12 }} />
+
+          {/* Grid Secundario */}
+          <View style={styles.statsGrid}>
+            <View style={styles.gridItemLeft}>
+              <EstadisticaCard
+                titulo={t('cuidador:dashboard.solicitudes_pendientes')}
+                valor={estadisticas.solicitudesPendientes}
+                icono="bell"
+                color={COLOR.INFO}
+                gradientColors={['#3B82F615', '#3B82F605']}
+                variant="vertical"
+                onPress={() => {
+                  // @ts-ignore
+                  navigation.navigate('Solicitudes')
+                }}
+              />
+            </View>
+            <View style={styles.gridItemRight}>
+              <EstadisticaCard
+                titulo={t('cuidador:dashboard.paseos_completados')}
+                valor={estadisticas.paseosCompletados}
+                icono="check-circle"
+                color={COLOR.EXITO}
+                gradientColors={['#10B98115', '#10B98105']}
+                variant="vertical"
+              />
+            </View>
+          </View>
         </View>
 
         {/* Próximos Paseos */}
@@ -142,6 +155,17 @@ const styles = StyleSheet.create({
   estadisticas: {
     paddingHorizontal: 20,
     marginBottom: 32,
+  },
+  statsGrid: {
+    flexDirection: 'row',
+  },
+  gridItemLeft: {
+    flex: 1,
+    marginRight: 6,
+  },
+  gridItemRight: {
+    flex: 1,
+    marginLeft: 6,
   },
   section: {
     paddingHorizontal: 20,
