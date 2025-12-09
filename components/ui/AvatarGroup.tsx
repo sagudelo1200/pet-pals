@@ -6,30 +6,35 @@ import { COLOR } from '@/constants'
 interface AvatarGroupProps {
   uris: string[]
   max?: number
-  size?: 'small' | 'medium'
+  size?: 'tiny' | 'small' | 'medium'
 }
 
-export const AvatarGroup: React.FC<AvatarGroupProps> = ({ 
-  uris, 
-  max = 4, 
-  size = 'small' 
+export const AvatarGroup: React.FC<AvatarGroupProps> = ({
+  uris,
+  max = 4,
+  size = 'small',
 }) => {
   const displayUris = uris.slice(0, max)
-  const avatarSize = size === 'small' ? 48 : 80
-  // Overlap amount: 50% overlap
-  const overlap = size === 'small' ? -24 : -40 
+
+  let overlap = -24
+
+  if (size === 'medium') {
+    overlap = -40
+  } else if (size === 'tiny') {
+    overlap = -16
+  }
 
   return (
     <View style={styles.container}>
       {displayUris.map((uri, index) => (
-        <View 
-          key={index} 
+        <View
+          key={index}
           style={[
-            styles.avatarWrapper, 
-            { 
-               zIndex: displayUris.length - index,
-               marginLeft: index === 0 ? 0 : overlap 
-            }
+            styles.avatarWrapper,
+            {
+              zIndex: displayUris.length - index,
+              marginLeft: index === 0 ? 0 : overlap,
+            },
           ]}
         >
           <PetAvatar uri={uri} size={size} />
@@ -48,6 +53,6 @@ const styles = StyleSheet.create({
     // Optional: Add outline to separate overlapping avatars visually
     borderRadius: 999,
     borderWidth: 2,
-    borderColor: COLOR.BASE, 
-  }
+    borderColor: COLOR.BASE,
+  },
 })

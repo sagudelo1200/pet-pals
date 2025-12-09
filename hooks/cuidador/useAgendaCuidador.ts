@@ -44,7 +44,7 @@ export function useAgendaCuidador() {
         'RECHAZADO',
       ]),
       orderBy('fecha_hora_inicio', 'desc'), // Los más recientes primero
-      limit(50)
+      limit(30)
     )
   }, [uid])
 

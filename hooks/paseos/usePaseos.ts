@@ -21,7 +21,7 @@ export function usePaseos() {
       collection(db, 'paseos'),
       where('creado_por', '==', uid),
       orderBy('fecha_hora_inicio', 'desc'),
-      limit(50)
+      limit(30)
     )
   }, [uid])
 

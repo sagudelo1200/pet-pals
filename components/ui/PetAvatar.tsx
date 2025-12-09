@@ -5,12 +5,13 @@ import Icon from './Icon'
 
 interface PetAvatarProps {
   uri?: string
-  size?: 'small' | 'medium' | 'large'
+  size?: 'tiny' | 'small' | 'medium' | 'large'
   editable?: boolean
   onPress?: () => void
 }
 
 const SIZES = {
+  tiny: 32,
   small: 48,
   medium: 80,
   large: 120,

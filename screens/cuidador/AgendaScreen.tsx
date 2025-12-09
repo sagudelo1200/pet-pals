@@ -6,6 +6,7 @@ import { COLOR } from '@/constants'
 import Screen from '@/components/ui/Screen'
 import ScreenHeader from '@/components/ui/ScreenHeader'
 import TarjetaPaseo from '@/components/ui/TarjetaPaseo'
+import { ItemHistorialPaseo } from '@/components/paseos/ItemHistorialPaseo'
 import Chip from '@/components/ui/Chip'
 import EmptyState from '@/components/ui/EmptyState'
 import PaseadorPerrosSvg from '@/assets/imgs/undraw/paseador_perros.svg'
@@ -78,12 +79,19 @@ const AgendaScreen: React.FC = () => {
       <FlatList
         data={paseosFiltrados}
         keyExtractor={item => item.id}
-        renderItem={({ item }) => (
-          <TarjetaPaseo
-            paseo={item}
-            onPress={() => handlePressPaseo(item.id)}
-          />
-        )}
+        renderItem={({ item }) =>
+          activeTab === 'historial' ? (
+            <ItemHistorialPaseo
+              paseo={item}
+              onPress={() => handlePressPaseo(item.id)}
+            />
+          ) : (
+            <TarjetaPaseo
+              paseo={item}
+              onPress={() => handlePressPaseo(item.id)}
+            />
+          )
+        }
         style={{ flex: 1 }}
         contentContainerStyle={[
           styles.listContent,

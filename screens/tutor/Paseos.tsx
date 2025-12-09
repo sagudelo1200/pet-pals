@@ -6,6 +6,7 @@ import { COLOR } from '@/constants'
 import Screen from '@/components/ui/Screen'
 import ScreenHeader from '@/components/ui/ScreenHeader'
 import TarjetaPaseo from '@/components/ui/TarjetaPaseo'
+import { ItemHistorialPaseo } from '@/components/paseos/ItemHistorialPaseo'
 import Chip from '@/components/ui/Chip'
 import ValidatedFab from '@/components/ui/Fab'
 import { SolicitarPaseoModal } from '@/components/paseos/SolicitarPaseoModal'
@@ -111,15 +112,25 @@ const Paseos: React.FC = () => {
       <FlatList
         data={paseosFiltrados}
         keyExtractor={item => item.id}
-        renderItem={({ item }) => (
-          <TarjetaPaseo
-            paseo={item}
-            onPress={() => {
-              // @ts-ignore
-              navigation.navigate('DetallePaseo', { id: item.id })
-            }}
-          />
-        )}
+        renderItem={({ item }) =>
+          activeTab === 'historial' ? (
+            <ItemHistorialPaseo
+              paseo={item}
+              onPress={() => {
+                // @ts-ignore
+                navigation.navigate('DetallePaseo', { id: item.id })
+              }}
+            />
+          ) : (
+            <TarjetaPaseo
+              paseo={item}
+              onPress={() => {
+                // @ts-ignore
+                navigation.navigate('DetallePaseo', { id: item.id })
+              }}
+            />
+          )
+        }
         style={{ flex: 1 }}
         contentContainerStyle={[
           styles.listContent,

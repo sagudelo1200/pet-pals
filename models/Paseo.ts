@@ -44,6 +44,8 @@ export interface Paseo extends BaseModel {
   fecha_hora_inicio: Date
   /** Duración estimada en minutos. */
   duracion_estimada: number
+  /** Duración real */
+  duracion_real?: number
   /** Costo del servicio en la moneda local. */
   precio: number
   /** Estado actual del paseo. */
