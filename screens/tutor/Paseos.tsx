@@ -120,7 +120,11 @@ const Paseos: React.FC = () => {
             }}
           />
         )}
-        contentContainerStyle={styles.listContent}
+        style={{ flex: 1 }}
+        contentContainerStyle={[
+          styles.listContent,
+          paseosFiltrados.length === 0 && { justifyContent: 'center', flex: 1 },
+        ]}
         ListEmptyComponent={renderEmptyState}
         showsVerticalScrollIndicator={false}
         refreshing={cargando}
@@ -159,7 +163,6 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingTop: 60,
   },
   emptyTitle: {
     marginTop: 20,

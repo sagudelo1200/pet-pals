@@ -48,6 +48,7 @@ const AgendaScreen: React.FC = () => {
           ? t('cuidador:agenda.vacio_proximos_sub')
           : undefined
       }
+      style={{ paddingBottom: 0 }}
     />
   )
 
@@ -83,7 +84,11 @@ const AgendaScreen: React.FC = () => {
             onPress={() => handlePressPaseo(item.id)}
           />
         )}
-        contentContainerStyle={styles.listContent}
+        style={{ flex: 1 }}
+        contentContainerStyle={[
+          styles.listContent,
+          paseosFiltrados.length === 0 && { justifyContent: 'center', flex: 1 },
+        ]}
         ListEmptyComponent={!cargando ? renderEmptyState : null}
         refreshing={cargando}
         onRefresh={refetch}

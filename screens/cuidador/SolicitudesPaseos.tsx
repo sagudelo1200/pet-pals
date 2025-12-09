@@ -1,5 +1,5 @@
 import React from 'react'
-import { StyleSheet, View, Text, FlatList } from 'react-native'
+import { StyleSheet, View, FlatList } from 'react-native'
 import { useNavigation } from '@react-navigation/native'
 import { StackNavigationProp } from '@react-navigation/stack'
 import { useTranslation } from 'react-i18next'
@@ -62,6 +62,7 @@ const SolicitudesPaseos: React.FC = () => {
       }
       title={t('cuidador:solicitudes.sin_solicitudes')}
       description={t('cuidador:solicitudes.sin_solicitudes_desc')}
+      style={{ paddingBottom: 0 }}
     />
   )
 
@@ -80,7 +81,11 @@ const SolicitudesPaseos: React.FC = () => {
           data={solicitudes}
           renderItem={renderItem}
           keyExtractor={item => item.id}
-          contentContainerStyle={styles.listContent}
+          style={{ flex: 1 }}
+          contentContainerStyle={[
+            styles.listContent,
+            solicitudes.length === 0 && { justifyContent: 'center', flex: 1 },
+          ]}
           ListEmptyComponent={renderEmpty}
           showsVerticalScrollIndicator={false}
         />
