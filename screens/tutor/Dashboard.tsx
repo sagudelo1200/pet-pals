@@ -4,6 +4,7 @@ import { theme, Text } from 'galio-framework'
 import { useNavigation } from '@react-navigation/native'
 import { BottomTabNavigationProp } from '@react-navigation/bottom-tabs'
 import { TutorTabParamList } from '@/navigation/types'
+import { useTranslation } from 'react-i18next'
 import { COLOR } from '@/constants'
 import {
   Card,
@@ -16,11 +17,13 @@ import {
   Icon,
 } from '@/components/ui'
 import Screen from '@/components/ui/Screen'
+import ScreenHeader from '@/components/ui/ScreenHeader'
 
 type DashboardNavigationProp = BottomTabNavigationProp<TutorTabParamList>
 
 const Dashboard: React.FC = () => {
   const navigation = useNavigation<DashboardNavigationProp>()
+  const { t } = useTranslation()
 
   const handleMascotasPress = () => {
     navigation.navigate('Mascotas')
@@ -36,9 +39,14 @@ const Dashboard: React.FC = () => {
       style={styles.container}
       contentContainerStyle={styles.content}
     >
+      <ScreenHeader
+        title={t('tutor:dashboard.titulo')}
+        subtitle={t('tutor:dashboard.subtitulo')}
+        showBack={false}
+      />
       {/* Próximo paseo */}
       <Card
-        title="Próximo paseo"
+        title={t('tutor:dashboard.proximo_paseo')}
         subtitle="Hoy, 5:30 PM"
         right={<Badge label="Confirmado" variant="exito" size="sm" />}
         style={{ marginBottom: 16 }}
@@ -58,25 +66,25 @@ const Dashboard: React.FC = () => {
 
       {/* Acciones rápidas */}
       <Card
-        title="Acciones rápidas"
-        subtitle="Lo más usado"
+        title={t('tutor:dashboard.acciones_rapidas')}
+        subtitle={t('tutor:dashboard.lo_mas_usado')}
         style={{ marginBottom: 16 }}
       >
         <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
           <Chip
-            label="Solicitar paseo"
+            label={t('tutor:dashboard.solicitar_paseo')}
             leftIconName="walking"
             onPress={handleAlert}
           />
           <Spacer horizontal size={8} />
           <Chip
-            label="Agregar mascota"
+            label={t('tutor:dashboard.agregar_mascota')}
             leftIconName="paw"
             onPress={handleMascotasPress}
           />
           <Spacer horizontal size={8} />
           <Chip
-            label="Ver historial"
+            label={t('tutor:dashboard.ver_historial')}
             leftIconName="history"
             onPress={handleAlert}
           />
@@ -84,7 +92,10 @@ const Dashboard: React.FC = () => {
       </Card>
 
       {/* Actividad reciente */}
-      <Card title="Actividad reciente" subtitle="Últimos movimientos">
+      <Card
+        title={t('tutor:dashboard.actividad_reciente')}
+        subtitle={t('tutor:dashboard.ultimos_movimientos')}
+      >
         <View>
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
             <Icon name="walking" size={16} color={COLOR.SUBTEXTO} />

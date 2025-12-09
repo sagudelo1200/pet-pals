@@ -1,15 +1,16 @@
-import React, { useState, useMemo } from 'react'
-import { StyleSheet, View, Text, FlatList } from 'react-native'
+import React, { useState } from 'react'
+import { StyleSheet, View, FlatList } from 'react-native'
 import { useTranslation } from 'react-i18next'
 import { useNavigation } from '@react-navigation/native'
 import { COLOR } from '@/constants'
 import Screen from '@/components/ui/Screen'
+import ScreenHeader from '@/components/ui/ScreenHeader'
 import TarjetaPaseo from '@/components/ui/TarjetaPaseo'
 import Chip from '@/components/ui/Chip'
 import EmptyState from '@/components/ui/EmptyState'
 import PaseadorPerrosSvg from '@/assets/imgs/undraw/paseador_perros.svg'
 import { useAgendaCuidador } from '@/hooks/cuidador/useAgendaCuidador'
-import { NativeStackNavigationProp } from '@react-navigation/native-stack'
+import { StackNavigationProp } from '@react-navigation/stack'
 import { AuthStackParamList } from '@/navigation/types'
 
 type TabTipo = 'proximos' | 'historial'
@@ -17,8 +18,7 @@ type TabTipo = 'proximos' | 'historial'
 const AgendaScreen: React.FC = () => {
   const { t } = useTranslation()
   const [activeTab, setActiveTab] = useState<TabTipo>('proximos')
-  const navigation =
-    useNavigation<NativeStackNavigationProp<AuthStackParamList>>()
+  const navigation = useNavigation<StackNavigationProp<AuthStackParamList>>()
   const { proximos, historial, cargando, refetch } = useAgendaCuidador()
 
   const paseosFiltrados = activeTab === 'proximos' ? proximos : historial
@@ -53,10 +53,11 @@ const AgendaScreen: React.FC = () => {
 
   return (
     <Screen style={styles.container} includeTopInset>
-      <View style={styles.header}>
-        <Text style={styles.titulo}>{t('cuidador:agenda.titulo')}</Text>
-        <Text style={styles.subtitulo}>{t('cuidador:agenda.subtitulo')}</Text>
-      </View>
+      <ScreenHeader
+        title={t('cuidador:agenda.titulo')}
+        subtitle={t('cuidador:agenda.subtitulo')}
+        showBack={false}
+      />
 
       <View style={styles.tabs}>
         <Chip
@@ -94,27 +95,14 @@ const AgendaScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLOR.FONDO,
-  },
-  header: {
-    paddingHorizontal: 20,
-    paddingTop: 20,
-    paddingBottom: 10,
-  },
-  titulo: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: COLOR.TEXTO,
-    marginBottom: 4,
-  },
-  subtitulo: {
-    fontSize: 14,
-    color: COLOR.SUBTEXTO,
+    backgroundColor: COLOR.BASE,
   },
   tabs: {
     flexDirection: 'row',
     paddingHorizontal: 20,
     marginBottom: 10,
+    marginTop: 10,
+    justifyContent: 'center',
   },
   tab: {
     marginRight: 10,

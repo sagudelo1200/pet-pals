@@ -9,6 +9,7 @@ import esPaseos from './locales/es/paseos.json'
 import esCargando from './locales/es/cargando.json'
 import esPerfil from './locales/es/perfil.json'
 import esCuidador from './locales/es/cuidador.json'
+import esTutor from './locales/es/tutor.json'
 import { ERR, type ErrorCode } from '@/constants/errors'
 
 // Detección opcional del idioma del dispositivo sin forzar dependencia inmediata
@@ -36,9 +37,19 @@ if (!i18n.isInitialized) {
         cargando: esCargando as any,
         perfil: esPerfil as any,
         cuidador: esCuidador as any,
+        tutor: esTutor as any,
       },
     },
-    ns: ['comun', 'auth', 'mascotas', 'paseos', 'cargando', 'perfil', 'cuidador'],
+    ns: [
+      'comun',
+      'auth',
+      'mascotas',
+      'paseos',
+      'cargando',
+      'perfil',
+      'cuidador',
+      'tutor',
+    ],
     defaultNS: 'comun',
     fallbackLng: 'es',
     lng: detectDeviceLanguage() || 'es',

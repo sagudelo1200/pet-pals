@@ -6,11 +6,11 @@ import {
   ScrollView,
   RefreshControl,
 } from 'react-native'
-import { LinearGradient } from 'expo-linear-gradient'
 import { useTranslation } from 'react-i18next'
 import { useNavigation, useFocusEffect } from '@react-navigation/native'
 import { COLOR } from '@/constants'
 import Screen from '@/components/ui/Screen'
+import ScreenHeader from '@/components/ui/ScreenHeader'
 import { EstadisticaCard } from '@/components/cuidador/EstadisticaCard'
 import TarjetaPaseo from '@/components/ui/TarjetaPaseo'
 import { useEstadisticasCuidador } from '@/hooks/cuidador/useEstadisticasCuidador'
@@ -22,6 +22,7 @@ import PaseadorPerrosSvg from '@/assets/imgs/undraw/paseador_perros.svg'
 const Dashboard: React.FC = () => {
   const { t } = useTranslation()
   const navigation = useNavigation()
+  // eslint-disable-next-line no-unused-vars
   const { user } = useAuth()
   const estadisticas = useEstadisticasCuidador()
   const { proximos, cargando, refetch } = useAgendaCuidador()
@@ -53,6 +54,11 @@ const Dashboard: React.FC = () => {
 
   return (
     <Screen style={styles.container} includeTopInset>
+      <ScreenHeader
+        title={t('cuidador:dashboard.titulo')}
+        subtitle={t('cuidador:dashboard.subtitulo')}
+        showBack={false}
+      />
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
@@ -64,21 +70,6 @@ const Dashboard: React.FC = () => {
           />
         }
       >
-        {/* Header con gradiente sutil */}
-        <LinearGradient
-          colors={[`${COLOR.PRIMARIO}08`, 'transparent']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 0, y: 1 }}
-          style={styles.headerGradient}
-        >
-          <View style={styles.header}>
-            <Text style={styles.titulo}>{t('cuidador:dashboard.titulo')}</Text>
-            <Text style={styles.subtitulo}>
-              {t('cuidador:dashboard.subtitulo')}
-            </Text>
-          </View>
-        </LinearGradient>
-
         {/* Estadísticas con diseño premium */}
         <View style={styles.estadisticas}>
           <EstadisticaCard
@@ -146,26 +137,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingBottom: 100,
-  },
-  headerGradient: {
     paddingTop: 20,
-    paddingBottom: 24,
-  },
-  header: {
-    paddingHorizontal: 20,
-  },
-  titulo: {
-    fontSize: 28,
-    fontWeight: '800',
-    color: COLOR.TEXTO,
-    marginBottom: 6,
-    letterSpacing: -0.5,
-  },
-  subtitulo: {
-    fontSize: 15,
-    color: COLOR.SUBTEXTO,
-    fontWeight: '500',
-    letterSpacing: 0.1,
   },
   estadisticas: {
     paddingHorizontal: 20,

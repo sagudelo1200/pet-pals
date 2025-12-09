@@ -4,7 +4,7 @@ import { useNavigation } from '@react-navigation/native'
 import { StackNavigationProp } from '@react-navigation/stack'
 import { useTranslation } from 'react-i18next'
 import Screen from '@/components/ui/Screen'
-import { COLOR } from '@/constants'
+import ScreenHeader from '@/components/ui/ScreenHeader'
 import { useSolicitudesCuidador } from '@/hooks/cuidador/useSolicitudesCuidador'
 import { TarjetaSolicitud } from '@/components/cuidador/TarjetaSolicitud'
 import { Paseo } from '@/models/Paseo'
@@ -67,12 +67,11 @@ const SolicitudesPaseos: React.FC = () => {
 
   return (
     <Screen style={styles.container} includeTopInset>
-      <View style={styles.header}>
-        <Text style={styles.titulo}>{t('cuidador:solicitudes.titulo')}</Text>
-        <Text style={styles.subtitulo}>
-          {t('cuidador:solicitudes.subtitulo')}
-        </Text>
-      </View>
+      <ScreenHeader
+        title={t('cuidador:solicitudes.titulo')}
+        subtitle={t('cuidador:solicitudes.subtitulo')}
+        showBack={false}
+      />
 
       {cargando ? (
         renderSkeleton()
@@ -93,22 +92,6 @@ const SolicitudesPaseos: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-  },
-  header: {
-    paddingHorizontal: 20,
-    paddingTop: 20,
-    paddingBottom: 24,
-  },
-  titulo: {
-    fontSize: 28,
-    fontWeight: '800',
-    color: COLOR.TEXTO,
-    marginBottom: 6,
-    letterSpacing: -0.5,
-  },
-  subtitulo: {
-    fontSize: 16,
-    color: COLOR.SUBTEXTO,
   },
   listContent: {
     paddingHorizontal: 20,

@@ -20,7 +20,7 @@ export default function TutorTabNavigator(): React.ReactElement {
   return (
     <Tab.Navigator
       screenOptions={{
-        headerShown: true,
+        headerShown: false,
         headerStyle: {
           backgroundColor: COLOR.BLOQUE,
         },

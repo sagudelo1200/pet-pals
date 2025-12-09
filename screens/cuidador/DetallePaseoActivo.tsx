@@ -11,6 +11,7 @@ import ScreenHeader from '@/components/ui/ScreenHeader'
 import Skeleton from '@/components/ui/Skeleton'
 import { BadgeEstadoPaseo } from '@/components/paseos/BadgeEstadoPaseo'
 import { useEstadoPaseo } from '@/hooks/paseos/useEstadoPaseo'
+import { usePaseoTimer } from '@/hooks/paseos/usePaseoTimer'
 import { ServicioPaseo } from '@/services/firebase/paseo'
 import { Paseo, PaseoStatus } from '@/models/Paseo'
 import { Mascota } from '@/models/Mascota'
@@ -34,6 +35,8 @@ export const DetallePaseoActivo = () => {
     cargando: cargandoAccion,
     sincronizar,
   } = useEstadoPaseo(paseo || undefined)
+
+  const { tiempo } = usePaseoTimer(estado, paseo?.fecha_inicio_real)
 
   useEffect(() => {
     cargarDatos()
@@ -101,8 +104,24 @@ export const DetallePaseoActivo = () => {
         {
           text: t('comun:confirmar'),
           onPress: async () => {
-            const resultado = await transicion(evento)
+            const payload: any = {}
+            if (evento === 'INICIAR_PASEO') {
+              payload.fecha_inicio_real = new Date()
+            } else if (evento === 'FINALIZAR_PASEO') {
+              payload.fecha_fin_real = new Date()
+            }
+
+            const resultado = await transicion(evento, payload)
             if (resultado.success) {
+              // Actualizar estado local para reflejar cambios inmediatos (ej. Timer)
+              if (payload.fecha_inicio_real) {
+                setPaseo(prev =>
+                  prev
+                    ? { ...prev, fecha_inicio_real: payload.fecha_inicio_real }
+                    : null
+                )
+              }
+
               if (evento === 'FINALIZAR_PASEO') {
                 Alert.alert(
                   t('comun:exito'),
@@ -136,8 +155,7 @@ export const DetallePaseoActivo = () => {
         {/* Estado Actual */}
         <View style={styles.statusContainer}>
           <BadgeEstadoPaseo estado={estado} />
-          <Text style={styles.timerText}>00:00:00</Text>
-          {/* TODO: Implementar Timer real conectado a fecha_inicio_real */}
+          <Text style={styles.timerText}>{tiempo}</Text>
         </View>
 
         {/* Mapa / Ubicación */}
@@ -147,7 +165,7 @@ export const DetallePaseoActivo = () => {
             <Text style={styles.mapText}>{t('cuidador:paseo.ver_mapa')}</Text>
           </View>
           <Text style={styles.addressText}>
-            📍 {paseo.direccion_encuentro || 'Ubicación no disponible'}
+            📍 {paseo.ubicacion_inicio || 'Ubicación no disponible'}
           </Text>
         </Card>
 
@@ -175,9 +193,9 @@ export const DetallePaseoActivo = () => {
               onPress={handleAccionPrincipal}
               loading={cargandoAccion}
               variant={
-                estado === PaseoStatus.EN_PROGRESO ? 'peligro' : 'primario'
+                estado === PaseoStatus.EN_PROGRESO ? 'error' : 'primario'
               }
-              size="grande"
+              size="lg"
               icon={obtenerIconoBoton(estado)}
             />
           )}

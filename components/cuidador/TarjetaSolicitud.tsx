@@ -7,6 +7,7 @@ import { useTranslation } from 'react-i18next'
 
 interface Props {
   solicitud: Paseo
+  // eslint-disable-next-line no-unused-vars
   onPress: (solicitud: Paseo) => void
 }
 
@@ -54,9 +55,8 @@ export const TarjetaSolicitud: React.FC<Props> = ({ solicitud, onPress }) => {
         {solicitud.id_cuidador && (
           <Badge
             label={t('cuidador:solicitudes.directa')}
-            variant="solid"
-            color="primary"
-            size="small"
+            variant="enfasis"
+            size="sm"
           />
         )}
       </View>

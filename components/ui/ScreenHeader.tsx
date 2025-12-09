@@ -6,6 +6,7 @@ import Icon from './Icon'
 
 interface ScreenHeaderProps {
   title: string
+  subtitle?: string
   showBack?: boolean
   onBack?: () => void
   rightAction?: React.ReactNode
@@ -14,6 +15,7 @@ interface ScreenHeaderProps {
 
 export const ScreenHeader: React.FC<ScreenHeaderProps> = ({
   title,
+  subtitle,
   showBack = true,
   onBack,
   rightAction,
@@ -41,9 +43,16 @@ export const ScreenHeader: React.FC<ScreenHeaderProps> = ({
         )}
       </View>
 
-      <Text style={styles.title} numberOfLines={1}>
-        {title}
-      </Text>
+      <View style={styles.titleContainer}>
+        <Text style={styles.title} numberOfLines={1}>
+          {title}
+        </Text>
+        {subtitle && (
+          <Text style={styles.subtitle} numberOfLines={1}>
+            {subtitle}
+          </Text>
+        )}
+      </View>
 
       <View style={styles.rightContainer}>
         {rightAction ? rightAction : <View style={styles.placeholder} />}
@@ -77,12 +86,21 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  title: {
+  titleContainer: {
     flex: 1,
+    alignItems: 'center',
+  },
+  title: {
     fontSize: 18,
     fontWeight: '700',
     color: COLOR.TEXTO,
     textAlign: 'center',
+  },
+  subtitle: {
+    fontSize: 12,
+    color: COLOR.SUBTEXTO,
+    textAlign: 'center',
+    marginTop: 2,
   },
   placeholder: {
     width: 40,

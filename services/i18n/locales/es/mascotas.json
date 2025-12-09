@@ -17,6 +17,7 @@
   },
   "lista": {
     "titulo": "Tus Mascotas",
+    "subtitulo": "Gestiona los perfiles de tus compañeros",
     "refrescar": "Refrescar",
     "agregar": "Agregar mascota"
   },

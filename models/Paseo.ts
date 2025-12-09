@@ -48,6 +48,10 @@ export interface Paseo extends BaseModel {
   precio: number
   /** Estado actual del paseo. */
   estado: PaseoStatus
+  /** Fecha y hora real de inicio del paseo (cuando pasa a EN_PROGRESO). */
+  fecha_inicio_real?: Date
+  /** Fecha y hora real de fin del paseo (cuando pasa a FINALIZADO). */
+  fecha_fin_real?: Date
   /** Ubicación de inicio (dirección o coordenadas). */
   ubicacion_inicio?: string
   /** Ubicación de término (dirección o coordenadas). */

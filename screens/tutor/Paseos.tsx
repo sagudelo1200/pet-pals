@@ -4,12 +4,12 @@ import { useTranslation } from 'react-i18next'
 import { useNavigation } from '@react-navigation/native'
 import { COLOR } from '@/constants'
 import Screen from '@/components/ui/Screen'
+import ScreenHeader from '@/components/ui/ScreenHeader'
 import TarjetaPaseo from '@/components/ui/TarjetaPaseo'
 import Chip from '@/components/ui/Chip'
 import ValidatedFab from '@/components/ui/Fab'
 import { SolicitarPaseoModal } from '@/components/paseos/SolicitarPaseoModal'
 import PaseadorPerrosSvg from '@/assets/imgs/undraw/paseador_perros.svg'
-import type { Paseo } from '@/models/Paseo'
 import { useMascotas } from '@/hooks/useMascotas'
 import { usePaseos } from '@/hooks/paseos/usePaseos'
 
@@ -30,13 +30,13 @@ const Paseos: React.FC = () => {
         t('paseos:errores.SIN_MASCOTAS_MSG'),
         [
           { text: 'Cancelar', style: 'cancel' },
-          { 
-            text: 'Crear Mascota', 
+          {
+            text: 'Crear Mascota',
             onPress: () => {
               // @ts-ignore
               navigation.navigate('Mascotas', { openCreate: true })
-            }
-          }
+            },
+          },
         ]
       )
       return
@@ -45,13 +45,29 @@ const Paseos: React.FC = () => {
   }
 
   // Filtrado de datos
-  const proximos = useMemo(() => (paseos || []).filter(p => 
-    ['PENDIENTE', 'ACEPTADO', 'EN_RUTA', 'EN_PROGRESO', 'PROGRAMADO'].includes(p.estado)
-  ), [paseos])
+  const proximos = useMemo(
+    () =>
+      (paseos || []).filter(p =>
+        [
+          'PENDIENTE',
+          'ACEPTADO',
+          'EN_RUTA',
+          'EN_PROGRESO',
+          'PROGRAMADO',
+        ].includes(p.estado)
+      ),
+    [paseos]
+  )
 
-  const historial = useMemo(() => (paseos || []).filter(p => 
-    ['COMPLETADO', 'FINALIZADO', 'CANCELADO', 'RECHAZADO'].includes(p.estado)
-  ), [paseos])
+  const historial = useMemo(
+    () =>
+      (paseos || []).filter(p =>
+        ['COMPLETADO', 'FINALIZADO', 'CANCELADO', 'RECHAZADO'].includes(
+          p.estado
+        )
+      ),
+    [paseos]
+  )
 
   const paseosFiltrados = activeTab === 'proximos' ? proximos : historial
 
@@ -69,17 +85,13 @@ const Paseos: React.FC = () => {
   return (
     <Screen
       style={styles.container}
-      floating={
-        <ValidatedFab
-          onPress={handleSolicitar}
-          style={styles.fab}
-        />
-      }
+      floating={<ValidatedFab onPress={handleSolicitar} style={styles.fab} />}
     >
-      <View style={styles.header}>
-        <Text style={styles.titulo}>{t('paseos:titulo')}</Text>
-        <Text style={styles.subtitulo}>{t('paseos:subtitulo')}</Text>
-      </View>
+      <ScreenHeader
+        title={t('paseos:titulo')}
+        subtitle={t('paseos:subtitulo')}
+        showBack={false}
+      />
 
       <View style={styles.tabs}>
         <Chip
@@ -100,8 +112,8 @@ const Paseos: React.FC = () => {
         data={paseosFiltrados}
         keyExtractor={item => item.id}
         renderItem={({ item }) => (
-          <TarjetaPaseo 
-            paseo={item} 
+          <TarjetaPaseo
+            paseo={item}
             onPress={() => {
               // @ts-ignore
               navigation.navigate('DetallePaseo', { id: item.id })
@@ -127,26 +139,13 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  header: {
-    paddingHorizontal: 20,
-    paddingTop: 20,
-    paddingBottom: 10,
-  },
-  titulo: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: COLOR.TEXTO,
-    marginBottom: 4,
-  },
-  subtitulo: {
-    fontSize: 14,
-    color: COLOR.SUBTEXTO,
-  },
   tabs: {
     flexDirection: 'row',
     paddingHorizontal: 20,
     marginBottom: 16,
+    marginTop: 10,
     gap: 12,
+    justifyContent: 'center',
   },
   tab: {
     marginVertical: 0,

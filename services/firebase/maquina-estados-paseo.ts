@@ -1,5 +1,4 @@
-import { PaseoStatus } from '../../models/Paseo'
-import type { Paseo } from '../../models/Paseo'
+import { PaseoStatus, type Paseo } from '../../models/Paseo'
 
 // ==========================================
 // Tipos y Eventos
@@ -23,6 +22,8 @@ export interface TransitionPayload {
   ubicacion?: string // Para LLEGAR
   id_cuidador?: string // Para ACEPTAR
   fecha_programada?: Date // Para PROGRAMAR
+  fecha_inicio_real?: Date // Para INICIAR_PASEO
+  fecha_fin_real?: Date // Para FINALIZAR_PASEO
 }
 
 // ==========================================
@@ -30,7 +31,9 @@ export interface TransitionPayload {
 // ==========================================
 
 type Transiciones = {
+  // eslint-disable-next-line no-unused-vars
   [key in PaseoStatus]?: {
+    // eslint-disable-next-line no-unused-vars
     [key in PaseoEvent]?: PaseoStatus
   }
 }
@@ -76,7 +79,10 @@ export class MaquinaEstadosPaseo {
   private _estado: PaseoStatus
   private _contexto: Partial<Paseo>
 
-  constructor(estadoInicial: PaseoStatus = PaseoStatus.PENDIENTE, contexto: Partial<Paseo> = {}) {
+  constructor(
+    estadoInicial: PaseoStatus = PaseoStatus.PENDIENTE,
+    contexto: Partial<Paseo> = {}
+  ) {
     this._estado = estadoInicial
     this._contexto = contexto
   }
@@ -103,7 +109,7 @@ export class MaquinaEstadosPaseo {
     }
 
     const nuevoEstado = CONFIG_MAQUINA[this._estado]![evento]!
-    
+
     // Validaciones extra (Lógica de Negocio) antes de cambiar
     this.validarTransicion(this._estado, nuevoEstado, payload)
 
@@ -114,7 +120,11 @@ export class MaquinaEstadosPaseo {
   /**
    * Validaciones de reglas de negocio específicas.
    */
-  private validarTransicion(desde: PaseoStatus, hacia: PaseoStatus, payload?: TransitionPayload) {
+  private validarTransicion(
+    desde: PaseoStatus,
+    hacia: PaseoStatus,
+    payload?: TransitionPayload
+  ) {
     // Ejemplo: CANCELAR requiere motivo
     if (hacia === PaseoStatus.CANCELADO) {
       if (!payload?.motivo) {
@@ -131,5 +141,8 @@ export class MaquinaEstadosPaseo {
  * Factory function para crear la máquina fácilmente.
  */
 export function crearMaquinaPaseo(paseo?: Partial<Paseo>): MaquinaEstadosPaseo {
-  return new MaquinaEstadosPaseo(paseo?.estado || PaseoStatus.PENDIENTE, paseo || {})
+  return new MaquinaEstadosPaseo(
+    paseo?.estado || PaseoStatus.PENDIENTE,
+    paseo || {}
+  )
 }

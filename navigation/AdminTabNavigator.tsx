@@ -10,7 +10,7 @@ const AdminTabNavigator: React.FC = () => {
   return (
     <Tab.Navigator
       screenOptions={{
-        headerShown: true,
+        headerShown: false,
         headerStyle: {
           backgroundColor: COLOR.BLOQUE,
         },

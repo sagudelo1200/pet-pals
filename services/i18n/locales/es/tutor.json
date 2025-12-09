@@ -1,0 +1,14 @@
+{
+  "dashboard": {
+    "titulo": "Hola, Tutor",
+    "subtitulo": "Resumen de tu actividad",
+    "proximo_paseo": "Próximo paseo",
+    "acciones_rapidas": "Acciones rápidas",
+    "actividad_reciente": "Actividad reciente",
+    "lo_mas_usado": "Lo más usado",
+    "ultimos_movimientos": "Últimos movimientos",
+    "solicitar_paseo": "Solicitar paseo",
+    "agregar_mascota": "Agregar mascota",
+    "ver_historial": "Ver historial"
+  }
+}

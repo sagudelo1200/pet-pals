@@ -5,7 +5,6 @@ import {
   FlatList,
   RefreshControl,
   Animated,
-  Alert,
   Text,
 } from 'react-native'
 import { useTranslation } from 'react-i18next'
@@ -17,6 +16,7 @@ import {
   PetCard,
   Button,
   Skeleton,
+  ScreenHeader,
 } from '@/components/ui'
 import { useMascotas } from '@/hooks/useMascotas'
 import { CrearMascotaFlow } from './CrearMascotaFlow'
@@ -156,6 +156,11 @@ export default function Mascotas({ navigation }: any) {
       contentContainerStyle={{ flex: 1 }}
       floating={<Fab onPress={handleAbrirCrear} style={styles.fab} />}
     >
+      <ScreenHeader
+        title={t('mascotas:lista.titulo')}
+        subtitle={t('mascotas:lista.subtitulo')}
+        showBack={false}
+      />
       {mascotas.length === 0 ? (
         <EmptyState
           title={t('mascotas:vacio.titulo')}
