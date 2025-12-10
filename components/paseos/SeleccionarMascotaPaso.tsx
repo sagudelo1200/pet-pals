@@ -1,19 +1,31 @@
 import React from 'react'
-import { StyleSheet, View, FlatList, TouchableOpacity, Image, Text } from 'react-native'
+import {
+  StyleSheet,
+  View,
+  FlatList,
+  TouchableOpacity,
+  Image,
+  Text,
+} from 'react-native'
 import { useTranslation } from 'react-i18next'
 import { COLOR } from '@/constants'
 import { Button, PetAvatar } from '@/components/ui'
 import { useSeleccionarMascota } from '@/hooks/paseos/useSeleccionarMascota'
 
 interface Props {
-  initialSelectedIds?: string[]
-  onNext: (petIds: string[]) => void
+  mascotasInicialesIds?: string[]
+  onNext: (mascotaIds: string[]) => void
   onCancel: () => void
 }
 
-export const SeleccionarMascotaPaso = ({ initialSelectedIds, onNext, onCancel }: Props) => {
+export const SeleccionarMascotaPaso = ({
+  mascotasInicialesIds,
+  onNext,
+  onCancel,
+}: Props) => {
   const { t } = useTranslation()
-  const { mascotas, mascotasSeleccionadas, toggleMascota } = useSeleccionarMascota(initialSelectedIds)
+  const { mascotas, mascotasSeleccionadas, toggleMascota } =
+    useSeleccionarMascota(mascotasInicialesIds)
 
   const handleContinuar = () => {
     if (mascotasSeleccionadas.length > 0) {
@@ -23,23 +35,24 @@ export const SeleccionarMascotaPaso = ({ initialSelectedIds, onNext, onCancel }:
 
   const renderItem = ({ item }: { item: any }) => {
     const isSelected = mascotasSeleccionadas.includes(item.id)
-    
+
     return (
       <TouchableOpacity
         style={[styles.card, isSelected && styles.cardSelected]}
         onPress={() => toggleMascota(item.id)}
         activeOpacity={0.8}
       >
-        <PetAvatar
-          uri={item.foto}
-          size="medium"
-        />
-        <Text style={[styles.name, isSelected && styles.nameSelected, { fontWeight: 'bold' }]}>
+        <PetAvatar uri={item.foto} size="medium" />
+        <Text
+          style={[
+            styles.name,
+            isSelected && styles.nameSelected,
+            { fontWeight: 'bold' },
+          ]}
+        >
           {item.nombre}
         </Text>
-        <Text style={styles.breed}>
-          {item.raza}
-        </Text>
+        <Text style={styles.breed}>{item.raza}</Text>
       </TouchableOpacity>
     )
   }

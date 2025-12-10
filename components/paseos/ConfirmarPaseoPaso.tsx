@@ -8,11 +8,11 @@ import { useConfirmarPaseo } from '@/hooks/paseos/useConfirmarPaseo'
 import { PetAvatar } from '@/components/ui/PetAvatar'
 
 interface Props {
-  petIds: string[]
+  mascotaIds: string[]
   fecha: Date | null
   hora: string | null
   duracion: number | null
-  walkerId: string | null
+  cuidadorId: string | null
   esCompartido: boolean
   onCompartidoChange: (value: boolean) => void
   onConfirm: () => void
@@ -20,11 +20,11 @@ interface Props {
 }
 
 export const ConfirmarPaseoPaso = ({
-  petIds,
+  mascotaIds,
   fecha,
   hora,
   duracion,
-  walkerId,
+  cuidadorId,
   esCompartido,
   onCompartidoChange,
   onConfirm,
@@ -32,7 +32,13 @@ export const ConfirmarPaseoPaso = ({
 }: Props) => {
   const { t } = useTranslation()
   const { mascotas, cuidador, total, loading, error, confirmarReserva } =
-    useConfirmarPaseo({ petIds, walkerId, fecha, hora, esCompartido })
+    useConfirmarPaseo({
+      mascotaIds,
+      cuidadorId,
+      fecha,
+      hora,
+      esCompartido,
+    })
 
   const COMPARTIDO_DISCOUNT = 0.15 // 15% descuento para paseos compartidos
   const subtotal = total

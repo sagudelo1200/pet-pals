@@ -11,13 +11,16 @@ interface CuidadorListItem {
   distancia: string
   tarifa: string
   insignias: string[]
+  horario_laboral?: {
+    dias: number[]
+    hora_inicio: string
+    hora_fin: string
+  }
 }
 
 export const useSeleccionarCuidador = (
-  initialWalkerId: string | null = null,
-  fecha?: Date | null,
-  hora?: string | null,
-  duracionMinutos?: number | null
+  cuidadorInicialId: string | null = null,
+  fecha?: Date | null
 ) => {
   const { user } = useAuth()
   const [cuidadores, setCuidadores] = useState<CuidadorListItem[]>([])
@@ -25,17 +28,11 @@ export const useSeleccionarCuidador = (
   const [error, setError] = useState<string | null>(null)
   const [cuidadorSeleccionado, setCuidadorSeleccionado] = useState<
     string | null
-  >(initialWalkerId)
+  >(cuidadorInicialId)
 
   useEffect(() => {
     cargarCuidadores()
-  }, [fecha, hora, duracionMinutos])
-
-  // Helper para convertir HH:mm a minutos desde medianoche
-  const timeToMinutes = (time: string) => {
-    const [hh, mm] = time.split(':').map(Number)
-    return hh * 60 + mm
-  }
+  }, [fecha])
 
   const cargarCuidadores = async () => {
     setCargando(true)
@@ -48,33 +45,18 @@ export const useSeleccionarCuidador = (
       if (resultado.success && resultado.data) {
         let filtrados = resultado.data.filter(perfil => perfil.id !== user?.uid)
 
-        // Filtrar por disponibilidad si hay fecha y hora seleccionadas
-        if (fecha && hora) {
+        // Filtrar por disponibilidad de DÍA si hay fecha seleccionada
+        if (fecha) {
           const diaSemana = fecha.getDay() // 0 = Domingo
-          const horaSolicitada = hora // "HH:mm"
-          const duracion = duracionMinutos || 60 // Default 1 hora si no viene
 
           filtrados = filtrados.filter(perfil => {
             // Si no tiene horario configurado, asumimos NO disponible
             if (!perfil.horario_laboral) return false
 
-            const { dias, hora_inicio, hora_fin } = perfil.horario_laboral
+            const { dias } = perfil.horario_laboral
 
             // 1. Verificar día
             if (!dias.includes(diaSemana)) return false
-
-            // 2. Verificar rango horario completo
-            const inicioSolicitud = timeToMinutes(horaSolicitada)
-            const finSolicitud = inicioSolicitud + duracion
-
-            const inicioTurno = timeToMinutes(hora_inicio)
-            const finTurno = timeToMinutes(hora_fin)
-
-            // El paseo debe empezar DESPUÉS del inicio del turno
-            // Y terminar ANTES del fin del turno
-            if (inicioSolicitud < inicioTurno || finSolicitud > finTurno) {
-              return false
-            }
 
             return true
           })
@@ -93,6 +75,7 @@ export const useSeleccionarCuidador = (
               : 'A consultar',
             insignias:
               perfil.verificacion === 'verificado' ? ['verificado'] : [],
+            horario_laboral: perfil.horario_laboral,
           })
         )
 

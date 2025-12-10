@@ -1,4 +1,14 @@
 {
+  "define_hora": "Define la hora",
+  "cuidador_disponible_rango": "El cuidador está disponible de {{inicio}} a {{fin}}",
+  "hora_inicio": "Hora de inicio",
+  "selecciona_hora": "Selecciona hora",
+  "duracion_paseo": "Duración del paseo",
+  "selecciona_duracion": "Selecciona duración",
+  "cuando_sera_paseo": "¿Cuándo será el paseo?",
+  "elige_dia_ver_cuidadores": "Elige el día para ver los cuidadores disponibles",
+  "fecha_paseo": "Fecha del paseo",
+  "selecciona_fecha": "Selecciona una fecha",
   "titulo": "Paseos",
   "subtitulo": "Gestiona los paseos de tus mascotas",
   "lista": {

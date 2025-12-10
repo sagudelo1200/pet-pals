@@ -3,10 +3,9 @@ import { View, StyleSheet } from 'react-native'
 import { COLOR } from '@/constants'
 import { BottomSheet } from '../ui'
 import { SeleccionarMascotaPaso } from './SeleccionarMascotaPaso'
-import { FechaHoraPaso } from './FechaHoraPaso'
-
+import { SeleccionarFechaPaso } from './SeleccionarFechaPaso'
+import { SeleccionarHoraPaso } from './SeleccionarHoraPaso'
 import { SeleccionarCuidadorPaso } from './SeleccionarCuidadorPaso'
-
 import { ConfirmarPaseoPaso } from './ConfirmarPaseoPaso'
 
 interface Props {
@@ -16,32 +15,35 @@ interface Props {
 
 type Step =
   | 'SELECCIONAR_MASCOTA'
-  | 'FECHA_HORA'
+  | 'SELECCIONAR_FECHA'
   | 'SELECCIONAR_CUIDADOR'
+  | 'SELECCIONAR_HORA'
   | 'CONFIRMAR'
 
 export const SolicitarPaseoModal = ({ visible, onClose }: Props) => {
   const [step, setStep] = useState<Step>('SELECCIONAR_MASCOTA')
 
   // State for flow data
-  const [requestData, setRequestData] = useState({
-    petIds: [] as string[],
+  const [datosSolicitud, setDatosSolicitud] = useState({
+    mascotaIds: [] as string[],
     fecha: null as Date | null,
     hora: null as string | null,
     duracion: null as number | null,
-    walkerId: null as string | null,
+    cuidadorId: null as string | null,
+    horarioCuidador: null as { hora_inicio: string; hora_fin: string } | null,
     esCompartido: false,
   })
 
   // Reset function to clear state when flow ends
   const resetFlow = () => {
     setStep('SELECCIONAR_MASCOTA')
-    setRequestData({
-      petIds: [],
+    setDatosSolicitud({
+      mascotaIds: [],
       fecha: null,
       hora: null,
       duracion: null,
-      walkerId: null,
+      cuidadorId: null,
+      horarioCuidador: null,
       esCompartido: false,
     })
   }
@@ -53,27 +55,34 @@ export const SolicitarPaseoModal = ({ visible, onClose }: Props) => {
     }
   }, [visible])
 
-  const handlePetSelected = (petIds: string[]) => {
-    setRequestData(prev => ({ ...prev, petIds }))
-    setStep('FECHA_HORA')
+  const handlePetSelected = (mascotaIds: string[]) => {
+    setDatosSolicitud(prev => ({ ...prev, mascotaIds }))
+    setStep('SELECCIONAR_FECHA')
   }
 
-  const handleDateTimeSelected = (data: {
-    fecha: Date
-    hora: string
-    duracion: number
-  }) => {
-    setRequestData(prev => ({
-      ...prev,
-      fecha: data.fecha,
-      hora: data.hora,
-      duracion: data.duracion,
-    }))
+  const handleDateSelected = (fecha: Date) => {
+    setDatosSolicitud(prev => ({ ...prev, fecha }))
     setStep('SELECCIONAR_CUIDADOR')
   }
 
-  const handleWalkerSelected = (walkerId: string) => {
-    setRequestData(prev => ({ ...prev, walkerId }))
+  const handleWalkerSelected = (
+    cuidadorId: string,
+    horario?: { hora_inicio: string; hora_fin: string }
+  ) => {
+    setDatosSolicitud(prev => ({
+      ...prev,
+      cuidadorId,
+      horarioCuidador: horario || null,
+    }))
+    setStep('SELECCIONAR_HORA')
+  }
+
+  const handleTimeSelected = (data: { hora: string; duracion: number }) => {
+    setDatosSolicitud(prev => ({
+      ...prev,
+      hora: data.hora,
+      duracion: data.duracion,
+    }))
     setStep('CONFIRMAR')
   }
 
@@ -82,17 +91,24 @@ export const SolicitarPaseoModal = ({ visible, onClose }: Props) => {
     resetFlow()
   }
 
-  const handleBack = (dataToSave?: Partial<typeof requestData>) => {
+  const handleBack = (dataToSave?: Partial<typeof datosSolicitud>) => {
     if (dataToSave) {
-      setRequestData(prev => ({ ...prev, ...dataToSave }))
+      setDatosSolicitud(prev => ({ ...prev, ...dataToSave }))
     }
 
-    if (step === 'FECHA_HORA') {
-      setStep('SELECCIONAR_MASCOTA')
-    } else if (step === 'SELECCIONAR_CUIDADOR') {
-      setStep('FECHA_HORA')
-    } else if (step === 'CONFIRMAR') {
-      setStep('SELECCIONAR_CUIDADOR')
+    switch (step) {
+      case 'SELECCIONAR_FECHA':
+        setStep('SELECCIONAR_MASCOTA')
+        break
+      case 'SELECCIONAR_CUIDADOR':
+        setStep('SELECCIONAR_FECHA')
+        break
+      case 'SELECCIONAR_HORA':
+        setStep('SELECCIONAR_CUIDADOR')
+        break
+      case 'CONFIRMAR':
+        setStep('SELECCIONAR_HORA')
+        break
     }
   }
 
@@ -101,43 +117,52 @@ export const SolicitarPaseoModal = ({ visible, onClose }: Props) => {
       case 'SELECCIONAR_MASCOTA':
         return (
           <SeleccionarMascotaPaso
-            initialSelectedIds={requestData.petIds}
+            mascotasInicialesIds={datosSolicitud.mascotaIds}
             onNext={handlePetSelected}
             onCancel={onClose}
           />
         )
-      case 'FECHA_HORA':
+      case 'SELECCIONAR_FECHA':
         return (
-          <FechaHoraPaso
-            initialDate={requestData.fecha}
-            initialTime={requestData.hora}
-            initialDuration={requestData.duracion}
-            onNext={handleDateTimeSelected}
-            onBack={data => handleBack(data)}
+          <SeleccionarFechaPaso
+            fechaInicial={datosSolicitud.fecha}
+            onNext={handleDateSelected}
+            onBack={() => handleBack()}
           />
         )
       case 'SELECCIONAR_CUIDADOR':
         return (
           <SeleccionarCuidadorPaso
-            initialWalkerId={requestData.walkerId}
-            fecha={requestData.fecha}
-            hora={requestData.hora}
-            duracion={requestData.duracion}
+            cuidadorInicialId={datosSolicitud.cuidadorId}
+            fecha={datosSolicitud.fecha}
             onNext={handleWalkerSelected}
-            onBack={walkerId => handleBack({ walkerId: walkerId || null })}
+            onBack={cuidadorId =>
+              handleBack({ cuidadorId: cuidadorId || null })
+            }
+          />
+        )
+      case 'SELECCIONAR_HORA':
+        return (
+          <SeleccionarHoraPaso
+            horaInicial={datosSolicitud.hora}
+            duracionInicial={datosSolicitud.duracion}
+            horaMinima={datosSolicitud.horarioCuidador?.hora_inicio}
+            horaMaxima={datosSolicitud.horarioCuidador?.hora_fin}
+            onNext={handleTimeSelected}
+            onBack={() => handleBack()}
           />
         )
       case 'CONFIRMAR':
         return (
           <ConfirmarPaseoPaso
-            petIds={requestData.petIds}
-            fecha={requestData.fecha}
-            hora={requestData.hora}
-            duracion={requestData.duracion}
-            walkerId={requestData.walkerId}
-            esCompartido={requestData.esCompartido}
+            mascotaIds={datosSolicitud.mascotaIds}
+            fecha={datosSolicitud.fecha}
+            hora={datosSolicitud.hora}
+            duracion={datosSolicitud.duracion}
+            cuidadorId={datosSolicitud.cuidadorId}
+            esCompartido={datosSolicitud.esCompartido}
             onCompartidoChange={value =>
-              setRequestData(prev => ({ ...prev, esCompartido: value }))
+              setDatosSolicitud(prev => ({ ...prev, esCompartido: value }))
             }
             onConfirm={handleConfirmacionFinal}
             onBack={handleBack}
@@ -151,8 +176,9 @@ export const SolicitarPaseoModal = ({ visible, onClose }: Props) => {
   // Map steps to index for indicator
   const stepsOrder: Step[] = [
     'SELECCIONAR_MASCOTA',
-    'FECHA_HORA',
+    'SELECCIONAR_FECHA',
     'SELECCIONAR_CUIDADOR',
+    'SELECCIONAR_HORA',
     'CONFIRMAR',
   ]
   const currentStepIndex = stepsOrder.indexOf(step)

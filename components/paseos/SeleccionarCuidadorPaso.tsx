@@ -14,21 +14,18 @@ import { Button, Icon } from '@/components/ui'
 import { useSeleccionarCuidador } from '@/hooks/paseos/useSeleccionarCuidador'
 
 interface Props {
-  initialWalkerId?: string | null
+  cuidadorInicialId?: string | null
   fecha?: Date | null
-  hora?: string | null
-  duracion?: number | null
-  // eslint-disable-next-line no-unused-vars
-  onNext(walkerId: string): void
-  // eslint-disable-next-line no-unused-vars
-  onBack(walkerId?: string | null): void
+  onNext(
+    cuidadorId: string,
+    horario?: { hora_inicio: string; hora_fin: string }
+  ): void
+  onBack(cuidadorId?: string | null): void
 }
 
 export const SeleccionarCuidadorPaso = ({
-  initialWalkerId,
+  cuidadorInicialId,
   fecha,
-  hora,
-  duracion,
   onNext,
   onBack,
 }: Props) => {
@@ -40,11 +37,12 @@ export const SeleccionarCuidadorPaso = ({
     cuidadorSeleccionado,
     seleccionarCuidador,
     recargar,
-  } = useSeleccionarCuidador(initialWalkerId, fecha, hora, duracion)
+  } = useSeleccionarCuidador(cuidadorInicialId, fecha)
 
   const handleContinuar = () => {
     if (cuidadorSeleccionado) {
-      onNext(cuidadorSeleccionado)
+      const walker = cuidadores.find(c => c.id === cuidadorSeleccionado)
+      onNext(cuidadorSeleccionado, walker?.horario_laboral)
     }
   }
 

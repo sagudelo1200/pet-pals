@@ -7,8 +7,8 @@ import type { PerfilPublico } from '@/models/PerfilPublico'
 import { useAuth } from '@/context/AuthContext'
 
 interface ConfirmarPaseoProps {
-  petIds: string[]
-  walkerId: string | null
+  mascotaIds: string[]
+  cuidadorId: string | null
   fecha: Date | null
   hora: string | null
   esCompartido: boolean
@@ -22,8 +22,8 @@ interface CuidadorInfo {
 }
 
 export const useConfirmarPaseo = ({
-  petIds,
-  walkerId,
+  mascotaIds,
+  cuidadorId,
   fecha,
   hora,
   esCompartido,
@@ -35,18 +35,18 @@ export const useConfirmarPaseo = ({
   const { mascotas: todasLasMascotas } = useMascotas()
 
   // Obtener datos completos de los ID
-  const mascotas = todasLasMascotas.filter(p => petIds.includes(p.id))
+  const mascotas = todasLasMascotas.filter(p => mascotaIds.includes(p.id))
 
   // Cargar datos del cuidador
   useEffect(() => {
     const cargarCuidador = async () => {
-      if (!walkerId) {
+      if (!cuidadorId) {
         setCuidador(null)
         return
       }
 
       try {
-        const resultado = await ServicioPerfilPublico.obtenerPorId(walkerId)
+        const resultado = await ServicioPerfilPublico.obtenerPorId(cuidadorId)
 
         if (resultado.success && resultado.data) {
           const perfil = resultado.data
@@ -66,7 +66,7 @@ export const useConfirmarPaseo = ({
     }
 
     cargarCuidador()
-  }, [walkerId])
+  }, [cuidadorId])
 
   // Cálculo simple de costos
   const tarifaBase = cuidador?.tarifa || 15000
@@ -102,14 +102,14 @@ export const useConfirmarPaseo = ({
           duracion_estimada: 60, // Default 1h
           precio: total,
           ubicacion_inicio: 'Ubicación actual', // TODO: Obtener ubicación real
-          id_cuidador: walkerId || undefined,
+          id_cuidador: cuidadorId || undefined,
           cuidador_nombre_visual: cuidador?.nombre,
           cuidador_foto_visual: cuidador?.imagen,
           modalidad: esCompartido ? 'compartido' : 'privado',
           cupo_maximo_mascotas: esCompartido ? 10 : mascotas.length,
           tutor_ids: user?.uid ? [user.uid] : [],
         },
-        petIds
+        mascotaIds
       )
 
       if (!result.success) {
@@ -128,8 +128,8 @@ export const useConfirmarPaseo = ({
     fecha,
     hora,
     total,
-    walkerId,
-    petIds,
+    cuidadorId,
+    mascotaIds,
     mascotas.length,
     esCompartido,
     cuidador,
