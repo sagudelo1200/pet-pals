@@ -122,6 +122,7 @@ export const SolicitarPaseoModal = ({ visible, onClose }: Props) => {
             initialWalkerId={requestData.walkerId}
             fecha={requestData.fecha}
             hora={requestData.hora}
+            duracion={requestData.duracion}
             onNext={handleWalkerSelected}
             onBack={walkerId => handleBack({ walkerId: walkerId || null })}
           />

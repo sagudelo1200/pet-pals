@@ -17,6 +17,7 @@ interface Props {
   initialWalkerId?: string | null
   fecha?: Date | null
   hora?: string | null
+  duracion?: number | null
   // eslint-disable-next-line no-unused-vars
   onNext(walkerId: string): void
   // eslint-disable-next-line no-unused-vars
@@ -27,6 +28,7 @@ export const SeleccionarCuidadorPaso = ({
   initialWalkerId,
   fecha,
   hora,
+  duracion,
   onNext,
   onBack,
 }: Props) => {
@@ -38,7 +40,7 @@ export const SeleccionarCuidadorPaso = ({
     cuidadorSeleccionado,
     seleccionarCuidador,
     recargar,
-  } = useSeleccionarCuidador(initialWalkerId, fecha, hora)
+  } = useSeleccionarCuidador(initialWalkerId, fecha, hora, duracion)
 
   const handleContinuar = () => {
     if (cuidadorSeleccionado) {
@@ -111,22 +113,21 @@ export const SeleccionarCuidadorPaso = ({
     <View style={styles.centerContent}>
       <View style={styles.iconWrapper}>
         <Icon
-          name="users"
+          name="clock"
           size={64}
           color={COLOR.SUBTEXTO}
           containerStyle={{ width: 120 }}
         />
       </View>
-      <Text style={styles.emptyText}>
-        {t('paseos:pasos.seleccionar_cuidador.sin_cuidadores')}
-      </Text>
+      <Text style={styles.emptyText}>No hay cuidadores disponibles</Text>
       <Text style={styles.emptySubtext}>
-        {t('paseos:pasos.seleccionar_cuidador.sin_cuidadores_desc')}
+        Intenta cambiar la hora o la duración del paseo para encontrar
+        cuidadores.
       </Text>
       <Button
-        title={t('comun:reintentar')}
+        title="Cambiar Horario"
         variant="bloque"
-        onPress={recargar}
+        onPress={() => onBack(null)}
         style={{ marginTop: 24, minWidth: 200 }}
       />
     </View>

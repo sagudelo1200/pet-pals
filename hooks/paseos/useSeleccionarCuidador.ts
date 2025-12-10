@@ -16,7 +16,8 @@ interface CuidadorListItem {
 export const useSeleccionarCuidador = (
   initialWalkerId: string | null = null,
   fecha?: Date | null,
-  hora?: string | null
+  hora?: string | null,
+  duracionMinutos?: number | null
 ) => {
   const { user } = useAuth()
   const [cuidadores, setCuidadores] = useState<CuidadorListItem[]>([])
@@ -28,7 +29,13 @@ export const useSeleccionarCuidador = (
 
   useEffect(() => {
     cargarCuidadores()
-  }, [fecha, hora])
+  }, [fecha, hora, duracionMinutos])
+
+  // Helper para convertir HH:mm a minutos desde medianoche
+  const timeToMinutes = (time: string) => {
+    const [hh, mm] = time.split(':').map(Number)
+    return hh * 60 + mm
+  }
 
   const cargarCuidadores = async () => {
     setCargando(true)
@@ -45,19 +52,29 @@ export const useSeleccionarCuidador = (
         if (fecha && hora) {
           const diaSemana = fecha.getDay() // 0 = Domingo
           const horaSolicitada = hora // "HH:mm"
+          const duracion = duracionMinutos || 60 // Default 1 hora si no viene
 
           filtrados = filtrados.filter(perfil => {
-            // Si no tiene horario configurado, asumimos disponible (o no, depende de la regla de negocio. Asumamos NO disponible para incentivar configuración)
+            // Si no tiene horario configurado, asumimos NO disponible
             if (!perfil.horario_laboral) return false
 
             const { dias, hora_inicio, hora_fin } = perfil.horario_laboral
 
-            // Verificar día
+            // 1. Verificar día
             if (!dias.includes(diaSemana)) return false
 
-            // Verificar hora (comparación de strings HH:mm funciona bien)
-            if (horaSolicitada < hora_inicio || horaSolicitada > hora_fin)
+            // 2. Verificar rango horario completo
+            const inicioSolicitud = timeToMinutes(horaSolicitada)
+            const finSolicitud = inicioSolicitud + duracion
+
+            const inicioTurno = timeToMinutes(hora_inicio)
+            const finTurno = timeToMinutes(hora_fin)
+
+            // El paseo debe empezar DESPUÉS del inicio del turno
+            // Y terminar ANTES del fin del turno
+            if (inicioSolicitud < inicioTurno || finSolicitud > finTurno) {
               return false
+            }
 
             return true
           })
@@ -68,7 +85,7 @@ export const useSeleccionarCuidador = (
           perfil => ({
             id: perfil.id,
             nombre: perfil.nombre,
-            imagen: perfil.foto || 'https://via.placeholder.com/60',
+            imagen: perfil.foto || 'https://via.placeholder.com/69',
             calificacion: perfil.rating_promedio || 0,
             distancia: '2.5 km', // TODO: Calcular distancia real
             tarifa: perfil.tarifa_por_hora
