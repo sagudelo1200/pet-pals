@@ -104,6 +104,13 @@
     "rating": "¿Cómo fue?"
   },
   "detalle": {
-    "titulo": "Detalle del Paseo"
+    "titulo": "Detalle del Paseo",
+    "estado": "Estado",
+    "esperando_cuidador": "Esperando que un cuidador acepte tu solicitud...",
+    "cuidador": "Cuidador Asignado"
+  },
+  "acciones": {
+    "cancelar": "Cancelar Paseo",
+    "confirmar_cancelar": "¿Estás seguro de que deseas cancelar este paseo? Esta acción no se puede deshacer."
   }
 }

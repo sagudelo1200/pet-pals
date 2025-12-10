@@ -1,175 +1,354 @@
 import React, { useEffect, useState } from 'react'
-import { StyleSheet, View, Text, ScrollView, Alert } from 'react-native'
+import { StyleSheet, View, Text, ScrollView, Alert, Image } from 'react-native'
 import { useRoute, useNavigation } from '@react-navigation/native'
 import { useTranslation } from 'react-i18next'
 import { COLOR } from '@/constants'
 import Screen from '@/components/ui/Screen'
 import Button from '@/components/ui/Button'
 import Card from '@/components/ui/Card'
+import Icon from '@/components/ui/Icon'
+import ScreenHeader from '@/components/ui/ScreenHeader'
+import Skeleton from '@/components/ui/Skeleton'
 import { BadgeEstadoPaseo } from '@/components/paseos/BadgeEstadoPaseo'
 import { useEstadoPaseo } from '@/hooks/paseos/useEstadoPaseo'
 import { ServicioPaseo } from '@/services/firebase/paseo'
-import { Paseo } from '@/models/Paseo'
-import LoadingScreen from '@/components/ui/LoadingScreen'
-import ScreenHeader from '@/components/ui/ScreenHeader'
+import { ServicioCrudBase } from '@/services/firebase/crud'
+import { Paseo, PaseoStatus } from '@/models/Paseo'
+import { PerfilPublico } from '@/models/PerfilPublico'
+import { Mascota } from '@/models/Mascota'
 
 export const DetallePaseo = () => {
   const { t } = useTranslation()
   const route = useRoute()
   const navigation = useNavigation()
   const { id } = route.params as { id: string }
-  const [paseo, setPaseo] = useState<Paseo | null>(null)
 
-  // Hook de máquina de estados
-  // Inicializamos vacía y sincronizamos cuando cargue el paseo
-  const {
-    estado,
-    puede,
-    transicion,
-    cargando: cargandoMaquina,
-    sincronizar,
-  } = useEstadoPaseo(paseo || undefined)
+  const [paseo, setPaseo] = useState<Paseo | null>(null)
+  const [cuidador, setCuidador] = useState<PerfilPublico | null>(null)
+  const [mascotas, setMascotas] = useState<Mascota[]>([])
+  const [cargandoDatos, setCargandoDatos] = useState(true)
+
+  const { estado, puede, transicion, sincronizar } = useEstadoPaseo(
+    paseo || undefined
+  )
 
   useEffect(() => {
-    cargarPaseo()
+    cargarDatos()
   }, [id])
 
-  const cargarPaseo = async () => {
-    const res = await ServicioPaseo.obtenerPorId(id)
-    if (res.success && res.data) {
-      setPaseo(res.data)
-      sincronizar(res.data)
-    } else {
-      Alert.alert('Error', 'No se pudo cargar el paseo')
-      navigation.goBack()
+  const cargarDatos = async () => {
+    setCargandoDatos(true)
+    try {
+      const resPaseo = await ServicioPaseo.obtenerPorId(id)
+      if (resPaseo.success && resPaseo.data) {
+        const datosPaseo = resPaseo.data
+        setPaseo(datosPaseo)
+        sincronizar(datosPaseo)
+
+        // Cargar Cuidador si existe
+        if (datosPaseo.id_cuidador) {
+          const resCuidador =
+            await ServicioCrudBase.obtenerPorId<PerfilPublico>(
+              'perfil_publico',
+              datosPaseo.id_cuidador
+            )
+          if (resCuidador.success) setCuidador(resCuidador.data)
+        }
+
+        // Cargar Mascotas
+        if (datosPaseo.mascota_ids?.length) {
+          const promesas = datosPaseo.mascota_ids.map(mId =>
+            ServicioCrudBase.obtenerPorId<Mascota>('mascotas', mId)
+          )
+          const resultados = await Promise.all(promesas)
+          setMascotas(resultados.map(r => r.data!).filter(Boolean))
+        }
+      } else {
+        Alert.alert(t('comun:error'), 'No se pudo cargar el paseo')
+        navigation.goBack()
+      }
+    } catch (error) {
+      console.error(error)
+    } finally {
+      setCargandoDatos(false)
     }
   }
 
-  const handleTransicion = async (evento: any) => {
-    // Ejemplo: Confirmación para cancelar
-    if (evento === 'CANCELAR') {
-      Alert.alert('Cancelar Paseo', '¿Estás seguro?', [
-        { text: 'No', style: 'cancel' },
+  const handleCancelar = () => {
+    Alert.alert(
+      t('paseos:acciones.cancelar'),
+      t('paseos:acciones.confirmar_cancelar'),
+      [
+        { text: t('comun:cancelar'), style: 'cancel' },
         {
-          text: 'Sí, Cancelar',
+          text: t('comun:confirmar'),
           style: 'destructive',
-          onPress: () => ejecutar(evento, { motivo: 'Usuario canceló' }),
+          onPress: async () => {
+            const res = await transicion('CANCELAR', {
+              motivo: 'Cancelado por tutor',
+            })
+            if (res.success) cargarDatos()
+            else Alert.alert(t('comun:error'), res.error)
+          },
         },
-      ])
-      return
-    }
-    await ejecutar(evento)
+      ]
+    )
   }
 
-  const ejecutar = async (evento: any, payload?: any) => {
-    const resultado = await transicion(evento, payload)
-    if (resultado.success) {
-      // Recargar datos para asegurar consistencia
-      cargarPaseo()
-    } else {
-      Alert.alert('Error', resultado.error || 'Error desconocido')
-    }
+  if (cargandoDatos) {
+    return (
+      <Screen style={styles.container} includeTopInset>
+        <ScreenHeader title={t('paseos:detalle.titulo')} />
+        <View style={{ padding: 20 }}>
+          <Skeleton width="100%" height={200} />
+        </View>
+      </Screen>
+    )
   }
 
-  if (!paseo) return <LoadingScreen />
+  if (!paseo) return null
+
+  const fecha =
+    paseo.fecha_hora_inicio instanceof Date
+      ? paseo.fecha_hora_inicio
+      : new Date((paseo.fecha_hora_inicio as any).seconds * 1000)
+
+  const fechaStr = fecha.toLocaleDateString('es-ES', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+  })
+  const horaStr = fecha.toLocaleTimeString('es-ES', {
+    hour: '2-digit',
+    minute: '2-digit',
+  })
+  const precioStr = new Intl.NumberFormat('es-CO', {
+    style: 'currency',
+    currency: 'COP',
+    maximumFractionDigits: 0,
+  }).format(paseo.precio_total)
 
   return (
     <Screen style={styles.container} includeTopInset>
       <ScreenHeader title={t('paseos:detalle.titulo')} />
 
       <ScrollView contentContainerStyle={styles.content}>
+        {/* Header Info */}
+        <View style={styles.mainInfo}>
+          <Text style={styles.precio}>{precioStr}</Text>
+          <View style={styles.fechaContainer}>
+            <Icon name="calendar-alt" size={16} color={COLOR.TEXTO} />
+            <Text style={styles.fechaText}>
+              {fechaStr} • {horaStr}
+            </Text>
+          </View>
+        </View>
+
+        {/* Estado */}
         <Card style={styles.card}>
-          <View style={styles.statusRow}>
-            <Text style={styles.label}>Estado Actual:</Text>
+          <View style={styles.row}>
+            <Text style={styles.label}>{t('paseos:detalle.estado')}:</Text>
             <BadgeEstadoPaseo estado={estado} />
           </View>
-          <Text style={styles.info}>ID: {paseo.id}</Text>
-          <Text style={styles.info}>
-            Inicio:{' '}
-            {paseo.fecha_hora_inicio
-              ? new Date(paseo.fecha_hora_inicio).toLocaleString()
-              : 'N/A'}
-          </Text>
+          {estado === PaseoStatus.PENDIENTE && (
+            <Text style={styles.statusDesc}>
+              {t('paseos:detalle.esperando_cuidador')}
+            </Text>
+          )}
         </Card>
 
-        {/* Controles de Estado (Solo demo por ahora) */}
-        <View style={styles.actions}>
-          <Text style={styles.sectionTitle}>Acciones Disponibles</Text>
+        {/* Cuidador (Si existe) */}
+        {cuidador && (
+          <Card style={styles.card} title={t('paseos:detalle.cuidador')}>
+            <View style={styles.perfilRow}>
+              {cuidador.foto ? (
+                <Image source={{ uri: cuidador.foto }} style={styles.avatar} />
+              ) : (
+                <View style={styles.avatarPlaceholder}>
+                  <Text style={styles.avatarText}>
+                    {cuidador.nombre.charAt(0)}
+                  </Text>
+                </View>
+              )}
+              <View>
+                <Text style={styles.nombreCuidador}>{cuidador.nombre}</Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                  <Icon name="star" size={14} color={COLOR.ENFASIS} solid />
+                  <Text style={styles.rating}>
+                    {cuidador.rating_promedio || 'Nuevo'}
+                  </Text>
+                </View>
+              </View>
+            </View>
+          </Card>
+        )}
 
-          {puede('CANCELAR') && (
-            <Button
-              title="Cancelar Paseo"
-              variant="error"
-              onPress={() => handleTransicion('CANCELAR')}
-              loading={cargandoMaquina}
-              style={styles.actionBtn}
-            />
-          )}
+        {/* Mascotas */}
+        <Card
+          style={styles.card}
+          title={`${t('cuidador:solicitudes.mascotas')} (${mascotas.length})`}
+        >
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={{ paddingVertical: 8 }}
+          >
+            {mascotas.map(mascota => (
+              <View key={mascota.id} style={styles.mascotaItemHorizontal}>
+                {mascota.foto ? (
+                  <Image
+                    source={{ uri: mascota.foto }}
+                    style={styles.mascotaAvatarLarge}
+                  />
+                ) : (
+                  <View
+                    style={[
+                      styles.mascotaAvatarLarge,
+                      styles.mascotaPlaceholder,
+                    ]}
+                  >
+                    <Icon name="paw" size={24} color={COLOR.SUBTEXTO} />
+                  </View>
+                )}
+                <Text style={styles.mascotaNombre} numberOfLines={1}>
+                  {mascota.nombre}
+                </Text>
+                <Text style={styles.mascotaRaza} numberOfLines={1}>
+                  {mascota.raza || 'Raza desconocida'}
+                </Text>
+              </View>
+            ))}
+          </ScrollView>
+        </Card>
 
-          {/* Botones para probar flujo completo (Simulando ser cuidador/sistema) */}
-          {puede('ACEPTAR') && (
-            <Button
-              title="[Demo] Aceptar"
-              onPress={() => handleTransicion('ACEPTAR')}
-              style={styles.actionBtn}
-            />
-          )}
-          {puede('INICIAR_RUTA') && (
-            <Button
-              title="[Demo] Iniciar Ruta"
-              onPress={() => handleTransicion('INICIAR_RUTA')}
-              style={styles.actionBtn}
-            />
-          )}
-          {puede('LLEGAR') && (
-            <Button
-              title="[Demo] Llegar"
-              onPress={() => handleTransicion('LLEGAR')}
-              style={styles.actionBtn}
-            />
-          )}
-          {puede('INICIAR_PASEO') && (
-            <Button
-              title="[Demo] Iniciar Paseo"
-              onPress={() => handleTransicion('INICIAR_PASEO')}
-              style={styles.actionBtn}
-              variant="primario"
-            />
-          )}
-          {puede('FINALIZAR_PASEO') && (
-            <Button
-              title="[Demo] Finalizar"
-              onPress={() => handleTransicion('FINALIZAR_PASEO')}
-              style={styles.actionBtn}
-            />
-          )}
-          {puede('CONFIRMAR_COMPLETADO') && (
-            <Button
-              title="Confirmar Completado"
-              onPress={() => handleTransicion('CONFIRMAR_COMPLETADO')}
-              style={styles.actionBtn}
-              variant="exito"
-            />
-          )}
-        </View>
+        {/* Mapa */}
+        <Card
+          style={styles.card}
+          title={t('cuidador:solicitudes.ubicacion_por_definir')}
+        >
+          <View style={styles.mapPlaceholder}>
+            <Icon name="map-marker-alt" size={32} color={COLOR.SUBTEXTO} />
+            <Text style={styles.mapText}>
+              {t('cuidador:solicitudes.vista_mapa')}
+            </Text>
+          </View>
+        </Card>
       </ScrollView>
+
+      {/* Footer */}
+      <View style={styles.footer}>
+        {puede('CANCELAR') && (
+          <Button
+            title={t('paseos:acciones.cancelar')}
+            variant="contorno"
+            style={{ flex: 1 }}
+            textStyle={{ color: COLOR.ERROR }}
+            onPress={handleCancelar}
+          />
+        )}
+        {/* TODO: Botón Contactar si está aceptado */}
+      </View>
     </Screen>
   )
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
-  content: { padding: 16 },
-  card: { padding: 16, marginBottom: 24 },
-  statusRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 16,
+  container: { flex: 1, backgroundColor: COLOR.BASE },
+  content: { padding: 20, paddingBottom: 100 },
+  mainInfo: { alignItems: 'center', marginBottom: 24, marginTop: 10 },
+  precio: {
+    fontSize: 36,
+    fontWeight: '800',
+    color: COLOR.ENFASIS,
+    marginBottom: 12,
+    letterSpacing: -1,
   },
-  label: { color: COLOR.SUBTEXTO },
-  info: { color: COLOR.TEXTO, marginBottom: 4 },
-  actions: { gap: 12 },
-  sectionTitle: { color: COLOR.SUBTEXTO, marginBottom: 8, fontWeight: '600' },
-  actionBtn: { marginBottom: 8 },
+  fechaContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLOR.BLOQUE,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 100,
+    borderWidth: 1,
+    borderColor: COLOR.BORDE,
+  },
+  fechaText: {
+    fontSize: 14,
+    color: COLOR.TEXTO,
+    marginLeft: 8,
+    fontWeight: '500',
+    textTransform: 'capitalize',
+  },
+  card: {
+    marginBottom: 16,
+    backgroundColor: COLOR.BLOQUE,
+    borderColor: COLOR.BORDE,
+  },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  label: { fontSize: 15, color: COLOR.TEXTO, fontWeight: '500' },
+  statusDesc: { marginTop: 8, fontSize: 14, color: COLOR.SUBTEXTO },
+  perfilRow: { flexDirection: 'row', alignItems: 'center' },
+  avatar: { width: 50, height: 50, borderRadius: 25, marginRight: 16 },
+  avatarPlaceholder: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: COLOR.ENFASIS,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 16,
+  },
+  avatarText: { fontSize: 20, fontWeight: 'bold', color: '#FFF' },
+  nombreCuidador: { fontSize: 16, fontWeight: '600', color: COLOR.TEXTO },
+  rating: { fontSize: 14, color: COLOR.SUBTEXTO, marginLeft: 4 },
+  mascotaItemHorizontal: { alignItems: 'center', marginRight: 20, width: 80 },
+  mascotaAvatarLarge: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    marginBottom: 8,
+  },
+  mascotaPlaceholder: {
+    backgroundColor: COLOR.SECUNDARIO,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  mascotaNombre: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: COLOR.TEXTO,
+    textAlign: 'center',
+  },
+  mascotaRaza: { fontSize: 12, color: COLOR.SUBTEXTO, textAlign: 'center' },
+  mapPlaceholder: {
+    height: 120,
+    backgroundColor: COLOR.SECUNDARIO,
+    borderRadius: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 8,
+  },
+  mapText: { color: COLOR.SUBTEXTO, marginTop: 8, fontSize: 12 },
+  footer: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: COLOR.BASE,
+    borderTopWidth: 1,
+    borderTopColor: COLOR.BORDE,
+    padding: 20,
+    paddingBottom: 40,
+    flexDirection: 'row',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 10,
+  },
 })

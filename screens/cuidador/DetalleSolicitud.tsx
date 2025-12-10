@@ -95,11 +95,7 @@ export const DetalleSolicitud = () => {
 
   if (cargandoDatos) {
     return (
-      <Screen
-        style={styles.container}
-        contentContainerStyle={{ flex: 1 }}
-        includeTopInset
-      >
+      <Screen style={styles.container} includeTopInset>
         <ScreenHeader title={t('cuidador:solicitudes.detalle_titulo')} />
 
         <View style={{ padding: 20 }}>
@@ -157,31 +153,28 @@ export const DetalleSolicitud = () => {
   }).format(paseo.precio)
 
   return (
-    <Screen
-      style={styles.container}
-      contentContainerStyle={{ flex: 1 }}
-      includeTopInset
-    >
+    <Screen style={styles.container} includeTopInset>
       <ScreenHeader title={t('cuidador:solicitudes.detalle_titulo')} />
 
       <ScrollView
         contentContainerStyle={styles.content}
-        style={{ flex: 1 }}
         showsVerticalScrollIndicator={false}
       >
         {/* Sección Principal: Fecha y Precio */}
         <View style={styles.mainInfo}>
           <Text style={styles.precio}>{precioStr}</Text>
-          <View style={styles.fechaRow}>
-            <Icon name="calendar-alt" size={16} color={COLOR.ENFASIS} />
-            <Text style={styles.fechaText}>{fechaStr}</Text>
-          </View>
-          <View style={styles.fechaRow}>
-            <Icon name="clock" size={16} color={COLOR.ENFASIS} />
-            <Text style={styles.fechaText}>
-              {horaStr} ({paseo.duracion_estimada}{' '}
-              {t('cuidador:solicitudes.min')})
-            </Text>
+          <View style={styles.fechaContainer}>
+            <View style={styles.fechaRow}>
+              <Icon name="calendar-alt" size={18} color={COLOR.ENFASIS} />
+              <Text style={styles.fechaText}>{fechaStr}</Text>
+            </View>
+            <View style={styles.fechaRow}>
+              <Icon name="clock" size={18} color={COLOR.ENFASIS} />
+              <Text style={styles.fechaText}>
+                {horaStr} • {paseo.duracion_estimada}{' '}
+                {t('cuidador:solicitudes.min')}
+              </Text>
+            </View>
           </View>
         </View>
 
@@ -236,32 +229,45 @@ export const DetalleSolicitud = () => {
           style={styles.card}
           title={`${t('cuidador:solicitudes.mascotas')} (${mascotas.length})`}
         >
-          {mascotas.map((mascota, index) => (
-            <View
-              key={mascota.id}
-              style={[
-                styles.mascotaRow,
-                index < mascotas.length - 1 && styles.borderBottom,
-              ]}
-            >
-              {mascota.foto ? (
-                <Image
-                  source={{ uri: mascota.foto }}
-                  style={styles.mascotaAvatar}
-                />
-              ) : (
-                <View style={[styles.mascotaAvatar, styles.mascotaPlaceholder]}>
-                  <Icon name="paw" size={20} color={COLOR.SUBTEXTO} />
-                </View>
-              )}
-              <View>
-                <Text style={styles.mascotaNombre}>{mascota.nombre}</Text>
-                <Text style={styles.mascotaRaza}>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={{ paddingVertical: 8 }}
+          >
+            {mascotas.map((mascota, index) => (
+              <View key={mascota.id} style={styles.mascotaItemHorizontal}>
+                {mascota.foto ? (
+                  <Image
+                    source={{ uri: mascota.foto }}
+                    style={styles.mascotaAvatarLarge}
+                  />
+                ) : (
+                  <View
+                    style={[
+                      styles.mascotaAvatarLarge,
+                      styles.mascotaPlaceholder,
+                    ]}
+                  >
+                    <Icon name="paw" size={24} color={COLOR.SUBTEXTO} />
+                  </View>
+                )}
+                <Text
+                  style={styles.mascotaNombre}
+                  numberOfLines={1}
+                  ellipsizeMode="tail"
+                >
+                  {mascota.nombre}
+                </Text>
+                <Text
+                  style={styles.mascotaRaza}
+                  numberOfLines={1}
+                  ellipsizeMode="tail"
+                >
                   {mascota.raza || t('cuidador:solicitudes.raza_desconocida')}
                 </Text>
               </View>
-            </View>
-          ))}
+            ))}
+          </ScrollView>
         </Card>
       </ScrollView>
 
@@ -298,23 +304,36 @@ const styles = StyleSheet.create({
   },
   mainInfo: {
     alignItems: 'center',
-    marginBottom: 24,
+    marginBottom: 32,
+    marginTop: 10,
   },
   precio: {
-    fontSize: 32,
+    fontSize: 40,
     fontWeight: '800',
     color: COLOR.ENFASIS,
-    marginBottom: 8,
+    marginBottom: 16,
+    letterSpacing: -1,
+  },
+  fechaContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLOR.BLOQUE,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 100,
+    borderWidth: 1,
+    borderColor: COLOR.BORDE,
   },
   fechaRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 4,
+    marginHorizontal: 10,
   },
   fechaText: {
-    fontSize: 16,
-    color: COLOR.SUBTEXTO,
+    fontSize: 15,
+    color: COLOR.TEXTO,
     marginLeft: 8,
+    fontWeight: '500',
     textTransform: 'capitalize',
   },
   card: {
@@ -379,20 +398,16 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: COLOR.SUBTEXTO,
   },
-  mascotaRow: {
-    flexDirection: 'row',
+  mascotaItemHorizontal: {
     alignItems: 'center',
-    paddingVertical: 12,
+    marginRight: 20,
+    width: 80,
   },
-  borderBottom: {
-    borderBottomWidth: 1,
-    borderBottomColor: COLOR.BORDE,
-  },
-  mascotaAvatar: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    marginRight: 12,
+  mascotaAvatarLarge: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    marginBottom: 8,
   },
   mascotaPlaceholder: {
     backgroundColor: COLOR.SECUNDARIO,
@@ -400,25 +415,35 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   mascotaNombre: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '600',
     color: COLOR.TEXTO,
+    textAlign: 'center',
   },
   mascotaRaza: {
-    fontSize: 14,
+    fontSize: 12,
     color: COLOR.SUBTEXTO,
+    textAlign: 'center',
   },
   footer: {
     position: 'absolute',
     bottom: 0,
     left: 0,
     right: 0,
-    backgroundColor: COLOR.BLOQUE,
+    backgroundColor: COLOR.BASE,
     borderTopWidth: 1,
     borderTopColor: COLOR.BORDE,
     padding: 20,
     flexDirection: 'row',
     paddingBottom: 40, // Safe area + extra spacing
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: -4,
+    },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 10,
   },
   btnAction: {
     flex: 1,

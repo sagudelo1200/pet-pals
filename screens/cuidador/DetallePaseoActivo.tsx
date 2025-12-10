@@ -154,8 +154,11 @@ export const DetallePaseoActivo = () => {
       <ScrollView contentContainerStyle={styles.content}>
         {/* Estado Actual */}
         <View style={styles.statusContainer}>
+          <View style={styles.timerContainer}>
+            <Text style={styles.timerText}>{tiempo}</Text>
+            <Text style={styles.timerLabel}>Tiempo transcurrido</Text>
+          </View>
           <BadgeEstadoPaseo estado={estado} />
-          <Text style={styles.timerText}>{tiempo}</Text>
         </View>
 
         {/* Mapa / Ubicación */}
@@ -264,14 +267,28 @@ const styles = StyleSheet.create({
   },
   statusContainer: {
     alignItems: 'center',
-    marginBottom: 24,
+    marginBottom: 32,
+    marginTop: 10,
+  },
+  timerContainer: {
+    alignItems: 'center',
+    marginBottom: 16,
   },
   timerText: {
-    fontSize: 32,
-    fontWeight: 'bold',
+    fontSize: 48,
+    fontWeight: '800',
     color: COLOR.TEXTO,
-    marginTop: 12,
     fontVariant: ['tabular-nums'],
+    letterSpacing: -2,
+    lineHeight: 56,
+  },
+  timerLabel: {
+    fontSize: 14,
+    color: COLOR.SUBTEXTO,
+    marginTop: 4,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+    fontWeight: '600',
   },
   mapCard: {
     padding: 0,
@@ -325,8 +342,16 @@ const styles = StyleSheet.create({
     right: 0,
     padding: 20,
     paddingBottom: 34,
-    backgroundColor: COLOR.BLOQUE,
+    backgroundColor: COLOR.BASE,
     borderTopWidth: 1,
     borderTopColor: COLOR.BORDE,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: -4,
+    },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 10,
   },
 })

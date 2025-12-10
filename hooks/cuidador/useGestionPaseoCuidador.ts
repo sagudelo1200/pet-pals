@@ -68,13 +68,19 @@ export const useGestionPaseoCuidador = () => {
                 t('cuidador:solicitudes.exito_aceptar'),
                 [
                   {
-                    text: 'OK',
+                    text: 'Aceptar',
                     onPress: () => {
                       if (onSuccess) {
                         onSuccess()
                       } else {
                         navigation.goBack()
                       }
+                    },
+                  },
+                  {
+                    text: 'Ver Agenda',
+                    onPress: () => {
+                      navigation.navigate('Agenda' as never)
                     },
                   },
                 ]
