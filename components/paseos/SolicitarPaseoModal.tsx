@@ -120,6 +120,8 @@ export const SolicitarPaseoModal = ({ visible, onClose }: Props) => {
         return (
           <SeleccionarCuidadorPaso
             initialWalkerId={requestData.walkerId}
+            fecha={requestData.fecha}
+            hora={requestData.hora}
             onNext={handleWalkerSelected}
             onBack={walkerId => handleBack({ walkerId: walkerId || null })}
           />

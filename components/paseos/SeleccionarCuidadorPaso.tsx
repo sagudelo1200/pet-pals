@@ -15,6 +15,8 @@ import { useSeleccionarCuidador } from '@/hooks/paseos/useSeleccionarCuidador'
 
 interface Props {
   initialWalkerId?: string | null
+  fecha?: Date | null
+  hora?: string | null
   // eslint-disable-next-line no-unused-vars
   onNext(walkerId: string): void
   // eslint-disable-next-line no-unused-vars
@@ -23,6 +25,8 @@ interface Props {
 
 export const SeleccionarCuidadorPaso = ({
   initialWalkerId,
+  fecha,
+  hora,
   onNext,
   onBack,
 }: Props) => {
@@ -34,7 +38,7 @@ export const SeleccionarCuidadorPaso = ({
     cuidadorSeleccionado,
     seleccionarCuidador,
     recargar,
-  } = useSeleccionarCuidador(initialWalkerId)
+  } = useSeleccionarCuidador(initialWalkerId, fecha, hora)
 
   const handleContinuar = () => {
     if (cuidadorSeleccionado) {

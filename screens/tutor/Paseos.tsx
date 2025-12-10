@@ -23,6 +23,15 @@ const Paseos: React.FC = () => {
   const { mascotas } = useMascotas()
   const navigation = useNavigation()
   const { paseos, cargando, refetch } = usePaseos()
+  const lastNavTime = React.useRef(0)
+
+  const handleNavigateToDetail = (id: string) => {
+    const now = Date.now()
+    if (now - lastNavTime.current < 1000) return
+    lastNavTime.current = now
+    // @ts-ignore
+    navigation.navigate('DetallePaseo', { id })
+  }
 
   const handleSolicitar = () => {
     if (mascotas.length === 0) {
@@ -117,18 +126,12 @@ const Paseos: React.FC = () => {
           activeTab === 'historial' ? (
             <ItemHistorialPaseo
               paseo={item}
-              onPress={() => {
-                // @ts-ignore
-                navigation.navigate('DetallePaseo', { id: item.id })
-              }}
+              onPress={() => handleNavigateToDetail(item.id)}
             />
           ) : (
             <TarjetaPaseo
               paseo={item}
-              onPress={() => {
-                // @ts-ignore
-                navigation.navigate('DetallePaseo', { id: item.id })
-              }}
+              onPress={() => handleNavigateToDetail(item.id)}
             />
           )
         }

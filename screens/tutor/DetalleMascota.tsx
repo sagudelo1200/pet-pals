@@ -11,7 +11,7 @@ import {
 } from 'react-native'
 import { useTranslation } from 'react-i18next'
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native'
-import { COLOR } from '@/constants'
+import { COLOR, ERR } from '@/constants'
 import Button from '@/components/ui/Button'
 import Icon from '@/components/ui/Icon'
 import { AuthStackParamList } from '@/navigation/types'
@@ -60,16 +60,24 @@ const DetalleMascota: React.FC = () => {
   }, [mascotaParam])
 
   const scrollViewRef = useRef<ScrollView>(null)
+  const lastNavTime = useRef(0)
 
   // Hooks
   const { slideAnim, opacityAnim, panResponder, isExpanded, expandir, cerrar } =
     useAnimacionModal({
       onClose: () => {
         if (cambiosRealizados) {
-          // @ts-ignore - Navegación entre stacks compleja de tipar
-          navigation.navigate('Mascotas', { refresh: Date.now() })
+          // Navegar explícitamente al Tab de Tutor -> Mascotas
+          ;(navigation as any).navigate('TutorApp', {
+            screen: 'Mascotas',
+            params: { refresh: Date.now() },
+          })
         } else {
-          navigation.goBack()
+          if (navigation.canGoBack()) {
+            navigation.goBack()
+          } else {
+            ;(navigation as any).navigate('TutorApp', { screen: 'Mascotas' })
+          }
         }
       },
       onCollapse: () => {
@@ -110,7 +118,15 @@ const DetalleMascota: React.FC = () => {
     <View style={styles.container}>
       {/* Backdrop con cierre al tocar */}
       <Animated.View style={[styles.backdrop, { opacity: opacityAnim }]}>
-        <Pressable style={styles.backdropPress} onPress={cerrar} />
+        <Pressable
+          style={styles.backdropPress}
+          onPress={() => {
+            // Evitar múltiples toques rápidos
+            if (Date.now() - lastNavTime.current < 1000) return
+            lastNavTime.current = Date.now()
+            cerrar()
+          }}
+        />
       </Animated.View>
 
       {/* Bottom Sheet */}
@@ -129,7 +145,7 @@ const DetalleMascota: React.FC = () => {
           <View style={styles.errorContainer}>
             <Icon name="alert-circle" size={48} color={COLOR.ERROR} />
             <Text style={styles.errorText}>
-              {error || 'Mascota no encontrada'}
+              {error || ERR.MASCOTAS.MASCOTA_NO_ENCONTRADA}
             </Text>
             <Button
               title={t('comun:cerrar')}

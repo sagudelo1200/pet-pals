@@ -6,6 +6,8 @@ import {
   Alert,
   KeyboardAvoidingView,
   Platform,
+  Text,
+  TouchableOpacity,
 } from 'react-native'
 import { useNavigation } from '@react-navigation/native'
 import { useTranslation } from 'react-i18next'
@@ -15,6 +17,7 @@ import ScreenHeader from '@/components/ui/ScreenHeader'
 import Button from '@/components/ui/Button'
 import TextInput from '@/components/ui/TextInput'
 import ImagePicker from '@/components/ui/ImagePicker'
+import { TimePicker } from '@/components/ui'
 import { useAuth } from '@/context/AuthContext'
 import { ServicioCrudBase } from '@/services/firebase/crud'
 import { PerfilPublico } from '@/models/PerfilPublico'
@@ -33,9 +36,22 @@ const PerfilCuidador: React.FC = () => {
   const [experiencia, setExperiencia] = useState('') // Usaremos este campo para años numéricos en el MVP
   const [tarifa, setTarifa] = useState('')
 
+  // Schedule State
+  const [dias, setDias] = useState<number[]>([])
+  const [horaInicio, setHoraInicio] = useState('08:00')
+  const [horaFin, setHoraFin] = useState('18:00')
+
   useEffect(() => {
     cargarPerfil()
   }, [])
+
+  const toggleDia = (dia: number) => {
+    if (dias.includes(dia)) {
+      setDias(dias.filter(d => d !== dia))
+    } else {
+      setDias([...dias, dia].sort())
+    }
+  }
 
   const cargarPerfil = async () => {
     if (!user) return
@@ -51,6 +67,12 @@ const PerfilCuidador: React.FC = () => {
       setBiografia(data.biografia || '')
       setExperiencia(data.experiencia || '')
       setTarifa(data.tarifa_por_hora ? data.tarifa_por_hora.toString() : '')
+
+      if (data.horario_laboral) {
+        setDias(data.horario_laboral.dias || [])
+        setHoraInicio(data.horario_laboral.hora_inicio || '08:00')
+        setHoraFin(data.horario_laboral.hora_fin || '18:00')
+      }
     }
     setLoading(false)
   }
@@ -68,13 +90,26 @@ const PerfilCuidador: React.FC = () => {
       return
     }
 
+    if (horaInicio >= horaFin) {
+      Alert.alert(
+        t('comun:error'),
+        'La hora de inicio debe ser anterior a la hora de fin'
+      )
+      return
+    }
+
     setSaving(true)
 
     const updateData: Partial<PerfilPublico> = {
       foto,
       biografia,
-      experiencia, // En este MVP lo usamos como texto libre o años
+      experiencia,
       tarifa_por_hora: Number(tarifa),
+      horario_laboral: {
+        dias,
+        hora_inicio: horaInicio,
+        hora_fin: horaFin,
+      },
     }
 
     const res = await ServicioCrudBase.actualizar(
@@ -143,6 +178,52 @@ const PerfilCuidador: React.FC = () => {
               style={[styles.input, { flex: 1 }]}
             />
           </View>
+
+          <View style={styles.sectionContainer}>
+            <Text style={styles.sectionTitle}>
+              {t('perfil:editar.horario_titulo')}
+            </Text>
+            <Text style={styles.sectionSubtitle}>
+              {t('perfil:editar.horario_desc')}
+            </Text>
+
+            <View style={styles.daysContainer}>
+              {[0, 1, 2, 3, 4, 5, 6].map(dia => (
+                <TouchableOpacity
+                  key={dia}
+                  style={[
+                    styles.dayButton,
+                    dias.includes(dia) && styles.dayButtonActive,
+                  ]}
+                  onPress={() => toggleDia(dia)}
+                >
+                  <Text
+                    style={[
+                      styles.dayText,
+                      dias.includes(dia) && styles.dayTextActive,
+                    ]}
+                  >
+                    {t(`perfil:editar.dias.${dia}`)}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            <View style={styles.row}>
+              <TimePicker
+                label={t('perfil:editar.hora_inicio')}
+                value={horaInicio}
+                onValueChange={setHoraInicio}
+                style={{ flex: 1, marginRight: 10 }}
+              />
+              <TimePicker
+                label={t('perfil:editar.hora_fin')}
+                value={horaFin}
+                onValueChange={setHoraFin}
+                style={{ flex: 1 }}
+              />
+            </View>
+          </View>
         </ScrollView>
 
         <View style={styles.footer}>
@@ -188,6 +269,48 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: COLOR.BORDE,
     backgroundColor: COLOR.BASE,
+  },
+  sectionContainer: {
+    marginTop: 10,
+    marginBottom: 20,
+  },
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: COLOR.TEXTO,
+    marginBottom: 5,
+  },
+  sectionSubtitle: {
+    fontSize: 14,
+    color: COLOR.SUBTEXTO,
+    marginBottom: 15,
+  },
+  daysContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 20,
+  },
+  dayButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: COLOR.BLOQUE,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: COLOR.BORDE,
+  },
+  dayButtonActive: {
+    backgroundColor: COLOR.ENFASIS,
+    borderColor: COLOR.ENFASIS,
+  },
+  dayText: {
+    fontSize: 14,
+    color: COLOR.SUBTEXTO,
+    fontWeight: '600',
+  },
+  dayTextActive: {
+    color: '#FFF',
   },
 })
 

@@ -11,11 +11,11 @@ import {
 import { COLOR } from '@/constants'
 import Icon from './Icon'
 import DateTimePickerNative from '@react-native-community/datetimepicker'
-import { Button } from '@/components/ui'
 
 interface TimePickerProps {
   label?: string
   value?: string | null
+  // eslint-disable-next-line no-unused-vars
   onValueChange: (time: string) => void
   placeholder?: string
   style?: ViewStyle | ViewStyle[]

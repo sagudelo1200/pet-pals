@@ -126,7 +126,7 @@ export const DetallePaseo = () => {
     style: 'currency',
     currency: 'COP',
     maximumFractionDigits: 0,
-  }).format(paseo.precio_total)
+  }).format(paseo.precio)
 
   return (
     <Screen style={styles.container} includeTopInset>
@@ -173,7 +173,7 @@ export const DetallePaseo = () => {
               <View>
                 <Text style={styles.nombreCuidador}>{cuidador.nombre}</Text>
                 <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                  <Icon name="star" size={14} color={COLOR.ENFASIS} solid />
+                  <Icon name="star" size={14} color={COLOR.ENFASIS} />
                   <Text style={styles.rating}>
                     {cuidador.rating_promedio || 'Nuevo'}
                   </Text>

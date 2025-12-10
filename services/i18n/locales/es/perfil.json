@@ -34,6 +34,19 @@
     "experiencia_label": "Experiencia (tiempo)",
     "tarifa_label": "Tarifa por Hora (COP)",
     "guardar": "Guardar Cambios",
-    "exito_guardar": "Perfil actualizado correctamente"
+    "exito_guardar": "Perfil actualizado correctamente",
+    "horario_titulo": "Disponibilidad Semanal",
+    "horario_desc": "Selecciona los días y horas que trabajas",
+    "dias": {
+      "0": "D",
+      "1": "L",
+      "2": "M",
+      "3": "X",
+      "4": "J",
+      "5": "V",
+      "6": "S"
+    },
+    "hora_inicio": "Hora Inicio",
+    "hora_fin": "Hora Fin"
   }
 }
