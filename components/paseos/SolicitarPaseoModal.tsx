@@ -66,7 +66,7 @@ export const SolicitarPaseoModal = ({ visible, onClose }: Props) => {
   }
 
   const handleWalkerSelected = (
-    cuidadorId: string,
+    cuidadorId: string | null,
     horario?: { hora_inicio: string; hora_fin: string }
   ) => {
     setDatosSolicitud(prev => ({

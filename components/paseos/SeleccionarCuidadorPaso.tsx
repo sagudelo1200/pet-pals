@@ -16,11 +16,14 @@ import { useSeleccionarCuidador } from '@/hooks/paseos/useSeleccionarCuidador'
 interface Props {
   cuidadorInicialId?: string | null
   fecha?: Date | null
-  onNext(
-    cuidadorId: string,
+  onNext: (
+    // eslint-disable-next-line no-unused-vars
+    cuidadorId: string | null,
+    // eslint-disable-next-line no-unused-vars
     horario?: { hora_inicio: string; hora_fin: string }
-  ): void
-  onBack(cuidadorId?: string | null): void
+  ) => void
+  // eslint-disable-next-line no-unused-vars
+  onBack: (cuidadorId?: string | null) => void
 }
 
 export const SeleccionarCuidadorPaso = ({
@@ -40,10 +43,58 @@ export const SeleccionarCuidadorPaso = ({
   } = useSeleccionarCuidador(cuidadorInicialId, fecha)
 
   const handleContinuar = () => {
-    if (cuidadorSeleccionado) {
+    if (cuidadorSeleccionado === 'SOLICITUD_ABIERTA') {
+      // Horario amplio por defecto para solicitud abierta
+      onNext(null, { hora_inicio: '05:00', hora_fin: '23:00' })
+    } else if (cuidadorSeleccionado) {
       const walker = cuidadores.find(c => c.id === cuidadorSeleccionado)
       onNext(cuidadorSeleccionado, walker?.horario_laboral)
     }
+  }
+
+  const handleSelectOpenRequest = () => {
+    seleccionarCuidador('SOLICITUD_ABIERTA')
+  }
+
+  const renderOpenRequestCard = () => {
+    const isSelected = cuidadorSeleccionado === 'SOLICITUD_ABIERTA'
+    return (
+      <TouchableOpacity
+        style={[
+          styles.card,
+          styles.openCard,
+          isSelected && styles.cardSelected,
+        ]}
+        onPress={handleSelectOpenRequest}
+        activeOpacity={0.8}
+      >
+        <View style={[styles.avatar, styles.openAvatar]}>
+          <Icon name="bullhorn" size={24} color={COLOR.INFO} />
+        </View>
+
+        <View style={styles.info}>
+          <View style={styles.header}>
+            <Text style={[styles.name, { fontWeight: 'bold' }]}>
+              {t(
+                'paseos:pasos.seleccionar_cuidador.solicitud_abierta_titulo',
+                'Solicitud Abierta'
+              )}
+            </Text>
+          </View>
+
+          <Text style={styles.description}>
+            {t(
+              'paseos:pasos.seleccionar_cuidador.solicitud_abierta_desc',
+              'Publica tu solicitud para que cualquier cuidador disponible pueda aceptarla.'
+            )}
+          </Text>
+        </View>
+
+        <View style={styles.radio}>
+          {isSelected && <View style={styles.radioSelected} />}
+        </View>
+      </TouchableOpacity>
+    )
   }
 
   const renderItem = ({ item }: { item: any }) => {
@@ -107,30 +158,6 @@ export const SeleccionarCuidadorPaso = ({
     </View>
   )
 
-  const renderEmpty = () => (
-    <View style={styles.centerContent}>
-      <View style={styles.iconWrapper}>
-        <Icon
-          name="clock"
-          size={64}
-          color={COLOR.SUBTEXTO}
-          containerStyle={{ width: 120 }}
-        />
-      </View>
-      <Text style={styles.emptyText}>No hay cuidadores disponibles</Text>
-      <Text style={styles.emptySubtext}>
-        Intenta cambiar la hora o la duración del paseo para encontrar
-        cuidadores.
-      </Text>
-      <Button
-        title="Cambiar Horario"
-        variant="bloque"
-        onPress={() => onBack(null)}
-        style={{ marginTop: 24, minWidth: 200 }}
-      />
-    </View>
-  )
-
   return (
     <View style={styles.container}>
       <Text style={styles.title}>
@@ -147,8 +174,6 @@ export const SeleccionarCuidadorPaso = ({
         renderLoading()
       ) : error ? (
         renderError()
-      ) : cuidadores.length === 0 ? (
-        renderEmpty()
       ) : (
         <FlatList
           data={cuidadores}
@@ -157,6 +182,19 @@ export const SeleccionarCuidadorPaso = ({
           contentContainerStyle={styles.listContent}
           style={styles.list}
           showsVerticalScrollIndicator={false}
+          ListHeaderComponent={renderOpenRequestCard}
+          ListEmptyComponent={
+            cuidadores.length === 0 ? (
+              <View style={styles.centerContent}>
+                <Text style={styles.emptyText}>
+                  {t('paseos:pasos.seleccionar_cuidador.sin_cuidadores')}
+                </Text>
+                <Text style={styles.emptySubtext}>
+                  {t('paseos:pasos.seleccionar_cuidador.sin_cuidadores_desc')}
+                </Text>
+              </View>
+            ) : null
+          }
         />
       )}
 
@@ -212,9 +250,16 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: COLOR.BORDE,
   },
+  openCard: {
+    marginBottom: 16,
+    backgroundColor: COLOR.SECUNDARIO,
+    borderColor: COLOR.INFO,
+    borderStyle: 'dashed',
+  },
   cardSelected: {
     borderColor: COLOR.PRIMARIO,
-    backgroundColor: 'rgba(29, 143, 115, 0.05)',
+    backgroundColor: 'rgba(29, 143, 115, 0.1)',
+    borderStyle: 'solid',
   },
   avatar: {
     width: 60,
@@ -222,6 +267,13 @@ const styles = StyleSheet.create({
     borderRadius: 30,
     marginRight: 12,
     backgroundColor: COLOR.BORDE,
+  },
+  openAvatar: {
+    backgroundColor: 'rgba(42, 134, 168, 0.2)', // COLOR.INFO con opacidad
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: COLOR.INFO,
   },
   info: {
     flex: 1,
@@ -236,6 +288,11 @@ const styles = StyleSheet.create({
   name: {
     fontSize: 16,
     color: COLOR.TEXTO,
+  },
+  description: {
+    fontSize: 12,
+    color: COLOR.SUBTEXTO,
+    lineHeight: 16,
   },
   ratingRow: {
     flexDirection: 'row',
@@ -277,39 +334,33 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingVertical: 40,
-  },
-  iconWrapper: {
-    minWidth: 100,
-    height: 80,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 8,
+    padding: 20,
   },
   loadingText: {
-    marginTop: 16,
-    fontSize: 14,
+    marginTop: 12,
     color: COLOR.SUBTEXTO,
   },
   errorText: {
-    marginTop: 16,
-    fontSize: 14,
-    color: COLOR.TEXTO,
+    marginTop: 12,
+    color: COLOR.ERROR,
     textAlign: 'center',
   },
   emptyText: {
-    marginTop: 16,
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: 'bold',
     color: COLOR.TEXTO,
+    marginBottom: 8,
     textAlign: 'center',
   },
   emptySubtext: {
-    marginTop: 8,
     fontSize: 14,
     color: COLOR.SUBTEXTO,
     textAlign: 'center',
-    paddingHorizontal: 40,
+  },
+  iconWrapper: {
+    marginBottom: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   actions: {
     flexDirection: 'row',

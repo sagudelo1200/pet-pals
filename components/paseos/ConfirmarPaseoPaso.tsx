@@ -51,7 +51,12 @@ export const ConfirmarPaseoPaso = ({
       Alert.alert(
         t('paseos:pasos.confirmar.exito_titulo'),
         t('paseos:pasos.confirmar.exito_msg', {
-          name: cuidador?.nombre || 'Cuidador',
+          name:
+            cuidador?.nombre ||
+            t(
+              'paseos:pasos.confirmar.solicitud_abierta_nombre',
+              'Solicitud Abierta'
+            ),
         }),
         [{ text: 'OK', onPress: onConfirm }]
       )
@@ -115,13 +120,36 @@ export const ConfirmarPaseoPaso = ({
             {t('paseos:pasos.confirmar.resumen_cuidador')}
           </Text>
           <View style={styles.row}>
-            {cuidador && (
+            {cuidador ? (
               <>
                 <Image
                   source={{ uri: cuidador.imagen }}
                   style={styles.avatarMini}
                 />
                 <Text style={styles.value}>{cuidador.nombre}</Text>
+              </>
+            ) : (
+              <>
+                <View
+                  style={[
+                    styles.avatarMini,
+                    {
+                      backgroundColor: 'rgba(42, 134, 168, 0.2)',
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                      borderWidth: 1,
+                      borderColor: COLOR.INFO,
+                    },
+                  ]}
+                >
+                  <Icon name="bullhorn" size={16} color={COLOR.INFO} />
+                </View>
+                <Text style={styles.value}>
+                  {t(
+                    'paseos:pasos.confirmar.solicitud_abierta_nombre',
+                    'Solicitud Abierta'
+                  )}
+                </Text>
               </>
             )}
           </View>

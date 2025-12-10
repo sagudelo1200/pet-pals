@@ -78,6 +78,8 @@
     "seleccionar_cuidador": {
       "titulo": "Elige un Cuidador",
       "lista_titulo": "Cuidadores cerca de ti",
+      "solicitud_abierta_titulo": "Solicitud Abierta",
+      "solicitud_abierta_desc": "Publica tu solicitud para que cualquier cuidador disponible pueda aceptarla.",
       "distancia": "a {{distancia}}",
       "tarifa": "${{precio}} / hora",
       "verificado": "Verificado",
@@ -91,6 +93,8 @@
       "resumen_mascotas": "Mascotas",
       "resumen_fecha": "Fecha y Hora",
       "resumen_cuidador": "Cuidador",
+      "solicitud_abierta_nombre": "Solicitud Abierta",
+      "tarifa_a_convenir": "Tarifa a convenir",
       "paseo_compartido_label": "Paseo compartido",
       "paseo_compartido_desc": "Permitir que otros tutores se unan al paseo",
       "ahorro_mensaje": "¡Ahorras {{descuento}}% con paseo compartido!",
