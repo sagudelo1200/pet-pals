@@ -106,7 +106,6 @@ export const useConfirmarPaseo = ({
           cuidador_nombre_visual: cuidador?.nombre,
           cuidador_foto_visual: cuidador?.imagen,
           modalidad: esCompartido ? 'compartido' : 'privado',
-          es_multiple: mascotas.length > 1, // Indica si tiene más de 1 mascota
           cupo_maximo_mascotas: esCompartido ? 10 : mascotas.length,
           tutor_ids: user?.uid ? [user.uid] : [],
         },

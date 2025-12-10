@@ -5,15 +5,15 @@ Resumen: Servicio de paseo que agrupa información sobre asignación, horario, d
 Uso rápido:
 
 - Colección sugerida: `paseos`.
-- Campos clave: `tipo_paseo`, `fecha_hora_inicio`, `duracion_estimada`, `precio`, `estado`.
-- Soporta paseos individuales y múltiples (`es_multiple`, `cupo_maximo_mascotas`).
+- Campos clave: `modalidad`, `fecha_hora_inicio`, `duracion_estimada`, `precio`, `estado`.
+- Soporta paseos privados y compartidos (`modalidad`, `cupo_maximo_mascotas`).
 
 Contrato (TypeScript):
 
 ```ts
 export interface Paseo extends BaseModel {
   id_cuidador?: string
-  es_multiple?: boolean
+  modalidad?: 'privado' | 'compartido'
   cupo_maximo_mascotas?: number
   mascotas_count?: number
   tipo_paseo: 'solicitado' | 'programado'
@@ -38,7 +38,7 @@ Ejemplo JSON (dominio):
 {
   "id": "paseo_100",
   "id_cuidador": "user_cuidador_01",
-  "es_multiple": true,
+  "modalidad": "compartido",
   "cupo_maximo_mascotas": 3,
   "mascotas_count": 2,
   "tipo_paseo": "programado",
@@ -60,7 +60,7 @@ Relaciones y consideraciones:
 
 Validaciones y casos límite:
 
-- Si `es_multiple` = true, validar `cupo_maximo_mascotas` y que `mascotas_count` no lo supere.
+- Si `modalidad` = 'compartido', validar `cupo_maximo_mascotas` y que `mascotas_count` no lo supere.
 - `fecha_hora_inicio` debe ser una fecha futura al crear paseos programados.
 - `precio` debe ser >= 0.
 

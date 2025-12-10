@@ -85,6 +85,7 @@ const Paseos: React.FC = () => {
 
   return (
     <Screen
+      includeTopInset
       style={styles.container}
       floating={<ValidatedFab onPress={handleSolicitar} style={styles.fab} />}
     >

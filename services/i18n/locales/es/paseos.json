@@ -38,7 +38,7 @@
   },
   "errores": {
     "PASEO_NO_ENCONTRADO": "El paseo indicado no existe.",
-    "PASEO_NO_ES_MULTIPLE": "Este paseo es privado y no acepta mascotas de otros tutores.",
+    "PASEO_NO_ES_COMPARTIDO": "Este paseo es privado y no acepta mascotas de otros tutores.",
     "ESTADO_DEL_PASEO_NO_ACEPTA_MASCOTAS": "El estado actual del paseo no permite agregar mascotas.",
     "LIMITE_DE_MASCOTAS_SUPERADO": "Se alcanzó el límite permitido de mascotas para este paseo.",
     "MASCOTA_YA_AGREGADA": "Esta mascota ya está agregada al paseo.",

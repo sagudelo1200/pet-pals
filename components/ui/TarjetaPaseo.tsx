@@ -37,7 +37,7 @@ const TarjetaPaseo: React.FC<TarjetaPaseoProps> = ({ paseo, onPress }) => {
   }
 
   // Lógica de visualización de nombre de mascota
-  const esCompartido = paseo.modalidad === 'compartido' || paseo.es_multiple
+  const esCompartido = paseo.modalidad === 'compartido'
   const nombreMascota =
     paseo.mascota_nombre_visual ||
     paseo.mascotaNombre ||

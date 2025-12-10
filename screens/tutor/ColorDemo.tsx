@@ -101,6 +101,7 @@ const ColorDemo: React.FC = () => {
 
   return (
     <Screen
+      includeTopInset
       scroll
       style={styles.container}
       contentContainerStyle={styles.content}
@@ -386,7 +387,7 @@ const styles = StyleSheet.create({
   scrollView: { flex: 1 },
   content: {
     padding: theme.SIZES.BASE,
-    paddingBottom: Platform.OS === 'android' ? 120 : theme.SIZES.BASE * 2,
+    paddingBottom: 100,
   },
   header: {
     marginBottom: theme.SIZES.BASE * 1.5,

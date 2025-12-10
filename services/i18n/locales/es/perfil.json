@@ -24,5 +24,16 @@
   "gana_dinero_desc": "Gana dinero extra paseando mascotas.",
   "activar_modo_tutor": "Activar modo Tutor",
   "convertirme_cuidador": "Convertirme en Cuidador",
-  "version": "Versión {{version}} (Beta)"
+  "version": "Versión {{version}} (Beta)",
+  "editar": {
+    "titulo": "Editar Perfil",
+    "subtitulo": "Completa tu información profesional",
+    "foto_label": "Foto de Perfil",
+    "bio_label": "Biografía",
+    "bio_placeholder": "Cuéntanos sobre ti y tu amor por las mascotas...",
+    "experiencia_label": "Experiencia (tiempo)",
+    "tarifa_label": "Tarifa por Hora (COP)",
+    "guardar": "Guardar Cambios",
+    "exito_guardar": "Perfil actualizado correctamente"
+  }
 }

@@ -44,13 +44,6 @@ export interface Paseo extends BaseModel {
    */
   modalidad?: ModalidadPaseo
 
-  /**
-   * Indica si el paseo tiene múltiples mascotas (más de 1).
-   * Es independiente de la modalidad: puede haber paseos privados con múltiples mascotas
-   * del mismo tutor, o paseos compartidos con una sola mascota inicial.
-   */
-  es_multiple?: boolean
-
   /** Cupo máximo de mascotas TOTALES para este paseo (incluyendo de todos los tutores). */
   cupo_maximo_mascotas?: number
   /** Contador actual de mascotas unidas a este paseo (subcolección). */

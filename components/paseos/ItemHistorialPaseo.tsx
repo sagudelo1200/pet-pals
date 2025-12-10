@@ -28,7 +28,7 @@ export const ItemHistorialPaseo: React.FC<ItemHistorialPaseoProps> = ({
     minute: '2-digit',
   })
 
-  const esCompartido = paseo.modalidad === 'compartido' || paseo.es_multiple
+  const esCompartido = paseo.modalidad === 'compartido'
   const nombreMascota =
     paseo.mascota_nombre_visual ||
     (esCompartido ? 'Paseo Compartido' : 'Mascota')

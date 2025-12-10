@@ -153,6 +153,7 @@ export default function Mascotas({ navigation }: any) {
 
   return (
     <Screen
+      includeTopInset
       contentContainerStyle={{ flex: 1 }}
       floating={<Fab onPress={handleAbrirCrear} style={styles.fab} />}
     >
@@ -204,6 +205,7 @@ const styles = StyleSheet.create({
   },
   list: {
     padding: 15,
+    paddingBottom: 100,
     gap: 12,
   },
   fab: {

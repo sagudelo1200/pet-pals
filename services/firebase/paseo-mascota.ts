@@ -93,7 +93,7 @@ export async function addMascotaAlPaseo(
       // Solo paseos con modalidad 'compartido' permiten que OTROS tutores se unan
       const estado = paseo.estado as string
       const esCompartido = paseo.modalidad === 'compartido'
-      if (!esCompartido) throw new Error(ERR.PASEOS.PASEO_NO_ES_MULTIPLE)
+      if (!esCompartido) throw new Error(ERR.PASEOS.PASEO_NO_ES_COMPARTIDO)
       if (!(estado === 'pendiente' || estado === 'confirmado')) {
         throw new Error(ERR.PASEOS.ESTADO_DEL_PASEO_NO_ACEPTA_MASCOTAS)
       }

@@ -16,8 +16,20 @@ export interface PerfilPublico extends BaseModel {
 
   /** Zonas o barrios donde ofrece servicio */
   zonas_servicio?: string[]
-  /** Información de disponibilidad (texto libre) */
+
+  /** Configuración de disponibilidad estructurada */
+  horario_laboral?: {
+    /** Días de la semana activos (0=Domingo, 1=Lunes, etc.) */
+    dias: number[]
+    /** Hora de inicio formato HH:mm (ej: "08:00") */
+    hora_inicio: string
+    /** Hora de fin formato HH:mm (ej: "18:00") */
+    hora_fin: string
+  }
+
+  /** Información de disponibilidad (texto libre - Deprecado o para notas extra) */
   disponibilidad?: string
+
   /** Tipos de mascotas aceptadas */
   mascotas_aceptadas?: string[]
   /** Número máximo de mascotas que acepta simultáneamente */

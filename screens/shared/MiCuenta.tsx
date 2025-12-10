@@ -71,6 +71,13 @@ const MiCuenta = () => {
                   screen: 'MiCuenta',
                 }
               )
+
+              // Si es cuidador nuevo, sugerir editar perfil
+              if (rol === 'cuidador') {
+                setTimeout(() => {
+                  navigation.navigate('PerfilCuidador')
+                }, 500)
+              }
             },
           },
         ]

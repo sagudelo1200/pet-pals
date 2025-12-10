@@ -21,6 +21,8 @@ interface Props {
   autoFocus?: boolean
   returnKeyType?: 'done' | 'go' | 'next' | 'search' | 'send'
   onSubmitEditing?: () => void
+  multiline?: boolean
+  numberOfLines?: number
 }
 
 /**
@@ -42,6 +44,8 @@ const TextInput: React.FC<Props> = ({
   autoFocus,
   returnKeyType,
   onSubmitEditing,
+  multiline,
+  numberOfLines,
 }) => {
   const [focused, setFocused] = useState(false)
 
@@ -59,6 +63,17 @@ const TextInput: React.FC<Props> = ({
   }, [errorText, focused])
 
   const inputColor = errorText ? COLOR.ERROR : COLOR.TEXTO
+
+  const inputStyle = [
+    styles.input,
+    { borderColor },
+    multiline && {
+      height: 'auto',
+      minHeight: 48,
+      textAlignVertical: 'top',
+      paddingTop: 12,
+    },
+  ]
 
   return (
     <View style={containerStyle} testID={testID}>
@@ -84,7 +99,9 @@ const TextInput: React.FC<Props> = ({
           color: errorText ? COLOR.ERROR : COLOR.SUBTEXTO,
           solid: true,
         }}
-        style={[styles.input, { borderColor }] as any}
+        style={inputStyle as any}
+        multiline={multiline}
+        numberOfLines={numberOfLines}
       />
       {errorText ? <Text style={styles.error}>{errorText}</Text> : null}
     </View>

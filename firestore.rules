@@ -106,7 +106,6 @@ service cloud.firestore {
 
     function puede_unirse_a_paseo_doc(p) {
       // Solo paseos con modalidad 'compartido' permiten que OTROS tutores se unan
-      // (es_multiple deprecated - NO significa que otros puedan unirse)
       return p != null && p.data.modalidad == 'compartido' && estado_permite_unirse(p.data.estado);
     }
 
