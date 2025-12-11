@@ -17,13 +17,24 @@ export function useSolicitudesCuidador() {
 
   const solicitudes = useMemo(() => {
     if (!data) return []
-    return data.filter(p => {
+
+    const filtradas = data.filter(p => {
       // Mostrar si no tiene cuidador asignado (mercado abierto)
       if (!p.id_cuidador) return true
       // Mostrar si está asignado a mí específicamente
       if (p.id_cuidador === user?.uid) return true
       // Ocultar si está asignado a otro
       return false
+    })
+
+    // Ordenar: Directas primero, luego Abiertas
+    return filtradas.sort((a, b) => {
+      const aEsDirecta = a.id_cuidador === user?.uid
+      const bEsDirecta = b.id_cuidador === user?.uid
+
+      if (aEsDirecta && !bEsDirecta) return -1
+      if (!aEsDirecta && bEsDirecta) return 1
+      return 0 // Mantener orden original (por fecha)
     })
   }, [data, user?.uid])
 

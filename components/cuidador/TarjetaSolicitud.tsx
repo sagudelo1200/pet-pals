@@ -31,31 +31,54 @@ export const TarjetaSolicitud: React.FC<Props> = ({ solicitud, onPress }) => {
     minute: '2-digit',
   })
 
-  // Formateo de precio
-  const precioStr = new Intl.NumberFormat('es-CO', {
+  // Determinar tipo de solicitud
+  const esDirecta = !!solicitud.id_cuidador
+  const esAbierta = !solicitud.id_cuidador
+
+  const precioStr = (solicitud.precio || 0).toLocaleString('es-CO', {
     style: 'currency',
     currency: 'COP',
-    maximumFractionDigits: 0,
-  }).format(solicitud.precio)
+    minimumFractionDigits: 0,
+  })
 
   return (
     <Card
       onPress={() => onPress(solicitud)}
-      style={styles.card}
+      style={[
+        styles.card,
+        esDirecta && styles.cardDirecta,
+        esAbierta && styles.cardAbierta,
+      ]}
       contentStyle={styles.content}
-      elevated
+      elevated={esDirecta} // Solo elevar las directas para más énfasis
     >
       <View style={styles.header}>
         <View style={styles.fechaContainer}>
-          <Icon name="calendar-alt" size={14} color={COLOR.ENFASIS} />
-          <Text style={styles.fechaText}>
+          <Icon
+            name="calendar-alt"
+            size={14}
+            color={esDirecta ? COLOR.PRIMARIO : COLOR.ENFASIS}
+          />
+          <Text
+            style={[
+              styles.fechaText,
+              esDirecta && { color: COLOR.PRIMARIO, fontWeight: 'bold' },
+            ]}
+          >
             {fechaStr} • {horaStr}
           </Text>
         </View>
-        {solicitud.id_cuidador && (
+        {esDirecta && (
           <Badge
             label={t('cuidador:solicitudes.directa')}
-            variant="enfasis"
+            variant="primario"
+            size="sm"
+          />
+        )}
+        {esAbierta && (
+          <Badge
+            label={t('cuidador:solicitudes.abierta', 'Solicitud Abierta')}
+            variant="info"
             size="sm"
           />
         )}
@@ -111,6 +134,15 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: COLOR.BORDE,
     backgroundColor: COLOR.BLOQUE,
+  },
+  cardDirecta: {
+    borderColor: COLOR.PRIMARIO,
+    backgroundColor: 'rgba(29, 143, 115, 0.05)', // Sutil tinte verde
+  },
+  cardAbierta: {
+    borderColor: COLOR.INFO,
+    borderStyle: 'dashed',
+    backgroundColor: 'rgba(42, 134, 168, 0.05)', // Sutil tinte azul
   },
   content: {
     padding: 16,
