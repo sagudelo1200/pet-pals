@@ -75,10 +75,7 @@ export const SeleccionarCuidadorPaso = ({
         <View style={styles.info}>
           <View style={styles.header}>
             <Text style={[styles.name, { fontWeight: 'bold' }]}>
-              {t(
-                'paseos:pasos.seleccionar_cuidador.solicitud_abierta_titulo',
-                'Solicitud Abierta'
-              )}
+              {t('paseos:pasos.seleccionar_cuidador.solicitud_abierta_titulo')}
             </Text>
           </View>
 

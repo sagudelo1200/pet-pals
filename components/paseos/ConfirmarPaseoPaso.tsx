@@ -1,4 +1,3 @@
-import React, { useState } from 'react'
 import { StyleSheet, View, Text, Alert, Image, ScrollView } from 'react-native'
 import { useTranslation } from 'react-i18next'
 import { COLOR } from '@/constants'
@@ -14,6 +13,7 @@ interface Props {
   duracion: number | null
   cuidadorId: string | null
   esCompartido: boolean
+  // eslint-disable-next-line no-unused-vars
   onCompartidoChange: (value: boolean) => void
   onConfirm: () => void
   onBack: () => void
@@ -54,10 +54,7 @@ export const ConfirmarPaseoPaso = ({
         t('paseos:pasos.confirmar.exito_msg', {
           name:
             cuidador?.nombre ||
-            t(
-              'paseos:pasos.confirmar.solicitud_abierta_nombre',
-              'Solicitud Abierta'
-            ),
+            t('paseos:pasos.confirmar.solicitud_abierta_nombre'),
         }),
         [{ text: 'OK', onPress: onConfirm }]
       )
@@ -146,10 +143,7 @@ export const ConfirmarPaseoPaso = ({
                   <Icon name="bullhorn" size={16} color={COLOR.INFO} />
                 </View>
                 <Text style={styles.value}>
-                  {t(
-                    'paseos:pasos.confirmar.solicitud_abierta_nombre',
-                    'Solicitud Abierta'
-                  )}
+                  {t('paseos:pasos.confirmar.solicitud_abierta_nombre')}
                 </Text>
               </>
             )}
