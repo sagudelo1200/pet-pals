@@ -47,8 +47,8 @@ const Icon: React.FC<IconProps> = ({
   const brands = normalizedType === 'brands' ? true : undefined
 
   const box: ViewStyle = {
-    width: size * 1.2, // 20% extra para evitar recorte
-    height: size * 1.2,
+    width: size * 1.5, // Aumentado a 50% extra para evitar recorte en iconos anchos
+    height: size * 1.5,
     alignItems: 'center',
     justifyContent: 'center',
   }

@@ -37,6 +37,7 @@ export const ConfirmarPaseoPaso = ({
       cuidadorId,
       fecha,
       hora,
+      duracion,
       esCompartido,
     })
 
@@ -107,7 +108,7 @@ export const ConfirmarPaseoPaso = ({
               <Icon name="calendar" size={16} color={COLOR.PRIMARIO} />
             </View>
             <Text style={styles.value}>
-              {formatDate(fecha)} - {hora}
+              {formatDate(fecha)} - {hora} ({duracion || 60} min)
             </Text>
           </View>
         </View>

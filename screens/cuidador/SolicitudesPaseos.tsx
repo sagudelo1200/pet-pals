@@ -100,6 +100,7 @@ const styles = StyleSheet.create({
   },
   listContent: {
     paddingHorizontal: 20,
+    paddingTop: 16, // Espacio superior añadido
     paddingBottom: 20,
     flexGrow: 1,
   },

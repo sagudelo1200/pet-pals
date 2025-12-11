@@ -1,6 +1,6 @@
 import React from 'react'
-import { StyleSheet, View, Text, Image } from 'react-native'
-import { Card, Icon, Badge } from '@/components/ui'
+import { StyleSheet, View, Text, Image, TouchableOpacity } from 'react-native'
+import { Icon } from '@/components/ui'
 import { Paseo } from '@/models/Paseo'
 import { COLOR } from '@/constants'
 import { useTranslation } from 'react-i18next'
@@ -15,11 +15,10 @@ export const TarjetaSolicitud: React.FC<Props> = ({ solicitud, onPress }) => {
   const { t } = useTranslation()
 
   // Formateo de fecha
-  // Nota: En producción idealmente usar date-fns o similar para mejor i18n
   const fecha =
     solicitud.fecha_hora_inicio instanceof Date
       ? solicitud.fecha_hora_inicio
-      : new Date((solicitud.fecha_hora_inicio as any).seconds * 1000) // Fallback si viene como Timestamp
+      : new Date((solicitud.fecha_hora_inicio as any).seconds * 1000)
 
   const fechaStr = fecha.toLocaleDateString('es-ES', {
     weekday: 'short',
@@ -31,204 +30,212 @@ export const TarjetaSolicitud: React.FC<Props> = ({ solicitud, onPress }) => {
     minute: '2-digit',
   })
 
-  // Determinar tipo de solicitud
-  const esDirecta = !!solicitud.id_cuidador
-  const esAbierta = !solicitud.id_cuidador
-
   const precioStr = (solicitud.precio || 0).toLocaleString('es-CO', {
     style: 'currency',
     currency: 'COP',
     minimumFractionDigits: 0,
   })
 
+  // Determinar tipo de solicitud
+  const esDirecta = !!solicitud.id_cuidador
+
+  const accentColor = esDirecta ? COLOR.PRIMARIO : COLOR.INFO
+
   return (
-    <Card
+    <TouchableOpacity
+      activeOpacity={0.9}
       onPress={() => onPress(solicitud)}
       style={[
         styles.card,
-        esDirecta && styles.cardDirecta,
-        esAbierta && styles.cardAbierta,
+        { borderLeftColor: accentColor },
+        esDirecta && styles.shadow,
       ]}
-      contentStyle={styles.content}
-      elevated={esDirecta} // Solo elevar las directas para más énfasis
     >
+      {/* Header: Badge y Fecha */}
       <View style={styles.header}>
-        <View style={styles.fechaContainer}>
-          <Icon
-            name="calendar-alt"
-            size={14}
-            color={esDirecta ? COLOR.PRIMARIO : COLOR.ENFASIS}
-          />
-          <Text
-            style={[
-              styles.fechaText,
-              esDirecta && { color: COLOR.PRIMARIO, fontWeight: 'bold' },
-            ]}
-          >
-            {fechaStr} • {horaStr}
+        <View
+          style={[
+            styles.badge,
+            {
+              backgroundColor: esDirecta
+                ? 'rgba(29, 143, 115, 0.15)'
+                : 'rgba(42, 134, 168, 0.15)',
+            },
+          ]}
+        >
+          <Text style={[styles.badgeText, { color: accentColor }]}>
+            {esDirecta
+              ? t('cuidador:solicitudes.directa').toUpperCase()
+              : t('cuidador:solicitudes.abierta', 'DISPONIBLE').toUpperCase()}
           </Text>
         </View>
-        {esDirecta && (
-          <Badge
-            label={t('cuidador:solicitudes.directa')}
-            variant="primario"
-            size="sm"
-          />
-        )}
-        {esAbierta && (
-          <Badge
-            label={t('cuidador:solicitudes.abierta', 'Solicitud Abierta')}
-            variant="info"
-            size="sm"
-          />
-        )}
+        <Text style={styles.fechaText}>
+          {fechaStr} • {horaStr}
+        </Text>
       </View>
 
+      {/* Body: Mascota e Info */}
       <View style={styles.body}>
-        <View style={styles.mascotasContainer}>
-          {solicitud.mascota_foto_visual ? (
-            <Image
-              source={{ uri: solicitud.mascota_foto_visual }}
-              style={styles.avatar}
-            />
-          ) : (
-            <View style={[styles.avatar, styles.avatarPlaceholder]}>
-              <Icon name="paw" size={20} color={COLOR.SUBTEXTO} />
-            </View>
-          )}
-          <View style={styles.infoMascota}>
-            <Text style={styles.nombreMascota}>
-              {solicitud.mascota_nombre_visual ||
-                t('cuidador:solicitudes.mascota')}
-              {solicitud.mascotas_count &&
-                solicitud.mascotas_count > 1 &&
-                ` +${solicitud.mascotas_count - 1}`}
-            </Text>
-            <View style={styles.ubicacionContainer}>
-              <Icon name="map-marker-alt" size={12} color={COLOR.SUBTEXTO} />
-              <Text style={styles.ubicacionText} numberOfLines={1}>
-                {solicitud.ubicacion_inicio ||
-                  t('cuidador:solicitudes.ubicacion_por_definir')}
+        {solicitud.mascota_foto_visual ? (
+          <Image
+            source={{ uri: solicitud.mascota_foto_visual }}
+            style={styles.avatar}
+          />
+        ) : (
+          <View style={[styles.avatar, styles.avatarPlaceholder]}>
+            <Icon name="paw" size={24} color={COLOR.SUBTEXTO} />
+          </View>
+        )}
+
+        <View style={styles.infoContainer}>
+          <Text style={styles.nombreMascota} numberOfLines={1}>
+            {solicitud.mascota_nombre_visual ||
+              t('cuidador:solicitudes.mascota')}
+            {solicitud.mascotas_count && solicitud.mascotas_count > 1 && (
+              <Text style={styles.mascotasCount}>
+                {' '}
+                +{solicitud.mascotas_count - 1}
               </Text>
-            </View>
+            )}
+          </Text>
+
+          <View style={styles.row}>
+            <Icon name="map-marker-alt" size={12} color={COLOR.SUBTEXTO} />
+            <Text style={styles.ubicacionText} numberOfLines={1}>
+              {solicitud.ubicacion_inicio ||
+                t('cuidador:solicitudes.ubicacion_por_definir')}
+            </Text>
           </View>
         </View>
+
+        <Icon name="chevron-right" size={16} color={COLOR.BORDE} />
       </View>
 
+      {/* Footer: Precio y Duración */}
       <View style={styles.footer}>
-        <View style={styles.duracionContainer}>
-          <Icon name="clock" size={14} color={COLOR.SUBTEXTO} />
+        <View style={styles.row}>
+          <Icon
+            name="clock"
+            size={14}
+            color={COLOR.SUBTEXTO}
+            style={{ marginRight: 6 }}
+          />
           <Text style={styles.duracionText}>
-            {solicitud.duracion_estimada} {t('cuidador:solicitudes.min')}
+            {solicitud.duracion_estimada} min
           </Text>
         </View>
-        <Text style={styles.precioText}>{precioStr}</Text>
+        <Text
+          style={[
+            styles.precioText,
+            { color: esDirecta ? COLOR.ENFASIS : COLOR.TEXTO },
+          ]}
+        >
+          {precioStr}
+        </Text>
       </View>
-    </Card>
+    </TouchableOpacity>
   )
 }
 
 const styles = StyleSheet.create({
   card: {
+    backgroundColor: COLOR.BLOQUE,
+    borderRadius: 12,
     marginBottom: 16,
     borderWidth: 1,
     borderColor: COLOR.BORDE,
-    backgroundColor: COLOR.BLOQUE,
-  },
-  cardDirecta: {
-    borderColor: COLOR.PRIMARIO,
-    backgroundColor: 'rgba(29, 143, 115, 0.05)', // Sutil tinte verde
-  },
-  cardAbierta: {
-    borderColor: COLOR.INFO,
-    borderStyle: 'dashed',
-    backgroundColor: 'rgba(42, 134, 168, 0.05)', // Sutil tinte azul
-  },
-  content: {
+    borderLeftWidth: 4, // El indicador "Premium"
     padding: 16,
+  },
+  shadow: {
+    // Sombra sutil solo para las directas para darles jerarquía
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 4,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: 16,
   },
-  fechaContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(45, 179, 145, 0.1)', // COLOR.ENFASIS con opacidad
+  badge: {
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 6,
   },
+  badgeText: {
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 0.5,
+  },
   fechaText: {
-    color: COLOR.ENFASIS,
+    color: COLOR.SUBTEXTO,
     fontSize: 12,
-    fontWeight: '600',
-    marginLeft: 6,
-    textTransform: 'capitalize',
+    fontWeight: '500',
   },
   body: {
-    marginBottom: 16,
-  },
-  mascotasContainer: {
     flexDirection: 'row',
     alignItems: 'center',
+    marginBottom: 16,
   },
   avatar: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    marginRight: 12,
-    borderWidth: 2,
-    borderColor: COLOR.BORDE,
+    width: 56,
+    height: 56,
+    borderRadius: 12, // Cuadrado redondeado moderno
+    marginRight: 16,
+    backgroundColor: COLOR.SECUNDARIO,
   },
   avatarPlaceholder: {
-    backgroundColor: COLOR.SECUNDARIO,
     justifyContent: 'center',
     alignItems: 'center',
+    borderWidth: 1,
+    borderColor: COLOR.BORDE,
   },
-  infoMascota: {
+  infoContainer: {
     flex: 1,
     justifyContent: 'center',
+    marginRight: 8,
   },
   nombreMascota: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: '700',
     color: COLOR.TEXTO,
     marginBottom: 4,
   },
-  ubicacionContainer: {
+  mascotasCount: {
+    fontSize: 14,
+    fontWeight: '400',
+    color: COLOR.SUBTEXTO,
+  },
+  row: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   ubicacionText: {
     fontSize: 13,
     color: COLOR.SUBTEXTO,
-    marginLeft: 4,
+    marginLeft: 6,
     flex: 1,
   },
   footer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    paddingTop: 16,
     borderTopWidth: 1,
     borderTopColor: COLOR.BORDE,
-    paddingTop: 12,
-    marginTop: 4,
-  },
-  duracionContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
   },
   duracionText: {
     color: COLOR.SUBTEXTO,
-    fontSize: 13,
-    marginLeft: 6,
+    fontSize: 14,
+    fontWeight: '500',
   },
   precioText: {
     fontSize: 18,
-    fontWeight: '800',
-    color: COLOR.TEXTO,
+    fontWeight: '700',
+    letterSpacing: -0.5,
   },
 })

@@ -3,7 +3,6 @@ import { useMascotas } from '@/hooks/useMascotas'
 import { ServicioPaseo } from '@/services/firebase/paseo'
 import { ServicioPerfilPublico } from '@/services/firebase/perfil-publico'
 import { PaseoStatus } from '@/models/Paseo'
-import type { PerfilPublico } from '@/models/PerfilPublico'
 import { useAuth } from '@/context/AuthContext'
 
 interface ConfirmarPaseoProps {
@@ -11,6 +10,7 @@ interface ConfirmarPaseoProps {
   cuidadorId: string | null
   fecha: Date | null
   hora: string | null
+  duracion: number | null
   esCompartido: boolean
 }
 
@@ -26,6 +26,7 @@ export const useConfirmarPaseo = ({
   cuidadorId,
   fecha,
   hora,
+  duracion,
   esCompartido,
 }: ConfirmarPaseoProps) => {
   const [loading, setLoading] = useState(false)
@@ -72,12 +73,16 @@ export const useConfirmarPaseo = ({
   const tarifaBase = cuidador?.tarifa || 15000
   const tarifaMascotaAdicional = 5000 // Tarifa adicional por mascota extra
   const numMascotas = mascotas.length
+  const duracionMinutos = duracion || 60
+  const factorDuracion = duracionMinutos / 60
 
   // Si es más de una, sumamos extra por cada adicional
-  const total =
+  const totalBase =
     numMascotas > 0
       ? tarifaBase + (numMascotas - 1) * tarifaMascotaAdicional
       : 0
+
+  const total = totalBase * factorDuracion
 
   const confirmarReserva = useCallback(async () => {
     if (!fecha || !hora) {
@@ -99,7 +104,7 @@ export const useConfirmarPaseo = ({
           tipo_paseo: 'solicitado',
           estado: PaseoStatus.PENDIENTE,
           fecha_hora_inicio: fechaInicio,
-          duracion_estimada: 60, // Default 1h
+          duracion_estimada: duracion || 60,
           precio: total,
           ubicacion_inicio: 'Ubicación actual', // TODO: Obtener ubicación real
           id_cuidador: cuidadorId || undefined,
@@ -127,6 +132,7 @@ export const useConfirmarPaseo = ({
   }, [
     fecha,
     hora,
+    duracion,
     total,
     cuidadorId,
     mascotaIds,
