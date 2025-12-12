@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/context/AuthContext'
 import { ServicioPerfilPublico } from '@/services/firebase/perfil-publico'
-import type { PerfilPublico } from '@/models/PerfilPublico'
 
 interface CuidadorListItem {
   id: string
@@ -49,26 +48,56 @@ export const useSeleccionarCuidador = (
         if (fecha) {
           const diaSemana = fecha.getDay() // 0 = Domingo
 
+          const parseDias = (diasRaw: any): number[] => {
+            if (!diasRaw) return []
+            if (Array.isArray(diasRaw)) {
+              const out: number[] = []
+              for (const v of diasRaw) {
+                if (typeof v === 'number') out.push(v)
+                else if (typeof v === 'string') out.push(Number(v))
+                else if (typeof v === 'object' && v !== null) {
+                  const keys = Object.keys(v)
+                  if (keys.length === 1 && !isNaN(Number(v[keys[0]]))) {
+                    out.push(Number(v[keys[0]]))
+                  } else {
+                    for (const val of Object.values(v)) {
+                      const n = Number(val as any)
+                      if (!isNaN(n)) out.push(n)
+                    }
+                  }
+                }
+              }
+              return out
+            }
+
+            if (typeof diasRaw === 'object') {
+              return Object.keys(diasRaw)
+                .map(k => Number(k))
+                .filter(n => !isNaN(n))
+            }
+
+            return []
+          }
+
           filtrados = filtrados.filter(perfil => {
             // Si no tiene horario configurado, asumimos NO disponible
             if (!perfil.horario_laboral) return false
 
-            const { dias } = perfil.horario_laboral
-
-            // 1. Verificar día
-            if (!dias.includes(diaSemana)) return false
-
-            return true
+            const dias = parseDias(perfil.horario_laboral.dias)
+            return dias.includes(diaSemana)
           })
         }
 
         // Mapear PerfilPublico a CuidadorListItem
-        const cuidadoresMapeados: CuidadorListItem[] = filtrados.map(
-          perfil => ({
+        const cuidadoresMapeados: CuidadorListItem[] = filtrados.map(perfil => {
+          const ratingNum = Number(perfil.rating_promedio)
+          const cal = !isNaN(ratingNum) ? ratingNum : 0
+
+          return {
             id: perfil.id,
             nombre: perfil.nombre,
             imagen: perfil.foto || 'https://via.placeholder.com/69',
-            calificacion: perfil.rating_promedio || 0,
+            calificacion: cal,
             distancia: '2.5 km', // TODO: Calcular distancia real
             tarifa: perfil.tarifa_por_hora
               ? `$${perfil.tarifa_por_hora.toLocaleString()}/hr`
@@ -76,8 +105,8 @@ export const useSeleccionarCuidador = (
             insignias:
               perfil.verificacion === 'verificado' ? ['verificado'] : [],
             horario_laboral: perfil.horario_laboral,
-          })
-        )
+          }
+        })
 
         setCuidadores(cuidadoresMapeados)
       } else {

@@ -140,7 +140,7 @@ export const ConfirmarPaseoPaso = ({
                     },
                   ]}
                 >
-                  <Icon name="bullhorn" size={16} color={COLOR.INFO} />
+                  <Icon name="bullhorn" size={12} color={COLOR.INFO} />
                 </View>
                 <Text style={styles.value}>
                   {t('paseos:pasos.confirmar.solicitud_abierta_nombre')}

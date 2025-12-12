@@ -32,6 +32,7 @@ export const SolicitarPaseoModal = ({ visible, onClose }: Props) => {
     cuidadorId: null as string | null,
     horarioCuidador: null as { hora_inicio: string; hora_fin: string } | null,
     esCompartido: false,
+    esSolicitudAbierta: false,
   })
 
   // Reset function to clear state when flow ends
@@ -45,6 +46,7 @@ export const SolicitarPaseoModal = ({ visible, onClose }: Props) => {
       cuidadorId: null,
       horarioCuidador: null,
       esCompartido: false,
+      esSolicitudAbierta: false,
     })
   }
 
@@ -81,10 +83,17 @@ export const SolicitarPaseoModal = ({ visible, onClose }: Props) => {
     cuidadorId: string | null,
     horario?: { hora_inicio: string; hora_fin: string }
   ) => {
+    const esAbierta =
+      cuidadorId === null &&
+      !!horario &&
+      horario.hora_inicio === '05:00' &&
+      horario.hora_fin === '23:00'
+
     setDatosSolicitud(prev => ({
       ...prev,
       cuidadorId,
       horarioCuidador: horario || null,
+      esSolicitudAbierta: esAbierta,
     }))
     setStep('SELECCIONAR_HORA')
   }
@@ -145,12 +154,36 @@ export const SolicitarPaseoModal = ({ visible, onClose }: Props) => {
       case 'SELECCIONAR_CUIDADOR':
         return (
           <SeleccionarCuidadorPaso
-            cuidadorInicialId={datosSolicitud.cuidadorId}
+            cuidadorInicialId={
+              datosSolicitud.esSolicitudAbierta
+                ? 'SOLICITUD_ABIERTA'
+                : datosSolicitud.cuidadorId
+            }
+            esSolicitudAbiertaInicial={datosSolicitud.esSolicitudAbierta}
             fecha={datosSolicitud.fecha}
             onNext={handleWalkerSelected}
-            onBack={cuidadorId =>
-              handleBack({ cuidadorId: cuidadorId || null })
-            }
+            onBack={cuidadorId => {
+              if (cuidadorId === 'SOLICITUD_ABIERTA') {
+                handleBack({ cuidadorId: null, esSolicitudAbierta: true })
+              } else {
+                handleBack({
+                  cuidadorId: cuidadorId || null,
+                  esSolicitudAbierta: false,
+                })
+              }
+            }}
+            onChangeFechaSuggested={fechaSugerida => {
+              // Update fecha and clear selected cuidador/hour to force recarga
+              setDatosSolicitud(prev => ({
+                ...prev,
+                fecha: fechaSugerida,
+                cuidadorId: null,
+                horarioCuidador: null,
+                esSolicitudAbierta: false,
+              }))
+              // stay in the same step so component re-renders and reloads cuidadores
+              setStep('SELECCIONAR_CUIDADOR')
+            }}
           />
         )
       case 'SELECCIONAR_HORA':
