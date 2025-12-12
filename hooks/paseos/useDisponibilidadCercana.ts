@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
+import { useAuth } from '@/context/AuthContext'
 import { ServicioPerfilPublico } from '@/services/firebase/perfil-publico'
 import type { PerfilPublico } from '@/models/PerfilPublico'
 
@@ -17,6 +18,7 @@ export const useDisponibilidadCercana = (opts?: {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [fechas, setFechas] = useState<DisponibilidadItem[]>([])
+  const { user } = useAuth()
 
   const parseDias = (diasRaw: any): number[] => {
     if (!diasRaw) return []
@@ -93,7 +95,10 @@ export const useDisponibilidadCercana = (opts?: {
     try {
       const res = await ServicioPerfilPublico.obtenerCuidadoresDisponibles()
       if (res.success && res.data) {
-        calcularDisponibilidad(res.data)
+        // Excluir el perfil del usuario actual para evitar que un tutor
+        // se auto-selecione como cuidador en las sugerencias.
+        const perfilesFiltrados = res.data.filter(p => p.id !== user?.uid)
+        calcularDisponibilidad(perfilesFiltrados)
       } else {
         setError(res.error || 'ERROR_AL_CARGAR')
       }
@@ -103,7 +108,7 @@ export const useDisponibilidadCercana = (opts?: {
     } finally {
       setLoading(false)
     }
-  }, [calcularDisponibilidad])
+  }, [calcularDisponibilidad, user?.uid])
 
   useEffect(() => {
     void load()
