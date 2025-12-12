@@ -61,7 +61,19 @@ export const SolicitarPaseoModal = ({ visible, onClose }: Props) => {
   }
 
   const handleDateSelected = (fecha: Date) => {
-    setDatosSolicitud(prev => ({ ...prev, fecha }))
+    setDatosSolicitud(prev => {
+      const fechaPrev = prev.fecha
+      const fechaChanged = !fechaPrev || fechaPrev.getTime() !== fecha.getTime()
+
+      return {
+        ...prev,
+        fecha,
+        // Si la fecha cambió, limpiar la selección de cuidador y su horario
+        cuidadorId: fechaChanged ? null : prev.cuidadorId,
+        horarioCuidador: fechaChanged ? null : prev.horarioCuidador,
+      }
+    })
+
     setStep('SELECCIONAR_CUIDADOR')
   }
 
