@@ -1,11 +1,13 @@
 import { useState } from 'react'
 import { useAuth } from '@/context/AuthContext'
+import { useRol } from '@/context/RolContext'
 import { ServicioUsuario } from '@/services/firebase/usuario'
 import { ServicioPerfilPublico } from '@/services/firebase/perfil-publico'
 import type { RolUsuario } from '@/models/Usuario'
 
 export const useCambiarRol = () => {
   const { user, profile, recargarPerfil } = useAuth()
+  const { cambiarRolActivo } = useRol()
   const [cargando, setCargando] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -20,7 +22,7 @@ export const useCambiarRol = () => {
 
     try {
       const rolesActuales = (profile as any).roles || []
-      
+
       // Si ya tiene el rol, no hacer nada
       if (rolesActuales.includes(nuevoRol)) {
         setCargando(false)
@@ -42,11 +44,14 @@ export const useCambiarRol = () => {
       // Si el nuevo rol es cuidador, crear perfil público si no existe
       if (nuevoRol === 'cuidador') {
         // Intentar obtener por ID directo primero (más eficiente)
-        const perfilExistente = await ServicioPerfilPublico.obtenerPorId(user.uid)
-        
+        const perfilExistente = await ServicioPerfilPublico.obtenerPorId(
+          user.uid
+        )
+
         if (!perfilExistente.success) {
           // Crear perfil público básico con el UID del usuario
-          const nombreUsuario = (profile as any).nombre || user.displayName || 'Usuario'
+          const nombreUsuario =
+            (profile as any).nombre || user.displayName || 'Usuario'
           const fotoUsuario = (profile as any).foto || user.photoURL || ''
 
           await ServicioPerfilPublico.crearConId(user.uid, {
@@ -64,6 +69,15 @@ export const useCambiarRol = () => {
 
       // Refrescar perfil
       await recargarPerfil()
+
+      // Si todo salió bien y tenemos acceso al RolContext, activar el nuevo rol
+      try {
+        if (typeof cambiarRolActivo === 'function') {
+          await cambiarRolActivo(nuevoRol)
+        }
+      } catch (e) {
+        // ignore
+      }
 
       setCargando(false)
       return { success: true }

@@ -16,7 +16,7 @@ export interface FabProps {
 const Fab: React.FC<FabProps> = ({
   onPress,
   iconName = 'plus',
-  size = 56,
+  size = 57,
   backgroundColor = COLOR.PRIMARIO,
   color = '#fff',
   style,

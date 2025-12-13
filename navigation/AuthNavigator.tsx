@@ -15,9 +15,15 @@ const Stack = createStackNavigator<AuthFlowParamList>()
 
 const AuthNavigator: React.FC = () => {
   const { user, cargando, roles, recargarPerfil } = useAuth()
-  const { rolActivo, cambiarRolActivo, tieneMultiplesRoles, cargando: cargandoRol } = useRol()
+  const {
+    rolActivo,
+    cambiarRolActivo,
+    tieneMultiplesRoles,
+    cargando: cargandoRol,
+  } = useRol()
   const [mostrarSelectorRol, setMostrarSelectorRol] = useState(false)
   const retriedRef = React.useRef(false)
+  const navigatedTargetRef = React.useRef<string | null>(null)
   const navigation = useNavigation<any>()
 
   const getRootNavigation = () => {
@@ -51,7 +57,7 @@ const AuthNavigator: React.FC = () => {
       if (!mostrarSelectorRol) {
         // Navegar según el rol activo o el primer rol disponible
         const rolParaNavegar = rolActivo || roles[0]
-        
+
         if (!rolParaNavegar) {
           // Sin roles, ir a TutorApp por defecto
           navegarA('TutorApp')
@@ -59,15 +65,28 @@ const AuthNavigator: React.FC = () => {
         }
 
         // Decidir destino por rol activo
-        const target = 
-          rolParaNavegar === 'admin' ? 'AdminApp' :
-          rolParaNavegar === 'cuidador' ? 'CuidadorApp' :
-          'TutorApp'
-
-        navegarA(target)
+        const target =
+          rolParaNavegar === 'admin'
+            ? 'AdminApp'
+            : rolParaNavegar === 'cuidador'
+              ? 'CuidadorApp'
+              : 'TutorApp'
+        // Evitar reinicios redundantes: sólo resetear si el target cambió
+        if (navigatedTargetRef.current !== target) {
+          navegarA(target)
+          navigatedTargetRef.current = target
+        }
       }
     }
-  }, [user, cargando, cargandoRol, roles, rolActivo, tieneMultiplesRoles, mostrarSelectorRol])
+  }, [
+    user,
+    cargando,
+    cargandoRol,
+    roles,
+    rolActivo,
+    tieneMultiplesRoles,
+    mostrarSelectorRol,
+  ])
 
   const navegarA = (target: string) => {
     const rootNav = getRootNavigation()
