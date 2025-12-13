@@ -13,10 +13,11 @@ import {
 } from 'react-native'
 import { useTranslation } from 'react-i18next'
 import { COLOR } from '@/constants'
-import { Button, Icon, Card, BottomSheet } from '@/components/ui'
+import { Button, Icon, Card, BottomSheet, EmptyState } from '@/components/ui'
 import Skeleton from '@/components/ui/Skeleton'
 import { useSeleccionarCuidador } from '@/hooks/paseos/useSeleccionarCuidador'
 import { useDisponibilidadCercana } from '@/hooks/paseos/useDisponibilidadCercana'
+import PerroTristeSvg from '@/assets/imgs/undraw/perro_triste_come_periodico.svg'
 
 interface Props {
   cuidadorInicialId?: string | null
@@ -252,7 +253,6 @@ export const SeleccionarCuidadorPaso = ({
         )}
 
         {cargando ? (
-          // Skeleton placeholders (keep Solicitud Abierta visible)
           <View style={{ marginTop: 8 }}>
             {Array.from({ length: 2 }).map((_, i) => (
               <View
@@ -281,6 +281,27 @@ export const SeleccionarCuidadorPaso = ({
           </View>
         ) : error ? (
           renderError()
+        ) : cuidadores.length === 0 ? (
+          <EmptyState
+            image={<PerroTristeSvg width={100} height={100} />}
+            title={t('paseos:pasos.seleccionar_cuidador.sin_cuidadores')}
+            description={t(
+              'paseos:pasos.seleccionar_cuidador.sin_cuidadores_desc'
+            )}
+            actionLabel={t(
+              'paseos:pasos.seleccionar_cuidador.ver_horarios_cercanos'
+            )}
+            onActionPress={() => {
+              recargarDisponibilidad()
+              setShowDisponibilidad(true)
+            }}
+            style={{
+              flex: 0,
+              paddingVertical: 0,
+              paddingTop: 8,
+              paddingBottom: 12,
+            }}
+          />
         ) : (
           <FlatList
             data={cuidadores}
@@ -289,40 +310,7 @@ export const SeleccionarCuidadorPaso = ({
             contentContainerStyle={styles.listContent}
             style={styles.list}
             showsVerticalScrollIndicator={false}
-            ListEmptyComponent={
-              cuidadores.length === 0 ? (
-                <View style={{ padding: 20, alignItems: 'center' }}>
-                  <View style={styles.iconWrapper}>
-                    <Icon name="calendar" size={48} color={COLOR.SUBTEXTO} />
-                  </View>
-                  <Text style={styles.emptyText}>
-                    {t('paseos:pasos.seleccionar_cuidador.sin_cuidadores')}
-                  </Text>
-                  <Text style={styles.emptySubtext}>
-                    {t('paseos:pasos.seleccionar_cuidador.sin_cuidadores_desc')}
-                  </Text>
-                  {/* Botón de recibir notificaciones removido por diseño */}
-                </View>
-              ) : null
-            }
           />
-        )}
-
-        {/* Si no hay cuidadores, mostrar CTA para ver horarios cercanos */}
-        {!cargando && !error && cuidadores.length === 0 && (
-          <View style={{ paddingHorizontal: 8, marginTop: 8 }}>
-            <Button
-              title={t(
-                'paseos:pasos.seleccionar_cuidador.ver_horarios_cercanos'
-              )}
-              variant="bloque"
-              onPress={() => {
-                // ensure we fetch latest availability when opening
-                recargarDisponibilidad()
-                setShowDisponibilidad(true)
-              }}
-            />
-          </View>
         )}
       </View>
       <View style={styles.actions}>
@@ -344,151 +332,152 @@ export const SeleccionarCuidadorPaso = ({
       <BottomSheet
         visible={showDisponibilidad}
         onClose={() => setShowDisponibilidad(false)}
-        height={560}
+        height="auto"
       >
         <ModalAnimatedView>
-          <View style={{ marginBottom: 8, paddingVertical: 8 }}>
-            <Text
-              style={{
-                fontSize: 18,
-                fontWeight: '700',
-                textAlign: 'center',
-                color: COLOR.TEXTO,
-              }}
-            >
-              {t('paseos:pasos.seleccionar_cuidador.fechas_disponibles_titulo')}
-            </Text>
-          </View>
-
-          {loadingDisponibilidad ? (
-            <View style={{ padding: 20 }}>
-              <ActivityIndicator size="large" color={COLOR.PRIMARIO} />
-            </View>
-          ) : fechasDisponibles.length === 0 ? (
-            <View style={{ padding: 16, gap: 12 }}>
+          <View style={{ paddingBottom: 96 }}>
+            <View style={{ marginBottom: 8, paddingVertical: 8 }}>
               <Text
                 style={{
-                  color: COLOR.SUBTEXTO,
+                  fontSize: 18,
+                  fontWeight: '700',
                   textAlign: 'center',
+                  color: COLOR.TEXTO,
                 }}
               >
-                {t('paseos:pasos.seleccionar_cuidador.no_encontrado_30dias')}
+                {t(
+                  'paseos:pasos.seleccionar_cuidador.fechas_disponibles_titulo'
+                )}
               </Text>
-
-              <Text style={{ color: COLOR.SUBTEXTO, textAlign: 'center' }}>
-                {t('paseos:pasos.seleccionar_cuidador.opciones_explicacion')}
-              </Text>
-
-              <View style={{ flexDirection: 'row', gap: 12, marginTop: 8 }}>
-                <Button
-                  title={t(
-                    'paseos:pasos.seleccionar_cuidador.publicar_solicitud_abierta'
-                  )}
-                  variant="primario"
-                  onPress={() => {
-                    seleccionarCuidador('SOLICITUD_ABIERTA')
-                    setShowDisponibilidad(false)
-                  }}
-                  style={{ flex: 1 }}
-                />
-
-                <Button
-                  title={t('paseos:pasos.seleccionar_cuidador.quedate_btn')}
-                  variant="bloque"
-                  onPress={() => setShowDisponibilidad(false)}
-                  style={{ flex: 1 }}
-                />
-              </View>
             </View>
-          ) : (
-            <View style={{ marginTop: 8 }}>
-              {fechasDisponibles.slice(0, 6).map(item => (
-                <TouchableOpacity
-                  key={item.fecha.toISOString()}
-                  activeOpacity={0.9}
-                  onPress={() => {
-                    onChangeFechaSuggested?.(item.fecha)
-                    setShowDisponibilidad(false)
-                  }}
-                >
-                  <Card
-                    style={{
-                      marginBottom: 10,
-                      borderWidth: 0,
-                      borderRadius: 14,
-                      padding: 12,
-                      backgroundColor: COLOR.BLOQUE,
+
+            {loadingDisponibilidad ? (
+              <View style={{ padding: 20 }}>
+                <ActivityIndicator size="large" color={COLOR.PRIMARIO} />
+              </View>
+            ) : fechasDisponibles.length === 0 ? (
+              <EmptyState
+                image={<PerroTristeSvg width={100} height={100} />}
+                title={t(
+                  'paseos:pasos.seleccionar_cuidador.no_encontrado_30dias'
+                )}
+                description={t(
+                  'paseos:pasos.seleccionar_cuidador.opciones_explicacion'
+                )}
+                actionLabel={t(
+                  'paseos:pasos.seleccionar_cuidador.publicar_solicitud_abierta'
+                )}
+                onActionPress={() => {
+                  seleccionarCuidador('SOLICITUD_ABIERTA')
+                  setShowDisponibilidad(false)
+                  // Avanzar directamente al siguiente paso con horario amplio
+                  onNext(null, { hora_inicio: '05:00', hora_fin: '23:00' })
+                }}
+                style={{ flex: 0, paddingVertical: 20, paddingBottom: 40 }}
+              />
+            ) : (
+              <View style={{ marginTop: 8 }}>
+                {fechasDisponibles.slice(0, 6).map(item => (
+                  <TouchableOpacity
+                    key={item.fecha.toISOString()}
+                    activeOpacity={0.9}
+                    onPress={() => {
+                      onChangeFechaSuggested?.(item.fecha)
+                      setShowDisponibilidad(false)
                     }}
                   >
-                    <View
+                    <Card
                       style={{
-                        flexDirection: 'row',
-                        alignItems: 'center',
-                        gap: 12,
+                        marginBottom: 10,
+                        borderWidth: 0,
+                        borderRadius: 14,
+                        padding: 12,
+                        backgroundColor: COLOR.BLOQUE,
                       }}
                     >
-                      <View style={{ flex: 1 }}>
-                        <Text
-                          style={{
-                            fontSize: 16,
-                            fontWeight: '700',
-                            color: COLOR.TEXTO,
-                          }}
-                        >
-                          {item.fecha.toLocaleDateString(undefined, {
-                            weekday: 'short',
-                            month: 'short',
-                            day: 'numeric',
-                          })}
-                        </Text>
-                        <Text style={{ color: COLOR.SUBTEXTO, marginTop: 4 }}>
-                          {t(
-                            'paseos:pasos.seleccionar_cuidador.disponibles_para_fecha',
-                            { count: item.count }
-                          )}
-                        </Text>
-                        {item.horariosEjemplo.length > 0 && (
-                          <Text style={{ color: COLOR.SUBTEXTO, marginTop: 6 }}>
-                            {item.horariosEjemplo.join(' · ')}
+                      <View
+                        style={{
+                          flexDirection: 'row',
+                          alignItems: 'center',
+                          gap: 12,
+                        }}
+                      >
+                        <View style={{ flex: 1 }}>
+                          <Text
+                            style={{
+                              fontSize: 16,
+                              fontWeight: '700',
+                              color: COLOR.TEXTO,
+                            }}
+                          >
+                            {item.fecha.toLocaleDateString(undefined, {
+                              weekday: 'short',
+                              month: 'short',
+                              day: 'numeric',
+                            })}
                           </Text>
-                        )}
+                          <Text style={{ color: COLOR.SUBTEXTO, marginTop: 4 }}>
+                            {t(
+                              'paseos:pasos.seleccionar_cuidador.disponibles_para_fecha',
+                              { count: item.count }
+                            )}
+                          </Text>
+                          {item.horariosEjemplo.length > 0 && (
+                            <Text
+                              style={{ color: COLOR.SUBTEXTO, marginTop: 6 }}
+                            >
+                              {item.horariosEjemplo.join(' · ')}
+                            </Text>
+                          )}
+                        </View>
+                        <Icon
+                          name="chevron-right"
+                          size={20}
+                          color={COLOR.BORDE}
+                        />
                       </View>
-                      <Icon
-                        name="chevron-right"
-                        size={20}
-                        color={COLOR.BORDE}
-                      />
-                    </View>
-                  </Card>
-                </TouchableOpacity>
-              ))}
+                    </Card>
+                  </TouchableOpacity>
+                ))}
 
-              <View style={{ marginTop: 12, flexDirection: 'row', gap: 12 }}>
-                <Button
-                  title={t(
-                    'paseos:pasos.seleccionar_cuidador.publicar_solicitud_abierta'
-                  )}
-                  variant="primario"
-                  onPress={() => {
-                    seleccionarCuidador('SOLICITUD_ABIERTA')
-                    setShowDisponibilidad(false)
-                    if (fecha) {
-                      // avanzar directamente si la fecha se mantiene
-                      onNext(null, { hora_inicio: '05:00', hora_fin: '23:00' })
-                    }
-                  }}
-                  style={{ flex: 1 }}
-                />
+                <View style={{ marginTop: 12, flexDirection: 'row', gap: 12 }}>
+                  <Button
+                    title={t(
+                      'paseos:pasos.seleccionar_cuidador.publicar_solicitud_abierta'
+                    )}
+                    variant="primario"
+                    onPress={() => {
+                      seleccionarCuidador('SOLICITUD_ABIERTA')
+                      setShowDisponibilidad(false)
+                      if (fecha) {
+                        // avanzar directamente si la fecha se mantiene
+                        onNext(null, {
+                          hora_inicio: '05:00',
+                          hora_fin: '23:00',
+                        })
+                      }
+                    }}
+                    style={{ flex: 1 }}
+                  />
 
-                <Button
-                  title={t('paseos:pasos.seleccionar_cuidador.quedate_btn')}
-                  variant="bloque"
-                  onPress={() => setShowDisponibilidad(false)}
-                  style={{ flex: 1 }}
-                />
+                  <Button
+                    title={t('paseos:pasos.seleccionar_cuidador.quedate_btn')}
+                    variant="bloque"
+                    onPress={() => setShowDisponibilidad(false)}
+                    style={{ flex: 1 }}
+                  />
+                </View>
               </View>
-            </View>
-          )}
+            )}
+          </View>
+
+          <View style={styles.modalFooter}>
+            <Button
+              title={t('comun:cerrar', 'Cerrar')}
+              variant="bloque"
+              onPress={() => setShowDisponibilidad(false)}
+            />
+          </View>
         </ModalAnimatedView>
       </BottomSheet>
     </View>
@@ -498,7 +487,7 @@ export const SeleccionarCuidadorPaso = ({
 const styles = StyleSheet.create({
   container: {
     padding: 16,
-    height: 500,
+    height: 600,
   },
   list: {
     flex: 1,
@@ -629,6 +618,52 @@ const styles = StyleSheet.create({
     color: COLOR.ERROR,
     textAlign: 'center',
   },
+  emptyState: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 32,
+    paddingVertical: 40,
+  },
+  emptyImage: {
+    width: 200,
+    height: 200,
+    marginBottom: 24,
+  },
+  emptyTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: COLOR.TEXTO,
+    textAlign: 'center',
+    marginBottom: 12,
+  },
+  emptyDescription: {
+    fontSize: 15,
+    color: COLOR.SUBTEXTO,
+    textAlign: 'center',
+    lineHeight: 22,
+  },
+  modalEmptyState: {
+    paddingVertical: 32,
+    paddingHorizontal: 24,
+    alignItems: 'center',
+  },
+  modalEmptyIcon: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: `${COLOR.PRIMARIO}15`,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  modalEmptyTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: COLOR.TEXTO,
+    textAlign: 'center',
+    marginBottom: 20,
+  },
   emptyText: {
     fontSize: 16,
     fontWeight: 'bold',
@@ -681,6 +716,12 @@ const styles = StyleSheet.create({
     height: 12,
     backgroundColor: 'rgba(255,255,255,0.03)',
     borderRadius: 6,
+  },
+  modalFooter: {
+    position: 'absolute',
+    left: 20,
+    right: 20,
+    bottom: 20,
   },
   countBadge: {
     backgroundColor: COLOR.PRIMARIO,

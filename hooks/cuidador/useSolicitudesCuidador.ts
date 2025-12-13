@@ -19,6 +19,10 @@ export function useSolicitudesCuidador() {
     if (!data) return []
 
     const filtradas = data.filter(p => {
+      // Excluir solicitudes que el propio usuario haya creado
+      // (evita que un tutor pueda auto-aceptarse paseos)
+      if (p.creado_por === user?.uid) return false
+
       // Mostrar si no tiene cuidador asignado (mercado abierto)
       if (!p.id_cuidador) return true
       // Mostrar si está asignado a mí específicamente

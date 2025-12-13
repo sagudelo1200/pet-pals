@@ -90,11 +90,10 @@
       "ver_horarios_cercanos": "Ver próximos horarios disponibles",
       "fechas_disponibles_titulo": "Fechas con cuidadores disponibles",
       "disponibles_para_fecha": "{{count}} cuidador(es) disponibles",
-      "no_encontrado_30dias": "No encontramos cuidadores disponibles en los próximos 30 días. Lo sentimos — puedes publicar una solicitud abierta o quedarte en esta fecha.",
-      "opciones_explicacion": "Puedes publicar una solicitud abierta para que cuidadores fuera de su jornada puedan aceptar, o quedarte en la fecha seleccionada y publicarla manualmente más tarde.",
-      "recibir_notificacion": "Recibir notificación cuando haya disponibilidad",
-      "publicar_solicitud_abierta": "Publicar solicitud abierta",
-      "quedate_btn": "Quedarme en esta fecha"
+      "no_encontrado_30dias": "No hemos encontrado cuidadores disponibles en los próximos 30 días.",
+      "opciones_explicacion": "Lo sentimos — puedes recibir notificaciones cuando haya disponibilidad o publicar una solicitud abierta para que cualquier cuidador pueda aceptarla.",
+      "recibir_notificacion": "Notificarme",
+      "publicar_solicitud_abierta": "Publicar solicitud abierta"
     },
     "confirmar": {
       "titulo": "Revisa y confirma",
