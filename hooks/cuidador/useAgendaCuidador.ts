@@ -37,12 +37,7 @@ export function useAgendaCuidador() {
     return query(
       collection(db, 'paseos'),
       where('id_cuidador', '==', uid),
-      where('estado', 'in', [
-        'COMPLETADO',
-        'FINALIZADO',
-        'CANCELADO',
-        'RECHAZADO',
-      ]),
+      where('estado', 'in', ['COMPLETADO', 'FINALIZADO', 'CANCELADO']),
       orderBy('fecha_hora_inicio', 'desc'), // Los más recientes primero
       limit(30)
     )

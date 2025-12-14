@@ -42,7 +42,6 @@ export const ItemHistorialPaseo: React.FC<ItemHistorialPaseoProps> = ({
       case 'FINALIZADO':
         return COLOR.EXITO
       case 'CANCELADO':
-      case 'RECHAZADO':
         return COLOR.ERROR
       default:
         return COLOR.SUBTEXTO

@@ -19,7 +19,6 @@ export enum PaseoStatus {
   FINALIZADO = 'FINALIZADO',
   COMPLETADO = 'COMPLETADO',
   CANCELADO = 'CANCELADO',
-  RECHAZADO = 'RECHAZADO',
   ERROR = 'ERROR',
 }
 
@@ -84,4 +83,6 @@ export interface Paseo extends BaseModel {
   cuidador_nombre_visual?: string
   /** Foto del cuidador para visualización en listas. */
   cuidador_foto_visual?: string
+  /** Tipo de solicitud: DIRECTA (a un cuidador) o ABIERTA (visible a varios cuidadores). */
+  tipo_solicitud?: 'DIRECTA' | 'ABIERTA'
 }

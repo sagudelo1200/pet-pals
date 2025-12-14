@@ -90,7 +90,7 @@ export const DetalleSolicitud = () => {
   }
 
   const handleRechazar = () => {
-    rechazarSolicitud()
+    if (paseo) rechazarSolicitud(paseo)
   }
 
   if (cargandoDatos) {

@@ -97,13 +97,30 @@ export const useGestionPaseoCuidador = () => {
     )
   }
 
-  const rechazarSolicitud = (onSuccess?: () => void) => {
-    // Por ahora solo navegación, en el futuro lógica de ignorar
-    if (onSuccess) {
-      onSuccess()
-    } else {
-      navigation.goBack()
-    }
+  const rechazarSolicitud = (
+    paseoOrId?: Paseo | string,
+    onSuccess?: () => void
+  ) => {
+    const paseoId = typeof paseoOrId === 'string' ? paseoOrId : paseoOrId?.id
+
+    // Registrar evento de rechazo y navegar
+    ;(async () => {
+      try {
+        if (paseoId) {
+          await ServicioPaseo.registrarEvento(paseoId, 'RECHAZAR', {
+            motivo: 'RECHAZADO_POR_CUIDADOR',
+          })
+        }
+      } catch (e) {
+        // no bloquear navegación por fallos de logging
+      }
+
+      if (onSuccess) {
+        onSuccess()
+      } else {
+        navigation.goBack()
+      }
+    })()
   }
 
   return {

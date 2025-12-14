@@ -25,7 +25,6 @@
     "FINALIZADO": "Finalizado",
     "COMPLETADO": "Completado",
     "CANCELADO": "Cancelado",
-    "RECHAZADO": "Rechazado",
     "ERROR": "Error"
   },
   "eventos": {

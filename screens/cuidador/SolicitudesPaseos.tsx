@@ -20,7 +20,8 @@ const SolicitudesPaseos: React.FC = () => {
   const { solicitudes, cargando } = useSolicitudesCuidador()
 
   const handlePressSolicitud = (solicitud: Paseo) => {
-    navigation.navigate('DetalleSolicitud', { paseoId: solicitud.id })
+    // Redirigir a la vista de detalle general del paseo
+    navigation.navigate('DetallePaseo', { id: solicitud.id })
   }
 
   const renderItem = ({ item }: { item: Paseo }) => (

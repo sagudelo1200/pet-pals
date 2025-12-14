@@ -58,7 +58,6 @@ export const BadgeEstadoPaseo = ({ estado }: Props) => {
           icon: 'check-circle',
         }
       case PaseoStatus.CANCELADO:
-      case PaseoStatus.RECHAZADO:
       case PaseoStatus.ERROR:
         return {
           bg: COLOR.ERROR + '30',

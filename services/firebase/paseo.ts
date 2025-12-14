@@ -15,6 +15,7 @@ import {
   runTransaction,
   doc,
   serverTimestamp,
+  arrayUnion,
 } from 'firebase/firestore'
 import { db } from '@/firebase.config'
 
@@ -215,6 +216,36 @@ export class ServicioPaseo {
 
   static async obtenerTodos(): Promise<CrudResult<Paseo[]>> {
     return ServicioCrudBase.obtenerTodos<Paseo>(this.COLLECTION)
+  }
+
+  /**
+   * Registra un evento asociado a un paseo en el documento (historial_eventos).
+   * Usa `arrayUnion` para añadir entradas atómicas.
+   */
+  static async registrarEvento(
+    paseoId: string,
+    evento: string,
+    payload?: Record<string, any>
+  ): Promise<CrudResult<void>> {
+    const currentUser = ServicioAuth.obtenerUsuarioActual()
+    try {
+      const entry = {
+        evento,
+        payload: payload || {},
+        actor: currentUser?.uid || null,
+        creado_en: serverTimestamp(),
+      }
+
+      await ServicioCrudBase.actualizar(this.COLLECTION, paseoId, {
+        historial_eventos: arrayUnion(entry as any),
+        actualizado_en: serverTimestamp(),
+        actualizado_por: currentUser?.uid || null,
+      } as any)
+
+      return { success: true }
+    } catch (error) {
+      return { success: false, error: mapFirebaseError(error) }
+    }
   }
 
   // Métodos específicos

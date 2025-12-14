@@ -72,9 +72,7 @@ const Paseos: React.FC = () => {
   const historial = useMemo(
     () =>
       (paseos || []).filter(p =>
-        ['COMPLETADO', 'FINALIZADO', 'CANCELADO', 'RECHAZADO'].includes(
-          p.estado
-        )
+        ['COMPLETADO', 'FINALIZADO', 'CANCELADO'].includes(p.estado)
       ),
     [paseos]
   )

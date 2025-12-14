@@ -41,7 +41,6 @@ type Transiciones = {
 const CONFIG_MAQUINA: Transiciones = {
   [PaseoStatus.PENDIENTE]: {
     ACEPTAR: PaseoStatus.ACEPTADO,
-    RECHAZAR: PaseoStatus.RECHAZADO,
     CANCELAR: PaseoStatus.CANCELADO,
   },
   [PaseoStatus.ACEPTADO]: {
@@ -67,7 +66,6 @@ const CONFIG_MAQUINA: Transiciones = {
   },
   [PaseoStatus.COMPLETADO]: {},
   [PaseoStatus.CANCELADO]: {},
-  [PaseoStatus.RECHAZADO]: {},
   [PaseoStatus.ERROR]: {},
 }
 
@@ -96,7 +94,23 @@ export class MaquinaEstadosPaseo {
    */
   puede(evento: PaseoEvent): boolean {
     const permitidos = CONFIG_MAQUINA[this._estado]
-    return !!(permitidos && permitidos[evento])
+    const NON_TRANSITION_EVENTS: PaseoEvent[] = ['RECHAZAR']
+    const ALLOWED_NON_TRANSITION_FROM: PaseoStatus[] = [
+      PaseoStatus.PENDIENTE,
+      PaseoStatus.ACEPTADO,
+    ]
+
+    if (permitidos && permitidos[evento]) return true
+
+    // Permitir eventos no-transicionales (p. ej. RECHAZAR) desde ciertos estados
+    if (
+      NON_TRANSITION_EVENTS.includes(evento) &&
+      ALLOWED_NON_TRANSITION_FROM.includes(this._estado)
+    ) {
+      return true
+    }
+
+    return false
   }
 
   /**
@@ -106,6 +120,13 @@ export class MaquinaEstadosPaseo {
   transicion(evento: PaseoEvent, payload?: TransitionPayload): PaseoStatus {
     if (!this.puede(evento)) {
       throw new Error(`Transición inválida: ${this._estado} -> ${evento}`)
+    }
+
+    // Eventos que no causan cambio de estado (se registran)
+    const NON_TRANSITION_EVENTS: PaseoEvent[] = ['RECHAZAR']
+    if (NON_TRANSITION_EVENTS.includes(evento)) {
+      this.registrarEvento(evento, payload)
+      return this._estado
     }
 
     const nuevoEstado = CONFIG_MAQUINA[this._estado]![evento]!
@@ -134,6 +155,22 @@ export class MaquinaEstadosPaseo {
 
     // Ejemplo: ACEPTAR requiere id_cuidador (si no viene en context)
     // if (evento === 'ACEPTAR' && !payload?.id_cuidador && !this._contexto.id_cuidador) ...
+  }
+
+  /**
+   * Registra eventos que no provocan cambio de estado (historial/auditoría).
+   */
+  private registrarEvento(evento: PaseoEvent, payload?: TransitionPayload) {
+    const registro = {
+      evento,
+      payload,
+      timestamp: new Date(),
+    }
+
+    // Mantener compatibilidad: almacenar en `_contexto.historial_eventos`
+    const key = 'historial_eventos' as keyof Partial<Paseo>
+    const actual = (this._contexto as any)[key] || []
+    ;(this._contexto as any)[key] = [...actual, registro]
   }
 }
 
