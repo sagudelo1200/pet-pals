@@ -1,6 +1,6 @@
 {
   "dashboard": {
-    "titulo": "Mi Dashboard",
+    "titulo": "Hola, {{nombre}}",
     "subtitulo": "Gestiona tus paseos",
     "solicitudes_pendientes": "Solicitudes",
     "paseos_activos": "Activos",

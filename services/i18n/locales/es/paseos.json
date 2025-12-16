@@ -132,5 +132,9 @@
   "acciones": {
     "cancelar": "Cancelar Paseo",
     "confirmar_cancelar": "¿Estás seguro de que deseas cancelar este paseo? Esta acción no se puede deshacer."
+  },
+  "campos": {
+    "precio": "Precio",
+    "duracion": "Duración"
   }
 }
