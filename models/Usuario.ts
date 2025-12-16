@@ -1,33 +1,23 @@
 import { BaseModel } from './BaseModel'
+import { UbicacionRef } from './Ubicacion'
 
 /**
  * Dirección postal/domicilio estructurada.
+ *
+ * Nota: mantenemos este tipo por compatibilidad pero NO debe usarse
+ * para nuevos desarrollos. Use `Ubicacion` y referencias (`UbicacionRef`).
  */
 export interface Direccion {
-  /** Calle o avenida */
   calle?: string
-  /** Número exterior o indicativo */
   numero?: string
-  /** Barrio (ej: barrios de Medellín) */
   barrio?: string
-  /** Comuna (ej: comunas de Medellín) */
   comuna?: string
-  /** Ciudad */
   ciudad?: string
-  /** Departamento / estado */
   departamento?: string
-  /** País */
   pais?: string
-  /** Código postal */
   codigo_postal?: string
-  /** Coordenadas geográficas (lat/lng) */
-  coordenadas?: {
-    lat: number
-    lng: number
-  }
-  /** Punto de referencia o indicaciones */
+  coordenadas?: { lat: number; lng: number }
   referencia?: string
-  /** Descripción libre adicional */
   descripcion?: string
 }
 
@@ -59,8 +49,14 @@ export interface Usuario extends BaseModel {
 
   /** Fecha de nacimiento */
   fecha_nacimiento?: Date
-  /** Dirección postal/domicilio */
-  direccion?: Direccion
+  /** Referencias a ubicaciones geocodificadas (recomendado). */
+  ubicaciones?: UbicacionRef[]
+
+  /**
+   * Identificador de la ubicación principal (si aplica). Mantener para consultas rápidas.
+   * Opcional: puede ser `undefined` si el usuario no definió una principal.
+   */
+  ubicacion_principal_id?: string
   /** Zona o sector (texto libre) */
   zona?: string
 

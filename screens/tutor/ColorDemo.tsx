@@ -17,6 +17,7 @@ import {
 } from '@/components/ui'
 import Screen from '@/components/ui/Screen'
 import { ServicioMascota } from '@/services/firebase'
+import { ServicioUbicacion } from '@/services/firebase/ubicacion'
 import { ServicioAuth } from '@/services/firebase/auth'
 import type { Mascota } from '@/models/Mascota'
 import { Alert } from 'react-native'
@@ -96,6 +97,69 @@ const ColorDemo: React.FC = () => {
       console.error('Error creando mascota:', error)
     } finally {
       setCreandoMascota(false)
+    }
+  }
+
+  const [creandoUbicacion, setCreandoUbicacion] = useState(false)
+
+  const crearUbicacionValida = async () => {
+    setCreandoUbicacion(true)
+    try {
+      const payload: any = {
+        proveedor: 'google',
+        proveedor_place_id: 'place_123_test',
+        direccion_formateada: 'Cra 7 #45, Bogotá, Colombia',
+        coordenadas: { lat: 4.653, lng: -74.0608 },
+        componentes_raw: [
+          { long_name: 'Cra 7', types: ['route'] },
+          { long_name: '45', types: ['street_number'] },
+          { long_name: 'Chapinero', types: ['neighborhood'] },
+          { long_name: 'Bogotá', types: ['locality'] },
+          { long_name: 'Cundinamarca', types: ['administrative_area_level_1'] },
+          { long_name: 'Colombia', types: ['country'] },
+        ],
+        alias: 'Casa',
+        instrucciones: 'Portón negro',
+        metadata: { source: 'debug' },
+        estado: 'verificada',
+      }
+      console.log('DEBUG: crearUbicacionValida payload', payload)
+      const res = await ServicioUbicacion.crearSiNoExiste(payload)
+      console.log('DEBUG: ServicioUbicacion.crearSiNoExiste res', res)
+      if (res.success && res.data) {
+        Alert.alert('OK', `Ubicación creada/recuperada id: ${res.data.id}`)
+      } else {
+        Alert.alert('Error', String(res.error))
+      }
+    } catch (err) {
+      console.log('ERROR crearUbicacionValida', err)
+      Alert.alert('Error', 'Ocurrió un error')
+    } finally {
+      setCreandoUbicacion(false)
+    }
+  }
+
+  const crearUbicacionInvalida = async () => {
+    try {
+      const payload: any = {
+        proveedor: 'unknown',
+        proveedor_place_id: '',
+        direccion_formateada: '',
+        coordenadas: { lat: null, lng: null },
+      }
+      console.log('DEBUG: crearUbicacionInvalida payload', payload)
+      const res = await ServicioUbicacion.crearSiNoExiste(payload)
+      console.log(
+        'DEBUG: ServicioUbicacion.crearSiNoExiste res (invalida)',
+        res
+      )
+      Alert.alert(
+        res.success ? 'Unexpected OK' : 'Error esperado',
+        String(res.error)
+      )
+    } catch (err) {
+      console.log('ERROR crearUbicacionInvalida', err)
+      Alert.alert('Error', 'Ocurrió un error inesperado')
     }
   }
 
@@ -373,6 +437,27 @@ const ColorDemo: React.FC = () => {
           variant="primario"
           onPress={crearMascotaSemilla}
           disabled={creandoMascota}
+          fullWidth
+        />
+      </View>
+
+      <View style={styles.card}>
+        <Text style={styles.cardTitle}>Debug Ubicaciones</Text>
+        <Text style={{ color: COLOR.SUBTEXTO, marginBottom: 12 }}>
+          Pruebas rápidas para crear/validar `Ubicacion` mediante el servicio.
+        </Text>
+        <Button
+          title={creandoUbicacion ? 'Procesando...' : 'Crear ubicación válida'}
+          variant="primario"
+          onPress={crearUbicacionValida}
+          disabled={creandoUbicacion}
+          fullWidth
+        />
+        <Spacer size={8} />
+        <Button
+          title="Probar validación inválida"
+          variant="inactivo"
+          onPress={crearUbicacionInvalida}
           fullWidth
         />
       </View>

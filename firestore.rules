@@ -161,6 +161,51 @@ service cloud.firestore {
       allow delete: if autenticado() && (es_tutor() || es_admin());
     }
 
+    // UBICACIONES (direcciones geocodificadas)
+    match /ubicaciones/{id} {
+
+      // Valida que las coordenadas sean un GeoPoint con lat/lng en rango
+      function coordenadas_validas() {
+        return request.resource.data.coordenadas != null
+          && request.resource.data.coordenadas.latitude is number
+          && request.resource.data.coordenadas.longitude is number
+          && request.resource.data.coordenadas.latitude >= -90
+          && request.resource.data.coordenadas.latitude <= 90
+          && request.resource.data.coordenadas.longitude >= -180
+          && request.resource.data.coordenadas.longitude <= 180;
+      }
+
+      // Lectura: cualquier usuario autenticado puede leer ubicaciones (se puede endurecer si hace falta)
+      allow read: if autenticado();
+
+      // Crear: solo usuario autenticado que declare como creado_por su uid y cumpla campos de sistema
+      // Además validar proveedor aceptado, place_id no vacío, dirección formateada y coordenadas válidas
+      allow create: if autenticado()
+        && es_creador()
+        && tiene_campos_sistema_basicos()
+        && campos_sistema_validos_crear()
+        && request.resource.data.proveedor in ['google','mapbox']
+        && request.resource.data.proveedor_place_id is string
+        && request.resource.data.proveedor_place_id.size() > 0
+        && request.resource.data.direccion_formateada is string
+        && request.resource.data.direccion_formateada.size() > 3
+        && coordenadas_validas();
+
+      // Update: el creador o admin puede actualizar. Mantener campos de sistema y no cambiar creado_por/creado_en.
+      allow update: if autenticado() && (es_admin() || resource.data.creado_por == request.auth.uid)
+        && campos_sistema_validos_actualizar()
+        && request.resource.data.creado_por == resource.data.creado_por
+        && request.resource.data.creado_en == resource.data.creado_en
+        && solo_campos_permitidos([
+      'id','proveedor','proveedor_place_id','direccion_formateada','coordenadas',
+      'componentes','componentes_raw','componentes_source','viewport','alias','instrucciones',
+      'metadata','estado','creado_por','creado_en','actualizado_en','actualizado_por'
+      ]);
+
+      // Solo admin puede borrar
+      allow delete: if es_admin();
+    }
+
     // PASEOS
     match /paseos/{id} {
       // Permitir lectura si:

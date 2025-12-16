@@ -1,4 +1,5 @@
 import { BaseModel } from './BaseModel'
+import { UbicacionRef } from './Ubicacion'
 
 /**
  * Tipos de especie permitidas para mascotas.
@@ -76,6 +77,9 @@ export interface Mascota extends BaseModel {
   activo?: boolean
   /** Preferencias específicas de la mascota durante el paseo. */
   preferencias_paseo?: string[]
+
+  /** Referencia a la ubicación donde vive la mascota (si difiere del tutor). */
+  ubicacion?: UbicacionRef
 
   /** Descripción adicional o notas especiales. */
   descripcion?: string
