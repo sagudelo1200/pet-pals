@@ -13,6 +13,7 @@ import { SolicitarPaseoModal } from '@/components/paseos/SolicitarPaseoModal'
 import PaseadorPerrosSvg from '@/assets/imgs/undraw/paseador_perros.svg'
 import { useMascotas } from '@/hooks/useMascotas'
 import { usePaseos } from '@/hooks/paseos/usePaseos'
+import DetallePaseoBottomSheet from '@/components/paseos/DetallePaseoBottomSheet'
 
 type TabTipo = 'proximos' | 'historial'
 
@@ -20,6 +21,8 @@ const Paseos: React.FC = () => {
   const { t } = useTranslation()
   const [activeTab, setActiveTab] = useState<TabTipo>('proximos')
   const [modalVisible, setModalVisible] = useState(false)
+  const [detalleVisible, setDetalleVisible] = useState(false)
+  const [detalleTitle, setDetalleTitle] = useState('')
   const { mascotas } = useMascotas()
   const navigation = useNavigation()
   const { paseos, cargando, refetch } = usePaseos()
@@ -33,8 +36,9 @@ const Paseos: React.FC = () => {
     const paseo = (paseos || []).find(p => p.id === id)
     if (paseo && paseo.estado === 'PENDIENTE') return
 
-    // @ts-ignore
-    navigation.navigate('DetallePaseo', { id })
+    // Abrir BottomSheet de detalle (sólo título por ahora)
+    setDetalleTitle(t('paseos:detalle.titulo'))
+    setDetalleVisible(true)
   }
 
   const handleSolicitar = () => {
@@ -151,6 +155,11 @@ const Paseos: React.FC = () => {
       <SolicitarPaseoModal
         visible={modalVisible}
         onClose={() => setModalVisible(false)}
+      />
+      <DetallePaseoBottomSheet
+        visible={detalleVisible}
+        onClose={() => setDetalleVisible(false)}
+        title={detalleTitle}
       />
     </Screen>
   )

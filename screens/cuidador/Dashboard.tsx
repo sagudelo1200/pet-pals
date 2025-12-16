@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react'
+import React, { useCallback, useState } from 'react'
 import {
   StyleSheet,
   View,
@@ -20,6 +20,7 @@ import {
   ScreenHeader,
   TarjetaPaseo,
 } from '@/components/ui'
+import DetallePaseoBottomSheet from '@/components/paseos/DetallePaseoBottomSheet'
 
 const Dashboard: React.FC = () => {
   const { t } = useTranslation()
@@ -41,6 +42,8 @@ const Dashboard: React.FC = () => {
 
   // Filtrar próximos paseos del cuidador (hoy y futuros)
   const proximosPaseos = (proximos || []).slice(0, 3)
+  const [detalleVisible, setDetalleVisible] = useState(false)
+  const [detalleTitle, setDetalleTitle] = useState('')
 
   const renderEmptyState = () => (
     <View style={styles.emptyState}>
@@ -136,14 +139,19 @@ const Dashboard: React.FC = () => {
                   key={paseo.id}
                   paseo={paseo}
                   onPress={() => {
-                    // @ts-ignore
-                    navigation.navigate('DetallePaseo', { id: paseo.id })
+                    setDetalleTitle(t('paseos:detalle.titulo'))
+                    setDetalleVisible(true)
                   }}
                 />
               ))
             : renderEmptyState()}
         </View>
       </ScrollView>
+      <DetallePaseoBottomSheet
+        visible={detalleVisible}
+        onClose={() => setDetalleVisible(false)}
+        title={detalleTitle}
+      />
     </Screen>
   )
 }

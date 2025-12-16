@@ -12,9 +12,6 @@ export type AuthStackParamList = {
     mascotaId: string
     mascota?: Mascota
   }
-  DetallePaseo: {
-    id: string
-  }
 
   PerfilCuidador: undefined
 }

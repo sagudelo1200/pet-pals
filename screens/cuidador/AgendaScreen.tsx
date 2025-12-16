@@ -1,7 +1,6 @@
 import React, { useState } from 'react'
 import { StyleSheet, View, FlatList } from 'react-native'
 import { useTranslation } from 'react-i18next'
-import { useNavigation } from '@react-navigation/native'
 import { COLOR } from '@/constants'
 import Screen from '@/components/ui/Screen'
 import ScreenHeader from '@/components/ui/ScreenHeader'
@@ -11,27 +10,22 @@ import Chip from '@/components/ui/Chip'
 import EmptyState from '@/components/ui/EmptyState'
 import PaseadorPerrosSvg from '@/assets/imgs/undraw/paseador_perros.svg'
 import { useAgendaCuidador } from '@/hooks/cuidador/useAgendaCuidador'
-import { StackNavigationProp } from '@react-navigation/stack'
-import { AuthStackParamList } from '@/navigation/types'
+import DetallePaseoBottomSheet from '@/components/paseos/DetallePaseoBottomSheet'
 
 type TabTipo = 'proximos' | 'historial'
 
 const AgendaScreen: React.FC = () => {
   const { t } = useTranslation()
   const [activeTab, setActiveTab] = useState<TabTipo>('proximos')
-  const navigation = useNavigation<StackNavigationProp<AuthStackParamList>>()
   const { proximos, historial, cargando, refetch } = useAgendaCuidador()
+  const [detalleVisible, setDetalleVisible] = useState(false)
+  const [detalleTitle, setDetalleTitle] = useState('')
 
   const paseosFiltrados = activeTab === 'proximos' ? proximos : historial
 
   const handlePressPaseo = (paseoId: string) => {
-    // Navegar al detalle del paseo (Modo Ejecución)
-    if (activeTab === 'proximos') {
-      navigation.navigate('DetallePaseo', { id: paseoId })
-    } else {
-      // Para historial, usamos la vista de detalle genérica (solo lectura)
-      navigation.navigate('DetallePaseo', { id: paseoId })
-    }
+    setDetalleTitle(t('paseos:detalle.titulo', { id: paseoId }))
+    setDetalleVisible(true)
   }
 
   const renderEmptyState = () => (
@@ -100,6 +94,11 @@ const AgendaScreen: React.FC = () => {
         ListEmptyComponent={!cargando ? renderEmptyState() : null}
         refreshing={cargando}
         onRefresh={refetch}
+      />
+      <DetallePaseoBottomSheet
+        visible={detalleVisible}
+        onClose={() => setDetalleVisible(false)}
+        title={detalleTitle}
       />
     </Screen>
   )
