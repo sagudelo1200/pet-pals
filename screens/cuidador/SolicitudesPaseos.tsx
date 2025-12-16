@@ -1,14 +1,14 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { StyleSheet, View, FlatList } from 'react-native'
-import { useNavigation } from '@react-navigation/native'
-import { StackNavigationProp } from '@react-navigation/stack'
+// navigation intentionally removed: cards are non-interactive
 import { useTranslation } from 'react-i18next'
 import Screen from '@/components/ui/Screen'
 import ScreenHeader from '@/components/ui/ScreenHeader'
 import { useSolicitudesCuidador } from '@/hooks/cuidador/useSolicitudesCuidador'
 import { TarjetaSolicitud } from '@/components/cuidador/TarjetaSolicitud'
+import SolicitudModal from '@/components/cuidador/SolicitudModal'
 import { Paseo } from '@/models/Paseo'
-import { AuthStackParamList } from '@/navigation/types'
+
 import Skeleton from '@/components/ui/Skeleton'
 import Card from '@/components/ui/Card'
 import EmptyState from '@/components/ui/EmptyState'
@@ -16,16 +16,19 @@ import DiaEnElParqueSvg from '@/assets/imgs/undraw/dia_en_el_parque.svg'
 
 const SolicitudesPaseos: React.FC = () => {
   const { t } = useTranslation()
-  const navigation = useNavigation<StackNavigationProp<AuthStackParamList>>()
   const { solicitudes, cargando } = useSolicitudesCuidador()
+  const [selected, setSelected] = useState<Paseo | null>(null)
+  const [modalVisible, setModalVisible] = useState(false)
 
-  const handlePressSolicitud = (solicitud: Paseo) => {
-    // Redirigir a la vista de detalle general del paseo
-    navigation.navigate('DetallePaseo', { id: solicitud.id })
-  }
-
+  // No abrir detalle al tocar una solicitud: mantener la tarjeta informativa
   const renderItem = ({ item }: { item: Paseo }) => (
-    <TarjetaSolicitud solicitud={item} onPress={handlePressSolicitud} />
+    <TarjetaSolicitud
+      solicitud={item}
+      onPress={() => {
+        setSelected(item)
+        setModalVisible(true)
+      }}
+    />
   )
 
   const renderSkeleton = () => (
@@ -91,6 +94,15 @@ const SolicitudesPaseos: React.FC = () => {
           showsVerticalScrollIndicator={false}
         />
       )}
+
+      <SolicitudModal
+        visible={modalVisible}
+        paseo={selected}
+        onClose={() => {
+          setModalVisible(false)
+          setSelected(null)
+        }}
+      />
     </Screen>
   )
 }

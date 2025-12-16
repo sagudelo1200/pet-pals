@@ -249,5 +249,36 @@ service cloud.firestore {
 
       allow delete: if es_actor_paseo_doc(paseoDoc());
     }
+
+    // SUBCOLECCION DE EVENTOS (HISTORIAL)
+    match /paseos/{paseoId}/eventos/{eventoId} {
+      function paseoDoc() {
+        return get(/databases/$(database)/documents/paseos/$(paseoId));
+      }
+
+      // Lectura permitida a actores del paseo y admins
+      allow read: if autenticado() && (
+      paseoDoc() != null && (
+      paseoDoc().data.creado_por == request.auth.uid ||
+      paseoDoc().data.id_cuidador == request.auth.uid ||
+      es_admin()
+      )
+      );
+
+      // Crear evento: puede crearlo el cuidador asignado, el creador (tutor) o admin
+      allow create: if autenticado() && (
+      paseoDoc() != null && (
+      paseoDoc().data.id_cuidador == request.auth.uid ||
+      paseoDoc().data.creado_por == request.auth.uid ||
+      es_admin()
+      )
+      ) &&
+      request.resource.data.keys().hasAll(['evento','payload','actor','creado_en']) &&
+      request.resource.data.actor == request.auth.uid &&
+      request.resource.data.creado_en == request.time;
+
+      // Solo admin puede modificar o borrar eventos
+      allow update, delete: if es_admin();
+    }
   }
 }

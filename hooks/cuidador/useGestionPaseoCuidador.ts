@@ -103,10 +103,20 @@ export const useGestionPaseoCuidador = () => {
   ) => {
     const paseoId = typeof paseoOrId === 'string' ? paseoOrId : paseoOrId?.id
 
-    // Registrar evento de rechazo y navegar
+    // Registrar evento de rechazo solo si la solicitud es directa.
     ;(async () => {
       try {
-        if (paseoId) {
+        if (paseoOrId && typeof paseoOrId !== 'string') {
+          const paseo = paseoOrId as Paseo
+          const tipo = (paseo as any).tipo_solicitud
+          const esDirecta = tipo === 'DIRECTA' || !!paseo.id_cuidador
+          if (esDirecta && paseo.id) {
+            await ServicioPaseo.registrarEvento(paseo.id, 'RECHAZAR', {
+              motivo: 'RECHAZADO_POR_CUIDADOR',
+            })
+          }
+        } else if (paseoId) {
+          // Si solo tenemos ID, conservador: registrar evento (si el servidor lo permite)
           await ServicioPaseo.registrarEvento(paseoId, 'RECHAZAR', {
             motivo: 'RECHAZADO_POR_CUIDADOR',
           })

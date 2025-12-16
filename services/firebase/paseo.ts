@@ -15,7 +15,6 @@ import {
   runTransaction,
   doc,
   serverTimestamp,
-  arrayUnion,
 } from 'firebase/firestore'
 import { db } from '@/firebase.config'
 
@@ -236,11 +235,13 @@ export class ServicioPaseo {
         creado_en: serverTimestamp(),
       }
 
-      await ServicioCrudBase.actualizar(this.COLLECTION, paseoId, {
-        historial_eventos: arrayUnion(entry as any),
-        actualizado_en: serverTimestamp(),
-        actualizado_por: currentUser?.uid || null,
-      } as any)
+      // Persistir evento en subcolección 'eventos' para trazabilidad y reglas más claras
+      const { collection, addDoc } = await import('firebase/firestore')
+      const eventosCol = collection(db, this.COLLECTION, paseoId, 'eventos')
+      await addDoc(eventosCol, {
+        ...entry,
+        creado_por: currentUser?.uid || null,
+      })
 
       return { success: true }
     } catch (error) {

@@ -6,7 +6,7 @@ import AdminTabNavigator from '@/navigation/AdminTabNavigator'
 import AuthNavigator from './AuthNavigator'
 import DetalleMascota from '@/screens/tutor/DetalleMascota'
 import { DetallePaseo } from '@/screens/tutor/DetallePaseo'
-import { DetallePaseoActivo } from '@/screens/cuidador/DetallePaseoActivo'
+// DetallePaseoActivo (pantalla de cuidador) removida temporalmente para rediseño
 import PerfilCuidador from '@/screens/cuidador/PerfilCuidador'
 import { AuthStackParamList } from './types'
 
@@ -31,7 +31,6 @@ export default function RootNavigator(): React.ReactElement {
         }}
       />
       <Stack.Screen name="DetallePaseo" component={DetallePaseo} />
-      <Stack.Screen name="DetallePaseoActivo" component={DetallePaseoActivo} />
       <Stack.Screen name="PerfilCuidador" component={PerfilCuidador} />
     </Stack.Navigator>
   )

@@ -29,6 +29,10 @@ const Paseos: React.FC = () => {
     const now = Date.now()
     if (now - lastNavTime.current < 1000) return
     lastNavTime.current = now
+    // Evitar abrir detalle para solicitudes pendientes (PENDIENTE)
+    const paseo = (paseos || []).find(p => p.id === id)
+    if (paseo && paseo.estado === 'PENDIENTE') return
+
     // @ts-ignore
     navigation.navigate('DetallePaseo', { id })
   }

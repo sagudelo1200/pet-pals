@@ -27,7 +27,7 @@ const AgendaScreen: React.FC = () => {
   const handlePressPaseo = (paseoId: string) => {
     // Navegar al detalle del paseo (Modo Ejecución)
     if (activeTab === 'proximos') {
-      navigation.navigate('DetallePaseoActivo', { paseoId })
+      navigation.navigate('DetallePaseo', { id: paseoId })
     } else {
       // Para historial, usamos la vista de detalle genérica (solo lectura)
       navigation.navigate('DetallePaseo', { id: paseoId })

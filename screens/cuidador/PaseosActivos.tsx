@@ -87,7 +87,7 @@ const PaseosActivos: React.FC = () => {
   }
 
   const handlePressPaseo = (paseo: Paseo) => {
-    navigation.navigate('DetallePaseoActivo', { paseoId: paseo.id })
+    navigation.navigate('DetallePaseo', { id: paseo.id })
   }
 
   const renderItem = ({ item }: { item: Paseo }) => (

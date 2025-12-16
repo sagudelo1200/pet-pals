@@ -1,5 +1,5 @@
 import React from 'react'
-import { StyleSheet, View, Text, Image, TouchableOpacity } from 'react-native'
+import { StyleSheet, View, Text, Image, Pressable } from 'react-native'
 import { Icon } from '@/components/ui'
 import { Paseo } from '@/models/Paseo'
 import { COLOR } from '@/constants'
@@ -8,9 +8,8 @@ import { useTranslation } from 'react-i18next'
 interface Props {
   solicitud: Paseo
   // eslint-disable-next-line no-unused-vars
-  onPress: (solicitud: Paseo) => void
+  onPress?: (solicitud: Paseo) => void
 }
-
 export const TarjetaSolicitud: React.FC<Props> = ({ solicitud, onPress }) => {
   const { t } = useTranslation()
 
@@ -41,10 +40,11 @@ export const TarjetaSolicitud: React.FC<Props> = ({ solicitud, onPress }) => {
 
   const accentColor = esDirecta ? COLOR.PRIMARIO : COLOR.INFO
 
+  const Wrapper: any = onPress ? Pressable : View
+
   return (
-    <TouchableOpacity
-      activeOpacity={0.9}
-      onPress={() => onPress(solicitud)}
+    <Wrapper
+      onPress={onPress ? () => onPress(solicitud) : undefined}
       style={[
         styles.card,
         { borderLeftColor: accentColor },
@@ -108,7 +108,9 @@ export const TarjetaSolicitud: React.FC<Props> = ({ solicitud, onPress }) => {
           </View>
         </View>
 
-        <Icon name="chevron-right" size={16} color={COLOR.BORDE} />
+        {onPress ? (
+          <Icon name="chevron-right" size={16} color={COLOR.BORDE} />
+        ) : null}
       </View>
 
       {/* Footer: Precio y Duración */}
@@ -133,7 +135,7 @@ export const TarjetaSolicitud: React.FC<Props> = ({ solicitud, onPress }) => {
           {precioStr}
         </Text>
       </View>
-    </TouchableOpacity>
+    </Wrapper>
   )
 }
 

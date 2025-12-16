@@ -274,7 +274,7 @@ export const DetalleSolicitud = () => {
       {/* Footer Acciones */}
       <View style={styles.footer}>
         <Button
-          title={t('cuidador:solicitudes.rechazar')}
+          title={t('cuidador:solicitudes.ahora_no')}
           variant="contorno"
           style={styles.btnAction}
           textStyle={{ color: COLOR.ERROR }}
