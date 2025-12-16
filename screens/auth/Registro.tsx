@@ -108,7 +108,7 @@ const Registro: React.FC = () => {
     if (!result.success || !result.user) {
       Alert.alert(
         t('auth:registro.errores.registroFallido.titulo'),
-        tErrorMaybe(result.error, t('comun.intentaNuevamente'))
+        tErrorMaybe(result.error, t('comun:intenta_nuevamente'))
       )
       return
     }

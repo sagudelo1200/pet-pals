@@ -9,20 +9,21 @@ import {
 import { useTranslation } from 'react-i18next'
 import { useNavigation, useFocusEffect } from '@react-navigation/native'
 import { COLOR } from '@/constants'
-import Screen from '@/components/ui/Screen'
-import ScreenHeader from '@/components/ui/ScreenHeader'
 import { EstadisticaCard } from '@/components/cuidador/EstadisticaCard'
-import TarjetaPaseo from '@/components/ui/TarjetaPaseo'
 import { useEstadisticasCuidador } from '@/hooks/cuidador/useEstadisticasCuidador'
 import { useAgendaCuidador } from '@/hooks/cuidador/useAgendaCuidador'
 import { useAuth } from '@/context/AuthContext'
-import LoadingScreen from '@/components/ui/LoadingScreen'
 import PaseadorPerrosSvg from '@/assets/imgs/undraw/paseador_perros.svg'
+import {
+  Screen,
+  LoadingScreen,
+  ScreenHeader,
+  TarjetaPaseo,
+} from '@/components/ui'
 
 const Dashboard: React.FC = () => {
   const { t } = useTranslation()
   const navigation = useNavigation()
-  // eslint-disable-next-line no-unused-vars
   const { user } = useAuth()
   const estadisticas = useEstadisticasCuidador()
   const { proximos, cargando, refetch } = useAgendaCuidador()
@@ -54,8 +55,11 @@ const Dashboard: React.FC = () => {
 
   return (
     <Screen style={styles.container} includeTopInset>
+      {/* El el titulo, saludar al usuario */}
       <ScreenHeader
-        title={t('cuidador:dashboard.titulo')}
+        title={t('cuidador:dashboard.titulo', {
+          name: user?.displayName || '',
+        })}
         subtitle={t('cuidador:dashboard.subtitulo')}
         showBack={false}
       />

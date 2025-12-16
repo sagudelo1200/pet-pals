@@ -75,7 +75,7 @@ const Ingresar: React.FC = () => {
     if (!result.success) {
       Alert.alert(
         t('auth:ingresar.errores.loginFallido.titulo'),
-        tErrorMaybe(result.error, t('comun.intentaNuevamente'))
+        tErrorMaybe(result.error, t('comun:intenta_nuevamente'))
       )
     }
   }, [email, password, ingresar])

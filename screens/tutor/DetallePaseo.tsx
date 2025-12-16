@@ -214,7 +214,7 @@ export const DetallePaseo = () => {
                   {mascota.nombre}
                 </Text>
                 <Text style={styles.mascotaRaza} numberOfLines={1}>
-                  {mascota.raza || 'Raza desconocida'}
+                  {mascota.raza || t('cuidador:solicitudes.raza_desconocida')}
                 </Text>
               </View>
             ))}

@@ -6,7 +6,6 @@ import AdminTabNavigator from '@/navigation/AdminTabNavigator'
 import AuthNavigator from './AuthNavigator'
 import DetalleMascota from '@/screens/tutor/DetalleMascota'
 import { DetallePaseo } from '@/screens/tutor/DetallePaseo'
-// DetallePaseoActivo (pantalla de cuidador) removida temporalmente para rediseño
 import PerfilCuidador from '@/screens/cuidador/PerfilCuidador'
 import { AuthStackParamList } from './types'
 

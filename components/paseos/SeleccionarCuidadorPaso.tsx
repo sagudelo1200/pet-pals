@@ -461,7 +461,9 @@ export const SeleccionarCuidadorPaso = ({
                   />
 
                   <Button
-                    title={t('paseos:pasos.seleccionar_cuidador.quedate_btn')}
+                    title={t(
+                      'paseos:pasos.seleccionar_cuidador.recibir_notificacion'
+                    )}
                     variant="bloque"
                     onPress={() => setShowDisponibilidad(false)}
                     style={{ flex: 1 }}
