@@ -58,7 +58,6 @@ export const Mapa = ({
 
 const styles = StyleSheet.create({
   container: {
-    ...StyleSheet.absoluteFillObject,
     borderRadius: 16,
     overflow: 'hidden',
     backgroundColor: COLOR.SECUNDARIO,
@@ -69,7 +68,6 @@ const styles = StyleSheet.create({
 
   },
   map: {
-    ...StyleSheet.absoluteFillObject,
     width: '100%',
     height: '100%',
   },

@@ -15,6 +15,7 @@ import {
   Icon,
   Button,
   Mapa,
+  AutocompletarDireccion,
 } from '@/components/ui'
 import Screen from '@/components/ui/Screen'
 import { ServicioMascota } from '@/services/firebase'
@@ -475,7 +476,24 @@ const ColorDemo: React.FC = () => {
         />
       </View>
 
-      <Spacer size={180} />
+      <View style={styles.card}>
+        <Text style={styles.cardTitle}>Autocompletado (Mock)</Text>
+        <Text style={{ color: COLOR.SUBTEXTO, marginBottom: 12 }}>
+          Prueba buscando "Parque".
+        </Text>
+        <View style={{ zIndex: 100 }}>
+          <AutocompletarDireccion
+            onSelect={detalles => {
+              Alert.alert(
+                'Lugar Seleccionado',
+                JSON.stringify(detalles, null, 2)
+              )
+            }}
+          />
+        </View>
+      </View>
+
+      <Spacer size={120} />
     </Screen>
   )
 }
@@ -485,7 +503,7 @@ const styles = StyleSheet.create({
   scrollView: { flex: 1 },
   content: {
     padding: theme.SIZES.BASE,
-    paddingBottom: 180,
+    paddingBottom: 120,
   },
   header: {
     marginBottom: theme.SIZES.BASE * 1.5,

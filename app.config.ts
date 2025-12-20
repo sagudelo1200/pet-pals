@@ -22,13 +22,13 @@ export default {
     assetBundlePatterns: ['**/*'],
     ios: {
       supportsTablet: true,
-      bundleIdentifier: 'com.pet-pals.app',
+      bundleIdentifier: 'com.petpals.app',
       infoPlist: {
         CFBundleAllowMixedLocalizations: true,
       },
     },
     android: {
-      package: 'com.pet-pals.app',
+      package: 'com.petpals.app',
       adaptiveIcon: {
         foregroundImage: './assets/splash.png',
         backgroundColor: '#1B5E20',
@@ -36,6 +36,11 @@ export default {
       navigationBar: {
         // Modo Expo prebuild: algunos campos se mapean desde androidNavigationBar en app.json
       },
+      config: {
+        googleMaps: {
+          apiKey: process.env.GOOGLE_MAPS_API_KEY
+        }
+      }
     },
     userInterfaceStyle: 'dark', // Forzar modo oscuro para evitar fondos blancos del sistema
     androidNavigationBar: {
@@ -81,6 +86,11 @@ export default {
         messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID,
         appId: process.env.FIREBASE_APP_ID,
         measurementId: process.env.FIREBASE_MEASUREMENT_ID,
+      },
+      google: {
+        mapsApiKey: process.env.GOOGLE_MAPS_API_KEY,
+        androidCert: process.env.ANDROID_CERT_FINGERPRINT,
+        androidPackage: 'com.petpals.app',
       },
       eas: {
         projectId: 'f174e59c-ef40-4133-818f-6615e440fbb1',

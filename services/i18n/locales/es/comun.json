@@ -18,5 +18,10 @@
     "PERMISOS_INSUFICIENTES": "No tienes permisos para realizar esta acción.",
     "DOCUMENTO_NO_ENCONTRADO": "El recurso solicitado no existe.",
     "ERROR_DESCONOCIDO": "Ocurrió un error inesperado. Intenta más tarde."
+  },
+  "maps": {
+    "buscar_placeholder": "Buscar dirección...",
+    "error_busqueda": "Error al buscar sitios",
+    "error_detalles": "Error al obtener detalles"
   }
 }
