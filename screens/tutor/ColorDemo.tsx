@@ -14,6 +14,7 @@ import {
   Skeleton,
   Icon,
   Button,
+  Mapa,
 } from '@/components/ui'
 import Screen from '@/components/ui/Screen'
 import { ServicioMascota } from '@/services/firebase'
@@ -462,7 +463,19 @@ const ColorDemo: React.FC = () => {
         />
       </View>
 
-      {/* Notificaciones demo eliminado en esta rama */}
+      <View style={styles.card}>
+        <Text style={styles.cardTitle}>Componente Mapa</Text>
+        <Text style={{ color: COLOR.SUBTEXTO, marginBottom: 12 }}>
+          Componente reutilizable de mapa (Coordenadas: Parque Virrey).
+        </Text>
+        <Mapa
+          coordenadas={{ latitude: 4.6735, longitude: -74.0573 }}
+          alto={250}
+          marcador
+        />
+      </View>
+
+      <Spacer size={180} />
     </Screen>
   )
 }
@@ -472,7 +485,7 @@ const styles = StyleSheet.create({
   scrollView: { flex: 1 },
   content: {
     padding: theme.SIZES.BASE,
-    paddingBottom: 100,
+    paddingBottom: 180,
   },
   header: {
     marginBottom: theme.SIZES.BASE * 1.5,
