@@ -103,6 +103,10 @@ const ColorDemo: React.FC = () => {
   }
 
   const [creandoUbicacion, setCreandoUbicacion] = useState(false)
+  const [ubicacionSeleccionada, setUbicacionSeleccionada] = useState({
+    latitude: 4.6735,
+    longitude: -74.0573,
+  })
 
   const crearUbicacionValida = async () => {
     setCreandoUbicacion(true)
@@ -464,33 +468,29 @@ const ColorDemo: React.FC = () => {
         />
       </View>
 
-      <View style={styles.card}>
-        <Text style={styles.cardTitle}>Componente Mapa</Text>
+      <View style={[styles.card, { overflow: 'visible', zIndex: 100 }]}>
+        <Text style={styles.cardTitle}>Autocompletado y Mapa</Text>
         <Text style={{ color: COLOR.SUBTEXTO, marginBottom: 12 }}>
-          Componente reutilizable de mapa (Coordenadas: Parque Virrey).
+          Busca una dirección para ubicarla en el mapa.
         </Text>
-        <Mapa
-          coordenadas={{ latitude: 4.6735, longitude: -74.0573 }}
-          alto={250}
-          marcador
-        />
-      </View>
 
-      <View style={styles.card}>
-        <Text style={styles.cardTitle}>Autocompletado (Mock)</Text>
-        <Text style={{ color: COLOR.SUBTEXTO, marginBottom: 12 }}>
-          Prueba buscando "Parque".
-        </Text>
-        <View style={{ zIndex: 100 }}>
+        {/* Autocomplete con zIndex alto */}
+        <View style={{ marginBottom: 16, zIndex: 200, position: 'relative' }}>
           <AutocompletarDireccion
             onSelect={detalles => {
-              Alert.alert(
-                'Lugar Seleccionado',
-                JSON.stringify(detalles, null, 2)
-              )
+              setUbicacionSeleccionada(detalles.coordenadas)
+              Alert.alert('Lugar Seleccionado', JSON.stringify(detalles, null, 2))
             }}
           />
         </View>
+
+        {/* Mapa recibiendo coordenadas dinámicas */}
+        <Mapa
+          coordenadas={ubicacionSeleccionada}
+          alto={300}
+          marcador
+          zoom={16}
+        />
       </View>
 
       <Spacer size={120} />
