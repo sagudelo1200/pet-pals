@@ -21,11 +21,12 @@ import Screen from '@/components/ui/Screen'
 import { ServicioMascota } from '@/services/firebase'
 import { ServicioUbicacion } from '@/services/firebase/ubicacion'
 import { ServicioAuth } from '@/services/firebase/auth'
-import { ServicioUsuario } from '@/services/firebase/usuario'
 import { useDirecciones } from '@/hooks/useDirecciones'
 import type { Mascota } from '@/models/Mascota'
 import { Alert } from 'react-native'
-
+import { SelectorDireccionSheet } from '@/components/ui/Direcciones/SelectorDireccionSheet'
+import { CrearDireccionSheet } from '@/components/ui/Direcciones/CrearDireccionSheet'
+import { UbicacionRef } from '@/models/Ubicacion'
 type ColorKey = keyof typeof COLOR
 
 const ColorDemo: React.FC = () => {
@@ -171,8 +172,15 @@ const ColorDemo: React.FC = () => {
     }
   }
 
+
+
   // Debug Hook
   const { agregar, loading: loadingDir, direcciones } = useDirecciones()
+  
+  // Estados para Sheets Fase 4
+  const [mostrarSelector, setMostrarSelector] = useState(false)
+  const [mostrarCrear, setMostrarCrear] = useState(false)
+  const [ubiDemo, setUbiDemo] = useState<UbicacionRef | null>(null)
 
   return (
     <Screen
@@ -537,10 +545,69 @@ const ColorDemo: React.FC = () => {
         />
       </View>
 
+      <View style={{ height: 40 }} />
+      <Text style={styles.sectionTitle}>📍 Gestión de Direcciones (Fase 4)</Text>
+      
+      <View style={styles.card}>
+        <Text style={styles.cardTitle}>Flujo Completo</Text>
+        <Text style={{ color: COLOR.SUBTEXTO, marginBottom: 16 }}>
+          Prueba de los BottomSheets reales integrados con el Hook.
+        </Text>
+
+        <Button
+          title={direcciones.length > 0 ? `Seleccionar (${direcciones.length})` : "Agregar primera dirección"}
+          variant="primario"
+          onPress={() => setMostrarSelector(true)}
+          fullWidth
+          icon="map-marker"
+        />
+        
+        {/* Visualizador de la selección actual */}
+        {ubiDemo !== null && (
+           <View style={{ marginTop: 12, padding: 12, backgroundColor: COLOR.BLOQUE, borderRadius: 8 }}>
+             <Text size={12} color={COLOR.SUBTEXTO} bold>DIRECCIÓN SELECCIONADA:</Text>
+             <Text bold>{ubiDemo.tipo}</Text>
+             <Text size={13} color={COLOR.SUBTEXTO}>{ubiDemo.ubicacion_id}</Text>
+           </View>
+        )}
+      </View>
+
       <Spacer size={120} />
+
+      {/* Sheets Integration */}
+      <SelectorDireccionSheet
+        visible={mostrarSelector}
+        onClose={() => setMostrarSelector(false)}
+        direcciones={direcciones}
+        principalId={direcciones.find(d => d.es_principal)?.ubicacion_id}
+        alSeleccionar={(item) => setUbiDemo(item)}
+        onAgregarNueva={() => {
+          setMostrarSelector(false)
+          setTimeout(() => setMostrarCrear(true), 500) // Delay para transición suave de modal a modal
+        }}
+      />
+
+      <CrearDireccionSheet
+        visible={mostrarCrear}
+        onClose={() => setMostrarCrear(false)}
+        onGuardar={async (datos) => {
+          try {
+             // Simulamos el ID real de la ubicación que vendría del backend tras crear el documento de 'ubicacion'
+             // En producción: primero se crea el documento Ubicacion, luego se linkea al usuario.
+             // Aquí hacemos un mock del ID pero usando el hook real para linkear.
+             const fakeUbicacionId = datos.placeId || `ubic_${Date.now()}`
+             await agregar(fakeUbicacionId, datos.alias)
+             Alert.alert("Éxito", "Dirección guardada correctamente")
+          } catch (e) {
+            Alert.alert("Error", String(e))
+          }
+        }}
+      />
+
     </Screen>
   )
 }
+
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLOR.BASE },

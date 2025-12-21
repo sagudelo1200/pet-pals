@@ -105,14 +105,15 @@ export class GoogleMapasProvider implements IProveedorMapas {
       const componentes: any = {}
       if (result.addressComponents) {
         result.addressComponents.forEach((c: any) => {
-          if (c.types.includes('route')) componentes.calle = c.longText
-          if (c.types.includes('street_number')) componentes.numero = c.longText
-          if (c.types.includes('neighborhood') || c.types.includes('sublocality'))
+          const types = c.types || []
+          if (types.includes('route')) componentes.calle = c.longText
+          if (types.includes('street_number')) componentes.numero = c.longText
+          if (types.includes('neighborhood') || types.includes('sublocality'))
             componentes.barrio = c.longText
-          if (c.types.includes('locality')) componentes.ciudad = c.longText
-          if (c.types.includes('administrative_area_level_1'))
+          if (types.includes('locality')) componentes.ciudad = c.longText
+          if (types.includes('administrative_area_level_1'))
             componentes.departamento = c.longText
-          if (c.types.includes('country')) componentes.pais = c.longText
+          if (types.includes('country')) componentes.pais = c.longText
         })
       }
 
