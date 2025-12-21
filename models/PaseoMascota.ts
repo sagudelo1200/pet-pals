@@ -1,4 +1,5 @@
 import { BaseModel } from './BaseModel'
+import { UbicacionSnapshot } from './Ubicacion'
 
 /**
  * Estados que puede tener la mascota dentro de un paseo.
@@ -29,6 +30,18 @@ export interface PaseoMascota extends BaseModel {
   codigo_recogida?: string
   /** Código que verifica la entrega de la mascota. */
   codigo_entrega?: string
+
+  /**
+   * Dirección donde se recogió a la mascota (Snapshot).
+   * Fundamental para el registro histórico y seguridad.
+   */
+  ubicacion_recogida?: UbicacionSnapshot
+  /**
+   * Dirección donde se entregó a la mascota (Snapshot).
+   * Opcional, por defecto puede asumirse igual a recogida si es ida y vuelta.
+   */
+  ubicacion_entrega?: UbicacionSnapshot
+
   /** Estado actual de la mascota en el paseo. */
   estado_mascota: EstadoMascotaPaseo
 }

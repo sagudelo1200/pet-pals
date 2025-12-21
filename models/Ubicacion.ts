@@ -76,9 +76,24 @@ export interface UbicacionRef {
   hasta?: Date
 }
 
+
+
 /**
- * Notas de persistencia (DB):
- * - Firestore: colección `ubicaciones/{id}` con `coordenadas` como `GeoPoint`.
- * - Postgres+PostGIS: tabla `ubicaciones` con columna `geom GEOMETRY(POINT,4326)`.
- * - Indizar por `geom` (GIST) o por geohash en NoSQL para consultas geoespaciales.
+ * Snapshot de una ubicación para guardar en historiales (Paseos, Servicios).
+ * Copia los datos esenciales para no depender de la referencia mutable `Ubicacion`.
+ * Esto garantiza que si el usuario edita su dirección "Casa", el historial de paseos pasados
+ * mantenga la dirección exacta donde ocurrió.
  */
+export interface UbicacionSnapshot {
+  direccion_formateada: string
+  coordenadas: {
+    lat: number
+    lng: number
+  }
+  /** Opcional: ID de la ubicación original si existía */
+  id_origen?: string
+  /** Opcional: Alias en el momento del snapshot (ej. "Casa") */
+  alias?: string
+  /** Opcional: Instrucciones en el momento del servicio */
+  instrucciones?: string
+}
