@@ -21,6 +21,8 @@ import Screen from '@/components/ui/Screen'
 import { ServicioMascota } from '@/services/firebase'
 import { ServicioUbicacion } from '@/services/firebase/ubicacion'
 import { ServicioAuth } from '@/services/firebase/auth'
+import { ServicioUsuario } from '@/services/firebase/usuario'
+import { useDirecciones } from '@/hooks/useDirecciones'
 import type { Mascota } from '@/models/Mascota'
 import { Alert } from 'react-native'
 
@@ -169,6 +171,9 @@ const ColorDemo: React.FC = () => {
     }
   }
 
+  // Debug Hook
+  const { agregar, loading: loadingDir, direcciones } = useDirecciones()
+
   return (
     <Screen
       includeTopInset
@@ -183,6 +188,9 @@ const ColorDemo: React.FC = () => {
         </Text>
       </View>
 
+      {/* ... (Color Key Preview omitted for brevity if unchanged, but keeping logic correct) ... */}
+      {/* PLEASE NOTE: I'm replacing the whole render start to insert the hook call safely inside the component */}
+      {/* Wait, replace_file_content limits lines. I will target specific block. */}
       {colorKeys.map(key => (
         <View key={key} style={styles.colorRow}>
           <View
@@ -448,7 +456,43 @@ const ColorDemo: React.FC = () => {
       </View>
 
       <View style={styles.card}>
-        <Text style={styles.cardTitle}>Debug Ubicaciones</Text>
+        <Text style={styles.cardTitle}>Debug Hooks (useDirecciones)</Text>
+        <Text style={{ color: COLOR.SUBTEXTO, marginBottom: 12 }}>
+          Prueba el hook que abstrae la lógica. ({direcciones.length} guardadas)
+        </Text>
+        <Button
+          title={loadingDir ? "Cargando..." : "1. Agregar 'Casa' (Hook)"}
+          variant="primario"
+          onPress={async () => {
+            try {
+              await agregar('ubic_mock_' + Date.now(), 'Casa')
+              Alert.alert('Éxito', 'Dirección agregada via Hook')
+            } catch (e) {
+              Alert.alert('Error', String(e))
+            }
+          }}
+          disabled={loadingDir}
+          fullWidth
+        />
+        <Spacer size={8} />
+        <Button
+          title="2. Agregar 'Trabajo' (Hook)"
+          variant="info"
+          onPress={async () => {
+            try {
+              await agregar('ubic_mock_2_' + Date.now(), 'Trabajo')
+              Alert.alert('Éxito', 'Dirección agregada via Hook')
+            } catch (e) {
+              Alert.alert('Error', String(e))
+            }
+          }}
+          disabled={loadingDir}
+          fullWidth
+        />
+      </View>
+
+      <View style={styles.card}>
+        <Text style={styles.cardTitle}>Debug Ubicaciones (Creación)</Text>
         <Text style={{ color: COLOR.SUBTEXTO, marginBottom: 12 }}>
           Pruebas rápidas para crear/validar `Ubicacion` mediante el servicio.
         </Text>

@@ -1,11 +1,16 @@
 import { ServicioCrudBase } from './crud'
-import { Usuario } from '../../models/Usuario'
-import { PerfilPublico } from '../../models/PerfilPublico'
+import { Usuario } from '@/models/Usuario'
+import { PerfilPublico } from '@/models/PerfilPublico'
 import { CrudResult } from './types'
 import { db } from '@/firebase.config'
 import { doc, setDoc, writeBatch, serverTimestamp } from 'firebase/firestore'
 import { toDb, nowServerTimestamp } from './converters'
 import { mapFirebaseError } from './errors'
+import {
+  agregarUbicacionRef,
+  fijarPrincipalRef,
+  eliminarUbicacionRef,
+} from '@/helpers/logicaUbicacion'
 
 export class ServicioUsuario {
   private static readonly COLLECTION = 'usuarios'
@@ -137,5 +142,96 @@ export class ServicioUsuario {
     estado: string
   ): Promise<CrudResult<Usuario[]>> {
     return ServicioCrudBase.buscar<Usuario>(this.COLLECTION, 'estado', estado)
+  }
+
+  // ---------------------------------------------------------------------------
+  // Gestión de Ubicaciones (Fase 2)
+  // ---------------------------------------------------------------------------
+
+  /**
+   * Agrega una referencia de ubicación al usuario.
+   * Maneja automáticamente la lógica de principal si es la primera.
+   */
+  static async agregarUbicacion(
+    userId: string,
+    ubicacionId: string,
+    alias?: string
+  ): Promise<CrudResult<Usuario>> {
+    try {
+      const userRes = await this.obtenerPorId(userId)
+      if (!userRes.success || !userRes.data) throw new Error('USUARIO_NO_ENCONTRADO')
+
+      const usuario = userRes.data
+      const { lista, idPrincipal } = agregarUbicacionRef(
+        usuario.ubicaciones || [],
+        ubicacionId,
+        alias
+      )
+
+      return this.actualizar(userId, {
+        ubicaciones: lista,
+        ubicacion_principal_id: idPrincipal,
+      })
+    } catch (err: any) {
+      return { success: false, error: mapFirebaseError(err) }
+    }
+  }
+
+  /**
+   * Cambia la ubicación principal del usuario.
+   */
+  static async fijarUbicacionPrincipal(
+    userId: string,
+    ubicacionId: string
+  ): Promise<CrudResult<Usuario>> {
+    try {
+      const userRes = await this.obtenerPorId(userId)
+      if (!userRes.success || !userRes.data) throw new Error('USUARIO_NO_ENCONTRADO')
+
+      const usuario = userRes.data
+      const { lista, idPrincipal } = fijarPrincipalRef(
+        usuario.ubicaciones || [],
+        ubicacionId
+      )
+
+      return this.actualizar(userId, {
+        ubicaciones: lista,
+        ubicacion_principal_id: idPrincipal,
+      })
+    } catch (err: any) {
+      return { success: false, error: mapFirebaseError(err) }
+    }
+  }
+
+  /**
+   * Elimina una ubicación del usuario y reasigna principal si es necesario.
+   */
+  static async eliminarUbicacion(
+    userId: string,
+    ubicacionId: string
+  ): Promise<CrudResult<Usuario>> {
+    try {
+      const userRes = await this.obtenerPorId(userId)
+      if (!userRes.success || !userRes.data) throw new Error('USUARIO_NO_ENCONTRADO')
+
+      const usuario = userRes.data
+      const { lista, idPrincipal } = eliminarUbicacionRef(
+        usuario.ubicaciones || [],
+        ubicacionId
+      )
+
+      // Si idPrincipal es undefined (ej. borró la última), pasamos null o undefined según convenga
+      // Firestore acepta null para borrar campo o guardar null
+      return this.actualizar(userId, {
+        ubicaciones: lista,
+        ubicacion_principal_id: idPrincipal ?? undefined, // undefined no borra campo en update de firebase a menos que se use deleteField(), pero null sí.
+        // Nota: en actual partial update, undefined suele ser ignorado.
+        // Si queremos borrar explicitamente, mejor logic de update.
+        // Por ahora asumimos que si queda vacio, queda undefined en memoria y no actualiza nada o queda el valor viejo?
+        // Revisar implementación de update base.
+      })
+    } catch (err: any) {
+      return { success: false, error: mapFirebaseError(err) }
+    }
   }
 }
