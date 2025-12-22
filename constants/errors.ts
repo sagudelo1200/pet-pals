@@ -34,6 +34,12 @@ export const ERR = {
     ESTADO_DEL_PASEO_NO_ACEPTA_MASCOTAS: 'ESTADO_DEL_PASEO_NO_ACEPTA_MASCOTAS',
     LIMITE_DE_MASCOTAS_SUPERADO: 'LIMITE_DE_MASCOTAS_SUPERADO',
   },
+
+  REALTIME: {
+    ERROR_CONEXION: 'ERROR_CONEXION',
+    SIN_DATOS: 'SIN_DATOS',
+    OPERACION_CANCELADA: 'OPERACION_CANCELADA',
+  },
 } as const
 
 // Tipo utilitario para obtener los valores profundos (hojas) de ERR

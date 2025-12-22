@@ -1,5 +1,6 @@
 // Servicio base
 export { ServicioCrudBase } from './crud'
+export { ServicioRealtime } from './realtime'
 
 // Servicios específicos
 export { ServicioMascota } from './mascota'

@@ -61,6 +61,12 @@ export function mapFirebaseError(err: unknown): ErrorCode {
       return ERR.AUTH.ERROR_RED
     case 'invalid-argument':
       return ERR.COMUN.DATOS_INVALIDOS
+    case 'unavailable':
+      return ERR.REALTIME.ERROR_CONEXION
+    case 'disconnected':
+      return ERR.REALTIME.ERROR_CONEXION
+    case 'canceled':
+      return ERR.REALTIME.OPERACION_CANCELADA
     default:
       break
   }
@@ -72,5 +78,7 @@ export function mapFirebaseError(err: unknown): ErrorCode {
     if (values.includes(message)) return message as ErrorCode
   }
 
-  return (ERR.COMUN.ERROR_DESCONOCIDO + ': ' + (anyErr?.message || anyErr?.code || JSON.stringify(anyErr))) as ErrorCode
+  return (ERR.COMUN.ERROR_DESCONOCIDO +
+    ': ' +
+    (anyErr?.message || anyErr?.code || JSON.stringify(anyErr))) as ErrorCode
 }

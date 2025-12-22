@@ -18,7 +18,10 @@
   "errores": {
     "NO_AUTENTICADO": "Debes iniciar sesión para continuar.",
     "PERMISOS_INSUFICIENTES": "No tienes permisos para realizar esta acción.",
-    "DOCUMENTO_NO_ENCONTRADO": "El recurso solicitado no existe."
+    "DOCUMENTO_NO_ENCONTRADO": "El recurso solicitado no existe.",
+    "ERROR_CONEXION": "Error de conexión con el servidor en tiempo real.",
+    "SIN_DATOS": "No se encontraron datos disponibles.",
+    "OPERACION_CANCELADA": "La operación fue cancelada."
   },
   "maps": {
     "buscar_placeholder": "Buscar dirección...",
