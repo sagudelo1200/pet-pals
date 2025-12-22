@@ -11,7 +11,7 @@ import { COLOR } from '@/constants'
 import Icon from './Icon'
 import { Calendar, LocaleConfig } from 'react-native-calendars'
 import DateTimePickerNative from '@react-native-community/datetimepicker'
-import { Button } from '@/components/ui'
+import Button from './Button'
 
 LocaleConfig.locales['es'] = LocaleConfig.locales['es'] || {}
 LocaleConfig.locales['es'] = {

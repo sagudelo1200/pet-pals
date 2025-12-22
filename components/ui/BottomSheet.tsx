@@ -101,7 +101,7 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
       onRequestClose={onClose}
       statusBarTranslucent
     >
-      <SafeAreaView style={styles.safeArea} edges={['top']}>
+      <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
         <View style={styles.container}>
           <Animated.View style={[styles.backdrop, { opacity: opacityAnim }]}>
             <Pressable style={styles.backdropPress} onPress={onClose} />
@@ -115,7 +115,7 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
                 paddingBottom:
                   (Platform.OS === 'ios' && keyboardHeight > 0
                     ? keyboardHeight
-                    : 0) + 20,
+                    : 0) + (Platform.OS === 'android' ? 12 : 20),
                 ...(typeof height === 'number'
                   ? { height }
                   : { maxHeight: '90%' }),

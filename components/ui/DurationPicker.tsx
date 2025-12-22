@@ -11,7 +11,7 @@ import {
 import { COLOR } from '@/constants'
 import Icon from './Icon'
 import Chip from './Chip'
-import { Button } from '@/components/ui'
+import Button from './Button'
 
 interface DurationPickerProps {
   label?: string

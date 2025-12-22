@@ -244,7 +244,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 8,
     marginTop: 20,
-    marginBottom: 21,
+    marginBottom: 8,
   },
   punto: {
     width: 8,
