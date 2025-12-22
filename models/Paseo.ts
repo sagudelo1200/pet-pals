@@ -1,4 +1,5 @@
 import { BaseModel } from './BaseModel'
+import type { UbicacionSnapshot } from '@/models/Ubicacion'
 
 /**
  * Tipos de paseo disponibles.
@@ -68,9 +69,13 @@ export interface Paseo extends BaseModel {
   /** Fecha y hora real de fin del paseo (cuando pasa a FINALIZADO). */
   fecha_fin_real?: Date
   /** Ubicación de inicio (dirección o coordenadas). */
-  ubicacion_inicio?: string
+  ubicacion_inicio?: UbicacionSnapshot | string
+  /** Texto legible de la ubicación de inicio (ej. "Casa", "Trabajo") para listas. */
+  ubicacion_inicio_txt?: string
   /** Ubicación de término (dirección o coordenadas). */
-  ubicacion_fin?: string
+  ubicacion_fin?: UbicacionSnapshot | string
+  /** Texto legible de la ubicación de fin para listas. */
+  ubicacion_fin_txt?: string
   /** Referencia al documento de tracking GPS si aplica. */
   tracking_gps?: string
   /** Nombre de la primera mascota para visualización en listas. */

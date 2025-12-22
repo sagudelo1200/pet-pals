@@ -159,6 +159,26 @@ export class ServicioPaseo {
       }
     }
 
+    // Procesar Ubicación si viene como objeto (nuevo enfoque) o como parámetro extra
+    let locationData: any = {}
+    const locObj = (data.ubicacion_inicio as any) || direccion
+
+    if (locObj && typeof locObj === 'object') {
+      const snap = {
+        direccion_formateada: locObj.direccion_formateada || '',
+        coordenadas: {
+          latitude: Number(locObj.coordenadas.latitude),
+          longitude: Number(locObj.coordenadas.longitude),
+        },
+        id_origen: locObj.id,
+        alias: locObj.alias,
+      }
+      locationData = {
+        ubicacion_inicio: snap,
+        ubicacion_inicio_txt: locObj.alias || locObj.direccion_formateada || 'Ubicación',
+      }
+    }
+
     // Preparar datos visuales
     let visualData: any = {}
     if (mascotasData.length > 0) {
@@ -183,6 +203,7 @@ export class ServicioPaseo {
     // Crear paseo
     const paseoRes = await ServicioCrudBase.crear<Paseo>(this.COLLECTION, {
       ...(data as any),
+      ...locationData, // Sobrescribe ubicacion_inicio con Snapshot y añade _txt
       creado_por: uid,
       cupo_maximo_mascotas: max,
       mascotas_count: unique.length,

@@ -131,9 +131,7 @@ export const useConfirmarPaseo = ({
           fecha_hora_inicio: fechaInicio,
           duracion_estimada: duracion || 60,
           precio: total,
-          ubicacion_inicio: direccion
-            ? direccion.alias || direccion.direccion_formateada
-            : 'Ubicación actual',
+          ubicacion_inicio: direccion || undefined,
           id_cuidador: cuidadorId || undefined,
           cuidador_nombre_visual: cuidador?.nombre,
           cuidador_foto_visual: cuidador?.imagen,

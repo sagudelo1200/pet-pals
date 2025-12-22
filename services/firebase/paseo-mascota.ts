@@ -6,7 +6,7 @@ import {
   runTransaction,
   increment,
 } from 'firebase/firestore'
-import { nowServerTimestamp, toDomain } from './converters'
+import { nowServerTimestamp, toDomain, toDb } from './converters'
 import { ServicioAuth } from './auth'
 import type { Mascota } from '@/models/Mascota'
 import { ServicioCrudBase } from './crud'
@@ -39,31 +39,37 @@ export async function addMascotasAlPaseo(
       const ownerId = (m.data as any).creado_por || uid
 
       const ref = doc(col, mascotaId)
-      const base = {
+      const base = toDb({
         id: mascotaId,
         id_paseo: paseoId,
         id_mascota: mascotaId,
         id_usuario: ownerId,
         estado_mascota: 'pendiente',
+        // Denormalización de dirección (snapshot enriquecido)
+        direccion: direccion
+          ? {
+              id_origen: direccion.id,
+              alias: direccion.alias,
+              direccion_formateada: direccion.direccion_formateada,
+              coordenadas: {
+                latitude: Number(direccion.coordenadas.latitude),
+                longitude: Number(direccion.coordenadas.longitude),
+              },
+              instrucciones: direccion.instrucciones || null,
+            }
+          : null,
+      })
+
+      // Añadir timestamps manuales (sentinelas) después del toDb para que no se conviertan
+      const finalData = {
+        ...base,
         creado_en: nowServerTimestamp(),
         actualizado_en: nowServerTimestamp(),
         creado_por: uid,
         actualizado_por: uid,
-        // Denormalización de dirección (base)
-        direccion: direccion
-          ? {
-              id: direccion.id,
-              alias: direccion.alias,
-              direccion_formateada: direccion.direccion_formateada,
-              coordenadas: {
-                latitude: direccion.coordenadas.latitude,
-                longitude: direccion.coordenadas.longitude,
-              },
-            }
-          : null,
       }
-      // No envolver sentinelas de servidor (serverTimestamp) con `toDb`
-      batch.set(ref, base)
+
+      batch.set(ref, finalData)
     }
 
     await batch.commit()

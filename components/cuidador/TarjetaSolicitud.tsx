@@ -102,7 +102,11 @@ export const TarjetaSolicitud: React.FC<Props> = ({ solicitud, onPress }) => {
           <View style={styles.row}>
             <Icon name="map-marker-alt" size={12} color={COLOR.SUBTEXTO} />
             <Text style={styles.ubicacionText} numberOfLines={1}>
-              {solicitud.ubicacion_inicio ||
+              {solicitud.ubicacion_inicio_txt ||
+                (typeof solicitud.ubicacion_inicio === 'object'
+                  ? solicitud.ubicacion_inicio.alias ||
+                    solicitud.ubicacion_inicio.direccion_formateada
+                  : solicitud.ubicacion_inicio) ||
                 t('cuidador:solicitudes.ubicacion_por_definir')}
             </Text>
           </View>

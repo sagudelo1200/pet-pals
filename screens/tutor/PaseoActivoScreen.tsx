@@ -38,7 +38,17 @@ export default function PaseoActivoScreen({ route, navigation }: Props) {
   const { paseoId } = route.params
   const { t } = useTranslation()
   const insets = useSafeAreaInsets()
-  const { paseo, loading, ruta, ubicacionActual } = usePaseoActivo(paseoId)
+  const { paseo, loading, eventos, ruta, ubicacionActual } = usePaseoActivo(paseoId)
+
+  // Función para renderizar el icono adecuado por tipo de evento
+  const getEventoIcon = (tipo: string) => {
+    switch (tipo?.toLowerCase()) {
+      case 'foto': return { name: 'camera', color: COLOR.PRIMARIO }
+      case 'necesidad': return { name: 'poop', color: '#8B4513' } // Marrón
+      case 'hidratacion': return { name: 'tint', color: '#00BFFF' } // Azul agua
+      default: return { name: 'info-circle', color: COLOR.SUBTEXTO }
+    }
+  }
 
   // Estados locales
   const [yaNotificado, setYaNotificado] = useState(false)
@@ -47,6 +57,7 @@ export default function PaseoActivoScreen({ route, navigation }: Props) {
   const mapRef = useRef<any>(null)
   const slideAnim = useRef(new Animated.Value(400)).current
   const pulseAnim = useRef(new Animated.Value(0)).current
+  const glowAnim = useRef(new Animated.Value(0)).current
 
   // Monitoreo de Transiciones de Estado
   useEffect(() => {
@@ -101,6 +112,24 @@ export default function PaseoActivoScreen({ route, navigation }: Props) {
           easing: Easing.linear,
           useNativeDriver: true,
         })
+      ).start()
+
+      // Glow de "Live" (Latido suave)
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(glowAnim, {
+            toValue: 1,
+            duration: 1200,
+            easing: Easing.inOut(Easing.ease),
+            useNativeDriver: true,
+          }),
+          Animated.timing(glowAnim, {
+            toValue: 0.4,
+            duration: 1200,
+            easing: Easing.inOut(Easing.ease),
+            useNativeDriver: true,
+          }),
+        ])
       ).start()
     }
   }, [loading])
@@ -182,6 +211,28 @@ export default function PaseoActivoScreen({ route, navigation }: Props) {
           longitude: -74.0483,
         }}
       >
+        {/* Renderizado de Hitos (Eventos) */}
+        {eventos.map((ev) => {
+          const coords = ev.payload?.coordenadas
+          if (!coords) return null
+          const icon = getEventoIcon(ev.evento)
+
+          return (
+            <Marker 
+              key={ev.id} 
+              coordinate={coords} 
+              anchor={{ x: 0.5, y: 0.5 }}
+              tracksViewChanges={false} // Optimización
+            >
+              <View style={styles.eventMarker}>
+                <View style={[styles.eventCircle, { borderColor: icon.color }]}>
+                  <Icon name={icon.name} size={10} color={icon.color} />
+                </View>
+              </View>
+            </Marker>
+          )
+        })}
+
         {ruta.length > 0 && (
           <Polyline
             coordinates={ruta}
@@ -220,52 +271,98 @@ export default function PaseoActivoScreen({ route, navigation }: Props) {
         
         <View style={styles.sheetContent}>
              <View style={styles.statusHeader}>
-               <View style={styles.liveDot} />
+               <Animated.View style={[styles.liveDot, { opacity: glowAnim }]} />
                <Text style={styles.liveLabel}>{t('paseos:activo.estado_label')}</Text>
-               <Spacer horizontal size={8} />
+               <View style={styles.dividerDot} />
                <Text style={styles.timeLabel}>
                  {t('paseos:activo.tiempo_restante', { tiempo: paseo?.duracion_estimada })}
                </Text>
              </View>
 
-             <Spacer size={12} />
+             <Spacer size={16} />
              <Text style={styles.messageText}>{t('paseos:activo.mensaje_calma')}</Text>
-             <Spacer size={20} />
+             <Spacer size={24} />
 
-             <View style={styles.identityRow}>
+             {/* Tarjetas de Identidad Premium */}
+             <View style={styles.identityCard}>
                <View style={styles.identityItem}>
-                 <PetAvatar uri={paseo?.mascota_foto_visual} size="medium" />
-                 <Spacer horizontal size={8} />
-                 <Text style={styles.nameLabel}>{paseo?.mascota_nombre_visual}</Text>
+                 <View style={styles.avatarWrapper}>
+                   <PetAvatar uri={paseo?.mascota_foto_visual} size="medium" />
+                   <View style={styles.onlineBadge} />
+                 </View>
+                 <View style={styles.identityText}>
+                   <Text style={styles.nameLabel}>{paseo?.mascota_nombre_visual}</Text>
+                   <Text style={styles.subLabel}>{t('paseos:activo.mascota_protegida')}</Text>
+                 </View>
                </View>
 
-               <Icon name="chevron-right" size={14} color={COLOR.BORDE} />
+               <View style={styles.verticalDivider} />
 
                <View style={[styles.identityItem, { justifyContent: 'flex-end' }]}>
-                 <Text style={styles.nameLabel}>{paseo?.cuidador_nombre_visual}</Text>
-                 <Spacer horizontal size={8} />
-                 <Avatar uri={paseo?.cuidador_foto_visual} size={40} />
+                 <View style={[styles.identityText, { alignItems: 'flex-end' }]}>
+                   <Text style={styles.nameLabel}>{paseo?.cuidador_nombre_visual}</Text>
+                   <Text style={styles.subLabel}>{t('paseos:activo.cuidador_verificado')}</Text>
+                 </View>
+                 <Spacer horizontal size={12} />
+                 <Avatar uri={paseo?.cuidador_foto_visual} size={44} />
                </View>
              </View>
 
-             <Spacer size={20} />
+             <Spacer size={24} />
 
-             <View style={styles.actionsRow}>
-               <Button
-                 title={t('paseos:solicitado.chat', { name: paseo?.cuidador_nombre_visual })}
-                 icon="whatsapp"
-                 onPress={() => {}}
-                 variant="exito"
-                 style={{ flex: 1.5 }}
-               />
-               <Spacer horizontal size={12} />
-               <Button
-                 title={t('paseos:detalles')}
-                 onPress={() => {}}
-                 variant="secundario"
-                 style={{ flex: 1 }}
-               />
+             {/* Feed de Actividad Reciente */}
+             <View style={styles.eventsSection}>
+               <Text style={styles.sectionHeader}>{t('paseos:activo.actividad_reciente')}</Text>
+               <Spacer size={12} />
+               {eventos.length > 0 ? (
+                 eventos.slice(0, 3).map((ev) => {
+                   const icon = getEventoIcon(ev.evento)
+                   return (
+                     <View key={ev.id} style={styles.eventRow}>
+                       <View style={[styles.eventDot, { backgroundColor: icon.color }]} />
+                       <View style={styles.eventIconSmall}>
+                         <Icon name={icon.name} size={14} color={icon.color} />
+                       </View>
+                       <Text style={styles.eventText}>
+                         {t(`paseos:activo.tipo_evento.${ev.evento?.toLowerCase()}`)}
+                       </Text>
+                     </View>
+                   )
+                 })
+               ) : (
+                 <Text style={styles.emptyEventsText}>{t('paseos:activo.eventos_vacios')}</Text>
+               )}
              </View>
+
+             <Spacer size={24} />
+
+              <View style={styles.actionsRow}>
+                <Button
+                  title={t('paseos:solicitado.chat', { name: paseo?.cuidador_nombre_visual })}
+                  icon="whatsapp"
+                  onPress={() => {
+                    // Placeholder para futuro chat interno
+                    Alert.alert(
+                      t('comun:proximamente'),
+                      t('paseos:activo.chat_interno_aviso')
+                    )
+                  }}
+                  variant="exito"
+                  style={{ flex: 1.5 }}
+                />
+                <Spacer horizontal size={12} />
+                <Button
+                  title={t('paseos:detalles')}
+                  onPress={() => {
+                    Alert.alert(
+                      t('paseos:detalle.titulo'),
+                      `${t('paseos:campos.precio')}: $${paseo?.precio}\n${t('paseos:campos.duracion')}: ${paseo?.duracion_estimada} min\n${t('paseos:lista.mascotas')}: ${paseo?.mascota_nombre_visual}`
+                    )
+                  }}
+                  variant="secundario"
+                  style={{ flex: 1 }}
+                />
+              </View>
         </View>
       </Animated.View>
     </View>
@@ -302,65 +399,78 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     backgroundColor: COLOR.SECUNDARIO,
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
+    borderTopLeftRadius: 32,
+    borderTopRightRadius: 32,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: -2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 12,
-    elevation: 8,
+    shadowOffset: { width: 0, height: -10 },
+    shadowOpacity: 0.3,
+    shadowRadius: 20,
+    elevation: 15,
     zIndex: 10,
+    borderWidth: 1,
+    borderColor: COLOR.BORDE,
   },
   handle: {
-    width: 40,
+    width: 36,
     height: 4,
     backgroundColor: COLOR.BORDE,
     borderRadius: 2,
     alignSelf: 'center',
-    marginTop: 12,
-    marginBottom: 8,
+    marginTop: 10,
+    marginBottom: 6,
   },
   sheetContent: {
-    paddingHorizontal: 20,
-    paddingTop: 12,
-    paddingBottom: 20,
+    paddingHorizontal: 24,
+    paddingTop: 16,
+    paddingBottom: 24,
   },
   statusHeader: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   liveDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
+    width: 10,
+    height: 10,
+    borderRadius: 5,
     backgroundColor: COLOR.EXITO,
-    marginRight: 6,
+    marginRight: 8,
+    shadowColor: COLOR.EXITO,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.8,
+    shadowRadius: 4,
   },
   liveLabel: {
-    fontSize: 12,
-    fontWeight: '700',
+    fontSize: 13,
+    fontWeight: '800',
     color: COLOR.EXITO,
     textTransform: 'uppercase',
-    letterSpacing: 0.5,
+    letterSpacing: 1,
+  },
+  dividerDot: {
+    width: 3,
+    height: 3,
+    borderRadius: 1.5,
+    backgroundColor: COLOR.BORDE,
+    marginHorizontal: 10,
   },
   timeLabel: {
-    fontSize: 12,
+    fontSize: 13,
     color: COLOR.SUBTEXTO,
-    fontWeight: '500',
+    fontWeight: '600',
   },
   messageText: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: COLOR.TEXTO,
-    lineHeight: 24,
+    fontSize: 22,
+    fontWeight: '800',
+    color: COLOR.TEXTO, 
+    lineHeight: 28,
+    letterSpacing: -0.5,
   },
-  identityRow: {
+  identityCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
     backgroundColor: COLOR.BLOQUE,
-    padding: 12,
-    borderRadius: 16,
+    padding: 16,
+    borderRadius: 20,
     borderWidth: 1,
     borderColor: COLOR.BORDE,
   },
@@ -369,14 +479,90 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     flex: 1,
   },
+  avatarWrapper: {
+    position: 'relative',
+  },
+  onlineBadge: {
+    position: 'absolute',
+    bottom: -2,
+    right: -2,
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: COLOR.EXITO,
+    borderWidth: 2,
+    borderColor: COLOR.BLOQUE,
+  },
+  identityText: {
+    flex: 1,
+    marginLeft: 10,
+  },
   nameLabel: {
-    fontSize: 14,
-    fontWeight: '600',
+    fontSize: 15,
+    fontWeight: '700',
     color: COLOR.TEXTO,
+  },
+  subLabel: {
+    fontSize: 11,
+    color: COLOR.SUBTEXTO,
+    fontWeight: '500',
+    marginTop: 1,
+  },
+  verticalDivider: {
+    width: 1,
+    height: 30,
+    backgroundColor: COLOR.BORDE,
+    marginHorizontal: 12,
   },
   actionsRow: {
     flexDirection: 'row',
     alignItems: 'center',
+  },
+  eventsSection: {
+    backgroundColor: 'rgba(255,255,255,0.02)',
+    borderRadius: 20,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.05)',
+  },
+  sectionHeader: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: COLOR.SUBTEXTO,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+  },
+  eventRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  eventDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    marginRight: 10,
+  },
+  eventIconSmall: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: 'rgba(255,255,255,0.05)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  eventText: {
+    fontSize: 14,
+    color: COLOR.TEXTO,
+    fontWeight: '500',
+  },
+  emptyEventsText: {
+    fontSize: 13,
+    color: COLOR.SUBTEXTO,
+    fontStyle: 'italic',
+    textAlign: 'center',
+    paddingVertical: 8,
   },
   activeMarker: {
     alignItems: 'center',
@@ -386,27 +572,47 @@ const styles = StyleSheet.create({
     overflow: 'visible',
   },
   markerCircle: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
     backgroundColor: COLOR.PRIMARIO,
-    borderWidth: 2,
+    borderWidth: 3,
     borderColor: COLOR.BASE,
+    alignItems: 'center',
+    justifyContent: 'center',
+    elevation: 6,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
+    zIndex: 2,
+  },
+  pulseEffect: {
+    position: 'absolute',
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: COLOR.PRIMARIO,
+    zIndex: 1,
+  },
+  eventMarker: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: 40,
+    height: 40,
+  },
+  eventCircle: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: COLOR.BASE,
+    borderWidth: 2,
     alignItems: 'center',
     justifyContent: 'center',
     elevation: 4,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    zIndex: 2,
-  },
-  pulseEffect: {
-    position: 'absolute',
-    width: 30,
-    height: 30,
-    borderRadius: 15,
-    backgroundColor: COLOR.PRIMARIO,
-    zIndex: 1,
+    shadowOpacity: 0.15,
+    shadowRadius: 3,
   },
 })

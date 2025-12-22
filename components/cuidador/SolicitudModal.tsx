@@ -131,7 +131,12 @@ const SolicitudModal: React.FC<Props> = ({ visible, paseo, onClose }) => {
               {precioStr}
             </Text>
             <Text style={styles.subtitlePremium} numberOfLines={1}>
-              {paseo.ubicacion_inicio || ''}
+              {paseo.ubicacion_inicio_txt ||
+                (typeof paseo.ubicacion_inicio === 'object'
+                  ? paseo.ubicacion_inicio.alias ||
+                    paseo.ubicacion_inicio.direccion_formateada
+                  : paseo.ubicacion_inicio) ||
+                ''}
             </Text>
 
             <View style={styles.metaRowPremium}>
