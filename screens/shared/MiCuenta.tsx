@@ -43,7 +43,7 @@ const MiCuenta = () => {
     } else {
       Alert.alert(
         t('perfil:error_cerrar_sesion_titulo'),
-        tErrorMaybe(result.error, t('comun:intentaNuevamente'))
+        tErrorMaybe(result.error, t('comun:intenta_nuevamente'))
       )
     }
   }, [cerrarSesion, navigation, t])

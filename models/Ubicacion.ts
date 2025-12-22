@@ -20,8 +20,8 @@ export interface Ubicacion extends BaseModel {
 
   /** coordenadas geográficas obligatorias — fuente de verdad para cualquier cálculo */
   coordenadas: {
-    lat: number
-    lng: number
+    latitude: number
+    longitude: number
   }
 
   /**
@@ -74,6 +74,11 @@ export interface UbicacionRef {
   es_principal?: boolean
   desde?: Date
   hasta?: Date
+  /** Snapshot de coordenadas para preview rápido sin fetch */
+  coordenadas?: {
+    latitude: number
+    longitude: number
+  }
 }
 
 
@@ -87,8 +92,8 @@ export interface UbicacionRef {
 export interface UbicacionSnapshot {
   direccion_formateada: string
   coordenadas: {
-    lat: number
-    lng: number
+    latitude: number
+    longitude: number
   }
   /** Opcional: ID de la ubicación original si existía */
   id_origen?: string

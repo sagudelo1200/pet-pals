@@ -10,5 +10,36 @@
     "solicitar_paseo": "Solicitar paseo",
     "agregar_mascota": "Agregar mascota",
     "ver_historial": "Ver historial"
+  },
+  "solicitud": {
+    "paso_mascota": "Selecciona tu mascota",
+    "paso_direccion": "¿Dónde recogemos a tu mascota?",
+    "paso_fecha": "¿Qué día?",
+    "paso_cuidador": "Elige un cuidador",
+    "paso_hora": "Hora del paseo",
+    "paso_confirmar": "Confirmar solicitud",
+    "nueva_direccion": "Nueva Dirección",
+    "sin_direcciones": "No tienes direcciones guardadas",
+    "direccion": {
+      "nueva_titulo": "Nueva Dirección",
+      "busqueda_ayuda": "Busca la dirección exacta para ubicarla en el mapa.",
+      "confirmar_titulo": "Confirmar Ubicación",
+      "ajuste_ayuda": "Mueve el mapa para ajustar la posición exacta.",
+      "ubicacion_ajustada": "Ubicación Ajustada",
+      "ubicacion_original": "Ubicación Original",
+      "pin_personalizado": "📍 Pin en posición personalizada",
+      "uso_pin_ayuda": "Se usará la posición del pin",
+      "detalles_titulo": "Detalles Finales",
+      "detalles_ayuda": "Dale un nombre para recordarla fácilmente.",
+      "alias_label": "ALIAS (Ej. Casa, Trabajo)",
+      "alias_placeholder": "Casa",
+      "referencia_label": "REFERENCIA (Opcional)",
+      "referencia_placeholder": "Ej. Portón negro, apto 201",
+      "tipo_default": "Ubicación",
+      "ver_en_mapa": "Ver en mapa",
+      "nueva_btn": "Nueva",
+      "direccion_btn": "Dirección",
+      "seleccionar_para_ver": "Selecciona una dirección para ver en el mapa"
+    }
   }
 }

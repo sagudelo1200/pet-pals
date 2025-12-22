@@ -9,13 +9,15 @@ import { UbicacionRef } from '@/models/Ubicacion'
 export function agregarUbicacionRef(
   listaActual: UbicacionRef[] = [],
   nuevaUbicacionId: string,
-  alias?: string
+  alias?: string,
+  coordenadas?: { latitude: number; longitude: number }
 ): { lista: UbicacionRef[]; idPrincipal: string | undefined } {
   const nuevaRef: UbicacionRef = {
     ubicacion_id: nuevaUbicacionId,
     es_principal: listaActual.length === 0, // Primera es principal
     tipo: alias || 'Casa', // Default tipo
     desde: new Date(),
+    coordenadas,
   }
 
   // Evitar duplicados por ID

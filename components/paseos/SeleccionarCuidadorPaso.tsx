@@ -21,6 +21,7 @@ import PerroTristeSvg from '@/assets/imgs/undraw/perro_triste_come_periodico.svg
 
 interface Props {
   cuidadorInicialId?: string | null
+  horarioInicial?: { hora_inicio: string; hora_fin: string }
   fecha?: Date | null
   esSolicitudAbiertaInicial?: boolean
   onNext: (
@@ -38,6 +39,7 @@ interface Props {
 
 export const SeleccionarCuidadorPaso = ({
   cuidadorInicialId,
+  horarioInicial,
   fecha,
   onNext,
   onBack,

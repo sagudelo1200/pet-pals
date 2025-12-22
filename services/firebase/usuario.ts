@@ -155,7 +155,8 @@ export class ServicioUsuario {
   static async agregarUbicacion(
     userId: string,
     ubicacionId: string,
-    alias?: string
+    alias?: string,
+    coordenadas?: { latitude: number; longitude: number }
   ): Promise<CrudResult<Usuario>> {
     try {
       const userRes = await this.obtenerPorId(userId)
@@ -165,7 +166,8 @@ export class ServicioUsuario {
       const { lista, idPrincipal } = agregarUbicacionRef(
         usuario.ubicaciones || [],
         ubicacionId,
-        alias
+        alias,
+        coordenadas
       )
 
       return this.actualizar(userId, {

@@ -24,9 +24,14 @@ console.log('🌐 Directorio de traducciones:', LOCALES_DIR)
 /* -------------------- Logger en una sola línea -------------------- */
 
 function liveLog(mensaje) {
-  process.stdout.clearLine(0)
-  process.stdout.cursorTo(0)
-  process.stdout.write(mensaje)
+  if (process.stdout.isTTY && typeof process.stdout.clearLine === 'function') {
+    process.stdout.clearLine(0)
+    process.stdout.cursorTo(0)
+    process.stdout.write(mensaje)
+  } else {
+    // Fallback: simple console.log if not TTY or functions missing
+    // console.log(mensaje);
+  }
 }
 
 /* -------------------- Utilidades -------------------- */
@@ -154,8 +159,10 @@ function checkI18nKeys() {
     }
   }
 
-  process.stdout.clearLine(0)
-  process.stdout.cursorTo(0)
+  if (process.stdout.isTTY && typeof process.stdout.clearLine === 'function') {
+    process.stdout.clearLine(0)
+    process.stdout.cursorTo(0)
+  }
 
   /* ---------- Estadísticas ---------- */
 

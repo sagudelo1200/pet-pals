@@ -2,17 +2,19 @@ import React from 'react'
 import { StyleSheet, View, Text } from 'react-native'
 import { useTranslation } from 'react-i18next'
 import { COLOR } from '@/constants'
-import { Button } from '@/components/ui'
+import { Button, DurationPicker } from '@/components/ui'
 import DatePicker from '@/components/ui/DatePicker'
 
 interface Props {
   fechaInicial?: Date | null
-  onNext: (fecha: Date) => void
+  duracionInicial?: number | null
+  onNext: (fecha: Date, duracion: number) => void
   onBack: () => void
 }
 
 export const SeleccionarFechaPaso = ({
   fechaInicial,
+  duracionInicial,
   onNext,
   onBack,
 }: Props) => {
@@ -20,10 +22,13 @@ export const SeleccionarFechaPaso = ({
   const [fecha, setFecha] = React.useState<Date | undefined>(
     fechaInicial || undefined
   )
+  const [duracion, setDuracion] = React.useState<number | null>(
+    duracionInicial || null
+  )
 
   const handleContinuar = () => {
-    if (fecha) {
-      onNext(fecha)
+    if (fecha && duracion) {
+      onNext(fecha, duracion)
     }
   }
 
@@ -42,6 +47,12 @@ export const SeleccionarFechaPaso = ({
           placeholder={t('paseos:selecciona_fecha')}
           minimumDate={new Date()}
         />
+        <DurationPicker
+          label={t('paseos:duracion_paseo')}
+          value={duracion}
+          onValueChange={setDuracion}
+          placeholder={t('paseos:selecciona_duracion')}
+        />
       </View>
 
       <View style={styles.actions}>
@@ -55,7 +66,7 @@ export const SeleccionarFechaPaso = ({
           title={t('comun:continuar')}
           variant="primario"
           onPress={handleContinuar}
-          disabled={!fecha}
+          disabled={!fecha || !duracion}
           style={{ flex: 1 }}
         />
       </View>
@@ -82,6 +93,7 @@ const styles = StyleSheet.create({
   },
   section: {
     marginBottom: 24,
+    gap: 16,
   },
   actions: {
     flexDirection: 'row',

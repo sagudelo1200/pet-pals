@@ -141,7 +141,7 @@ export function tErrorMaybe(
   fallback?: string,
   vars?: Record<string, unknown>
 ) {
-  if (!codeOrMessage) return fallback ?? i18n.t('comun:intentaNuevamente')
+  if (!codeOrMessage) return fallback ?? i18n.t('comun:intenta_nuevamente')
   // Primero intentar resolver por dominio (p. ej. `ERR.AUTH.*` o formatos
   // 'DOMINIO.CODIGO' / 'DOMINIO_CODIGO' -> namespace 'auth')
   try {

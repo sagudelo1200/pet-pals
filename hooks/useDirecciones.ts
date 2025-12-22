@@ -1,6 +1,7 @@
 import { useState, useCallback, useMemo } from 'react'
 import { useAuth } from '@/context/AuthContext'
 import { ServicioUsuario } from '@/services/firebase/usuario'
+import { ServicioUbicaciones } from '@/services/firebase/ubicaciones'
 import { UbicacionRef } from '@/models/Ubicacion'
 
 export function useDirecciones() {
@@ -16,17 +17,39 @@ export function useDirecciones() {
   }, [direcciones])
 
   const agregar = useCallback(
-    async (ubicacionId: string, alias: string = 'Casa') => {
+    async (datos: any, alias: string = 'Casa') => {
       if (!user?.uid) return
       setLoading(true)
       setError(null)
-      const res = await ServicioUsuario.agregarUbicacion(user.uid, ubicacionId, alias)
-      setLoading(false)
-      if (res.success) {
-        await recargarPerfil() // Recargar perfil para actualizar UI
-      } else {
-        setError(String(res.error))
-        throw new Error(String(res.error))
+
+      try {
+        // 1. Crear documento real en /direcciones
+        const ubicacionNueva = {
+          ...datos, // debe incluir coordenadas, direccion_formateada, etc.
+          estado: 'pendiente',
+        }
+        const resUbic = await ServicioUbicaciones.crear(ubicacionNueva)
+        if (!resUbic.success || !resUbic.data) throw new Error('ERROR_CREAR_UBICACION')
+        
+        const nuevaId = resUbic.data.id
+
+        // 2. Ligar al usuario con snapshot de coordenadas
+        const resUser = await ServicioUsuario.agregarUbicacion(
+          user.uid, 
+          nuevaId, 
+          alias,
+          datos.coordenadas // Snapshot crucial para el mapa
+        )
+        
+        if (!resUser.success) throw new Error(String(resUser.error))
+
+        await recargarPerfil()
+        return nuevaId // Retornar ID para seleccionarlo en UI
+      } catch (e: any) {
+         setError(String(e))
+         throw e
+      } finally {
+        setLoading(false)
       }
     },
     [user?.uid, recargarPerfil]

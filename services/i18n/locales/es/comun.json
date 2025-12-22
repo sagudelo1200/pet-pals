@@ -11,17 +11,22 @@
   "cancelar": "Cancelar",
   "ok": "OK",
   "exito": "Éxito",
+  "confirmar": "Confirmar",
+  "error_desconocido": "Ocurrió un error inesperado. Intenta más tarde.",
   "seleccionar_rol_titulo": "Selecciona tu rol",
   "seleccionar_rol_subtitulo": "Tienes acceso a múltiples roles",
   "errores": {
     "NO_AUTENTICADO": "Debes iniciar sesión para continuar.",
     "PERMISOS_INSUFICIENTES": "No tienes permisos para realizar esta acción.",
-    "DOCUMENTO_NO_ENCONTRADO": "El recurso solicitado no existe.",
-    "ERROR_DESCONOCIDO": "Ocurrió un error inesperado. Intenta más tarde."
+    "DOCUMENTO_NO_ENCONTRADO": "El recurso solicitado no existe."
   },
   "maps": {
     "buscar_placeholder": "Buscar dirección...",
     "error_busqueda": "Error al buscar sitios",
     "error_detalles": "Error al obtener detalles"
-  }
+  },
+  "guardando": "Guardando...",
+  "guardar_direccion": "Guardar Dirección",
+  "detalles": "Detalles",
+  "siguiente": "Siguiente"
 }

@@ -65,7 +65,7 @@ export const AutocompletarDireccion = ({
         <TextInput
           value={query}
           onChangeText={handleChangeText}
-          placeholder={placeholder || t('maps.buscar_placeholder')}
+          placeholder={placeholder || t('comun:maps.buscar_placeholder')}
           iconName="search-location"
           style={{ marginBottom: 0 }} // Eliminar margen para alinear el spinner
         />
