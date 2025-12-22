@@ -33,6 +33,12 @@ interface MapaProps {
   
   /** Muestra un pin fijo en el centro de la vista (para selección tipo Uber) */
   pinCentro?: boolean
+
+  /** Componentes adicionales para renderizar dentro del mapa (Markers, Polylines, etc.) */
+  children?: React.ReactNode
+
+  /** Padding interno para el mapa (útil para centrar la vista con overlays) */
+  mapPadding?: { top: number; right: number; bottom: number; left: number }
 }
 
 export const Mapa = ({
@@ -46,6 +52,8 @@ export const Mapa = ({
   style,
   interactivo = false,
   pinCentro = false,
+  children,
+  mapPadding,
 }: MapaProps) => {
   const delta = 0.0922 * Math.pow(2, 15 - zoom)
 
@@ -75,6 +83,7 @@ export const Mapa = ({
         rotateEnabled={interactivo}
         showsUserLocation={interactivo}
         showsMyLocationButton={interactivo}
+        mapPadding={mapPadding}
       >
         {/* Marcador estático (si no usamos pin central) */}
         {marcador && !pinCentro && coordenadas && (
@@ -83,6 +92,7 @@ export const Mapa = ({
             pinColor={COLOR.PRIMARIO}
           />
         )}
+        {children}
       </MapView>
 
       {/* Pin Central Flotante (UI Overlay) */}

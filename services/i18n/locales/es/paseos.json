@@ -144,5 +144,16 @@
   "campos": {
     "precio": "Precio",
     "duracion": "Duración"
+  },
+  "activo": {
+    "estado_label": "En Vivo",
+    "estado_ok": "Todo va de maravilla con tu mascota",
+    "mensaje_calma": "No te preocupes,\nel paseo va genial 🐾",
+    "tiempo_restante": "Faltan aprox. {{tiempo}} min",
+    "finalizado_titulo": "¡Paseo Finalizado!",
+    "finalizado_mensaje": "{{nombre}} ya está de regreso en casa. ¡Sabemos que lo disfrutó!",
+    "cancelado_titulo": "Paseo Cancelado",
+    "cancelado_mensaje": "El paseo ha sido cancelado. Si tienes dudas, contacta al cuidador.",
+    "no_encontrado": "No pudimos encontrar este paseo. Verifica tus permisos o si el servicio aún es válido."
   }
 }

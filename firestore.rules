@@ -211,10 +211,16 @@ service cloud.firestore {
       // Permitir lectura si:
       // 1. Eres actor del paseo (creador o cuidador asignado)
       // 2. El paseo está PENDIENTE y no tiene cuidador asignado (para que cuidadores puedan ver solicitudes)
-      allow read: if es_actor_paseo_doc(resource) || 
-      (autenticado() && 
-      resource.data.estado == 'PENDIENTE' && 
-      (!('id_cuidador' in resource.data) || resource.data.id_cuidador == null));
+      allow get: if autenticado() && (
+        resource == null || 
+        es_actor_paseo_doc(resource) || 
+        (resource.data.estado == 'PENDIENTE' && (!('id_cuidador' in resource.data) || resource.data.id_cuidador == null))
+      );
+
+      allow list: if autenticado() && (
+        es_actor_paseo_doc(resource) || 
+        (resource.data.estado == 'PENDIENTE' && (!('id_cuidador' in resource.data) || resource.data.id_cuidador == null))
+      );
 
       allow create: if autenticado()
         && es_creador()

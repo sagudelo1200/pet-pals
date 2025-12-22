@@ -18,6 +18,7 @@ interface BottomSheetProps {
   onClose: () => void
   children: React.ReactNode
   height?: number | string
+  showBackdrop?: boolean
 }
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window')
@@ -27,6 +28,7 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
   onClose,
   children,
   height = 'auto',
+  showBackdrop = true,
 }) => {
   const slideAnim = useRef(new Animated.Value(SCREEN_HEIGHT)).current
   const opacityAnim = useRef(new Animated.Value(0)).current
@@ -103,7 +105,14 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
     >
       <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
         <View style={styles.container}>
-          <Animated.View style={[styles.backdrop, { opacity: opacityAnim }]}>
+          <Animated.View 
+            style={[
+              styles.backdrop, 
+              { opacity: opacityAnim },
+              !showBackdrop && { backgroundColor: 'transparent' }
+            ]}
+            pointerEvents={showBackdrop ? 'auto' : 'none'}
+          >
             <Pressable style={styles.backdropPress} onPress={onClose} />
           </Animated.View>
 

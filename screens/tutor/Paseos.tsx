@@ -7,13 +7,14 @@ import Screen from '@/components/ui/Screen'
 import ScreenHeader from '@/components/ui/ScreenHeader'
 import TarjetaPaseo from '@/components/ui/TarjetaPaseo'
 import { ItemHistorialPaseo } from '@/components/paseos/ItemHistorialPaseo'
-import Chip from '@/components/ui/Chip'
+import { Chip, Button, Spacer } from '@/components/ui'
 import ValidatedFab from '@/components/ui/Fab'
 import { SolicitarPaseoModal } from '@/components/paseos/SolicitarPaseoModal'
 import PaseadorPerrosSvg from '@/assets/imgs/undraw/paseador_perros.svg'
 import { useMascotas } from '@/hooks/useMascotas'
 import { usePaseos } from '@/hooks/paseos/usePaseos'
 import DetallePaseoBottomSheet from '@/components/paseos/DetallePaseoBottomSheet'
+import { PaseoStatus } from '@/models/Paseo'
 
 type TabTipo = 'proximos' | 'historial'
 
@@ -34,9 +35,19 @@ const Paseos: React.FC = () => {
     lastNavTime.current = now
     // Evitar abrir detalle para solicitudes pendientes (PENDIENTE)
     const paseo = (paseos || []).find(p => p.id === id)
-    if (paseo && paseo.estado === 'PENDIENTE') return
+    if (!paseo) return
+    
+    // Evitar abrir detalle para solicitudes pendientes
+    if (paseo.estado === PaseoStatus.PENDIENTE) return
 
-    // Abrir BottomSheet de detalle (sólo título por ahora)
+    // Si el paseo está en progreso o en ruta, vamos a la pantalla de monitoreo en vivo
+    if (paseo.estado === PaseoStatus.EN_PROGRESO || paseo.estado === PaseoStatus.EN_RUTA) {
+      // @ts-ignore
+      navigation.navigate('PaseoActivo', { paseoId: id })
+      return
+    }
+
+    // Abrir BottomSheet de detalle para otros estados
     setDetalleTitle(t('paseos:detalle.titulo'))
     setDetalleVisible(true)
   }
@@ -67,11 +78,11 @@ const Paseos: React.FC = () => {
     () =>
       (paseos || []).filter(p =>
         [
-          'PENDIENTE',
-          'ACEPTADO',
-          'EN_RUTA',
-          'EN_PROGRESO',
-          'PROGRAMADO',
+          PaseoStatus.PENDIENTE,
+          PaseoStatus.ACEPTADO,
+          PaseoStatus.EN_RUTA,
+          PaseoStatus.EN_PROGRESO,
+          PaseoStatus.PROGRAMADO,
         ].includes(p.estado)
       ),
     [paseos]
@@ -80,7 +91,11 @@ const Paseos: React.FC = () => {
   const historial = useMemo(
     () =>
       (paseos || []).filter(p =>
-        ['COMPLETADO', 'FINALIZADO', 'CANCELADO'].includes(p.estado)
+        [
+          PaseoStatus.COMPLETADO,
+          PaseoStatus.FINALIZADO,
+          PaseoStatus.CANCELADO,
+        ].includes(p.estado)
       ),
     [paseos]
   )
@@ -95,6 +110,20 @@ const Paseos: React.FC = () => {
           ? t('paseos:lista.vacio_proximos')
           : t('paseos:lista.vacio_completados')}
       </Text>
+      
+      {activeTab === 'proximos' && (
+        <>
+          <Spacer size={24} />
+          <Button
+            title="Simular Paseo Activo (Demo) 🐾"
+            onPress={() => {
+              // @ts-ignore
+              navigation.navigate('PaseoActivo', { paseoId: 'demo-123' })
+            }}
+            variant="secundario"
+          />
+        </>
+      )}
     </View>
   )
 

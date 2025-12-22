@@ -5,6 +5,7 @@ import CuidadorTabNavigator from '@/navigation/CuidadorTabNavigator'
 import AdminTabNavigator from '@/navigation/AdminTabNavigator'
 import AuthNavigator from './AuthNavigator'
 import DetalleMascota from '@/screens/tutor/DetalleMascota'
+import PaseoActivo from '@/screens/tutor/PaseoActivoScreen'
 import PerfilCuidador from '@/screens/cuidador/PerfilCuidador'
 import { AuthStackParamList } from './types'
 
@@ -29,6 +30,15 @@ export default function RootNavigator(): React.ReactElement {
         }}
       />
       <Stack.Screen name="PerfilCuidador" component={PerfilCuidador} />
+      <Stack.Screen
+        name="PaseoActivo"
+        component={PaseoActivo}
+        options={{
+          headerShown: true,
+          headerTitle: 'Paseo en Vivo 🐾',
+          headerBackTitleVisible: false,
+        }}
+      />
     </Stack.Navigator>
   )
 }
