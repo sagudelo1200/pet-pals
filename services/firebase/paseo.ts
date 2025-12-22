@@ -90,7 +90,7 @@ export class ServicioPaseo {
         // Actualizar documento
         transaction.update(paseoRef, {
           id_cuidador: currentUser.uid,
-          estado: PaseoStatus.ACEPTADO,
+          estado: PaseoStatus.CONFIRMADO,
           actualizado_en: serverTimestamp(),
           actualizado_por: currentUser.uid,
         })

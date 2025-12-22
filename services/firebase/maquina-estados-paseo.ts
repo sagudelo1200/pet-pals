@@ -40,10 +40,10 @@ type Transiciones = {
 
 const CONFIG_MAQUINA: Transiciones = {
   [PaseoStatus.PENDIENTE]: {
-    ACEPTAR: PaseoStatus.ACEPTADO,
+    ACEPTAR: PaseoStatus.CONFIRMADO,
     CANCELAR: PaseoStatus.CANCELADO,
   },
-  [PaseoStatus.ACEPTADO]: {
+  [PaseoStatus.CONFIRMADO]: {
     PROGRAMAR: PaseoStatus.PROGRAMADO,
     INICIAR_RUTA: PaseoStatus.EN_RUTA,
     INICIAR_PASEO: PaseoStatus.EN_PROGRESO, // Shortcut si ya está ahí
@@ -97,7 +97,7 @@ export class MaquinaEstadosPaseo {
     const NON_TRANSITION_EVENTS: PaseoEvent[] = ['RECHAZAR']
     const ALLOWED_NON_TRANSITION_FROM: PaseoStatus[] = [
       PaseoStatus.PENDIENTE,
-      PaseoStatus.ACEPTADO,
+      PaseoStatus.CONFIRMADO,
     ]
 
     if (permitidos && permitidos[evento]) return true

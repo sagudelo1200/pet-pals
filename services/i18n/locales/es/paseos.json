@@ -21,6 +21,7 @@
   },
   "estados": {
     "PENDIENTE": "Pendiente",
+    "CONFIRMADO": "Confirmado",
     "ACEPTADO": "Aceptado",
     "PROGRAMADO": "Programado",
     "EN_RUTA": "En camino",

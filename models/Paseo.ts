@@ -13,7 +13,7 @@ export type TipoPaseo = 'solicitado' | 'programado'
  */
 export enum PaseoStatus {
   PENDIENTE = 'PENDIENTE',
-  ACEPTADO = 'ACEPTADO',
+  CONFIRMADO = 'CONFIRMADO',
   PROGRAMADO = 'PROGRAMADO',
   EN_RUTA = 'EN_RUTA',
   EN_PROGRESO = 'EN_PROGRESO',
