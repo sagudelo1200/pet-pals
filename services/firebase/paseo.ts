@@ -18,6 +18,8 @@ import {
 } from 'firebase/firestore'
 import { db } from '@/firebase.config'
 
+import type { Ubicacion } from '@/models/Ubicacion'
+
 export class ServicioPaseo {
   private static readonly COLLECTION = 'paseos'
 
@@ -114,7 +116,8 @@ export class ServicioPaseo {
       | 'actualizado_por'
       | 'mascotas_count'
     >,
-    mascotaIds: string[]
+    mascotaIds: string[],
+    direccion?: Ubicacion
   ): Promise<CrudResult<Paseo>> {
     const current = ServicioAuth.obtenerUsuarioActual()
     const uid = current?.uid
@@ -191,7 +194,7 @@ export class ServicioPaseo {
 
     // Crear subdocumentos por mascota (si aplica)
     if (unique.length > 0) {
-      const addRes = await addMascotasAlPaseo(paseoRes.data.id, unique)
+      const addRes = await addMascotasAlPaseo(paseoRes.data.id, unique, direccion)
       if (!addRes.success)
         return { success: false, error: (addRes as any).error }
     }

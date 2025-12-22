@@ -193,9 +193,15 @@ export const SolicitarPaseoModal = ({ visible, onClose }: Props) => {
       case 'CONFIRMAR':
         return (
           <ConfirmarPaseoPaso
-            {...datosSolicitud}
-            onCompartidoChange={(esCompartido) => 
-               setDatosSolicitud(prev => ({ ...prev, esCompartido }))
+            mascotaIds={datosSolicitud.mascotaIds}
+            direccionId={datosSolicitud.direccionId}
+            fecha={datosSolicitud.fecha}
+            hora={datosSolicitud.hora}
+            duracion={datosSolicitud.duracion}
+            cuidadorId={datosSolicitud.cuidadorId}
+            esCompartido={datosSolicitud.esCompartido}
+            onCompartidoChange={val =>
+              setDatosSolicitud(prev => ({ ...prev, esCompartido: val }))
             }
             onConfirm={handleConfirmacionFinal}
             onBack={() => handleBack()}

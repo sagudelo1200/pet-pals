@@ -13,10 +13,13 @@ import { ServicioCrudBase } from './crud'
 import { MAX_MASCOTAS_POR_PASEO, ERR } from '@/constants'
 import { mapFirebaseError } from './errors'
 
+import type { Ubicacion } from '@/models/Ubicacion'
+
 // Subcolección: paseos/{paseoId}/mascotas/{mascotaId}
 export async function addMascotasAlPaseo(
   paseoId: string,
-  mascotaIds: string[]
+  mascotaIds: string[],
+  direccion?: Ubicacion
 ): Promise<{ success: true } | { success: false; error: string }> {
   const uid = ServicioAuth.obtenerUsuarioActual()?.uid
   if (!uid) return { success: false, error: ERR.COMUN.NO_AUTENTICADO }
@@ -46,6 +49,18 @@ export async function addMascotasAlPaseo(
         actualizado_en: nowServerTimestamp(),
         creado_por: uid,
         actualizado_por: uid,
+        // Denormalización de dirección (base)
+        direccion: direccion
+          ? {
+              id: direccion.id,
+              alias: direccion.alias,
+              direccion_formateada: direccion.direccion_formateada,
+              coordenadas: {
+                latitude: direccion.coordenadas.latitude,
+                longitude: direccion.coordenadas.longitude,
+              },
+            }
+          : null,
       }
       // No envolver sentinelas de servidor (serverTimestamp) con `toDb`
       batch.set(ref, base)

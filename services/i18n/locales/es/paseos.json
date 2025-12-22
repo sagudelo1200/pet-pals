@@ -9,6 +9,9 @@
   "elige_dia_ver_cuidadores": "Elige el día para ver los cuidadores disponibles",
   "fecha_paseo": "Fecha del paseo",
   "selecciona_fecha": "Selecciona una fecha",
+  "detalles": "Detalles",
+  "siguiente": "Siguiente",
+  "cargando": "Cargando...",
   "titulo": "Paseos",
   "subtitulo": "Gestiona los paseos de tus mascotas",
   "lista": {
@@ -57,7 +60,11 @@
   "boton_solicitar": "Solicitar paseo",
   "flujo": {
     "titulo": "Solicitar Paseo",
-    "cargando": "Cargando..."
+    "cargando": "Cargando...",
+    "errores": {
+      "fecha_hora_requerida": "Fecha y hora requeridas",
+      "ubicacion_requerida": "Ubicación de inicio requerida"
+    }
   },
   "pasos": {
     "seleccionar_mascota": {
@@ -98,6 +105,7 @@
       "titulo": "Revisa y confirma",
       "resumen_mascotas": "Mascotas",
       "resumen_fecha": "Fecha y Hora",
+      "resumen_ubicacion": "Ubicación de Inicio",
       "resumen_cuidador": "Cuidador",
       "solicitud_abierta_nombre": "Solicitud Abierta",
       "tarifa_a_convenir": "Tarifa a convenir",

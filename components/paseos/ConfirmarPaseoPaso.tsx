@@ -8,6 +8,7 @@ import { PetAvatar } from '@/components/ui/PetAvatar'
 
 interface Props {
   mascotaIds: string[]
+  direccionId: string | null
   fecha: Date | null
   hora: string | null
   duracion: number | null
@@ -21,6 +22,7 @@ interface Props {
 
 export const ConfirmarPaseoPaso = ({
   mascotaIds,
+  direccionId,
   fecha,
   hora,
   duracion,
@@ -31,9 +33,10 @@ export const ConfirmarPaseoPaso = ({
   onBack,
 }: Props) => {
   const { t } = useTranslation()
-  const { mascotas, cuidador, total, loading, error, confirmarReserva } =
+  const { mascotas, cuidador, direccion, total, loading, error, confirmarReserva } =
     useConfirmarPaseo({
       mascotaIds,
+      direccionId,
       cuidadorId,
       fecha,
       hora,
@@ -84,7 +87,7 @@ export const ConfirmarPaseoPaso = ({
             contentContainerStyle={styles.petsRow}
             style={styles.petsScroll}
           >
-            {mascotas.map(pet => (
+            {mascotas.map((pet: any) => (
               <View key={pet.id} style={styles.petItem}>
                 <PetAvatar uri={pet.foto} size="medium" />
                 <Text style={styles.petName}>{pet.nombre}</Text>
@@ -106,6 +109,23 @@ export const ConfirmarPaseoPaso = ({
             </View>
             <Text style={styles.value}>
               {formatDate(fecha)} - {hora} ({duracion || 60} min)
+            </Text>
+          </View>
+        </View>
+
+        <View style={styles.divider} />
+
+        {/* Sección Ubicación */}
+        <View style={styles.section}>
+          <Text style={styles.label}>
+            {t('paseos:pasos.confirmar.resumen_ubicacion')}
+          </Text>
+          <View style={styles.row}>
+            <View style={{ width: 20, alignItems: 'center', marginRight: 8 }}>
+              <Icon name="map-marker" size={16} color={COLOR.ERROR} />
+            </View>
+            <Text style={styles.value} numberOfLines={1}>
+              {direccion?.alias || direccion?.direccion_formateada || t('comun:cargando')}
             </Text>
           </View>
         </View>

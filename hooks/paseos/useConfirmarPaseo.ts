@@ -1,12 +1,16 @@
 import { useState, useCallback, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useMascotas } from '@/hooks/useMascotas'
 import { ServicioPaseo } from '@/services/firebase/paseo'
 import { ServicioPerfilPublico } from '@/services/firebase/perfil-publico'
+import { ServicioUbicaciones } from '@/services/firebase/ubicaciones'
 import { PaseoStatus } from '@/models/Paseo'
 import { useAuth } from '@/context/AuthContext'
+import type { Ubicacion } from '@/models/Ubicacion'
 
 interface ConfirmarPaseoProps {
   mascotaIds: string[]
+  direccionId: string | null
   cuidadorId: string | null
   fecha: Date | null
   hora: string | null
@@ -23,51 +27,67 @@ interface CuidadorInfo {
 
 export const useConfirmarPaseo = ({
   mascotaIds,
+  direccionId,
   cuidadorId,
   fecha,
   hora,
   duracion,
   esCompartido,
 }: ConfirmarPaseoProps) => {
+  const { t } = useTranslation()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [cuidador, setCuidador] = useState<CuidadorInfo | null>(null)
+  const [direccion, setDireccion] = useState<Ubicacion | null>(null)
   const { user } = useAuth()
   const { mascotas: todasLasMascotas } = useMascotas()
 
   // Obtener datos completos de los ID
   const mascotas = todasLasMascotas.filter(p => mascotaIds.includes(p.id))
 
-  // Cargar datos del cuidador
+  // Cargar datos del cuidador y dirección
   useEffect(() => {
-    const cargarCuidador = async () => {
-      if (!cuidadorId) {
-        setCuidador(null)
-        return
-      }
-
+    const cargarDatos = async () => {
+      setLoading(true)
       try {
-        const resultado = await ServicioPerfilPublico.obtenerPorId(cuidadorId)
+        const promises: Promise<any>[] = []
 
-        if (resultado.success && resultado.data) {
-          const perfil = resultado.data
+        if (cuidadorId) {
+          promises.push(ServicioPerfilPublico.obtenerPorId(cuidadorId))
+        } else {
+          promises.push(Promise.resolve(null))
+        }
+
+        if (direccionId) {
+          promises.push(ServicioUbicaciones.obtenerPorId(direccionId))
+        } else {
+          promises.push(Promise.resolve(null))
+        }
+
+        const [resCuidador, resUbicacion] = await Promise.all(promises)
+
+        if (resCuidador?.success && resCuidador.data) {
+          const perfil = resCuidador.data
           setCuidador({
             id: perfil.id,
             nombre: perfil.nombre,
             imagen: perfil.foto || 'https://via.placeholder.com/60',
             tarifa: perfil.tarifa_por_hora || 15000,
           })
-        } else {
-          setCuidador(null)
+        }
+
+        if (resUbicacion?.success && resUbicacion.data) {
+          setDireccion(resUbicacion.data)
         }
       } catch (err) {
-        console.error('Error cargando cuidador:', err)
-        setCuidador(null)
+        console.error('Error cargando datos de confirmación:', err)
+      } finally {
+        setLoading(false)
       }
     }
 
-    cargarCuidador()
-  }, [cuidadorId])
+    cargarDatos()
+  }, [cuidadorId, direccionId])
 
   // Cálculo simple de costos
   const tarifaBase = cuidador?.tarifa || 15000
@@ -86,7 +106,12 @@ export const useConfirmarPaseo = ({
 
   const confirmarReserva = useCallback(async () => {
     if (!fecha || !hora) {
-      setError('Fecha y hora requeridas')
+      setError(t('paseos:flujo.errores.fecha_hora_requerida'))
+      return false
+    }
+
+    if (!direccionId) {
+      setError(t('paseos:flujo.errores.ubicacion_requerida'))
       return false
     }
 
@@ -106,7 +131,9 @@ export const useConfirmarPaseo = ({
           fecha_hora_inicio: fechaInicio,
           duracion_estimada: duracion || 60,
           precio: total,
-          ubicacion_inicio: 'Ubicación actual', // TODO: Obtener ubicación real
+          ubicacion_inicio: direccion
+            ? direccion.alias || direccion.direccion_formateada
+            : 'Ubicación actual',
           id_cuidador: cuidadorId || undefined,
           cuidador_nombre_visual: cuidador?.nombre,
           cuidador_foto_visual: cuidador?.imagen,
@@ -114,7 +141,8 @@ export const useConfirmarPaseo = ({
           cupo_maximo_mascotas: esCompartido ? 10 : mascotas.length,
           tutor_ids: user?.uid ? [user.uid] : [],
         },
-        mascotaIds
+        mascotaIds,
+        direccion || undefined
       )
 
       if (!result.success) {
@@ -140,11 +168,15 @@ export const useConfirmarPaseo = ({
     esCompartido,
     cuidador,
     user,
+    direccion,
+    direccionId,
+    t,
   ])
 
   return {
     mascotas,
     cuidador,
+    direccion,
     total,
     loading,
     error,
