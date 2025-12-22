@@ -1,6 +1,7 @@
 // Servicio base
 export { ServicioCrudBase } from './crud'
 export { ServicioRealtime } from './realtime'
+export { RUTAS_REALTIME } from './rutas-rtdb'
 
 // Servicios específicos
 export { ServicioMascota } from './mascota'

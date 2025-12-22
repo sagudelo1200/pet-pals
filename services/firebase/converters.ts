@@ -1,4 +1,5 @@
 import { Timestamp, serverTimestamp, type FieldValue } from 'firebase/firestore'
+import { serverTimestamp as rtdbServerTimestamp } from 'firebase/database'
 
 // Comprobaciones de tipo
 export function isFirestoreTimestamp(value: unknown): value is Timestamp {
@@ -97,5 +98,10 @@ export function toDb<T = any>(input: any): T {
 }
 
 export const nowServerTimestamp = (): FieldValue => serverTimestamp()
+
+/**
+ * Retorna el marcador de posición para el timestamp del servidor en Realtime Database.
+ */
+export const ahoraRealtime = () => rtdbServerTimestamp()
 
 export type { Timestamp } from 'firebase/firestore'
