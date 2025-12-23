@@ -82,7 +82,6 @@ const Paseos: React.FC = () => {
           PaseoStatus.CONFIRMADO,
           PaseoStatus.EN_RUTA,
           PaseoStatus.EN_PROGRESO,
-          PaseoStatus.PROGRAMADO,
         ].includes(p.estado)
       ),
     [paseos]

@@ -22,8 +22,6 @@
   "estados": {
     "PENDIENTE": "Pendiente",
     "CONFIRMADO": "Confirmado",
-    "ACEPTADO": "Aceptado",
-    "PROGRAMADO": "Programado",
     "EN_RUTA": "En camino",
     "EN_PROGRESO": "En progreso",
     "FINALIZADO": "Finalizado",
@@ -34,7 +32,6 @@
   "eventos": {
     "ACEPTAR": "Aceptar paseo",
     "RECHAZAR": "Rechazar paseo",
-    "PROGRAMAR": "Programar paseo",
     "INICIAR_RUTA": "Iniciar ruta",
     "LLEGAR": "Llegar al destino",
     "INICIAR_PASEO": "Iniciar paseo",
@@ -150,6 +147,11 @@
     "estado_label": "En Vivo",
     "estado_ok": "Todo va de maravilla con tu mascota",
     "mensaje_calma": "El paseo va genial 🐾",
+    "mensajes": {
+      "confirmado": "¡{{nombre}} ya aceptó! Pronto iniciará el viaje.",
+      "en_ruta": "{{nombre}} está en camino a recoger a tu mascota.",
+      "en_progreso": "{{nombre}} está disfrutando de su paseo ahora mismo."
+    },
     "tiempo_restante": "Faltan aprox. {{tiempo}} min",
     "finalizado_titulo": "¡Paseo Finalizado!",
     "finalizado_mensaje": "{{nombre}} ya está de regreso en casa. ¡Sabemos que lo disfrutó!",
@@ -160,13 +162,17 @@
     "mascota_protegida": "Protección Activa",
     "cuidador_verificado": "Perfiles Verificados",
     "actividad_reciente": "Actividad Reciente",
+    "esperando_actividad": "Esperando inicio de actividad...",
     "eventos_vacios": "Sin novedades por ahora • Monitoreo activo",
     "tipo_evento": {
       "foto": "Subió una foto",
       "necesidad": "Hizo sus necesidades",
       "hidratacion": "Se hidrató",
       "inicio": "Inició el paseo en ruta",
-      "llegada": "Llegó a destino"
+      "llegada": "Llegó a destino",
+      "iniciar_ruta": "Inició el viaje de recogida",
+      "iniciar_paseo": "Inició el paseo oficial",
+      "finalizar_paseo": "Finalizó el paseo"
     }
   },
   "control": {
@@ -176,6 +182,9 @@
     "ver_resumen": "Ver Resumen",
     "punto_recogida": "Punto de Recogida",
     "ubicacion_desconocida": "Ubicación desconocida",
+    "tiempo_transcurrido": "Tiempo transcurrido",
+    "mascota": "Mascota",
+    "ubicacion": "Punto de encuentro",
     "paseo_finalizado": "Paseo finalizado exitosamente",
     "transicion_invalida": "No se puede realizar esta acción en el estado actual"
   }

@@ -21,47 +21,47 @@ export const BadgeEstadoPaseo = ({ estado }: Props) => {
           text: COLOR.SUBTEXTO,
           icon: 'clock',
         }
-      case PaseoStatus.ACEPTADO:
+      case PaseoStatus.CONFIRMADO:
+        const conf = COLOR.ESTADO.CONFIRMADO
         return {
-          bg: COLOR.INFO + '30', // Opacidad añadida
-          text: COLOR.INFO,
+          bg: conf.fondo,
+          text: conf.primario,
           icon: 'check',
         }
-      case PaseoStatus.PROGRAMADO:
-        return {
-          bg: COLOR.INFO + '30',
-          text: COLOR.INFO,
-          icon: 'calendar',
-        }
       case PaseoStatus.EN_RUTA:
+        const ruta = COLOR.ESTADO.EN_RUTA
         return {
-          bg: COLOR.ALERTA + '30',
-          text: COLOR.ALERTA,
+          bg: ruta.fondo,
+          text: ruta.primario,
           icon: 'map-pin',
         }
       case PaseoStatus.EN_PROGRESO:
+        const prog = COLOR.ESTADO.EN_PROGRESO
         return {
-          bg: COLOR.ENFASIS + '30',
-          text: COLOR.ENFASIS,
+          bg: prog.fondo,
+          text: prog.primario,
           icon: 'activity',
         }
       case PaseoStatus.FINALIZADO:
+        const fin = COLOR.ESTADO.FINALIZADO
         return {
-          bg: COLOR.EXITO + '30',
-          text: COLOR.EXITO,
+          bg: fin.fondo,
+          text: fin.primario,
           icon: 'flag',
         }
       case PaseoStatus.COMPLETADO:
+        const comp = COLOR.ESTADO.COMPLETADO
         return {
-          bg: COLOR.EXITO + '30',
-          text: COLOR.EXITO,
+          bg: comp.fondo,
+          text: comp.primario,
           icon: 'check-circle',
         }
       case PaseoStatus.CANCELADO:
       case PaseoStatus.ERROR:
+        const err = COLOR.ESTADO.ERROR
         return {
-          bg: COLOR.ERROR + '30',
-          text: COLOR.ERROR,
+          bg: err.fondo,
+          text: err.primario,
           icon: 'x-circle',
         }
       default:

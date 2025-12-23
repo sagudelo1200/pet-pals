@@ -8,7 +8,6 @@ export type PaseoEvent =
   | 'SOLICITAR'
   | 'ACEPTAR'
   | 'RECHAZAR'
-  | 'PROGRAMAR'
   | 'INICIAR_RUTA'
   | 'LLEGAR'
   | 'INICIAR_PASEO'
@@ -44,13 +43,8 @@ const CONFIG_MAQUINA: Transiciones = {
     CANCELAR: PaseoStatus.CANCELADO,
   },
   [PaseoStatus.CONFIRMADO]: {
-    PROGRAMAR: PaseoStatus.PROGRAMADO,
     INICIAR_RUTA: PaseoStatus.EN_RUTA,
     INICIAR_PASEO: PaseoStatus.EN_PROGRESO, // Shortcut si ya está ahí
-    CANCELAR: PaseoStatus.CANCELADO,
-  },
-  [PaseoStatus.PROGRAMADO]: {
-    INICIAR_RUTA: PaseoStatus.EN_RUTA,
     CANCELAR: PaseoStatus.CANCELADO,
   },
   [PaseoStatus.EN_RUTA]: {

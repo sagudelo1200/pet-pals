@@ -50,5 +50,10 @@ export const COLOR = {
       fondo: '#EF444415',
       texto: '#DC2626',
     },
+    ERROR: {
+      primario: '#EF4444',
+      fondo: '#EF444415',
+      texto: '#DC2626',
+    },
   },
 } as const

@@ -24,7 +24,6 @@ export function useAgendaCuidador() {
         'CONFIRMADO',
         'EN_RUTA',
         'EN_PROGRESO',
-        'PROGRAMADO',
       ]),
       orderBy('fecha_hora_inicio', 'asc') // Los más cercanos primero
     )
