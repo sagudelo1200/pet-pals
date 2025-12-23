@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useCallback } from 'react'
+import { useEffect, useRef, useState, useCallback, useMemo } from 'react'
 import {
   doc,
   getDoc,
@@ -27,33 +27,33 @@ export function useDoc<T extends BaseModel = any>(
   idOrOptions?: string | { listen?: boolean },
   maybeOptions?: { listen?: boolean }
 ) {
-  // Normalize arguments:
-  // - useDoc(ref)
-  // - useDoc(collectionName, id, options?)
-  // - useDoc(collectionName, id)
-  let listen = false
-  let docRef: DocumentReference
+  // Normalize arguments with memoization to prevent infinite loops
+  const { docRef, listen } = useMemo(() => {
+    let isListen = false
+    let ref: DocumentReference
 
-  if (
-    typeof refOrCollection === 'object' &&
-    refOrCollection !== null &&
-    'path' in refOrCollection
-  ) {
-    // Called with DocumentReference
-    docRef = refOrCollection as DocumentReference
-    if (typeof idOrOptions === 'object' && idOrOptions !== null)
-      listen = !!idOrOptions.listen
-  } else {
-    // Called with collectionName, id, options?
-    const collectionName = refOrCollection as string
-    const id = typeof idOrOptions === 'string' ? idOrOptions : ''
-    const options = (maybeOptions ??
-      (typeof idOrOptions === 'object' ? idOrOptions : undefined)) as
-      | { listen?: boolean }
-      | undefined
-    listen = !!options?.listen
-    docRef = doc(db, collectionName, id)
-  }
+    if (
+      typeof refOrCollection === 'object' &&
+      refOrCollection !== null &&
+      'path' in refOrCollection
+    ) {
+      // Called with DocumentReference
+      ref = refOrCollection as DocumentReference
+      if (typeof idOrOptions === 'object' && idOrOptions !== null)
+        isListen = !!idOrOptions.listen
+    } else {
+      // Called with collectionName, id, options?
+      const collectionName = refOrCollection as string
+      const id = typeof idOrOptions === 'string' ? idOrOptions : ''
+      const options = (maybeOptions ??
+        (typeof idOrOptions === 'object' ? idOrOptions : undefined)) as
+        | { listen?: boolean }
+        | undefined
+      isListen = !!options?.listen
+      ref = doc(db, collectionName, id)
+    }
+    return { docRef: ref, listen: isListen }
+  }, [refOrCollection, idOrOptions, maybeOptions])
 
   const [data, setData] = useState<T | undefined>(undefined)
   const [cargando, setCargando] = useState<boolean>(true)

@@ -5,7 +5,6 @@ import {
   ActivityIndicator,
   Text,
   Animated,
-  Easing,
   Alert,
   TouchableOpacity,
   Platform,
@@ -25,7 +24,7 @@ import { PaseoStatus } from '@/models/Paseo'
 
 type Props = StackScreenProps<AuthStackParamList, 'PaseoActivo'>
 
-export default function PaseoActivoScreen({ route, navigation }: Props) {
+export default function PaseoActivo({ route, navigation }: Props) {
   const { paseoId } = route.params
   const { t } = useTranslation()
   const insets = useSafeAreaInsets()
@@ -33,9 +32,9 @@ export default function PaseoActivoScreen({ route, navigation }: Props) {
     usePaseoActivo(paseoId)
 
   const [yaNotificado, setYaNotificado] = useState(false)
+  const navigationAttempted = useRef(false)
   const mapRef = useRef<any>(null)
   const slideAnim = useRef(new Animated.Value(400)).current
-  const pulseAnim = useRef(new Animated.Value(0)).current
   const liveGlowAnim = useRef(new Animated.Value(0)).current
 
   const [bottomPanelHeight, setBottomPanelHeight] = useState(350)
@@ -45,21 +44,17 @@ export default function PaseoActivoScreen({ route, navigation }: Props) {
   }, [])
 
   useEffect(() => {
-    if (!paseo || yaNotificado) return
+    if (!paseo || yaNotificado || navigationAttempted.current) return
     if (
       paseo.estado === PaseoStatus.FINALIZADO ||
       paseo.estado === PaseoStatus.COMPLETADO
     ) {
+      navigationAttempted.current = true
       setYaNotificado(true)
-      Alert.alert(
-        t('paseos:activo.finalizado_titulo'),
-        t('paseos:activo.finalizado_mensaje', {
-          nombre: paseo.mascota_nombre_visual,
-        }),
-        [{ text: t('comun:aceptar'), onPress: () => navigation.goBack() }]
-      )
+      navigation.navigate('PaseoFinalizado', { paseoId })
     }
     if (paseo.estado === PaseoStatus.CANCELADO) {
+      navigationAttempted.current = true
       setYaNotificado(true)
       Alert.alert(
         t('paseos:activo.cancelado_titulo'),
@@ -77,14 +72,6 @@ export default function PaseoActivoScreen({ route, navigation }: Props) {
         tension: 50,
         friction: 10,
       }).start()
-      Animated.loop(
-        Animated.timing(pulseAnim, {
-          toValue: 1,
-          duration: 3000,
-          easing: Easing.linear,
-          useNativeDriver: true,
-        })
-      ).start()
       Animated.loop(
         Animated.sequence([
           Animated.timing(liveGlowAnim, {
@@ -213,18 +200,7 @@ export default function PaseoActivoScreen({ route, navigation }: Props) {
           const coords = ev.payload?.coordenadas
           if (!coords) return null
           return (
-            <Marker key={ev.id} coordinate={coords} anchor={{ x: 0.5, y: 0.5 }}>
-              <View
-                style={[
-                  styles.eventMarkerOuter,
-                  { borderColor: COLOR.PRIMARIO },
-                ]}
-              >
-                <View style={styles.eventMarkerInner}>
-                  <Text style={{ fontSize: 10 }}>📍</Text>
-                </View>
-              </View>
-            </Marker>
+            <Marker key={ev.id} coordinate={coords} pinColor={COLOR.ENFASIS} />
           )
         })}
         {ruta.length > 0 && (
@@ -235,37 +211,11 @@ export default function PaseoActivoScreen({ route, navigation }: Props) {
           />
         )}
         {ubicacionActual && (
-          <Marker coordinate={ubicacionActual} anchor={{ x: 0.5, y: 0.5 }}>
-            <View style={styles.activeMarker}>
-              <Animated.View
-                style={[
-                  styles.pulseEffect,
-                  {
-                    transform: [
-                      {
-                        scale: pulseAnim.interpolate({
-                          inputRange: [0, 1],
-                          outputRange: [0.4, 1],
-                        }),
-                      },
-                    ],
-                    opacity: pulseAnim.interpolate({
-                      inputRange: [0, 0.5, 1],
-                      outputRange: [0.8, 0.3, 0],
-                    }),
-                  },
-                ]}
-              />
-              <View
-                style={[
-                  styles.markerCircle,
-                  { backgroundColor: COLOR.PRIMARIO },
-                ]}
-              >
-                <Ionicons name="paw" size={18} color={COLOR.TEXTO} />
-              </View>
-            </View>
-          </Marker>
+          <Marker
+            coordinate={ubicacionActual}
+            pinColor={COLOR.ENFASIS}
+            zIndex={999}
+          />
         )}
       </Mapa>
 
@@ -462,7 +412,7 @@ const HeaderContent = ({
           />
           <Animated.View style={[styles.liveDot, { opacity: glowAnim }]} />
         </View>
-        <Text style={styles.liveText}>LIVE</Text>
+        <Text style={styles.liveText}>EN VIVO</Text>
       </View>
       <Text style={styles.headerMsg} numberOfLines={1}>
         {msg}
@@ -521,19 +471,19 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: COLOR.ESTADO.CANCELADO.primario,
+    backgroundColor: COLOR.EXITO,
   },
   liveRipple: {
     position: 'absolute',
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: COLOR.ESTADO.CANCELADO.primario,
+    backgroundColor: COLOR.EXITO,
   },
   liveText: {
     fontSize: 10,
     fontWeight: '900',
-    color: COLOR.ESTADO.CANCELADO.primario,
+    color: COLOR.EXITO,
     letterSpacing: 0.5,
   },
   headerMsg: { color: COLOR.TEXTO, fontSize: 13, fontWeight: '700' },
@@ -661,46 +611,5 @@ const styles = StyleSheet.create({
     color: COLOR.TEXTO,
     textAlign: 'center',
     paddingHorizontal: 40,
-  },
-  activeMarker: {
-    width: 100,
-    height: 100,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  pulseEffect: {
-    ...StyleSheet.absoluteFillObject,
-    borderRadius: 50,
-    backgroundColor: COLOR.PRIMARIO,
-    zIndex: 1,
-  },
-  markerCircle: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 2,
-    borderColor: COLOR.TEXTO,
-    overflow: 'hidden',
-    zIndex: 10,
-    elevation: 5,
-  },
-  eventMarkerOuter: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    backgroundColor: COLOR.BASE,
-    borderWidth: 2,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  eventMarkerInner: {
-    width: 18,
-    height: 18,
-    borderRadius: 9,
-    backgroundColor: `${COLOR.TEXTO}1A`,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
 })

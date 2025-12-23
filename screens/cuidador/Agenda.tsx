@@ -15,7 +15,7 @@ import DetallePaseoBottomSheet from '@/components/paseos/DetallePaseoBottomSheet
 
 type TabTipo = 'proximos' | 'historial'
 
-const AgendaScreen: React.FC = () => {
+const Agenda: React.FC = () => {
   const { t } = useTranslation()
   const navigation = useNavigation()
   const [activeTab, setActiveTab] = useState<TabTipo>('proximos')
@@ -135,4 +135,4 @@ const styles = StyleSheet.create({
   },
 })
 
-export default AgendaScreen
+export default Agenda

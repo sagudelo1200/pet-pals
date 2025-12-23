@@ -12,6 +12,7 @@ export const COLOR = {
   INFO: '#2A86A8',
   ALERTA: '#C9AA45',
   INACTIVO: '#2C3432',
+  ORO: '#FFD700',
 
   // Estados de Paseo - Colores dinámicos
   ESTADO: {

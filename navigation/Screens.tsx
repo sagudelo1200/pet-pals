@@ -5,8 +5,9 @@ import CuidadorTabNavigator from '@/navigation/CuidadorTabNavigator'
 import AdminTabNavigator from '@/navigation/AdminTabNavigator'
 import AuthNavigator from './AuthNavigator'
 import DetalleMascota from '@/screens/tutor/DetalleMascota'
-import PaseoActivo from '@/screens/tutor/PaseoActivoScreen'
-import ControlPaseo from '@/screens/cuidador/ControlPaseoScreen'
+import PaseoActivo from '@/screens/tutor/PaseoActivo'
+import PaseoFinalizado from '@/screens/tutor/PaseoFinalizado'
+import ControlPaseo from '@/screens/cuidador/ControlPaseo'
 import PerfilCuidador from '@/screens/cuidador/PerfilCuidador'
 import { AuthStackParamList } from './types'
 
@@ -38,6 +39,14 @@ export default function RootNavigator(): React.ReactElement {
           headerShown: true,
           headerTitle: 'Paseo en Vivo 🐾',
           headerBackTitleVisible: false,
+        }}
+      />
+      <Stack.Screen
+        name="PaseoFinalizado"
+        component={PaseoFinalizado}
+        options={{
+          headerShown: false,
+          presentation: 'modal',
         }}
       />
       <Stack.Screen

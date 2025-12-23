@@ -97,7 +97,7 @@ export const Mapa = forwardRef<MapView, MapaProps>(
         >
           {/* Marcador estático (si no usamos pin central) */}
           {marcador && !pinCentro && coordenadas && (
-            <Marker coordinate={coordenadas} pinColor={COLOR.PRIMARIO} />
+            <Marker coordinate={coordenadas} pinColor={COLOR.ENFASIS} />
           )}
           {children}
         </MapView>
@@ -105,7 +105,7 @@ export const Mapa = forwardRef<MapView, MapaProps>(
         {/* Pin Central Flotante (UI Overlay) */}
         {pinCentro && (
           <View style={styles.centerPinContainer} pointerEvents="none">
-            <Icon name="map-marker" size={40} color={COLOR.PRIMARIO} />
+            <Icon name="map-marker" size={40} color={COLOR.ENFASIS} />
             <View style={styles.pinDot} />
             <View style={styles.pinShadow} />
           </View>

@@ -15,6 +15,7 @@ export type AuthStackParamList = {
 
   PerfilCuidador: undefined
   PaseoActivo: { paseoId: string }
+  PaseoFinalizado: { paseoId: string }
   ControlPaseo: { paseoId: string }
 }
 

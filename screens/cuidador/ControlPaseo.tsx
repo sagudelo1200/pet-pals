@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useEffect, useRef, useState, useCallback } from 'react'
 import {
   StyleSheet,
   View,
@@ -12,10 +12,11 @@ import {
   useRoute,
   type RouteProp,
   useNavigation,
+  useFocusEffect,
 } from '@react-navigation/native'
 import { useTranslation } from 'react-i18next'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import MapView, { Marker, Polyline, PROVIDER_GOOGLE } from 'react-native-maps'
+import MapView, { Marker, Polyline } from 'react-native-maps'
 import { Ionicons } from '@expo/vector-icons'
 import * as Haptics from 'expo-haptics'
 import { BlurView } from 'expo-blur'
@@ -23,7 +24,7 @@ import { COLOR } from '@/constants'
 import { PaseoStatus } from '@/models/Paseo'
 import { useControlPaseo } from '@/hooks/cuidador/useControlPaseo'
 import { usePublicarUbicacion } from '@/hooks/cuidador/usePublicarUbicacion'
-import { Button } from '@/components/ui'
+import { Button, Mapa, Icon } from '@/components/ui'
 import type { AuthStackParamList } from '@/navigation/types'
 
 type ControlPaseoRouteProp = RouteProp<AuthStackParamList, 'ControlPaseo'>
@@ -35,7 +36,7 @@ const ESTADOS_FLUJO = [
   PaseoStatus.FINALIZADO,
 ]
 
-const ControlPaseoScreen: React.FC = () => {
+const ControlPaseo: React.FC = () => {
   const { t } = useTranslation()
   const route = useRoute<ControlPaseoRouteProp>()
   const navigation = useNavigation()
@@ -44,6 +45,25 @@ const ControlPaseoScreen: React.FC = () => {
 
   const { paseo, loading, procesando, cambiarEstado, ruta, ubicacionActual } =
     useControlPaseo(paseoId)
+
+  // Referencia al mapa para centrado
+  const mapRef = useRef<MapView>(null)
+
+  // Centrar mapa cuando cambia la ubicación o se enfoca la pantalla
+  useFocusEffect(
+    useCallback(() => {
+      if (ubicacionActual && mapRef.current) {
+        mapRef.current.animateToRegion(
+          {
+            ...ubicacionActual,
+            latitudeDelta: 0.005,
+            longitudeDelta: 0.005,
+          },
+          1000
+        )
+      }
+    }, [ubicacionActual])
+  )
 
   // Activar publicación de ubicación en tiempo real
   usePublicarUbicacion(paseoId, paseo?.estado)
@@ -283,17 +303,16 @@ const ControlPaseoScreen: React.FC = () => {
   return (
     <View style={styles.container}>
       {/* Mapa de fondo */}
-      <MapView
-        provider={PROVIDER_GOOGLE}
+      <Mapa
+        ref={mapRef}
         style={styles.map}
-        initialRegion={{
-          latitude: ubicacionInicio?.latitude || -34.6037,
-          longitude: ubicacionInicio?.longitude || -58.3816,
-          latitudeDelta: 0.01,
-          longitudeDelta: 0.01,
-        }}
-        showsUserLocation={false}
-        showsMyLocationButton={false}
+        alto="100%"
+        interactivo
+        marcador={false}
+        coordenadas={
+          ubicacionActual ||
+          ubicacionInicio || { latitude: -34.6037, longitude: -58.3816 }
+        }
         mapPadding={{
           top: insets.top + 80,
           bottom: bottomPanelHeight,
@@ -310,7 +329,7 @@ const ControlPaseoScreen: React.FC = () => {
             }}
             title={t('paseos:control.punto_recogida')}
             description={paseo.ubicacion_inicio_txt || ''}
-            pinColor={estadoColor.primario}
+            pinColor={COLOR.ENFASIS}
           />
         )}
 
@@ -325,13 +344,13 @@ const ControlPaseoScreen: React.FC = () => {
 
         {/* Marcador de ubicación actual (si es diferente al punto de recogida) */}
         {ubicacionActual && (
-          <Marker coordinate={ubicacionActual} anchor={{ x: 0.5, y: 0.5 }}>
-            <View style={styles.markerActual}>
-              <View style={styles.markerActualInner} />
-            </View>
-          </Marker>
+          <Marker
+            coordinate={ubicacionActual}
+            pinColor={COLOR.ENFASIS}
+            zIndex={999}
+          />
         )}
-      </MapView>
+      </Mapa>
 
       {/* Header Flotante con Glassmorphism */}
       <View style={[styles.headerFloating, { top: insets.top + 8 }]}>
@@ -433,7 +452,7 @@ const ControlPaseoScreen: React.FC = () => {
               <View
                 style={[
                   styles.infoIconBox,
-                  { backgroundColor: 'rgba(16, 185, 129, 0.1)' },
+                  { backgroundColor: `${COLOR.EXITO}1A` },
                 ]}
               >
                 <Text style={styles.infoIcon}>⏰</Text>
@@ -726,7 +745,7 @@ const styles = StyleSheet.create({
     shadowRadius: 16,
     elevation: 20,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.05)',
+    borderColor: `${COLOR.TEXTO}0D`,
   },
   // Stepper
   stepper: {
@@ -752,7 +771,7 @@ const styles = StyleSheet.create({
     height: 18,
     borderRadius: 9,
     borderWidth: 3,
-    borderColor: 'rgba(255,255,255,0.2)',
+    borderColor: `${COLOR.TEXTO}33`,
   },
   stepDotCompleted: {
     backgroundColor: COLOR.EXITO,
@@ -771,12 +790,12 @@ const styles = StyleSheet.create({
   },
   // Info Card
   infoCard: {
-    backgroundColor: 'rgba(255,255,255,0.03)',
+    backgroundColor: `${COLOR.TEXTO}08`,
     borderRadius: 20,
     padding: 16,
     marginBottom: 24,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.05)',
+    borderColor: `${COLOR.TEXTO}0D`,
   },
   infoRow: {
     flexDirection: 'row',
@@ -787,7 +806,7 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 12,
-    backgroundColor: 'rgba(255,255,255,0.05)',
+    backgroundColor: `${COLOR.TEXTO}0D`,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 16,
@@ -839,7 +858,7 @@ const styles = StyleSheet.create({
   // Success Overlay styles
   successContainer: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(10, 15, 14, 0.98)',
+    backgroundColor: `${COLOR.BASE}FA`,
     justifyContent: 'center',
     alignItems: 'center',
     zIndex: 1000,
@@ -852,7 +871,7 @@ const styles = StyleSheet.create({
     width: '100%',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.05)',
+    borderColor: `${COLOR.TEXTO}0D`,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.5,
@@ -863,7 +882,7 @@ const styles = StyleSheet.create({
     width: 100,
     height: 100,
     borderRadius: 50,
-    backgroundColor: 'rgba(28, 127, 82, 0.15)',
+    backgroundColor: `${COLOR.EXITO}26`,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 24,
@@ -888,7 +907,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     width: '100%',
     marginBottom: 40,
-    backgroundColor: 'rgba(255,255,255,0.02)',
+    backgroundColor: `${COLOR.TEXTO}05`,
     borderRadius: 20,
     padding: 20,
   },
@@ -927,22 +946,6 @@ const styles = StyleSheet.create({
     height: 6,
     borderRadius: 3,
   },
-  markerActual: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    backgroundColor: 'rgba(28, 127, 82, 0.2)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  markerActualInner: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    backgroundColor: COLOR.PRIMARIO,
-    borderWidth: 2,
-    borderColor: COLOR.TEXTO,
-  },
 })
 
-export default ControlPaseoScreen
+export default ControlPaseo

@@ -188,5 +188,12 @@
     "ubicacion": "Punto de encuentro",
     "paseo_finalizado": "Paseo finalizado exitosamente",
     "transicion_invalida": "No se puede realizar esta acción en el estado actual"
+  },
+  "finalizado": {
+    "titulo": "¡Paseo Completado!",
+    "mensaje": "El paseo con {{nombre}} ha terminado. ¡Esperamos que lo haya disfrutado!",
+    "calificar": "¿Cómo estuvo el servicio de {{cuidador}}?",
+    "excelente": "¡Excelente servicio!",
+    "toca_calificar": "Toca para calificar"
   }
 }
