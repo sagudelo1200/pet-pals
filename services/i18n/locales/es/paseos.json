@@ -148,9 +148,9 @@
     "estado_ok": "Todo va de maravilla con tu mascota",
     "mensaje_calma": "El paseo va genial 🐾",
     "mensajes": {
-      "confirmado": "¡{{nombre}} ya aceptó! Pronto iniciará el viaje.",
-      "en_ruta": "{{nombre}} está en camino a recoger a tu mascota.",
-      "en_progreso": "{{nombre}} está disfrutando de su paseo ahora mismo."
+      "confirmado": "{{cuidador}} aceptó el paseo.",
+      "en_ruta": "{{cuidador}} va por {{mascota}}.",
+      "en_progreso": "{{mascota}} está con {{cuidador}}."
     },
     "tiempo_restante": "Faltan aprox. {{tiempo}} min",
     "finalizado_titulo": "¡Paseo Finalizado!",
@@ -165,6 +165,7 @@
     "esperando_actividad": "Esperando inicio de actividad...",
     "eventos_vacios": "Sin novedades por ahora • Monitoreo activo",
     "tipo_evento": {
+      "aceptar": "Solicitud Aceptada",
       "foto": "Subió una foto",
       "necesidad": "Hizo sus necesidades",
       "hidratacion": "Se hidrató",

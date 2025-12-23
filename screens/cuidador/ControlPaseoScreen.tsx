@@ -50,6 +50,7 @@ const ControlPaseoScreen: React.FC = () => {
 
   // Temporizador
   const [tiempoTranscurrido, setTiempoTranscurrido] = useState('00:00:00')
+  const [bottomPanelHeight, setBottomPanelHeight] = useState(340)
 
   // Configuraciones de pantalla y animación de entrada
   useEffect(() => {
@@ -258,7 +259,7 @@ const ControlPaseoScreen: React.FC = () => {
         showsMyLocationButton
         mapPadding={{
           top: insets.top + 80,
-          bottom: 340,
+          bottom: bottomPanelHeight,
           left: 0,
           right: 0,
         }}
@@ -309,6 +310,7 @@ const ControlPaseoScreen: React.FC = () => {
 
       {/* Panel inferior con animación */}
       <Animated.View
+        onLayout={(e) => setBottomPanelHeight(e.nativeEvent.layout.height)}
         style={[
           styles.bottomPanel,
           {

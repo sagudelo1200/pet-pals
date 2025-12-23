@@ -46,6 +46,8 @@ export default function PaseoActivoScreen({ route, navigation }: Props) {
   const slideAnim = useRef(new Animated.Value(400)).current
   const pulseAnim = useRef(new Animated.Value(0)).current
   const liveGlowAnim = useRef(new Animated.Value(0)).current
+  
+  const [bottomPanelHeight, setBottomPanelHeight] = useState(350)
 
   useEffect(() => {
     navigation.setOptions({ headerShown: false })
@@ -83,17 +85,21 @@ export default function PaseoActivoScreen({ route, navigation }: Props) {
   const estadoConfig = COLOR.ESTADO[paseo.estado as keyof typeof COLOR.ESTADO] || COLOR.ESTADO.CONFIRMADO
 
   const getStatusMessage = () => {
+    const placeholders = {
+      cuidador: paseo.cuidador_nombre_visual,
+      mascota: paseo.mascota_nombre_visual,
+    }
     switch (paseo.estado) {
-      case PaseoStatus.CONFIRMADO: return t('paseos:activo.mensajes.confirmado', { nombre: paseo.cuidador_nombre_visual })
-      case PaseoStatus.EN_RUTA: return t('paseos:activo.mensajes.en_ruta', { nombre: paseo.mascota_nombre_visual })
-      case PaseoStatus.EN_PROGRESO: return t('paseos:activo.mensajes.en_progreso', { nombre: paseo.mascota_nombre_visual })
+      case PaseoStatus.CONFIRMADO: return t('paseos:activo.mensajes.confirmado', placeholders)
+      case PaseoStatus.EN_RUTA: return t('paseos:activo.mensajes.en_ruta', placeholders)
+      case PaseoStatus.EN_PROGRESO: return t('paseos:activo.mensajes.en_progreso', placeholders)
       default: return t(`paseos:estados.${paseo.estado}`)
     }
   }
 
   return (
     <View style={styles.container}>
-      <Mapa alto="100%" zoom={16} interactivo={true} style={styles.mapOverride} onRegionChangeComplete={handleRegionChange} mapPadding={{ bottom: 350, top: insets.top + 80, left: 0, right: 0 }} coordenadas={ubicacionActual || { latitude: -34.6037, longitude: -58.3816 }}>
+      <Mapa alto="100%" zoom={16} interactivo={true} style={styles.mapOverride} onRegionChangeComplete={handleRegionChange} mapPadding={{ bottom: bottomPanelHeight, top: insets.top + 80, left: 0, right: 0 }} coordenadas={ubicacionActual || { latitude: -34.6037, longitude: -58.3816 }}>
         {eventos.map((ev) => { const coords = ev.payload?.coordenadas; if (!coords) return null; return ( <Marker key={ev.id} coordinate={coords} anchor={{ x: 0.5, y: 0.5 }}><View style={[styles.eventMarkerOuter, { borderColor: COLOR.PRIMARIO }]}><View style={styles.eventMarkerInner}><Text style={{ fontSize: 10 }}>📍</Text></View></View></Marker> ) })}
         {ruta.length > 0 && <Polyline coordinates={ruta} strokeColor={COLOR.PRIMARIO} strokeWidth={4} />}
         {ubicacionActual && ( <Marker coordinate={ubicacionActual} anchor={{ x: 0.5, y: 0.5 }}><View style={styles.activeMarker}><Animated.View style={[styles.pulseEffect, { transform: [{ scale: pulseAnim.interpolate({ inputRange: [0, 1], outputRange: [1, 2.5] }) }], opacity: pulseAnim.interpolate({ inputRange: [0, 0.8, 1], outputRange: [0.6, 0.2, 0] }) }]} /><View style={[styles.markerCircle, { backgroundColor: COLOR.PRIMARIO }]}><PetAvatar uri={paseo.mascota_foto_visual} size="small" /></View></View></Marker> )}
@@ -113,7 +119,10 @@ export default function PaseoActivoScreen({ route, navigation }: Props) {
       </View>
 
       {/* Panel Inferior Premium */}
-      <Animated.View style={[styles.premiumSheet, { transform: [{ translateY: slideAnim }], paddingBottom: Math.max(insets.bottom, 16) + 24 }]}>
+      <Animated.View
+        onLayout={(e) => setBottomPanelHeight(e.nativeEvent.layout.height)}
+        style={[styles.premiumSheet, { transform: [{ translateY: slideAnim }], paddingBottom: Math.max(insets.bottom, 16) + 24 }]}
+      >
          <View style={styles.sheetHandle} />
          
          <View style={styles.sheetContent}>
