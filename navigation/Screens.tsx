@@ -6,6 +6,7 @@ import AdminTabNavigator from '@/navigation/AdminTabNavigator'
 import AuthNavigator from './AuthNavigator'
 import DetalleMascota from '@/screens/tutor/DetalleMascota'
 import PaseoActivo from '@/screens/tutor/PaseoActivoScreen'
+import ControlPaseo from '@/screens/cuidador/ControlPaseoScreen'
 import PerfilCuidador from '@/screens/cuidador/PerfilCuidador'
 import { AuthStackParamList } from './types'
 
@@ -36,6 +37,15 @@ export default function RootNavigator(): React.ReactElement {
         options={{
           headerShown: true,
           headerTitle: 'Paseo en Vivo 🐾',
+          headerBackTitleVisible: false,
+        }}
+      />
+      <Stack.Screen
+        name="ControlPaseo"
+        component={ControlPaseo}
+        options={{
+          headerShown: true,
+          headerTitle: 'Control de Paseo 🐾',
           headerBackTitleVisible: false,
         }}
       />

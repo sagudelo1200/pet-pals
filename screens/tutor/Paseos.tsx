@@ -7,7 +7,7 @@ import Screen from '@/components/ui/Screen'
 import ScreenHeader from '@/components/ui/ScreenHeader'
 import TarjetaPaseo from '@/components/ui/TarjetaPaseo'
 import { ItemHistorialPaseo } from '@/components/paseos/ItemHistorialPaseo'
-import { Chip, Button, Spacer } from '@/components/ui'
+import { Chip } from '@/components/ui'
 import ValidatedFab from '@/components/ui/Fab'
 import { SolicitarPaseoModal } from '@/components/paseos/SolicitarPaseoModal'
 import PaseadorPerrosSvg from '@/assets/imgs/undraw/paseador_perros.svg'
@@ -79,7 +79,7 @@ const Paseos: React.FC = () => {
       (paseos || []).filter(p =>
         [
           PaseoStatus.PENDIENTE,
-          PaseoStatus.ACEPTADO,
+          PaseoStatus.CONFIRMADO,
           PaseoStatus.EN_RUTA,
           PaseoStatus.EN_PROGRESO,
           PaseoStatus.PROGRAMADO,
@@ -111,19 +111,6 @@ const Paseos: React.FC = () => {
           : t('paseos:lista.vacio_completados')}
       </Text>
       
-      {activeTab === 'proximos' && (
-        <>
-          <Spacer size={24} />
-          <Button
-            title="Simular Paseo Activo (Demo) 🐾"
-            onPress={() => {
-              // @ts-ignore
-              navigation.navigate('PaseoActivo', { paseoId: 'demo-123' })
-            }}
-            variant="secundario"
-          />
-        </>
-      )}
     </View>
   )
 

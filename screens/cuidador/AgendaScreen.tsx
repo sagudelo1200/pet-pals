@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { StyleSheet, View, FlatList } from 'react-native'
 import { useTranslation } from 'react-i18next'
+import { useNavigation } from '@react-navigation/native'
 import { COLOR } from '@/constants'
 import Screen from '@/components/ui/Screen'
 import ScreenHeader from '@/components/ui/ScreenHeader'
@@ -16,6 +17,7 @@ type TabTipo = 'proximos' | 'historial'
 
 const AgendaScreen: React.FC = () => {
   const { t } = useTranslation()
+  const navigation = useNavigation()
   const [activeTab, setActiveTab] = useState<TabTipo>('proximos')
   const { proximos, historial, cargando, refetch } = useAgendaCuidador()
   const [detalleVisible, setDetalleVisible] = useState(false)
@@ -24,8 +26,15 @@ const AgendaScreen: React.FC = () => {
   const paseosFiltrados = activeTab === 'proximos' ? proximos : historial
 
   const handlePressPaseo = (paseoId: string) => {
-    setDetalleTitle(t('paseos:detalle.titulo', { id: paseoId }))
-    setDetalleVisible(true)
+    // Si es un paseo próximo (activo), navegar a ControlPaseo
+    if (activeTab === 'proximos') {
+      // @ts-ignore
+      navigation.navigate('ControlPaseo', { paseoId })
+    } else {
+      // Si es historial, abrir modal de detalles
+      setDetalleTitle(t('paseos:detalle.titulo'))
+      setDetalleVisible(true)
+    }
   }
 
   const renderEmptyState = () => (

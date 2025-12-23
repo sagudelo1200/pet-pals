@@ -20,7 +20,6 @@ import {
   ScreenHeader,
   TarjetaPaseo,
 } from '@/components/ui'
-import DetallePaseoBottomSheet from '@/components/paseos/DetallePaseoBottomSheet'
 
 const Dashboard: React.FC = () => {
   const { t } = useTranslation()
@@ -42,8 +41,6 @@ const Dashboard: React.FC = () => {
 
   // Filtrar próximos paseos del cuidador (hoy y futuros)
   const proximosPaseos = (proximos || []).slice(0, 3)
-  const [detalleVisible, setDetalleVisible] = useState(false)
-  const [detalleTitle, setDetalleTitle] = useState('')
 
   const renderEmptyState = () => (
     <View style={styles.emptyState}>
@@ -61,7 +58,7 @@ const Dashboard: React.FC = () => {
       {/* El el titulo, saludar al usuario */}
       <ScreenHeader
         title={t('cuidador:dashboard.titulo', {
-          name: user?.displayName || '',
+          nombre: user?.displayName || '',
         })}
         subtitle={t('cuidador:dashboard.subtitulo')}
         showBack={false}
@@ -139,19 +136,15 @@ const Dashboard: React.FC = () => {
                   key={paseo.id}
                   paseo={paseo}
                   onPress={() => {
-                    setDetalleTitle(t('paseos:detalle.titulo'))
-                    setDetalleVisible(true)
+                    // Navegar al panel de control del paseo
+                    // @ts-ignore
+                    navigation.navigate('ControlPaseo', { paseoId: paseo.id })
                   }}
                 />
               ))
             : renderEmptyState()}
         </View>
       </ScrollView>
-      <DetallePaseoBottomSheet
-        visible={detalleVisible}
-        onClose={() => setDetalleVisible(false)}
-        title={detalleTitle}
-      />
     </Screen>
   )
 }

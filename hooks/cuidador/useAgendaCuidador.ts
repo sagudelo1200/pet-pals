@@ -21,7 +21,7 @@ export function useAgendaCuidador() {
       collection(db, 'paseos'),
       where('id_cuidador', '==', uid),
       where('estado', 'in', [
-        'ACEPTADO',
+        'CONFIRMADO',
         'EN_RUTA',
         'EN_PROGRESO',
         'PROGRAMADO',

@@ -96,6 +96,13 @@ export class ServicioPaseo {
         })
       })
 
+      // Registrar evento de aceptación
+      await this.registrarEvento(paseoId, 'ACEPTAR', {
+        estado_anterior: 'PENDIENTE',
+        estado_nuevo: 'CONFIRMADO',
+        id_cuidador: currentUser.uid,
+      })
+
       return { success: true }
     } catch (error) {
       return { success: false, error: mapFirebaseError(error) }
@@ -373,5 +380,157 @@ export class ServicioPaseo {
     return this.actualizar(paseoId, {
       id_cuidador: cuidadorId,
     })
+  }
+
+  /**
+   * Transición de estado: CONFIRMADO → EN_RUTA
+   * El cuidador inicia su camino hacia el punto de recogida.
+   */
+  static async iniciarRuta(paseoId: string): Promise<CrudResult<void>> {
+    const currentUser = ServicioAuth.obtenerUsuarioActual()
+    if (!currentUser) return { success: false, error: ERR.COMUN.NO_AUTENTICADO }
+
+    try {
+      await runTransaction(db, async (transaction) => {
+        const paseoRef = doc(db, this.COLLECTION, paseoId)
+        const paseoDoc = await transaction.get(paseoRef)
+
+        if (!paseoDoc.exists()) {
+          throw new Error(ERR.COMUN.DOCUMENTO_NO_ENCONTRADO)
+        }
+
+        const paseo = paseoDoc.data() as Paseo
+
+        // Validar con máquina de estados
+        const { crearMaquinaPaseo } = await import('./maquina-estados-paseo')
+        const maquina = crearMaquinaPaseo(paseo)
+        
+        if (!maquina.puede('INICIAR_RUTA')) {
+          throw new Error('No se puede iniciar ruta desde el estado actual')
+        }
+
+        transaction.update(paseoRef, {
+          estado: PaseoStatus.EN_RUTA,
+          actualizado_en: serverTimestamp(),
+          actualizado_por: currentUser.uid,
+        })
+      })
+
+      // Registrar evento de transición
+      await this.registrarEvento(paseoId, 'INICIAR_RUTA', {
+        estado_anterior: 'CONFIRMADO',
+        estado_nuevo: 'EN_RUTA',
+      })
+
+      return { success: true }
+    } catch (error) {
+      return { success: false, error: mapFirebaseError(error) }
+    }
+  }
+
+  /**
+   * Transición de estado: EN_RUTA → EN_PROGRESO
+   * El cuidador llega y comienza el paseo.
+   */
+  static async iniciarPaseo(paseoId: string): Promise<CrudResult<void>> {
+    const currentUser = ServicioAuth.obtenerUsuarioActual()
+    if (!currentUser) return { success: false, error: ERR.COMUN.NO_AUTENTICADO }
+
+    try {
+      await runTransaction(db, async (transaction) => {
+        const paseoRef = doc(db, this.COLLECTION, paseoId)
+        const paseoDoc = await transaction.get(paseoRef)
+
+        if (!paseoDoc.exists()) {
+          throw new Error(ERR.COMUN.DOCUMENTO_NO_ENCONTRADO)
+        }
+
+        const paseo = paseoDoc.data() as Paseo
+
+        // Validar con máquina de estados
+        const { crearMaquinaPaseo } = await import('./maquina-estados-paseo')
+        const maquina = crearMaquinaPaseo(paseo)
+        
+        if (!maquina.puede('INICIAR_PASEO')) {
+          throw new Error('No se puede iniciar paseo desde el estado actual')
+        }
+
+        transaction.update(paseoRef, {
+          estado: PaseoStatus.EN_PROGRESO,
+          fecha_inicio_real: serverTimestamp(),
+          actualizado_en: serverTimestamp(),
+          actualizado_por: currentUser.uid,
+        })
+      })
+
+      // Registrar evento de transición
+      await this.registrarEvento(paseoId, 'INICIAR_PASEO', {
+        estado_anterior: 'EN_RUTA',
+        estado_nuevo: 'EN_PROGRESO',
+      })
+
+      return { success: true }
+    } catch (error) {
+      return { success: false, error: mapFirebaseError(error) }
+    }
+  }
+
+  /**
+   * Transición de estado: EN_PROGRESO → FINALIZADO
+   * El cuidador finaliza el paseo.
+   */
+  static async finalizarPaseo(paseoId: string): Promise<CrudResult<void>> {
+    const currentUser = ServicioAuth.obtenerUsuarioActual()
+    if (!currentUser) return { success: false, error: ERR.COMUN.NO_AUTENTICADO }
+
+    let duracionReal: number | undefined
+
+    try {
+      await runTransaction(db, async (transaction) => {
+        const paseoRef = doc(db, this.COLLECTION, paseoId)
+        const paseoDoc = await transaction.get(paseoRef)
+
+        if (!paseoDoc.exists()) {
+          throw new Error(ERR.COMUN.DOCUMENTO_NO_ENCONTRADO)
+        }
+
+        const paseo = paseoDoc.data() as Paseo
+
+        // Validar con máquina de estados
+        const { crearMaquinaPaseo } = await import('./maquina-estados-paseo')
+        const maquina = crearMaquinaPaseo(paseo)
+        
+        if (!maquina.puede('FINALIZAR_PASEO')) {
+          throw new Error('No se puede finalizar paseo desde el estado actual')
+        }
+
+        // Calcular duración real si hay fecha de inicio
+        if (paseo.fecha_inicio_real) {
+          const inicio = paseo.fecha_inicio_real instanceof Date 
+            ? paseo.fecha_inicio_real 
+            : (paseo.fecha_inicio_real as any).toDate()
+          duracionReal = Math.floor((Date.now() - inicio.getTime()) / 60000) // en minutos
+        }
+
+        transaction.update(paseoRef, {
+          estado: PaseoStatus.FINALIZADO,
+          fecha_fin_real: serverTimestamp(),
+          duracion_real: duracionReal,
+          actualizado_en: serverTimestamp(),
+          actualizado_por: currentUser.uid,
+        })
+      })
+
+      // Registrar evento de transición
+      await this.registrarEvento(paseoId, 'FINALIZAR_PASEO', {
+        estado_anterior: 'EN_PROGRESO',
+        estado_nuevo: 'FINALIZADO',
+        duracion_real: duracionReal,
+      })
+
+      return { success: true }
+    } catch (error) {
+      return { success: false, error: mapFirebaseError(error) }
+    }
   }
 }

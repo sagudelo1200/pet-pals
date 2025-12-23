@@ -40,7 +40,7 @@ export const useEstadisticasCuidador = (): EstadisticasCuidador => {
 
       // Optimización: Consultar todos los paseos del cuidador en una sola query
       const todosRes = await ServicioPaseo.obtenerPorCuidadorYEstado(user.uid, [
-        PaseoStatus.ACEPTADO,
+        PaseoStatus.CONFIRMADO,
         PaseoStatus.EN_RUTA,
         PaseoStatus.EN_PROGRESO,
         PaseoStatus.COMPLETADO,
@@ -50,7 +50,7 @@ export const useEstadisticasCuidador = (): EstadisticasCuidador => {
 
       const activos = todos.filter(p =>
         [
-          PaseoStatus.ACEPTADO,
+          PaseoStatus.CONFIRMADO,
           PaseoStatus.EN_RUTA,
           PaseoStatus.EN_PROGRESO,
         ].includes(p.estado)

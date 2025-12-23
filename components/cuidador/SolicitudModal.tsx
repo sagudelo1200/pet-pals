@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { View, Text, StyleSheet, Alert, ScrollView } from 'react-native'
+import { useNavigation } from '@react-navigation/native'
 import {
   BottomSheet,
   Button,
@@ -21,6 +22,7 @@ interface Props {
 
 const SolicitudModal: React.FC<Props> = ({ visible, paseo, onClose }) => {
   const { t } = useTranslation()
+  const navigation = useNavigation<any>()
   const [loading, setLoading] = useState(false)
   const [mascotas, setMascotas] = useState<any[]>([])
   const [loadingMascotas, setLoadingMascotas] = useState(false)
@@ -76,8 +78,9 @@ const SolicitudModal: React.FC<Props> = ({ visible, paseo, onClose }) => {
       const res = await ServicioPaseo.aceptarSolicitud(paseo.id)
       setLoading(false)
       if (res && (res as any).success !== false) {
-        Alert.alert(t('comun:exito'), t('cuidador:solicitudes.exito_aceptar'))
         onClose()
+        // Navegar al panel de control del paseo
+        navigation.navigate('ControlPaseo', { paseoId: paseo.id })
       } else {
         Alert.alert(
           t('comun:error'),

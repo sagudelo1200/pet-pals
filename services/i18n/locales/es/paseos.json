@@ -168,5 +168,15 @@
       "inicio": "Inició el paseo en ruta",
       "llegada": "Llegó a destino"
     }
+  },
+  "control": {
+    "iniciar_ruta": "Iniciar Ruta",
+    "iniciar_paseo": "Iniciar Paseo",
+    "finalizar_paseo": "Finalizar Paseo",
+    "ver_resumen": "Ver Resumen",
+    "punto_recogida": "Punto de Recogida",
+    "ubicacion_desconocida": "Ubicación desconocida",
+    "paseo_finalizado": "Paseo finalizado exitosamente",
+    "transicion_invalida": "No se puede realizar esta acción en el estado actual"
   }
 }

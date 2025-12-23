@@ -28,17 +28,25 @@ service cloud.firestore {
       (d.data.roles is list && d.data.roles.hasAny([rol])) ||
       (d.data.roles is map && d.data.roles[rol] == true)
       );
-      }    // Comprueba si el usuario u tiene el rol rol
+    }
+
+    // Comprueba si el usuario u tiene el rol rol
+    // OPTIMIZADO: Primero verifica claims (gratis), luego documento (costoso)
     function tiene_rol(u, rol) {
       return autenticado() && (
-      (u == request.auth.uid && (tiene_rol_en_claims(rol) || tiene_rol_en_doc(doc_usuario(), rol))) ||
-      (u != request.auth.uid && tiene_rol_en_doc(get(/databases/$(database)/documents/usuarios/$(u)), rol))
+        // Si es el usuario actual, verificar claims primero (sin get)
+        (u == request.auth.uid && tiene_rol_en_claims(rol)) ||
+        // Si claims no tiene el rol, verificar en documento
+        (u == request.auth.uid && tiene_rol_en_doc(doc_usuario(), rol)) ||
+        // Si es otro usuario, verificar su documento
+        (u != request.auth.uid && tiene_rol_en_doc(get(/databases/$(database)/documents/usuarios/$(u)), rol))
       );
     }
 
     // Verifica si el usuario autenticado tiene un rol especifico
+    // OPTIMIZADO: Usa claims primero
     function tiene_rol_actual(rol) {
-      return autenticado() && tiene_rol(request.auth.uid, rol);
+      return autenticado() && (tiene_rol_en_claims(rol) || tiene_rol_en_doc(doc_usuario(), rol));
     }
 
     // Verifica si el usuario autenticado es administrador
@@ -107,6 +115,22 @@ service cloud.firestore {
     function puede_unirse_a_paseo_doc(p) {
       // Solo paseos con modalidad 'compartido' permiten que OTROS tutores se unan
       return p != null && p.data.modalidad == 'compartido' && estado_permite_unirse(p.data.estado);
+    }
+
+    // Helper para obtener documento de paseo (reutilizable en subcolecciones)
+    function get_paseo_doc(paseoId) {
+      return get(/databases/$(database)/documents/paseos/$(paseoId));
+    }
+
+    // Validar transiciones de estado permitidas para cuidador
+    function transicion_estado_valida(estadoActual, estadoNuevo) {
+      return (
+        (estadoActual == 'PENDIENTE' && estadoNuevo == 'CONFIRMADO') ||
+        (estadoActual == 'CONFIRMADO' && estadoNuevo == 'EN_RUTA') ||
+        (estadoActual == 'EN_RUTA' && estadoNuevo == 'EN_PROGRESO') ||
+        (estadoActual == 'EN_PROGRESO' && estadoNuevo == 'FINALIZADO') ||
+        (estadoActual == 'FINALIZADO' && estadoNuevo == 'COMPLETADO')
+      );
     }
 
     // USUARIOS
@@ -208,17 +232,20 @@ service cloud.firestore {
 
     // PASEOS
     match /paseos/{id} {
+      // OPTIMIZADO: Validaciones baratas primero
       // Permitir lectura si:
       // 1. Eres actor del paseo (creador o cuidador asignado)
       // 2. El paseo está PENDIENTE y no tiene cuidador asignado (para que cuidadores puedan ver solicitudes)
       allow get: if autenticado() && (
         resource == null || 
-        es_actor_paseo_doc(resource) || 
+        resource.data.creado_por == request.auth.uid ||
+        resource.data.id_cuidador == request.auth.uid ||
         (resource.data.estado == 'PENDIENTE' && (!('id_cuidador' in resource.data) || resource.data.id_cuidador == null))
       );
 
       allow list: if autenticado() && (
-        es_actor_paseo_doc(resource) || 
+        resource.data.creado_por == request.auth.uid ||
+        resource.data.id_cuidador == request.auth.uid ||
         (resource.data.estado == 'PENDIENTE' && (!('id_cuidador' in resource.data) || resource.data.id_cuidador == null))
       );
 
@@ -230,27 +257,35 @@ service cloud.firestore {
         && (!('id_cuidador' in request.resource.data) || 
       request.resource.data.id_cuidador != request.auth.uid);
 
-      allow update: if autenticado() && (
-      // Caso 1: Aceptar solicitud (PENDIENTE -> ACEPTADO)
-      (
-      resource.data.estado == 'PENDIENTE' &&
-      (!('id_cuidador' in resource.data) || resource.data.id_cuidador == null || resource.data.id_cuidador == request.auth.uid) &&
-      request.resource.data.id_cuidador == request.auth.uid &&
-      request.resource.data.estado == 'ACEPTADO'
-      ) ||
-      // Caso 2: El Creador actualiza (cualquier cosa valida)
-      (
-      resource.data.creado_por == request.auth.uid
-      ) ||
-      // Caso 3: El Cuidador asignado actualiza (estado, ubicacion, etc)
-      (
-      resource.data.id_cuidador == request.auth.uid &&
-      request.resource.data.id_cuidador == request.auth.uid // No puede cambiarse a otro cuidador
-      ) ||
-      // Caso 4: Admin
-      es_admin()
-      )
-        && campos_sistema_validos_actualizar();
+      // OPTIMIZADO: Validaciones en orden de costo (baratas primero)
+      allow update: if autenticado() && campos_sistema_validos_actualizar() && (
+        // Caso 1: El Creador actualiza (validación más barata - solo request.auth.uid)
+        resource.data.creado_por == request.auth.uid ||
+        
+        // Caso 2: Aceptar solicitud (PENDIENTE -> CONFIRMADO)
+        (
+          resource.data.estado == 'PENDIENTE' &&
+          request.resource.data.estado == 'CONFIRMADO' &&
+          request.resource.data.id_cuidador == request.auth.uid &&
+          (!('id_cuidador' in resource.data) || resource.data.id_cuidador == null || resource.data.id_cuidador == request.auth.uid)
+        ) ||
+        
+        // Caso 3: El Cuidador asignado actualiza estado (con validación de transición)
+        (
+          resource.data.id_cuidador == request.auth.uid &&
+          request.resource.data.id_cuidador == request.auth.uid &&
+          (
+            // Si cambia el estado, validar transición
+            (request.resource.data.estado != resource.data.estado && 
+             transicion_estado_valida(resource.data.estado, request.resource.data.estado)) ||
+            // Si no cambia el estado, permitir otros cambios
+            request.resource.data.estado == resource.data.estado
+          )
+        ) ||
+        
+        // Caso 4: Admin (más costoso - requiere verificar claims/doc)
+        es_admin()
+      );
 
       allow delete: if es_actor_paseo_doc(resource);
     }
@@ -258,31 +293,32 @@ service cloud.firestore {
     // SUBCOLECCION PASEOS MASCOTAS
     match /paseos/{paseoId}/mascotas/{mascotaId} {
 
-      function paseoDoc() {
-        return get(/databases/$(database)/documents/paseos/$(paseoId));
-      }
-
       function es_tutor_mascota() {
-        return autenticado() &&
-        resource != null &&
-        resource.data.id_usuario == request.auth.uid;
+        return resource != null && resource.data.id_usuario == request.auth.uid;
       }
 
-      allow read: if es_actor_paseo_doc(paseoDoc()) || es_tutor_mascota();
-
-      allow create: if autenticado()
-        && tiene_campos_sistema_basicos()
-        && campos_sistema_validos_crear()
-        && (
-      es_actor_paseo_doc(paseoDoc()) ||
-      (puede_unirse_a_paseo_doc(paseoDoc())
-        && request.resource.data.id_usuario == request.auth.uid
-        && request.resource.data.id_mascota == mascotaId)
+      // OPTIMIZADO: Verificar autenticado primero, luego es_tutor_mascota (barato), finalmente get()
+      allow read: if autenticado() && (
+        es_tutor_mascota() || 
+        es_actor_paseo_doc(get_paseo_doc(paseoId))
       );
+
+      // OPTIMIZADO: Validaciones baratas primero
+      allow create: if autenticado() &&
+        tiene_campos_sistema_basicos() &&
+        campos_sistema_validos_crear() &&
+        (
+          // Primero verificar si es el usuario que se está agregando (barato)
+          (request.resource.data.id_usuario == request.auth.uid && 
+           request.resource.data.id_mascota == mascotaId &&
+           puede_unirse_a_paseo_doc(get_paseo_doc(paseoId))) ||
+          // Luego verificar si es actor (requiere get)
+          es_actor_paseo_doc(get_paseo_doc(paseoId))
+        );
 
       // Actor o tutor puede actualizar observaciones
       allow update: if (
-      (es_actor_paseo_doc(paseoDoc())
+      (es_actor_paseo_doc(get_paseo_doc(paseoId))
         && campos_sistema_validos_actualizar()
         && request.resource.data.id_mascota == resource.data.id_mascota
         && request.resource.data.id_usuario == resource.data.id_usuario)
@@ -298,35 +334,20 @@ service cloud.firestore {
         && request.resource.data.actualizado_por == request.auth.uid)
       );
 
-      allow delete: if es_actor_paseo_doc(paseoDoc());
+      allow delete: if es_actor_paseo_doc(get_paseo_doc(paseoId));
     }
 
     // SUBCOLECCION DE EVENTOS (HISTORIAL)
     match /paseos/{paseoId}/eventos/{eventoId} {
-      function paseoDoc() {
-        return get(/databases/$(database)/documents/paseos/$(paseoId));
-      }
+      // OPTIMIZADO: Verificar autenticado primero, luego get()
+      allow read: if autenticado() && es_actor_paseo_doc(get_paseo_doc(paseoId));
 
-      // Lectura permitida a actores del paseo y admins
-      allow read: if autenticado() && (
-      paseoDoc() != null && (
-      paseoDoc().data.creado_por == request.auth.uid ||
-      paseoDoc().data.id_cuidador == request.auth.uid ||
-      es_admin()
-      )
-      );
-
-      // Crear evento: puede crearlo el cuidador asignado, el creador (tutor) o admin
-      allow create: if autenticado() && (
-      paseoDoc() != null && (
-      paseoDoc().data.id_cuidador == request.auth.uid ||
-      paseoDoc().data.creado_por == request.auth.uid ||
-      es_admin()
-      )
-      ) &&
-      request.resource.data.keys().hasAll(['evento','payload','actor','creado_en']) &&
-      request.resource.data.actor == request.auth.uid &&
-      request.resource.data.creado_en == request.time;
+      // OPTIMIZADO: Validaciones baratas primero (campos), luego get()
+      allow create: if autenticado() &&
+        request.resource.data.keys().hasAll(['evento','payload','actor','creado_en']) &&
+        request.resource.data.actor == request.auth.uid &&
+        request.resource.data.creado_en == request.time &&
+        es_actor_paseo_doc(get_paseo_doc(paseoId));
 
       // Solo admin puede modificar o borrar eventos
       allow update, delete: if es_admin();
