@@ -4,8 +4,14 @@
  * Se utiliza el español para los nombres de las constantes y funciones.
  */
 export const RUTAS_REALTIME = {
-  /** Seguimiento de ubicación de paseos en tiempo real */
+  /** Nodo raíz del seguimiento de un paseo */
   seguimiento: (idPaseo: string) => `seguimiento_paseos/${idPaseo}`,
+
+  /** Ubicación actual (última conocida) para el marcador en vivo */
+  ubicacionActual: (idPaseo: string) => `seguimiento_paseos/${idPaseo}/actual`,
+
+  /** Historial de puntos para dibujar la ruta recorrida */
+  historialRuta: (idPaseo: string) => `seguimiento_paseos/${idPaseo}/ruta`,
 
   /** Chats vinculados a los paseos */
   chats: (idPaseo: string) => `chats/${idPaseo}`,

@@ -4,6 +4,7 @@ import {
   update,
   get,
   onValue,
+  push,
   type DataSnapshot,
 } from 'firebase/database'
 import { rtdb } from '../../firebase.config'
@@ -39,6 +40,23 @@ export class ServicioRealtime {
       const dbRef = ref(rtdb, path)
       await update(dbRef, data)
       return { success: true }
+    } catch (error) {
+      return { success: false, error: mapFirebaseError(error) }
+    }
+  }
+
+  /**
+   * Agrega un nuevo elemento a una lista (push).
+   * Genera una clave única basada en el tiempo.
+   */
+  static async agregarLista(
+    path: string,
+    data: any
+  ): Promise<CrudResult<string>> {
+    try {
+      const dbRef = ref(rtdb, path)
+      const newRef = await push(dbRef, data)
+      return { success: true, data: newRef.key as string }
     } catch (error) {
       return { success: false, error: mapFirebaseError(error) }
     }

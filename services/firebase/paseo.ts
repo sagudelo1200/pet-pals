@@ -90,6 +90,8 @@ export class ServicioPaseo {
         // Actualizar documento
         transaction.update(paseoRef, {
           id_cuidador: currentUser.uid,
+          cuidador_nombre_visual: currentUser.displayName || 'Cuidador',
+          cuidador_foto_visual: currentUser.photoURL || null,
           estado: PaseoStatus.CONFIRMADO,
           actualizado_en: serverTimestamp(),
           actualizado_por: currentUser.uid,
@@ -182,7 +184,8 @@ export class ServicioPaseo {
       }
       locationData = {
         ubicacion_inicio: snap,
-        ubicacion_inicio_txt: locObj.alias || locObj.direccion_formateada || 'Ubicación',
+        ubicacion_inicio_txt:
+          locObj.alias || locObj.direccion_formateada || 'Ubicación',
       }
     }
 
@@ -222,7 +225,11 @@ export class ServicioPaseo {
 
     // Crear subdocumentos por mascota (si aplica)
     if (unique.length > 0) {
-      const addRes = await addMascotasAlPaseo(paseoRes.data.id, unique, direccion)
+      const addRes = await addMascotasAlPaseo(
+        paseoRes.data.id,
+        unique,
+        direccion
+      )
       if (!addRes.success)
         return { success: false, error: (addRes as any).error }
     }
@@ -297,9 +304,8 @@ export class ServicioPaseo {
     // Optimización: Usar array-contains sobre el campo mascota_ids
     try {
       const { db } = await import('@/firebase.config')
-      const { collection, query, where, getDocs, orderBy } = await import(
-        'firebase/firestore'
-      )
+      const { collection, query, where, getDocs, orderBy } =
+        await import('firebase/firestore')
 
       const q = query(
         collection(db, this.COLLECTION),
@@ -348,9 +354,8 @@ export class ServicioPaseo {
   ): Promise<CrudResult<Paseo[]>> {
     try {
       const { db } = await import('@/firebase.config')
-      const { collection, query, where, getDocs } = await import(
-        'firebase/firestore'
-      )
+      const { collection, query, where, getDocs } =
+        await import('firebase/firestore')
 
       const q = query(
         collection(db, this.COLLECTION),
@@ -391,7 +396,7 @@ export class ServicioPaseo {
     if (!currentUser) return { success: false, error: ERR.COMUN.NO_AUTENTICADO }
 
     try {
-      await runTransaction(db, async (transaction) => {
+      await runTransaction(db, async transaction => {
         const paseoRef = doc(db, this.COLLECTION, paseoId)
         const paseoDoc = await transaction.get(paseoRef)
 
@@ -404,7 +409,7 @@ export class ServicioPaseo {
         // Validar con máquina de estados
         const { crearMaquinaPaseo } = await import('./maquina-estados-paseo')
         const maquina = crearMaquinaPaseo(paseo)
-        
+
         if (!maquina.puede('INICIAR_RUTA')) {
           throw new Error('No se puede iniciar ruta desde el estado actual')
         }
@@ -437,7 +442,7 @@ export class ServicioPaseo {
     if (!currentUser) return { success: false, error: ERR.COMUN.NO_AUTENTICADO }
 
     try {
-      await runTransaction(db, async (transaction) => {
+      await runTransaction(db, async transaction => {
         const paseoRef = doc(db, this.COLLECTION, paseoId)
         const paseoDoc = await transaction.get(paseoRef)
 
@@ -450,7 +455,7 @@ export class ServicioPaseo {
         // Validar con máquina de estados
         const { crearMaquinaPaseo } = await import('./maquina-estados-paseo')
         const maquina = crearMaquinaPaseo(paseo)
-        
+
         if (!maquina.puede('INICIAR_PASEO')) {
           throw new Error('No se puede iniciar paseo desde el estado actual')
         }
@@ -486,7 +491,7 @@ export class ServicioPaseo {
     let duracionReal: number | undefined
 
     try {
-      await runTransaction(db, async (transaction) => {
+      await runTransaction(db, async transaction => {
         const paseoRef = doc(db, this.COLLECTION, paseoId)
         const paseoDoc = await transaction.get(paseoRef)
 
@@ -499,16 +504,17 @@ export class ServicioPaseo {
         // Validar con máquina de estados
         const { crearMaquinaPaseo } = await import('./maquina-estados-paseo')
         const maquina = crearMaquinaPaseo(paseo)
-        
+
         if (!maquina.puede('FINALIZAR_PASEO')) {
           throw new Error('No se puede finalizar paseo desde el estado actual')
         }
 
         // Calcular duración real si hay fecha de inicio
         if (paseo.fecha_inicio_real) {
-          const inicio = paseo.fecha_inicio_real instanceof Date 
-            ? paseo.fecha_inicio_real 
-            : (paseo.fecha_inicio_real as any).toDate()
+          const inicio =
+            paseo.fecha_inicio_real instanceof Date
+              ? paseo.fecha_inicio_real
+              : (paseo.fecha_inicio_real as any).toDate()
           duracionReal = Math.floor((Date.now() - inicio.getTime()) / 60000) // en minutos
         }
 

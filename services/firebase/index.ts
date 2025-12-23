@@ -2,6 +2,7 @@
 export { ServicioCrudBase } from './crud'
 export { ServicioRealtime } from './realtime'
 export { RUTAS_REALTIME } from './rutas-rtdb'
+export { ahoraRealtime } from './converters'
 
 // Servicios específicos
 export { ServicioMascota } from './mascota'

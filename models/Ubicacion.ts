@@ -81,8 +81,6 @@ export interface UbicacionRef {
   }
 }
 
-
-
 /**
  * Snapshot de una ubicación para guardar en historiales (Paseos, Servicios).
  * Copia los datos esenciales para no depender de la referencia mutable `Ubicacion`.
@@ -101,4 +99,23 @@ export interface UbicacionSnapshot {
   alias?: string
   /** Opcional: Instrucciones en el momento del servicio */
   instrucciones?: string
+}
+
+/**
+ * Representa una actualización de ubicación en tiempo real (RTDB).
+ * Optimizado para baja latencia y frecuencia alta de actualizaciones.
+ */
+export interface UbicacionRealtime {
+  /** Latitud actual */
+  latitud: number
+  /** Longitud actual */
+  longitud: number
+  /** Velocidad en m/s (opcional) */
+  velocidad?: number
+  /** Rumbo/Dirección en grados (0-360) (opcional) */
+  rumbo?: number
+  /** Precisión en metros (opcional) */
+  precision?: number
+  /** Timestamp del servidor o local de la actualización */
+  actualizado_en: number | any
 }

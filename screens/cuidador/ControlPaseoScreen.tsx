@@ -4,22 +4,26 @@ import {
   View,
   Text,
   ActivityIndicator,
-  Alert,
   TouchableOpacity,
   Animated,
   Platform,
 } from 'react-native'
-import { useRoute, type RouteProp, useNavigation } from '@react-navigation/native'
+import {
+  useRoute,
+  type RouteProp,
+  useNavigation,
+} from '@react-navigation/native'
 import { useTranslation } from 'react-i18next'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps'
+import MapView, { Marker, Polyline, PROVIDER_GOOGLE } from 'react-native-maps'
 import { Ionicons } from '@expo/vector-icons'
 import * as Haptics from 'expo-haptics'
 import { BlurView } from 'expo-blur'
 import { COLOR } from '@/constants'
 import { PaseoStatus } from '@/models/Paseo'
 import { useControlPaseo } from '@/hooks/cuidador/useControlPaseo'
-import { Button, Screen } from '@/components/ui'
+import { usePublicarUbicacion } from '@/hooks/cuidador/usePublicarUbicacion'
+import { Button } from '@/components/ui'
 import type { AuthStackParamList } from '@/navigation/types'
 
 type ControlPaseoRouteProp = RouteProp<AuthStackParamList, 'ControlPaseo'>
@@ -38,14 +42,18 @@ const ControlPaseoScreen: React.FC = () => {
   const insets = useSafeAreaInsets()
   const { paseoId } = route.params
 
-  const { paseo, loading, procesando, cambiarEstado } = useControlPaseo(paseoId)
+  const { paseo, loading, procesando, cambiarEstado, ruta, ubicacionActual } =
+    useControlPaseo(paseoId)
+
+  // Activar publicación de ubicación en tiempo real
+  usePublicarUbicacion(paseoId, paseo?.estado)
 
   // Animaciones
   const slideAnim = useRef(new Animated.Value(300)).current
   const pulseAnim = useRef(new Animated.Value(1)).current
   const scaleAnim = useRef(new Animated.Value(1)).current
   const glowAnim = useRef(new Animated.Value(0.4)).current
-  
+
   const [showSuccess, setShowSuccess] = useState(false)
 
   // Temporizador
@@ -55,7 +63,7 @@ const ControlPaseoScreen: React.FC = () => {
   // Configuraciones de pantalla y animación de entrada
   useEffect(() => {
     navigation.setOptions({ headerShown: false })
-    
+
     Animated.spring(slideAnim, {
       toValue: 0,
       tension: 50,
@@ -70,17 +78,33 @@ const ControlPaseoScreen: React.FC = () => {
       // Pulso del botón
       Animated.loop(
         Animated.sequence([
-          Animated.timing(pulseAnim, { toValue: 1.05, duration: 1000, useNativeDriver: true }),
-          Animated.timing(pulseAnim, { toValue: 1, duration: 1000, useNativeDriver: true }),
+          Animated.timing(pulseAnim, {
+            toValue: 1.05,
+            duration: 1000,
+            useNativeDriver: true,
+          }),
+          Animated.timing(pulseAnim, {
+            toValue: 1,
+            duration: 1000,
+            useNativeDriver: true,
+          }),
         ])
       ).start()
     }
-    
+
     // Glow constante pero sutil para invitar a la acción
     Animated.loop(
       Animated.sequence([
-        Animated.timing(glowAnim, { toValue: 1, duration: 1500, useNativeDriver: true }),
-        Animated.timing(glowAnim, { toValue: 0.4, duration: 1500, useNativeDriver: true }),
+        Animated.timing(glowAnim, {
+          toValue: 1,
+          duration: 1500,
+          useNativeDriver: true,
+        }),
+        Animated.timing(glowAnim, {
+          toValue: 0.4,
+          duration: 1500,
+          useNativeDriver: true,
+        }),
       ])
     ).start()
   }, [paseo?.estado])
@@ -90,16 +114,21 @@ const ControlPaseoScreen: React.FC = () => {
     if (!paseo?.fecha_inicio_real || paseo.estado !== PaseoStatus.EN_PROGRESO) {
       // Si no hay fecha o no está en progreso, no activamos el intervalo,
       // pero si está FINALIZADO, mantenemos el último valor calculado.
-      if (paseo?.estado === PaseoStatus.PENDIENTE || paseo?.estado === PaseoStatus.CONFIRMADO || paseo?.estado === PaseoStatus.EN_RUTA) {
-         setTiempoTranscurrido('00:00:00')
+      if (
+        paseo?.estado === PaseoStatus.PENDIENTE ||
+        paseo?.estado === PaseoStatus.CONFIRMADO ||
+        paseo?.estado === PaseoStatus.EN_RUTA
+      ) {
+        setTiempoTranscurrido('00:00:00')
       }
       return undefined
     }
 
     const interval = setInterval(() => {
-      const inicio = paseo.fecha_inicio_real instanceof Date
-        ? paseo.fecha_inicio_real
-        : (paseo.fecha_inicio_real as any).toDate()
+      const inicio =
+        paseo.fecha_inicio_real instanceof Date
+          ? paseo.fecha_inicio_real
+          : (paseo.fecha_inicio_real as any).toDate()
       const diff = Date.now() - inicio.getTime()
       const horas = Math.floor(diff / 3600000)
       const minutos = Math.floor((diff % 3600000) / 60000)
@@ -114,13 +143,17 @@ const ControlPaseoScreen: React.FC = () => {
   }, [paseo?.fecha_inicio_real, paseo?.estado])
 
   // Configuración del botón según estado
-  const getButtonConfig = (estado: PaseoStatus): {
+  const getButtonConfig = (
+    estado: PaseoStatus
+  ): {
     label: string
     icon: string
     evento: 'INICIAR_RUTA' | 'INICIAR_PASEO' | 'FINALIZAR_PASEO' | null
     color: string
   } | null => {
-    const estadoColor = COLOR.ESTADO[estado as keyof typeof COLOR.ESTADO] || COLOR.ESTADO.CONFIRMADO
+    const estadoColor =
+      COLOR.ESTADO[estado as keyof typeof COLOR.ESTADO] ||
+      COLOR.ESTADO.CONFIRMADO
 
     switch (estado) {
       case PaseoStatus.CONFIRMADO:
@@ -179,7 +212,9 @@ const ControlPaseoScreen: React.FC = () => {
     // Haptic feedback diferenciado
     if (Platform.OS !== 'web') {
       if (config.evento === 'FINALIZAR_PASEO') {
-        await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
+        await Haptics.notificationAsync(
+          Haptics.NotificationFeedbackType.Success
+        )
       } else {
         await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy)
       }
@@ -199,8 +234,8 @@ const ControlPaseoScreen: React.FC = () => {
   // Si estamos en la pantalla de éxito, mostramos el overlay
   if (showSuccess) {
     return (
-      <SuccessOverlay 
-        onClose={() => navigation.goBack()} 
+      <SuccessOverlay
+        onClose={() => navigation.goBack()}
         tiempo={tiempoTranscurrido}
         mascota={paseo.mascota_nombre_visual}
       />
@@ -237,7 +272,9 @@ const ControlPaseoScreen: React.FC = () => {
   }
 
   const buttonConfig = getButtonConfig(paseo.estado)
-  const estadoColor = COLOR.ESTADO[paseo.estado as keyof typeof COLOR.ESTADO] || COLOR.ESTADO.CONFIRMADO
+  const estadoColor =
+    COLOR.ESTADO[paseo.estado as keyof typeof COLOR.ESTADO] ||
+    COLOR.ESTADO.CONFIRMADO
   const ubicacionInicio =
     typeof paseo.ubicacion_inicio === 'object'
       ? paseo.ubicacion_inicio.coordenadas
@@ -255,8 +292,8 @@ const ControlPaseoScreen: React.FC = () => {
           latitudeDelta: 0.01,
           longitudeDelta: 0.01,
         }}
-        showsUserLocation
-        showsMyLocationButton
+        showsUserLocation={false}
+        showsMyLocationButton={false}
         mapPadding={{
           top: insets.top + 80,
           bottom: bottomPanelHeight,
@@ -276,15 +313,28 @@ const ControlPaseoScreen: React.FC = () => {
             pinColor={estadoColor.primario}
           />
         )}
+
+        {/* Ruta recorrida */}
+        {ruta.length > 0 && (
+          <Polyline
+            coordinates={ruta}
+            strokeColor={COLOR.PRIMARIO}
+            strokeWidth={4}
+          />
+        )}
+
+        {/* Marcador de ubicación actual (si es diferente al punto de recogida) */}
+        {ubicacionActual && (
+          <Marker coordinate={ubicacionActual} anchor={{ x: 0.5, y: 0.5 }}>
+            <View style={styles.markerActual}>
+              <View style={styles.markerActualInner} />
+            </View>
+          </Marker>
+        )}
       </MapView>
 
       {/* Header Flotante con Glassmorphism */}
-      <View
-        style={[
-          styles.headerFloating,
-          { top: insets.top + 8 },
-        ]}
-      >
+      <View style={[styles.headerFloating, { top: insets.top + 8 }]}>
         {Platform.OS === 'ios' ? (
           <BlurView intensity={80} tint="dark" style={styles.blurContainer}>
             <HeaderContent
@@ -310,7 +360,7 @@ const ControlPaseoScreen: React.FC = () => {
 
       {/* Panel inferior con animación */}
       <Animated.View
-        onLayout={(e) => setBottomPanelHeight(e.nativeEvent.layout.height)}
+        onLayout={e => setBottomPanelHeight(e.nativeEvent.layout.height)}
         style={[
           styles.bottomPanel,
           {
@@ -353,34 +403,53 @@ const ControlPaseoScreen: React.FC = () => {
         <View style={styles.infoCard}>
           <View style={styles.infoRow}>
             <View style={styles.infoIconBox}>
-               <Text style={styles.infoIcon}>🐕</Text>
+              <Text style={styles.infoIcon}>🐕</Text>
             </View>
             <View style={styles.infoContent}>
-               <Text style={styles.infoLabel}>{t('paseos:control.mascota')}</Text>
-               <Text style={styles.infoText}>{paseo.mascota_nombre_visual}</Text>
+              <Text style={styles.infoLabel}>
+                {t('paseos:control.mascota')}
+              </Text>
+              <Text style={styles.infoText}>{paseo.mascota_nombre_visual}</Text>
             </View>
           </View>
 
           <View style={styles.infoRow}>
             <View style={styles.infoIconBox}>
-               <Text style={styles.infoIcon}>📍</Text>
+              <Text style={styles.infoIcon}>📍</Text>
             </View>
             <View style={styles.infoContent}>
-               <Text style={styles.infoLabel}>{t('paseos:control.ubicacion')}</Text>
-               <Text style={styles.infoText} numberOfLines={1}>
-                  {paseo.ubicacion_inicio_txt || t('paseos:control.ubicacion_desconocida')}
-               </Text>
+              <Text style={styles.infoLabel}>
+                {t('paseos:control.ubicacion')}
+              </Text>
+              <Text style={styles.infoText} numberOfLines={1}>
+                {paseo.ubicacion_inicio_txt ||
+                  t('paseos:control.ubicacion_desconocida')}
+              </Text>
             </View>
           </View>
 
           {tiempoTranscurrido !== '00:00:00' && (
             <View style={styles.infoRow}>
-              <View style={[styles.infoIconBox, { backgroundColor: 'rgba(16, 185, 129, 0.1)' }]}>
-                 <Text style={styles.infoIcon}>⏰</Text>
+              <View
+                style={[
+                  styles.infoIconBox,
+                  { backgroundColor: 'rgba(16, 185, 129, 0.1)' },
+                ]}
+              >
+                <Text style={styles.infoIcon}>⏰</Text>
               </View>
               <View style={styles.infoContent}>
-                 <Text style={styles.infoLabel}>{t('paseos:control.tiempo_transcurrido')}</Text>
-                 <Text style={[styles.infoText, { color: COLOR.EXITO, fontWeight: '700' }]}>{tiempoTranscurrido}</Text>
+                <Text style={styles.infoLabel}>
+                  {t('paseos:control.tiempo_transcurrido')}
+                </Text>
+                <Text
+                  style={[
+                    styles.infoText,
+                    { color: COLOR.EXITO, fontWeight: '700' },
+                  ]}
+                >
+                  {tiempoTranscurrido}
+                </Text>
               </View>
             </View>
           )}
@@ -391,7 +460,12 @@ const ControlPaseoScreen: React.FC = () => {
           <Animated.View
             style={{
               transform: [
-                { scale: paseo.estado === PaseoStatus.EN_PROGRESO ? pulseAnim : scaleAnim },
+                {
+                  scale:
+                    paseo.estado === PaseoStatus.EN_PROGRESO
+                      ? pulseAnim
+                      : scaleAnim,
+                },
               ],
               shadowColor: buttonConfig.color,
               shadowOffset: { width: 0, height: 0 },
@@ -409,22 +483,27 @@ const ControlPaseoScreen: React.FC = () => {
               disabled={procesando}
               activeOpacity={0.8}
             >
-              <Animated.View 
+              <Animated.View
                 style={[
-                  StyleSheet.absoluteFill, 
-                  { 
-                    backgroundColor: '#FFF', 
-                    opacity: glowAnim.interpolate({ inputRange: [0.4, 1], outputRange: [0, 0.1] }),
+                  StyleSheet.absoluteFill,
+                  {
+                    backgroundColor: '#FFF',
+                    opacity: glowAnim.interpolate({
+                      inputRange: [0.4, 1],
+                      outputRange: [0, 0.1],
+                    }),
                     borderRadius: 20,
-                  }
-                ]} 
+                  },
+                ]}
               />
               {procesando ? (
                 <ActivityIndicator color={COLOR.TEXTO} size="small" />
               ) : (
                 <>
                   <Text style={styles.heroButtonIcon}>{buttonConfig.icon}</Text>
-                  <Text style={styles.heroButtonText}>{buttonConfig.label}</Text>
+                  <Text style={styles.heroButtonText}>
+                    {buttonConfig.label}
+                  </Text>
                 </>
               )}
             </TouchableOpacity>
@@ -444,7 +523,10 @@ const HeaderContent: React.FC<{
   t: any
 }> = ({ navigation, tiempoTranscurrido, estado, estadoColor, t }) => (
   <View style={styles.headerContent}>
-    <TouchableOpacity onPress={() => navigation.goBack()} style={styles.headerButton}>
+    <TouchableOpacity
+      onPress={() => navigation.goBack()}
+      style={styles.headerButton}
+    >
       <Ionicons name="arrow-back" size={24} color={COLOR.TEXTO} />
     </TouchableOpacity>
 
@@ -452,7 +534,9 @@ const HeaderContent: React.FC<{
       {tiempoTranscurrido !== '00:00:00' && (
         <Text style={styles.headerTimer}>⏱️ {tiempoTranscurrido}</Text>
       )}
-      <View style={[styles.estadoBadge, { backgroundColor: estadoColor.fondo }]}>
+      <View
+        style={[styles.estadoBadge, { backgroundColor: estadoColor.fondo }]}
+      >
         <Text style={[styles.estadoText, { color: estadoColor.texto }]}>
           {t(`paseos:estados.${estado}`)}
         </Text>
@@ -466,51 +550,71 @@ const HeaderContent: React.FC<{
 )
 
 // Componente de Pantalla de Éxito Premium
-const SuccessOverlay: React.FC<{ onClose: () => void, tiempo: string, mascota: string }> = ({ onClose, tiempo, mascota }) => {
+const SuccessOverlay: React.FC<{
+  onClose: () => void
+  tiempo: string
+  mascota: string
+}> = ({ onClose, tiempo, mascota }) => {
   const fadeAnim = useRef(new Animated.Value(0)).current
   const scaleAnim = useRef(new Animated.Value(0.8)).current
 
   useEffect(() => {
     Animated.parallel([
-      Animated.timing(fadeAnim, { toValue: 1, duration: 600, useNativeDriver: true }),
-      Animated.spring(scaleAnim, { toValue: 1, tension: 40, friction: 7, useNativeDriver: true })
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 600,
+        useNativeDriver: true,
+      }),
+      Animated.spring(scaleAnim, {
+        toValue: 1,
+        tension: 40,
+        friction: 7,
+        useNativeDriver: true,
+      }),
     ]).start()
   }, [])
 
   return (
     <View style={styles.successContainer}>
-      <Animated.View style={[styles.successCard, { opacity: fadeAnim, transform: [{ scale: scaleAnim }] }]}>
+      <Animated.View
+        style={[
+          styles.successCard,
+          { opacity: fadeAnim, transform: [{ scale: scaleAnim }] },
+        ]}
+      >
         <View style={styles.successIconCircle}>
-           <Ionicons name="checkmark-done" size={60} color={COLOR.EXITO} />
+          <Ionicons name="checkmark-done" size={60} color={COLOR.EXITO} />
         </View>
         <Text style={styles.successTitle}>¡Gran trabajo!</Text>
-        <Text style={styles.successSubtitle}>El paseo con {mascota} ha sido completado con éxito.</Text>
-        
+        <Text style={styles.successSubtitle}>
+          El paseo con {mascota} ha sido completado con éxito.
+        </Text>
+
         <View style={styles.statsRow}>
           <View style={styles.statItem}>
-             <Text style={styles.statLabel}>TIEMPO TOTAL</Text>
-             <Text style={styles.statValue}>{tiempo}</Text>
+            <Text style={styles.statLabel}>TIEMPO TOTAL</Text>
+            <Text style={styles.statValue}>{tiempo}</Text>
           </View>
         </View>
 
         <TouchableOpacity style={styles.successButton} onPress={onClose}>
-           <Text style={styles.successButtonText}>Finalizar y Volver</Text>
+          <Text style={styles.successButtonText}>Finalizar y Volver</Text>
         </TouchableOpacity>
       </Animated.View>
-      
+
       {/* Mini "Confetti" simple */}
-      {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
-        <Animated.View 
-          key={i} 
+      {[1, 2, 3, 4, 5, 6, 7, 8].map(i => (
+        <Animated.View
+          key={i}
           style={[
-            styles.confetti, 
-            { 
-              left: `${i * 12}%`, 
+            styles.confetti,
+            {
+              left: `${i * 12}%`,
               top: `${(i % 3) * 20}%`,
               opacity: fadeAnim,
-              backgroundColor: i % 2 === 0 ? COLOR.PRIMARIO : COLOR.EXITO 
-            }
-          ]} 
+              backgroundColor: i % 2 === 0 ? COLOR.PRIMARIO : COLOR.EXITO,
+            },
+          ]}
         />
       ))}
     </View>
@@ -822,7 +926,23 @@ const styles = StyleSheet.create({
     width: 6,
     height: 6,
     borderRadius: 3,
-  }
+  },
+  markerActual: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: 'rgba(28, 127, 82, 0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  markerActualInner: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: COLOR.PRIMARIO,
+    borderWidth: 2,
+    borderColor: COLOR.TEXTO,
+  },
 })
 
 export default ControlPaseoScreen
