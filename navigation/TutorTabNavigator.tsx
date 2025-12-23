@@ -92,6 +92,7 @@ export default function TutorTabNavigator(): React.ReactElement {
         name="Colors"
         component={ColorDemo}
         options={{
+          tabBarButton: () => null,
           title: 'Colores',
           headerTitle: 'Demo de Colores',
           tabBarIcon: ({ color, size }) => (

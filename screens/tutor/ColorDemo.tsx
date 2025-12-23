@@ -30,7 +30,7 @@ import { UbicacionRef } from '@/models/Ubicacion'
 type ColorKey = keyof typeof COLOR
 
 const ColorDemo: React.FC = () => {
-  const colorKeys = Object.keys(COLOR) as ColorKey[]
+  const colorKeys = (Object.keys(COLOR) as ColorKey[]).filter(k => k !== 'ESTADO')
   const [creandoMascota, setCreandoMascota] = useState(false)
 
   const crearMascotaSemilla = async () => {
