@@ -78,11 +78,13 @@ export function usePublicarUbicacion(
               payload
             )
 
-            // 2. Agregar al historial de la ruta (push para dibujar la línea completa)
-            ServicioRealtime.agregarLista(
-              RUTAS_REALTIME.historialRuta(idPaseo),
-              payload
-            )
+            // 2. Agregar al historial de la ruta (solo si el paseo está en progreso)
+            if (estadoPaseo === PaseoStatus.EN_PROGRESO) {
+              ServicioRealtime.agregarLista(
+                RUTAS_REALTIME.historialRuta(idPaseo),
+                payload
+              )
+            }
           }
         }
       )

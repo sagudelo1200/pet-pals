@@ -2,14 +2,14 @@ import { COLOR } from '@/constants'
 import React from 'react'
 import { Text } from 'react-native'
 import Screen from '@/components/ui/Screen'
+import { useTranslation } from 'react-i18next'
 
 const Placeholder = () => {
+  const { t } = useTranslation()
   return (
     <Screen style={styles.container}>
-      <Text style={styles.text}>¡Próximamente!</Text>
-      <Text style={styles.subText}>
-        Esta sección está en desarrollo. ¡Mantente atento a las actualizaciones!
-      </Text>
+      <Text style={styles.text}>{t('comun:proximamente')}</Text>
+      <Text style={styles.subText}>{t('comun:en_desarrollo')}</Text>
     </Screen>
   )
 }

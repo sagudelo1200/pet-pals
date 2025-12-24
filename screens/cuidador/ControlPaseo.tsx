@@ -309,6 +309,7 @@ const ControlPaseo: React.FC = () => {
         alto="100%"
         interactivo
         marcador={false}
+        zoom={9}
         coordenadas={
           ubicacionActual ||
           ubicacionInicio || { latitude: -34.6037, longitude: -58.3816 }
@@ -320,21 +321,8 @@ const ControlPaseo: React.FC = () => {
           right: 0,
         }}
       >
-        {/* Marcador de punto de recogida */}
-        {ubicacionInicio && (
-          <Marker
-            coordinate={{
-              latitude: ubicacionInicio.latitude,
-              longitude: ubicacionInicio.longitude,
-            }}
-            title={t('paseos:control.punto_recogida')}
-            description={paseo.ubicacion_inicio_txt || ''}
-            pinColor={COLOR.ENFASIS}
-          />
-        )}
-
         {/* Ruta recorrida */}
-        {ruta.length > 0 && (
+        {ruta.length > 0 && paseo?.estado === PaseoStatus.EN_PROGRESO && (
           <Polyline
             coordinates={ruta}
             strokeColor={COLOR.PRIMARIO}
@@ -342,13 +330,29 @@ const ControlPaseo: React.FC = () => {
           />
         )}
 
-        {/* Marcador de ubicación actual (si es diferente al punto de recogida) */}
         {ubicacionActual && (
           <Marker
             coordinate={ubicacionActual}
-            pinColor={COLOR.ENFASIS}
             zIndex={999}
-          />
+            anchor={
+              paseo?.estado === PaseoStatus.EN_PROGRESO
+                ? { x: 0.52, y: 0.52 }
+                : undefined
+            }
+            pinColor={
+              paseo?.estado === PaseoStatus.EN_PROGRESO
+                ? 'transparent'
+                : COLOR.ENFASIS
+            }
+          >
+            {paseo?.estado === PaseoStatus.EN_PROGRESO && (
+              <View style={styles.liveMarkerWrapper}>
+                <View style={styles.liveMarkerIcon}>
+                  <Icon name="paw" size={18} color={COLOR.TEXTO} />
+                </View>
+              </View>
+            )}
+          </Marker>
         )}
       </Mapa>
 
@@ -574,6 +578,7 @@ const SuccessOverlay: React.FC<{
   tiempo: string
   mascota: string
 }> = ({ onClose, tiempo, mascota }) => {
+  const { t } = useTranslation()
   const fadeAnim = useRef(new Animated.Value(0)).current
   const scaleAnim = useRef(new Animated.Value(0.8)).current
 
@@ -604,20 +609,26 @@ const SuccessOverlay: React.FC<{
         <View style={styles.successIconCircle}>
           <Ionicons name="checkmark-done" size={60} color={COLOR.EXITO} />
         </View>
-        <Text style={styles.successTitle}>¡Gran trabajo!</Text>
+        <Text style={styles.successTitle}>
+          {t('paseos:control.gran_trabajo')}
+        </Text>
         <Text style={styles.successSubtitle}>
-          El paseo con {mascota} ha sido completado con éxito.
+          {t('paseos:control.exito_mensaje', { mascota })}
         </Text>
 
         <View style={styles.statsRow}>
           <View style={styles.statItem}>
-            <Text style={styles.statLabel}>TIEMPO TOTAL</Text>
+            <Text style={styles.statLabel}>
+              {t('paseos:control.tiempo_total')}
+            </Text>
             <Text style={styles.statValue}>{tiempo}</Text>
           </View>
         </View>
 
         <TouchableOpacity style={styles.successButton} onPress={onClose}>
-          <Text style={styles.successButtonText}>Finalizar y Volver</Text>
+          <Text style={styles.successButtonText}>
+            {t('paseos:control.finalizar_volver')}
+          </Text>
         </TouchableOpacity>
       </Animated.View>
 
@@ -679,7 +690,7 @@ const styles = StyleSheet.create({
     right: 16,
     borderRadius: 16,
     overflow: 'hidden',
-    shadowColor: '#000',
+    shadowColor: COLOR.SOMBRA,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.15,
     shadowRadius: 12,
@@ -739,7 +750,7 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 32,
     padding: 24,
     paddingBottom: 24, // El padding dinámico se aplicará vía estilo inline o insets
-    shadowColor: '#000',
+    shadowColor: COLOR.SOMBRA,
     shadowOffset: { width: 0, height: -8 },
     shadowOpacity: 0.3,
     shadowRadius: 16,
@@ -837,7 +848,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 12,
-    shadowColor: '#000',
+    shadowColor: COLOR.SOMBRA,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 12,
@@ -872,7 +883,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderWidth: 1,
     borderColor: `${COLOR.TEXTO}0D`,
-    shadowColor: '#000',
+    shadowColor: COLOR.SOMBRA,
     shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.5,
     shadowRadius: 20,
@@ -945,6 +956,24 @@ const styles = StyleSheet.create({
     width: 6,
     height: 6,
     borderRadius: 3,
+  },
+  liveMarkerWrapper: {
+    width: 33,
+    height: 33,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+
+  liveMarkerIcon: {
+    backgroundColor: COLOR.ENFASIS,
+    width: 33,
+    height: 33,
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: COLOR.BASE,
+    zIndex: 2,
   },
 })
 

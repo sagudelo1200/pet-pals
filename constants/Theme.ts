@@ -13,6 +13,8 @@ export const COLOR = {
   ALERTA: '#C9AA45',
   INACTIVO: '#2C3432',
   ORO: '#FFD700',
+  SOMBRA: '#030505',
+  HUESO: '#F5F5DC', // Beige claro
 
   // Estados de Paseo - Colores dinámicos
   ESTADO: {

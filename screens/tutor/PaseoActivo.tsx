@@ -180,7 +180,7 @@ export default function PaseoActivo({ route, navigation }: Props) {
       <Mapa
         ref={mapRef}
         alto="100%"
-        zoom={16}
+        zoom={15}
         interactivo={true}
         marcador={false} // Desactivar marcador estático por defecto
         style={styles.mapOverride}
@@ -196,14 +196,7 @@ export default function PaseoActivo({ route, navigation }: Props) {
           ubicacionInicio || { latitude: -34.6037, longitude: -58.3816 }
         }
       >
-        {eventos.map(ev => {
-          const coords = ev.payload?.coordenadas
-          if (!coords) return null
-          return (
-            <Marker key={ev.id} coordinate={coords} pinColor={COLOR.ENFASIS} />
-          )
-        })}
-        {ruta.length > 0 && (
+        {ruta.length > 0 && paseo?.estado === PaseoStatus.EN_PROGRESO && (
           <Polyline
             coordinates={ruta}
             strokeColor={COLOR.PRIMARIO}
@@ -213,9 +206,26 @@ export default function PaseoActivo({ route, navigation }: Props) {
         {ubicacionActual && (
           <Marker
             coordinate={ubicacionActual}
-            pinColor={COLOR.ENFASIS}
             zIndex={999}
-          />
+            anchor={
+              paseo?.estado === PaseoStatus.EN_PROGRESO
+                ? { x: 0.52, y: 0.52 }
+                : undefined
+            }
+            pinColor={
+              paseo?.estado === PaseoStatus.EN_PROGRESO
+                ? 'transparent'
+                : COLOR.ENFASIS
+            }
+          >
+            {paseo?.estado === PaseoStatus.EN_PROGRESO && (
+              <View style={styles.liveMarkerWrapper}>
+                <View style={styles.liveMarkerIcon}>
+                  <Icon name="paw" size={18} color={COLOR.TEXTO} />
+                </View>
+              </View>
+            )}
+          </Marker>
         )}
       </Mapa>
 
@@ -412,7 +422,7 @@ const HeaderContent = ({
           />
           <Animated.View style={[styles.liveDot, { opacity: glowAnim }]} />
         </View>
-        <Text style={styles.liveText}>EN VIVO</Text>
+        <Text style={styles.liveText}>{t('paseos:activo.en_vivo')}</Text>
       </View>
       <Text style={styles.headerMsg} numberOfLines={1}>
         {msg}
@@ -504,7 +514,7 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 32,
     borderTopRightRadius: 32,
     zIndex: 10,
-    shadowColor: '#000',
+    shadowColor: COLOR.SOMBRA,
     shadowOffset: { width: 0, height: -8 },
     shadowOpacity: 0.25,
     shadowRadius: 16,
@@ -611,5 +621,23 @@ const styles = StyleSheet.create({
     color: COLOR.TEXTO,
     textAlign: 'center',
     paddingHorizontal: 40,
+  },
+  liveMarkerWrapper: {
+    width: 33,
+    height: 33,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+
+  liveMarkerIcon: {
+    backgroundColor: COLOR.ENFASIS,
+    width: 33,
+    height: 33,
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: COLOR.BASE,
+    zIndex: 2,
   },
 })

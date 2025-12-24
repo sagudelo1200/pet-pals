@@ -39,6 +39,12 @@
     "CONFIRMAR_COMPLETADO": "Confirmar completado",
     "CANCELAR": "Cancelar paseo"
   },
+
+  "activo": {
+    "en_vivo": "EN VIVO",
+    "cancelado_titulo": "Paseo Cancelado",
+    "cancelado_mensaje": "Este paseo ha sido cancelado."
+  },
   "ui": {
     "confirmCancel": "¿Estás seguro de cancelar este paseo?"
   },
@@ -187,7 +193,11 @@
     "mascota": "Mascota",
     "ubicacion": "Punto de encuentro",
     "paseo_finalizado": "Paseo finalizado exitosamente",
-    "transicion_invalida": "No se puede realizar esta acción en el estado actual"
+    "transicion_invalida": "No se puede realizar esta acción en el estado actual",
+    "gran_trabajo": "¡Gran trabajo!",
+    "exito_mensaje": "El paseo con {{mascota}} ha sido completado con éxito.",
+    "tiempo_total": "TIEMPO TOTAL",
+    "finalizar_volver": "Finalizar y Volver"
   },
   "finalizado": {
     "titulo": "¡Paseo Completado!",
