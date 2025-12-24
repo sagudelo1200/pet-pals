@@ -20,6 +20,8 @@ import {
   ScreenHeader,
   TarjetaPaseo,
 } from '@/components/ui'
+import { obtenerExperienciaPaseo } from '@/logic/paseos/PaseoStateRouter'
+import DetallePaseoBottomSheet from '@/components/paseos/DetallePaseoBottomSheet'
 
 const Dashboard: React.FC = () => {
   const { t } = useTranslation()
@@ -27,6 +29,8 @@ const Dashboard: React.FC = () => {
   const { user } = useAuth()
   const estadisticas = useEstadisticasCuidador()
   const { proximos, cargando, refetch } = useAgendaCuidador()
+  const [detalleVisible, setDetalleVisible] = useState(false)
+  const [detalleTitle, setDetalleTitle] = useState('')
 
   // Recargar estadísticas al enfocar la pantalla
   useFocusEffect(
@@ -136,15 +140,31 @@ const Dashboard: React.FC = () => {
                   key={paseo.id}
                   paseo={paseo}
                   onPress={() => {
-                    // Navegar al panel de control del paseo
-                    // @ts-ignore
-                    navigation.navigate('ControlPaseo', { paseoId: paseo.id })
+                    const experiencia = obtenerExperienciaPaseo(
+                      paseo,
+                      'cuidador'
+                    )
+                    if (experiencia.tipo === 'PANTALLA') {
+                      // @ts-ignore
+                      navigation.navigate(experiencia.id, { paseoId: paseo.id })
+                    } else if (experiencia.tipo === 'MODAL') {
+                      setDetalleTitle(
+                        experiencia.configuracion.titulo ||
+                          t('paseos:detalle.titulo')
+                      )
+                      setDetalleVisible(true)
+                    }
                   }}
                 />
               ))
             : renderEmptyState()}
         </View>
       </ScrollView>
+      <DetallePaseoBottomSheet
+        visible={detalleVisible}
+        onClose={() => setDetalleVisible(false)}
+        title={detalleTitle}
+      />
     </Screen>
   )
 }

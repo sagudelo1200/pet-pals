@@ -12,6 +12,7 @@ import EmptyState from '@/components/ui/EmptyState'
 import PaseadorPerrosSvg from '@/assets/imgs/undraw/paseador_perros.svg'
 import { useAgendaCuidador } from '@/hooks/cuidador/useAgendaCuidador'
 import DetallePaseoBottomSheet from '@/components/paseos/DetallePaseoBottomSheet'
+import { obtenerExperienciaPaseo } from '@/logic/paseos/PaseoStateRouter'
 
 type TabTipo = 'proximos' | 'historial'
 
@@ -26,13 +27,18 @@ const Agenda: React.FC = () => {
   const paseosFiltrados = activeTab === 'proximos' ? proximos : historial
 
   const handlePressPaseo = (paseoId: string) => {
-    // Si es un paseo próximo (activo), navegar a ControlPaseo
-    if (activeTab === 'proximos') {
+    const paseo = paseosFiltrados.find(p => p.id === paseoId)
+    if (!paseo) return
+
+    const experiencia = obtenerExperienciaPaseo(paseo, 'cuidador')
+
+    if (experiencia.tipo === 'PANTALLA') {
       // @ts-ignore
-      navigation.navigate('ControlPaseo', { paseoId })
-    } else {
-      // Si es historial, abrir modal de detalles
-      setDetalleTitle(t('paseos:detalle.titulo'))
+      navigation.navigate(experiencia.id, { paseoId })
+    } else if (experiencia.tipo === 'MODAL') {
+      setDetalleTitle(
+        experiencia.configuracion.titulo || t('paseos:detalle.titulo')
+      )
       setDetalleVisible(true)
     }
   }

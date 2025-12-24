@@ -39,12 +39,6 @@
     "CONFIRMAR_COMPLETADO": "Confirmar completado",
     "CANCELAR": "Cancelar paseo"
   },
-
-  "activo": {
-    "en_vivo": "EN VIVO",
-    "cancelado_titulo": "Paseo Cancelado",
-    "cancelado_mensaje": "Este paseo ha sido cancelado."
-  },
   "ui": {
     "confirmCancel": "¿Estás seguro de cancelar este paseo?"
   },
@@ -161,8 +155,6 @@
     "tiempo_restante": "Faltan aprox. {{tiempo}} min",
     "finalizado_titulo": "¡Paseo Finalizado!",
     "finalizado_mensaje": "{{nombre}} ya está de regreso en casa. ¡Sabemos que lo disfrutó!",
-    "cancelado_titulo": "Paseo Cancelado",
-    "cancelado_mensaje": "El paseo ha sido cancelado. Si tienes dudas, contacta al cuidador.",
     "no_encontrado": "No pudimos encontrar este paseo. Verifica tus permisos o si el servicio aún es válido.",
     "chat_interno_aviso": "Muy pronto podrás chatear directamente con el cuidador desde aquí para mayor seguridad. 🐾🚀",
     "mascota_protegida": "Protección Activa",
@@ -180,7 +172,10 @@
       "iniciar_ruta": "Inició el viaje de recogida",
       "iniciar_paseo": "Inició el paseo oficial",
       "finalizar_paseo": "Finalizó el paseo"
-    }
+    },
+    "en_vivo": "EN VIVO",
+    "cancelado_titulo": "Paseo Cancelado",
+    "cancelado_mensaje": "Este paseo ha sido cancelado."
   },
   "control": {
     "iniciar_ruta": "Iniciar Ruta",

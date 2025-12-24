@@ -15,6 +15,7 @@ import { useMascotas } from '@/hooks/useMascotas'
 import { usePaseos } from '@/hooks/paseos/usePaseos'
 import DetallePaseoBottomSheet from '@/components/paseos/DetallePaseoBottomSheet'
 import { PaseoStatus } from '@/models/Paseo'
+import { obtenerExperienciaPaseo } from '@/logic/paseos/PaseoStateRouter'
 
 type TabTipo = 'proximos' | 'historial'
 
@@ -33,23 +34,25 @@ const Paseos: React.FC = () => {
     const now = Date.now()
     if (now - lastNavTime.current < 1000) return
     lastNavTime.current = now
-    // Evitar abrir detalle para solicitudes pendientes (PENDIENTE)
+
     const paseo = (paseos || []).find(p => p.id === id)
     if (!paseo) return
-    
-    // Evitar abrir detalle para solicitudes pendientes
-    if (paseo.estado === PaseoStatus.PENDIENTE) return
 
-    // Si el paseo está en progreso o en ruta, vamos a la pantalla de monitoreo en vivo
-    if (paseo.estado === PaseoStatus.EN_PROGRESO || paseo.estado === PaseoStatus.EN_RUTA) {
+    // Usar State Router para decidir la experiencia
+    const experiencia = obtenerExperienciaPaseo(paseo, 'tutor')
+
+    if (experiencia.tipo === 'NINGUNA') return
+
+    if (experiencia.tipo === 'PANTALLA') {
       // @ts-ignore
-      navigation.navigate('PaseoActivo', { paseoId: id })
-      return
+      navigation.navigate(experiencia.id, { paseoId: id })
+    } else if (experiencia.tipo === 'MODAL') {
+      // Mapeo temporal: Todos los modales abren el detalle genérico
+      setDetalleTitle(
+        experiencia.configuracion.titulo || t('paseos:detalle.titulo')
+      )
+      setDetalleVisible(true)
     }
-
-    // Abrir BottomSheet de detalle para otros estados
-    setDetalleTitle(t('paseos:detalle.titulo'))
-    setDetalleVisible(true)
   }
 
   const handleSolicitar = () => {
@@ -109,7 +112,6 @@ const Paseos: React.FC = () => {
           ? t('paseos:lista.vacio_proximos')
           : t('paseos:lista.vacio_completados')}
       </Text>
-      
     </View>
   )
 
