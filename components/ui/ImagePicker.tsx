@@ -15,7 +15,7 @@ import * as ImagePickerLib from 'expo-image-picker'
 interface ImagePickerProps {
   label?: string
   value?: string
-  onValueChange: (uri: string) => void
+  onValueChange: (_uri: string) => void
   placeholder?: string
   errorText?: string
   style?: ViewStyle | ViewStyle[]

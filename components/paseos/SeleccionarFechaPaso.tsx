@@ -8,7 +8,7 @@ import DatePicker from '@/components/ui/DatePicker'
 interface Props {
   fechaInicial?: Date | null
   duracionInicial?: number | null
-  onNext: (fecha: Date, duracion: number) => void
+  onNext: (_fecha: Date, _duracion: number) => void
   onBack: () => void
 }
 

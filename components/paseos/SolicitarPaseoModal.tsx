@@ -61,9 +61,9 @@ export const SolicitarPaseoModal = ({ visible, onClose }: Props) => {
     setStep('SELECCIONAR_DIRECCION') // Go to Address
   }
 
-  const handleAddressSelected = (direccionId: string, direccionObj?: any) => {
-      setDatosSolicitud(prev => ({ ...prev, direccionId }))
-      setStep('SELECCIONAR_FECHA')
+  const handleAddressSelected = (direccionId: string, _direccionObj?: any) => {
+    setDatosSolicitud(prev => ({ ...prev, direccionId }))
+    setStep('SELECCIONAR_FECHA')
   }
 
   // ... existing handlers ...
@@ -153,13 +153,13 @@ export const SolicitarPaseoModal = ({ visible, onClose }: Props) => {
           />
         )
       case 'SELECCIONAR_DIRECCION':
-          return (
-              <SeleccionarDireccionPaso
-                  direccionInicialId={datosSolicitud.direccionId}
-                  onNext={handleAddressSelected}
-                  onCancel={() => handleBack()}
-              />
-          )
+        return (
+          <SeleccionarDireccionPaso
+            direccionInicialId={datosSolicitud.direccionId}
+            onNext={handleAddressSelected}
+            onCancel={() => handleBack()}
+          />
+        )
       case 'SELECCIONAR_FECHA':
         return (
           <SeleccionarFechaPaso
@@ -177,7 +177,9 @@ export const SolicitarPaseoModal = ({ visible, onClose }: Props) => {
             fecha={datosSolicitud.fecha!}
             onNext={handleWalkerSelected}
             onBack={() => handleBack()}
-            onChangeFechaSuggested={(f) => handleDateSelected(f, datosSolicitud.duracion || 60)}
+            onChangeFechaSuggested={f =>
+              handleDateSelected(f, datosSolicitud.duracion || 60)
+            }
           />
         )
       case 'SELECCIONAR_HORA':
@@ -221,7 +223,7 @@ export const SolicitarPaseoModal = ({ visible, onClose }: Props) => {
     'SELECCIONAR_HORA',
     'CONFIRMAR',
   ]
-// ...
+  // ...
   const currentStepIndex = stepsOrder.indexOf(step)
   const totalPasos = stepsOrder.length
 

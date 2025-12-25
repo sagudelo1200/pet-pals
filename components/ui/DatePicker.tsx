@@ -58,7 +58,7 @@ LocaleConfig.defaultLocale = 'es'
 interface DatePickerProps {
   label?: string
   value?: Date
-  onValueChange: (date: Date) => void
+  onValueChange: (_date: Date) => void
   placeholder?: string
   errorText?: string
   style?: ViewStyle | ViewStyle[]

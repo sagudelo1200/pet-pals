@@ -41,7 +41,7 @@ export const useEdicionMascota = (
         } else {
           setError(t('mascotas:errores.error_cargar'))
         }
-      } catch (e) {
+      } catch (_e) {
         setError(t('mascotas:errores.error_cargar'))
       } finally {
         setLoading(false)

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, FC } from 'react'
 import { View, Text, Image, StyleSheet } from 'react-native'
 import { COLOR } from '@/constants'
 import { i18n } from '@/services/i18n'
@@ -14,17 +14,19 @@ interface LoadingScreenProps {
   textStyle?: object
 }
 
-const LoadingScreen: React.FC<LoadingScreenProps> = ({
+const LoadingScreen: FC<LoadingScreenProps> = ({
   message,
   messageType = 'general',
   customMessages,
   showSpinner = true,
-  spinnerColor = COLOR.PRIMARIO,
+  spinnerColor: _spinnerColor = COLOR.PRIMARIO,
   spinnerSize = 'large',
   containerStyle,
   textStyle,
 }) => {
   const [currentMessage, setCurrentMessage] = useState<string>('')
+
+  const gifSize = spinnerSize === 'small' ? 100 : 150
 
   const messageCollections = useMemo(() => {
     const loadFromI18n = (key: string) => {
@@ -79,7 +81,7 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({
       {showSpinner && (
         <Image
           source={require('@/assets/gif/perro_caminando.gif')}
-          style={styles.gif}
+          style={[styles.gif, { width: gifSize, height: gifSize }]}
           resizeMode="contain"
         />
       )}

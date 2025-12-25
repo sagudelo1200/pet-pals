@@ -13,7 +13,7 @@ interface SelectorDireccionSheetProps {
   onClose: () => void
   direcciones: UbicacionRef[]
   principalId?: string
-  alSeleccionar: (ubicacion: UbicacionRef) => void
+  alSeleccionar: (_ubicacion: UbicacionRef) => void
   onAgregarNueva: () => void
 }
 
@@ -35,7 +35,10 @@ export const SelectorDireccionSheet: React.FC<SelectorDireccionSheetProps> = ({
       <TouchableOpacity
         style={[
           styles.itemContainer,
-          esPrincipal && { borderColor: COLOR.PRIMARIO, backgroundColor: COLOR.BLOQUE },
+          esPrincipal && {
+            borderColor: COLOR.PRIMARIO,
+            backgroundColor: COLOR.BLOQUE,
+          },
         ]}
         onPress={() => {
           alSeleccionar(item)
@@ -61,8 +64,8 @@ export const SelectorDireccionSheet: React.FC<SelectorDireccionSheetProps> = ({
             )}
           </View>
           <Text style={styles.direccion} numberOfLines={1}>
-             {/* UbicacionRef no tiene direccion_corta, usamos ID o placeholder por ahora */}
-             {item.ubicacion_id}
+            {/* UbicacionRef no tiene direccion_corta, usamos ID o placeholder por ahora */}
+            {item.ubicacion_id}
           </Text>
         </View>
 

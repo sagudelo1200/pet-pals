@@ -1,7 +1,9 @@
 import { useState } from 'react'
 import { ServicioPaseo } from '@/services/firebase'
-import type { PaseoEvent } from '@/services/firebase/maquina-estados-paseo'
-import { crearMaquinaPaseo } from '@/services/firebase/maquina-estados-paseo'
+import {
+  crearMaquinaPaseo,
+  type PaseoEvent,
+} from '@/services/firebase/maquina-estados-paseo'
 import { Alert } from 'react-native'
 import { useTranslation } from 'react-i18next'
 import { usePaseoActivo } from '@/hooks/paseos/usePaseoActivo'

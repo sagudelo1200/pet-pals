@@ -32,6 +32,6 @@ export interface DetalleUbicacion {
 }
 
 export interface IProveedorMapas {
-  buscarSitios(query: string): Promise<SugerenciaAutocomplete[]>
-  obtenerDetalles(placeId: string): Promise<DetalleUbicacion>
+  buscarSitios(_query: string): Promise<SugerenciaAutocomplete[]>
+  obtenerDetalles(_placeId: string): Promise<DetalleUbicacion>
 }

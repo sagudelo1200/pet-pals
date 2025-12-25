@@ -120,7 +120,7 @@ export const useGestionPaseoCuidador = () => {
             motivo: 'RECHAZADO_POR_CUIDADOR',
           })
         }
-      } catch (e) {
+      } catch (_e) {
         // no bloquear navegación por fallos de logging
       }
 

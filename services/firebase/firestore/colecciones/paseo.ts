@@ -429,7 +429,7 @@ export class ServicioPaseo {
     const currentUser = ServicioAuth.obtenerUsuarioActual()
     if (!currentUser) return { success: false, error: ERR.COMUN.NO_AUTENTICADO }
 
-    let duracionReal: number | undefined
+    let _duracionReal: number | undefined
 
     try {
       await runTransaction(db, async transaction => {

@@ -8,7 +8,7 @@ import type { RolUsuario } from '@/models/Usuario'
 interface Props {
   visible: boolean
   roles: RolUsuario[]
-  onSelectRol: (rol: RolUsuario) => void
+  onSelectRol: (_rol: RolUsuario) => void
   onClose: () => void
 }
 
@@ -44,31 +44,36 @@ export const SeleccionarRolModal: React.FC<Props> = ({
   return (
     <BottomSheet visible={visible} onClose={onClose}>
       <View style={styles.container}>
-        <Text style={styles.titulo}>
-          {t('comun:seleccionar_rol_titulo')}
-        </Text>
+        <Text style={styles.titulo}>{t('comun:seleccionar_rol_titulo')}</Text>
         <Text style={styles.subtitulo}>
           {t('comun:seleccionar_rol_subtitulo')}
         </Text>
 
         <View style={styles.rolesContainer}>
-          {roles.map((rol) => {
-            const config = ROL_CONFIG[rol]
+          {roles.map(_rol => {
+            const config = ROL_CONFIG[_rol]
             if (!config) return null
 
             return (
               <TouchableOpacity
-                key={rol}
+                key={_rol}
                 style={styles.rolCard}
-                onPress={() => onSelectRol(rol)}
+                onPress={() => onSelectRol(_rol)}
                 activeOpacity={0.7}
               >
-                <View style={[styles.iconContainer, { backgroundColor: `${config.color}15` }]}>
+                <View
+                  style={[
+                    styles.iconContainer,
+                    { backgroundColor: `${config.color}15` },
+                  ]}
+                >
                   <Icon name={config.icon} size={32} color={config.color} />
                 </View>
                 <View style={styles.rolInfo}>
                   <Text style={styles.rolTitulo}>{config.titulo}</Text>
-                  <Text style={styles.rolDescripcion}>{config.descripcion}</Text>
+                  <Text style={styles.rolDescripcion}>
+                    {config.descripcion}
+                  </Text>
                 </View>
                 <Icon name="chevron-right" size={20} color={COLOR.SUBTEXTO} />
               </TouchableOpacity>

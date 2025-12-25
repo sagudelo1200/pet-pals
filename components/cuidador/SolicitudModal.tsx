@@ -48,7 +48,7 @@ const SolicitudModal: React.FC<Props> = ({ visible, paseo, onClose }) => {
           }
           if (mounted) setMascotas(results)
         }
-      } catch (e) {
+      } catch (_e) {
         // ignore
       } finally {
         if (mounted) setLoadingMascotas(false)
@@ -86,7 +86,7 @@ const SolicitudModal: React.FC<Props> = ({ visible, paseo, onClose }) => {
           (res as any).error || t('comun:error_desconocido')
         )
       }
-    } catch (e) {
+    } catch (_e) {
       setLoading(false)
       Alert.alert(t('comun:error'), t('comun:error_desconocido'))
     }
@@ -110,7 +110,7 @@ const SolicitudModal: React.FC<Props> = ({ visible, paseo, onClose }) => {
                 await ServicioPaseo.registrarEvento(paseo.id, 'RECHAZAR', {
                   motivo: 'RECHAZADO_POR_CUIDADOR',
                 })
-              } catch (e) {
+              } catch (_e) {
                 // ignore
               }
               setLoading(false)

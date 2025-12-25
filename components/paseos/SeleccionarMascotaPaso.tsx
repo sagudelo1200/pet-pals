@@ -1,10 +1,8 @@
-import React from 'react'
 import {
   StyleSheet,
   View,
   FlatList,
   TouchableOpacity,
-  Image,
   Text,
 } from 'react-native'
 import { useTranslation } from 'react-i18next'
@@ -14,6 +12,7 @@ import { useSeleccionarMascota } from '@/hooks/paseos/useSeleccionarMascota'
 
 interface Props {
   mascotasInicialesIds?: string[]
+  // eslint-disable-next-line
   onNext: (mascotaIds: string[]) => void
   onCancel: () => void
 }

@@ -8,7 +8,7 @@ interface Props {
   horaInicial?: string | null
   horaMinima?: string
   horaMaxima?: string
-  onNext: (hora: string) => void
+  onNext: (_hora: string) => void
   onBack: () => void
 }
 

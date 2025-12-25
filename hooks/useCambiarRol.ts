@@ -74,7 +74,7 @@ export const useCambiarRol = () => {
         if (typeof cambiarRolActivo === 'function') {
           await cambiarRolActivo(nuevoRol)
         }
-      } catch (e) {
+      } catch (_e) {
         // ignore
       }
 

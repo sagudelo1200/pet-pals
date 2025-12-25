@@ -20,7 +20,7 @@ import { useTranslation } from 'react-i18next'
 interface CrearDireccionSheetProps {
   visible: boolean
   onClose: () => void
-  onGuardar: (datos: {
+  onGuardar: (_datos: {
     proveedor: 'google' | 'mapbox'
     proveedor_place_id: string
     direccion_formateada: string
@@ -40,13 +40,18 @@ export const CrearDireccionSheet: React.FC<CrearDireccionSheetProps> = ({
 }) => {
   const { t } = useTranslation()
   const [step, setStep] = useState<Step>('BUSQUEDA')
-  
+
   const [seleccion, setSeleccion] = useState<any>(null)
   // Region inicial solo para enfocar el mapa al principio
-  const [initialRegion, setInitialRegion] = useState<Region | undefined>(undefined)
+  const [initialRegion, setInitialRegion] = useState<Region | undefined>(
+    undefined
+  )
   // Coordenadas finales (fuente de verdad al guardar)
-  const [coordenadasFinales, setCoordenadasFinales] = useState<{latitude: number, longitude: number} | null>(null)
-  
+  const [coordenadasFinales, setCoordenadasFinales] = useState<{
+    latitude: number
+    longitude: number
+  } | null>(null)
+
   const [alias, setAlias] = useState('')
   const [referencia, setReferencia] = useState('')
   const [guardando, setGuardando] = useState(false)
@@ -70,7 +75,7 @@ export const CrearDireccionSheet: React.FC<CrearDireccionSheetProps> = ({
     setSeleccion(detalles)
     // Coordenadas base
     const { latitude, longitude } = detalles.coordenadas
-    
+
     setCoordenadasFinales({ latitude, longitude })
     setInitialRegion({
       latitude,
@@ -88,7 +93,8 @@ export const CrearDireccionSheet: React.FC<CrearDireccionSheetProps> = ({
       await onGuardar({
         proveedor: 'google', // Default for now since AutocompletarDireccion uses Google
         proveedor_place_id: seleccion.place_id || seleccion.placeId,
-        direccion_formateada: seleccion.direccion_formateada || seleccion.direccion,
+        direccion_formateada:
+          seleccion.direccion_formateada || seleccion.direccion,
         coordenadas: coordenadasFinales,
         alias: alias || t('tutor:solicitud.direccion.alias_placeholder'),
         referencia,
@@ -142,33 +148,52 @@ export const CrearDireccionSheet: React.FC<CrearDireccionSheetProps> = ({
             {/* Mapa Reutilizable en modo interactivo - SIN region (uncontrolled) para evitar drift */}
             {initialRegion && (
               <Mapa
-                  interactivo
-                  pinCentro
-                  alto={300}
-                  // Usamos key para que se remonte si cambia la region inicial (reset)
-                  key={`map-${initialRegion.latitude}-${initialRegion.longitude}`}
-                  coordenadas={{ latitude: initialRegion.latitude, longitude: initialRegion.longitude }} // Prop para centrar inicial via key
-                  onRegionChangeComplete={(r) => {
-                     setCoordenadasFinales({ latitude: r.latitude, longitude: r.longitude })
-                     setUsuarioMovioMapa(true)
-                  }}
-                  style={{ marginBottom: 16 }}
+                interactivo
+                pinCentro
+                alto={300}
+                // Usamos key para que se remonte si cambia la region inicial (reset)
+                key={`map-${initialRegion.latitude}-${initialRegion.longitude}`}
+                coordenadas={{
+                  latitude: initialRegion.latitude,
+                  longitude: initialRegion.longitude,
+                }} // Prop para centrar inicial via key
+                onRegionChangeComplete={r => {
+                  setCoordenadasFinales({
+                    latitude: r.latitude,
+                    longitude: r.longitude,
+                  })
+                  setUsuarioMovioMapa(true)
+                }}
+                style={{ marginBottom: 16 }}
               />
             )}
-            
+
             <View style={styles.addressPreview}>
               <View style={{ marginRight: 12 }}>
-                 <Icon name="map-marker-alt" size={20} color={COLOR.PRIMARIO} />
+                <Icon name="map-marker-alt" size={20} color={COLOR.PRIMARIO} />
               </View>
               <View style={{ flex: 1 }}>
-                <Text size={10} color={COLOR.SUBTEXTO} bold style={{ textTransform: 'uppercase', marginBottom: 2 }}>
-                  {usuarioMovioMapa ? t('tutor:solicitud.direccion.ubicacion_ajustada') : t('tutor:solicitud.direccion.ubicacion_original')}
+                <Text
+                  size={10}
+                  color={COLOR.SUBTEXTO}
+                  bold
+                  style={{ textTransform: 'uppercase', marginBottom: 2 }}
+                >
+                  {usuarioMovioMapa
+                    ? t('tutor:solicitud.direccion.ubicacion_ajustada')
+                    : t('tutor:solicitud.direccion.ubicacion_original')}
                 </Text>
                 <Text bold size={14} color={COLOR.TEXTO} numberOfLines={2}>
-                  {usuarioMovioMapa ? t('tutor:solicitud.direccion.pin_personalizado') : (seleccion?.direccion_formateada || seleccion?.direccion)}
+                  {usuarioMovioMapa
+                    ? t('tutor:solicitud.direccion.pin_personalizado')
+                    : seleccion?.direccion_formateada || seleccion?.direccion}
                 </Text>
                 {usuarioMovioMapa && (
-                  <Text size={11} color={COLOR.ENFASIS} style={{ marginTop: 2 }}>
+                  <Text
+                    size={11}
+                    color={COLOR.ENFASIS}
+                    style={{ marginTop: 2 }}
+                  >
                     {t('tutor:solicitud.direccion.uso_pin_ayuda')}
                   </Text>
                 )}
@@ -187,7 +212,7 @@ export const CrearDireccionSheet: React.FC<CrearDireccionSheetProps> = ({
       case 'DETALLES':
         return (
           <View>
-             <View style={styles.stepHeader}>
+            <View style={styles.stepHeader}>
               <TouchableOpacity onPress={() => setStep('MAPA_CONFIRMACION')}>
                 <Icon name="arrow-left" size={24} color={COLOR.TEXTO} />
               </TouchableOpacity>
@@ -200,7 +225,12 @@ export const CrearDireccionSheet: React.FC<CrearDireccionSheetProps> = ({
               {t('tutor:solicitud.direccion.detalles_ayuda')}
             </Text>
 
-            <Text size={12} bold color={COLOR.SUBTEXTO} style={{ marginBottom: 6 }}>
+            <Text
+              size={12}
+              bold
+              color={COLOR.SUBTEXTO}
+              style={{ marginBottom: 6 }}
+            >
               {t('tutor:solicitud.direccion.alias_label')}
             </Text>
             <View style={styles.inputContainer}>
@@ -212,16 +242,23 @@ export const CrearDireccionSheet: React.FC<CrearDireccionSheetProps> = ({
                 onChangeText={setAlias}
               />
             </View>
-            
+
             <Spacer size={16} />
 
-            <Text size={12} bold color={COLOR.SUBTEXTO} style={{ marginBottom: 6 }}>
+            <Text
+              size={12}
+              bold
+              color={COLOR.SUBTEXTO}
+              style={{ marginBottom: 6 }}
+            >
               {t('tutor:solicitud.direccion.referencia_label')}
             </Text>
-             <View style={styles.inputContainer}>
+            <View style={styles.inputContainer}>
               <TextInput
                 style={styles.input}
-                placeholder={t('tutor:solicitud.direccion.referencia_placeholder')}
+                placeholder={t(
+                  'tutor:solicitud.direccion.referencia_placeholder'
+                )}
                 placeholderTextColor={COLOR.INACTIVO}
                 value={referencia}
                 onChangeText={setReferencia}
@@ -231,7 +268,9 @@ export const CrearDireccionSheet: React.FC<CrearDireccionSheetProps> = ({
             <Spacer size={30} />
 
             <Button
-              title={guardando ? t('comun:guardando') : t('comun:guardar_direccion')}
+              title={
+                guardando ? t('comun:guardando') : t('comun:guardar_direccion')
+              }
               variant="primario"
               onPress={handleSave}
               disabled={guardando}
@@ -243,7 +282,11 @@ export const CrearDireccionSheet: React.FC<CrearDireccionSheetProps> = ({
   }
 
   return (
-    <BottomSheet visible={visible} onClose={onClose} height={step === 'BUSQUEDA' ? 500 : 700}>
+    <BottomSheet
+      visible={visible}
+      onClose={onClose}
+      height={step === 'BUSQUEDA' ? 500 : 700}
+    >
       {renderContent()}
     </BottomSheet>
   )

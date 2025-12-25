@@ -39,7 +39,7 @@ interface Props {
 
 export const SeleccionarCuidadorPaso = ({
   cuidadorInicialId,
-  horarioInicial,
+  horarioInicial: _horarioInicial,
   fecha,
   onNext,
   onBack,

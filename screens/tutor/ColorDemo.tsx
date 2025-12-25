@@ -1,6 +1,6 @@
 // screens/tutor/ColorDemo.tsx
 import React, { useState } from 'react'
-import { View, StyleSheet, TouchableOpacity, Platform } from 'react-native'
+import { View, StyleSheet, TouchableOpacity, Alert } from 'react-native'
 import { Text, theme } from 'galio-framework'
 import { COLOR } from '@/constants'
 import {
@@ -25,7 +25,6 @@ import {
 } from '@/services/firebase'
 import { useDirecciones } from '@/hooks/useDirecciones'
 import type { Mascota } from '@/models/Mascota'
-import { Alert } from 'react-native'
 import { SelectorDireccionSheet } from '@/components/ui/Direcciones/SelectorDireccionSheet'
 import { CrearDireccionSheet } from '@/components/ui/Direcciones/CrearDireccionSheet'
 import { UbicacionRef } from '@/models/Ubicacion'
@@ -471,7 +470,7 @@ const ColorDemo: React.FC = () => {
           Prueba el hook que abstrae la lógica. ({direcciones.length} guardadas)
         </Text>
         <Button
-          title={loadingDir ? 'Cargando...' : '1. Agregar \'Casa\' (Hook)'}
+          title={loadingDir ? 'Cargando...' : '1. Agregar "Casa" (Hook)'}
           variant="primario"
           onPress={async () => {
             try {

@@ -7,7 +7,7 @@ import React, {
   ReactNode,
 } from 'react'
 import { useTranslation } from 'react-i18next'
-import { ServicioMascota, ServicioAuth } from '@/services/firebase'
+import { ServicioMascota } from '@/services/firebase'
 import { useAuth } from '@/context/AuthContext'
 import type { Mascota } from '@/models/Mascota'
 
@@ -56,7 +56,7 @@ export const MascotasProvider: React.FC<{ children: ReactNode }> = ({
         setError(t('mascotas:errores.error_cargar'))
         setMascotas([])
       }
-    } catch (err) {
+    } catch (_err) {
       setError(t('mascotas:errores.error_cargar'))
       setMascotas([])
     } finally {
@@ -102,7 +102,7 @@ export const MascotasProvider: React.FC<{ children: ReactNode }> = ({
           setMascotas(mascotasAnteriores)
           setError(t('mascotas:errores.error_guardar'))
         }
-      } catch (err) {
+      } catch (_err) {
         setMascotas(mascotasAnteriores)
         setError(t('mascotas:errores.error_guardar'))
       }

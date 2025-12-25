@@ -18,6 +18,7 @@ interface MapaProps {
   /** Región controlada (opcional) */
   region?: Region
   /** Callback al terminar de mover el mapa (modo interactivo) */
+  // eslint-disable-next-line no-unused-vars
   onRegionChangeComplete?: (region: Region) => void
 
   alto?: number | string

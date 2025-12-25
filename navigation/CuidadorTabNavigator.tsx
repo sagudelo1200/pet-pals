@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react'
+import { ReactElement } from 'react'
 import { Platform, View, Text, StyleSheet } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
@@ -15,7 +15,7 @@ import { useAgendaCuidador } from '@/hooks/cuidador/useAgendaCuidador'
 
 const Tab = createBottomTabNavigator<CuidadorTabParamList>()
 
-export default function CuidadorTabNavigator(): React.ReactElement {
+export default function CuidadorTabNavigator(): ReactElement {
   const insets = useSafeAreaInsets()
   const { t } = useTranslation()
   const { solicitudes } = useSolicitudesCuidador()
@@ -76,7 +76,7 @@ export default function CuidadorTabNavigator(): React.ReactElement {
         component={SolicitudesPaseos}
         options={{
           title: t('cuidador:tabs.solicitudes'),
-          tabBarIcon: ({ color, size, focused }) => (
+          tabBarIcon: ({ color, size }) => (
             <View style={styles.iconWrapper}>
               <Icon name="bell" size={size} color={color} />
               {solicitudesCount > 0 && (
@@ -93,7 +93,7 @@ export default function CuidadorTabNavigator(): React.ReactElement {
         component={Agenda}
         options={{
           title: t('cuidador:tabs.agenda'),
-          tabBarIcon: ({ color, size, focused }) => (
+          tabBarIcon: ({ color, size }) => (
             <View style={styles.iconWrapper}>
               <Icon name="calendar-alt" size={size} color={color} />
               {agendaCount > 0 && (

@@ -8,11 +8,11 @@ import React, {
 import { User } from 'firebase/auth'
 import {
   ServicioAuth,
+  ServicioUsuario,
   AuthUser,
   AuthContextType,
   AuthResult,
 } from '@/services/firebase'
-import { ServicioUsuario } from '@/services/firebase'
 import { RolUsuario, Usuario } from '@/models/Usuario'
 import { useSincronizacionPerfil } from '@/hooks/useSincronizacionPerfil'
 

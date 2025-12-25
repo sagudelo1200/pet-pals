@@ -16,7 +16,7 @@ import Button from './Button'
 interface DurationPickerProps {
   label?: string
   value?: number | null
-  onValueChange: (duration: number) => void
+  onValueChange: (_duration: number | null) => void
   placeholder?: string
   style?: ViewStyle | ViewStyle[]
 }

@@ -14,13 +14,10 @@ import TextInput from './TextInput'
 import Icon from './Icon'
 import { usePlacesAutocomplete } from '@/hooks/usePlacesAutocomplete'
 import { usePlaceDetails } from '@/hooks/usePlaceDetails'
-import {
-  DetalleUbicacion,
-  SugerenciaAutocomplete,
-} from '@/services/maps/types'
+import { DetalleUbicacion, SugerenciaAutocomplete } from '@/services/maps/types'
 
 interface AutocompletarDireccionProps {
-  onSelect: (ubicacion: DetalleUbicacion) => void
+  onSelect: (_ubicacion: DetalleUbicacion) => void
   placeholder?: string
   containerStyle?: ViewStyle
 }

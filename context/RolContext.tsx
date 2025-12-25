@@ -139,7 +139,7 @@ export const RolProvider: React.FC<RolProviderProps> = ({ children }) => {
           } else {
             await AsyncStorage.removeItem(ROL_ACTIVO_KEY)
           }
-        } catch (err) {
+        } catch (_err) {
           // ignore
         }
         setRolActivo(previo)

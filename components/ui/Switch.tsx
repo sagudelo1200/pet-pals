@@ -10,7 +10,7 @@ import { COLOR } from '@/constants'
 
 interface SwitchProps {
   value: boolean
-  onValueChange: (value: boolean) => void
+  onValueChange: (_value: boolean) => void
   label?: string
   description?: string
   disabled?: boolean
@@ -18,7 +18,7 @@ interface SwitchProps {
 }
 
 const Switch: React.FC<SwitchProps> = ({
-  value,
+  value: _value,
   onValueChange,
   label,
   description,
@@ -42,7 +42,7 @@ const Switch: React.FC<SwitchProps> = ({
           </View>
         )}
         <RNSwitch
-          value={value}
+          value={_value}
           onValueChange={onValueChange}
           disabled={disabled}
           trackColor={{ false: COLOR.INACTIVO, true: COLOR.PRIMARIO }}

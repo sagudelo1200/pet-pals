@@ -7,16 +7,16 @@ import Spacer from '@/components/ui/Spacer'
 import { Mapa } from '@/components/ui/Mapa'
 import { useTranslation } from 'react-i18next'
 import { useDirecciones } from '@/hooks/useDirecciones'
-import { 
-  UbicacionHorizontal, 
-  AgregarUbicacionHorizontal 
+import {
+  UbicacionHorizontal,
+  AgregarUbicacionHorizontal,
 } from '@/components/ui/Direcciones/UbicacionHorizontal'
 import { CrearDireccionSheet } from '@/components/ui/Direcciones/CrearDireccionSheet'
-import { UbicacionRef } from '@/models/Ubicacion'
+// `UbicacionRef` removed because it's not used here
 
 interface Props {
   direccionInicialId?: string | null
-  onNext: (direccionId: string, direccion?: any) => void
+  onNext: (_direccionId: string, _direccion?: any) => void
   onCancel: () => void
 }
 
@@ -27,8 +27,10 @@ export const SeleccionarDireccionPaso: React.FC<Props> = ({
 }) => {
   const { t } = useTranslation()
   const { direcciones, loading, agregar } = useDirecciones()
-  
-  const [seleccionada, setSeleccionada] = useState<string | null>(direccionInicialId || (direcciones[0] ? direcciones[0].ubicacion_id : null))
+
+  const [seleccionada, setSeleccionada] = useState<string | null>(
+    direccionInicialId || (direcciones[0] ? direcciones[0].ubicacion_id : null)
+  )
   const [mostrarCrear, setMostrarCrear] = useState(false)
 
   // Encontrar la dirección seleccionada para mostrar el mapa preview
@@ -45,18 +47,22 @@ export const SeleccionarDireccionPaso: React.FC<Props> = ({
 
       {/* Lista Horizontal */}
       {loading ? (
-        <ActivityIndicator size="small" color={COLOR.PRIMARIO} style={{ marginVertical: 20 }} />
+        <ActivityIndicator
+          size="small"
+          color={COLOR.PRIMARIO}
+          style={{ marginVertical: 20 }}
+        />
       ) : (
         <View style={{ height: 130 }}>
           <FlatList
             horizontal
             data={direcciones}
-            keyExtractor={(item) => item.ubicacion_id}
+            keyExtractor={item => item.ubicacion_id}
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={{ paddingHorizontal: 4 }}
             ListHeaderComponent={
-              <AgregarUbicacionHorizontal 
-                onPress={() => setMostrarCrear(true)} 
+              <AgregarUbicacionHorizontal
+                onPress={() => setMostrarCrear(true)}
               />
             }
             renderItem={({ item }) => (
@@ -68,7 +74,10 @@ export const SeleccionarDireccionPaso: React.FC<Props> = ({
             )}
             ListEmptyComponent={
               direcciones.length === 0 ? (
-                <Text color={COLOR.SUBTEXTO} style={{ marginLeft: 12, marginTop: 40 }}>
+                <Text
+                  color={COLOR.SUBTEXTO}
+                  style={{ marginLeft: 12, marginTop: 40 }}
+                >
                   {t('tutor:solicitud.sin_direcciones')}
                 </Text>
               ) : null
@@ -79,18 +88,22 @@ export const SeleccionarDireccionPaso: React.FC<Props> = ({
 
       {/* Mapa Preview (Estático) */}
       <View style={styles.mapContainer}>
-         <Mapa
-            alto={150}
-            marcador
-            coordenadas={coordenadasPreview || { latitude: 4.62, longitude: -74.08 }} // Fallback bogota
-            style={{ borderRadius: 12 }}
-            zoom={16}
-         />
-         {!seleccionada && (
-            <View style={styles.mapOverlay}>
-              <Text color={COLOR.SUBTEXTO}>{t('tutor:solicitud.direccion.seleccionar_para_ver')}</Text>
-            </View>
-         )}
+        <Mapa
+          alto={150}
+          marcador
+          coordenadas={
+            coordenadasPreview || { latitude: 4.62, longitude: -74.08 }
+          } // Fallback bogota
+          style={{ borderRadius: 12 }}
+          zoom={16}
+        />
+        {!seleccionada && (
+          <View style={styles.mapOverlay}>
+            <Text color={COLOR.SUBTEXTO}>
+              {t('tutor:solicitud.direccion.seleccionar_para_ver')}
+            </Text>
+          </View>
+        )}
       </View>
 
       <Spacer size={20} />
@@ -115,15 +128,15 @@ export const SeleccionarDireccionPaso: React.FC<Props> = ({
       <CrearDireccionSheet
         visible={mostrarCrear}
         onClose={() => setMostrarCrear(false)}
-        onGuardar={async (datos) => {
+        onGuardar={async datos => {
           try {
-             // Ahora pasamos 'datos' completo (con coords) y el alias
-             const nuevaId = await agregar(datos, datos.alias)
-             console.log('Nueva ID guardada:', nuevaId)
-             if (nuevaId) {
-                setSeleccionada(nuevaId)
-                setMostrarCrear(false)
-             }
+            // Ahora pasamos 'datos' completo (con coords) y el alias
+            const nuevaId = await agregar(datos, datos.alias)
+            console.log('Nueva ID guardada:', nuevaId)
+            if (nuevaId) {
+              setSeleccionada(nuevaId)
+              setMostrarCrear(false)
+            }
           } catch (e) {
             console.error(e)
           }
@@ -156,5 +169,5 @@ const styles = StyleSheet.create({
   actions: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-  }
+  },
 })

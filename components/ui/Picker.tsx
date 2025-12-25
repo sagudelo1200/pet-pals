@@ -19,7 +19,7 @@ interface PickerOption {
 interface PickerProps {
   label?: string
   value: string
-  onValueChange: (value: string) => void
+  onValueChange: (_value: string) => void
   options: PickerOption[]
   placeholder?: string
   errorText?: string
@@ -33,7 +33,7 @@ interface PickerProps {
  */
 const Picker: React.FC<PickerProps> = ({
   label,
-  value,
+  value: _value,
   onValueChange,
   options,
   placeholder = 'Selecciona una opción',
@@ -44,7 +44,7 @@ const Picker: React.FC<PickerProps> = ({
 }) => {
   const [modalVisible, setModalVisible] = useState(false)
 
-  const selectedOption = options.find(opt => opt.value === value)
+  const selectedOption = options.find(opt => opt.value === _value)
   const displayText = selectedOption?.label || placeholder
 
   const containerStyle: ViewStyle | ViewStyle[] = [
@@ -117,7 +117,7 @@ const Picker: React.FC<PickerProps> = ({
 
             <ScrollView style={styles.optionsList}>
               {options.map(option => {
-                const isSelected = option.value === value
+                const isSelected = option.value === _value
                 return (
                   <Pressable
                     key={option.value}

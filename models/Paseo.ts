@@ -11,6 +11,8 @@ export type TipoPaseo = 'solicitado' | 'programado'
  * Estados posibles de un paseo.
  * Controla el flujo desde solicitud hasta conclusión o cancelación.
  */
+/* eslint-disable no-unused-vars */
+// Los valores del enum `PaseoStatus` se usan en múltiples módulos del proyecto.
 export enum PaseoStatus {
   PENDIENTE = 'PENDIENTE',
   CONFIRMADO = 'CONFIRMADO',

@@ -1,8 +1,11 @@
 import { useState, useCallback, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useMascotas } from '@/hooks/useMascotas'
-import { ServicioPaseo } from '@/services/firebase'
-import { ServicioPerfilPublico, ServicioUbicaciones } from '@/services/firebase'
+import {
+  ServicioPaseo,
+  ServicioPerfilPublico,
+  ServicioUbicaciones,
+} from '@/services/firebase'
 import { PaseoStatus } from '@/models/Paseo'
 import { useAuth } from '@/context/AuthContext'
 import type { Ubicacion } from '@/models/Ubicacion'
