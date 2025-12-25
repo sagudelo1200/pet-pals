@@ -1,7 +1,7 @@
 import { ServicioCrudBase } from '@/services/firebase/firestore/base'
 import { Mascota } from '@/models/Mascota'
 import { CrudResult } from '@/services/firebase/comun'
-import { ServicioAuth } from '@/services/firebase/auth'
+import { ServicioAuth } from '@/services/firebase/auth/auth'
 import { ERR } from '@/constants'
 
 export class ServicioMascota {

@@ -12,7 +12,7 @@ import {
   toDb,
   mapFirebaseError,
 } from '@/services/firebase/comun'
-import { ServicioAuth } from '@/services/firebase/auth'
+import { ServicioAuth } from '@/services/firebase/auth/auth'
 import type { Mascota } from '@/models/Mascota'
 import { ServicioCrudBase } from '@/services/firebase/firestore/base'
 import { MAX_MASCOTAS_POR_PASEO, ERR } from '@/constants'

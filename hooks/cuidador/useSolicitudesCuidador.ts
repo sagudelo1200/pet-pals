@@ -2,7 +2,7 @@ import { useMemo } from 'react'
 import { useCollection } from '@/hooks/useCollection'
 import { ServicioPaseo } from '@/services/firebase'
 import { Paseo } from '@/models/Paseo'
-import { ServicioAuth } from '@/services/firebase/auth'
+import { ServicioAuth } from '@/services/firebase/auth/auth'
 
 export function useSolicitudesCuidador() {
   const user = ServicioAuth.obtenerUsuarioActual()

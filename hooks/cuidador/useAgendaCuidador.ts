@@ -2,7 +2,7 @@ import { useMemo } from 'react'
 import { collection, query, where, orderBy, limit } from 'firebase/firestore'
 import { db } from '@/firebase.config'
 import { useCollection } from '@/hooks/useCollection'
-import { ServicioAuth } from '@/services/firebase/auth'
+import { ServicioAuth } from '@/services/firebase/auth/auth'
 import { Paseo } from '@/models/Paseo'
 
 /**
@@ -20,11 +20,7 @@ export function useAgendaCuidador() {
     return query(
       collection(db, 'paseos'),
       where('id_cuidador', '==', uid),
-      where('estado', 'in', [
-        'CONFIRMADO',
-        'EN_RUTA',
-        'EN_PROGRESO',
-      ]),
+      where('estado', 'in', ['CONFIRMADO', 'EN_RUTA', 'EN_PROGRESO']),
       orderBy('fecha_hora_inicio', 'asc') // Los más cercanos primero
     )
   }, [uid])

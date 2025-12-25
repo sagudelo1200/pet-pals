@@ -23,14 +23,14 @@ jest.mock('@/services/firebase/firestore/base', () => ({
   },
 }))
 
-jest.mock('@/services/firebase/auth', () => ({
+jest.mock('@/services/firebase/auth/auth', () => ({
   ServicioAuth: {
     obtenerUsuarioActual: jest.fn(),
   },
 }))
 
 const { ServicioCrudBase } = require('@/services/firebase/firestore/base')
-const { ServicioAuth } = require('@/services/firebase/auth')
+const { ServicioAuth } = require('@/services/firebase/auth/auth')
 
 // Require the real implementation of ServicioMascota
 const {

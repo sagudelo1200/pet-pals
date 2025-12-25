@@ -1,7 +1,7 @@
 import { ServicioCrudBase } from '@/services/firebase/firestore/base'
 import { Paseo, PaseoStatus } from '@/models/Paseo'
 import { CrudResult, mapFirebaseError } from '@/services/firebase/comun'
-import { ServicioAuth } from '@/services/firebase/auth'
+import { ServicioAuth } from '@/services/firebase/auth/auth'
 import type { Mascota } from '@/models/Mascota'
 import { addMascotasAlPaseo } from '@/services/firebase/firestore/colecciones/paseo-mascota'
 import { MAX_MASCOTAS_POR_PASEO, ERR } from '@/constants'
@@ -358,7 +358,7 @@ export class ServicioPaseo {
         const paseo = paseoDoc.data() as Paseo
 
         const { crearMaquinaPaseo } =
-          await import('@/services/firebase/maquina-estados-paseo')
+          await import('@/logic/paseos/maquina-estados')
         const maquina = crearMaquinaPaseo(paseo)
 
         if (!maquina.puede('INICIAR_RUTA')) {
@@ -399,7 +399,7 @@ export class ServicioPaseo {
         const paseo = paseoDoc.data() as Paseo
 
         const { crearMaquinaPaseo } =
-          await import('@/services/firebase/maquina-estados-paseo')
+          await import('@/logic/paseos/maquina-estados')
         const maquina = crearMaquinaPaseo(paseo)
 
         if (!maquina.puede('INICIAR_PASEO')) {
@@ -443,7 +443,7 @@ export class ServicioPaseo {
         const paseo = paseoDoc.data() as Paseo
 
         const { crearMaquinaPaseo } =
-          await import('@/services/firebase/maquina-estados-paseo')
+          await import('@/logic/paseos/maquina-estados')
         const maquina = crearMaquinaPaseo(paseo)
 
         if (!maquina.puede('FINALIZAR_PASEO')) {

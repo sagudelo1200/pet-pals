@@ -2,7 +2,7 @@ import { useMemo } from 'react'
 import { collection, query, where, orderBy, limit } from 'firebase/firestore'
 import { db } from '@/firebase.config'
 import { useCollection } from '@/hooks/useCollection'
-import { ServicioAuth } from '@/services/firebase/auth'
+import { ServicioAuth } from '@/services/firebase/auth/auth'
 import { Paseo } from '@/models/Paseo'
 
 /**

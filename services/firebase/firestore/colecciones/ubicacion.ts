@@ -16,7 +16,7 @@ import {
   mapFirebaseError,
   type CrudResult,
 } from '@/services/firebase/comun'
-import { ServicioAuth } from '@/services/firebase/auth'
+import { ServicioAuth } from '@/services/firebase/auth/auth'
 import { Ubicacion } from '@/models/Ubicacion'
 import {
   normalizeComponentsForLATAM,

@@ -23,10 +23,7 @@ export {
 } from './firestore/colecciones/paseo-mascota'
 
 // Auth
-export { ServicioAuth } from './auth'
-
-// Otros utilitarios / implementaciones auxiliares
-export { ServicioUbicaciones } from './ubicaciones'
+export { ServicioAuth } from './auth/auth'
 
 // Tipos y converters
 export * from './comun'

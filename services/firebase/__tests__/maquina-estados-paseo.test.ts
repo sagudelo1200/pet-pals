@@ -3,7 +3,7 @@ import { PaseoStatus } from '@/models/Paseo'
 import {
   crearMaquinaPaseo,
   MaquinaEstadosPaseo,
-} from '../maquina-estados-paseo'
+} from '@/logic/paseos/maquina-estados'
 
 describe('MaquinaEstadosPaseo', () => {
   let maquina: MaquinaEstadosPaseo

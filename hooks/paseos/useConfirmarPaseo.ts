@@ -4,7 +4,7 @@ import { useMascotas } from '@/hooks/useMascotas'
 import {
   ServicioPaseo,
   ServicioPerfilPublico,
-  ServicioUbicaciones,
+  ServicioUbicacion,
 } from '@/services/firebase'
 import { PaseoStatus } from '@/models/Paseo'
 import { useAuth } from '@/context/AuthContext'
@@ -61,7 +61,7 @@ export const useConfirmarPaseo = ({
         }
 
         if (direccionId) {
-          promises.push(ServicioUbicaciones.obtenerPorId(direccionId))
+          promises.push(ServicioUbicacion.obtenerPorId(direccionId))
         } else {
           promises.push(Promise.resolve(null))
         }

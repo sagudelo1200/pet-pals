@@ -4,7 +4,7 @@ import {
   MaquinaEstadosPaseo,
   PaseoEvent,
   TransitionPayload,
-} from '@/services/firebase/maquina-estados-paseo'
+} from '@/logic/paseos/maquina-estados'
 import { Paseo, PaseoStatus } from '@/models/Paseo'
 import { ServicioPaseo } from '@/services/firebase'
 
