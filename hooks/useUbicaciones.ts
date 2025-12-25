@@ -4,7 +4,10 @@ import { Ubicacion } from '@/models/Ubicacion'
 
 type MapById = Record<string, Ubicacion>
 
-export function useUbicaciones(ids: string[] | undefined) {
+export function useUbicaciones(ids: string[] | undefined): {
+  loading: boolean
+  data: MapById
+} {
   const [loading, setLoading] = useState(false)
   const [data, setData] = useState<MapById>({})
   const mounted = useRef(true)
@@ -17,7 +20,7 @@ export function useUbicaciones(ids: string[] | undefined) {
   }, [])
 
   useEffect(() => {
-    if (!ids || ids.length === 0) return
+    if (!ids || ids.length === 0) return undefined
     let cancelled = false
     setLoading(true)
     ;(async () => {

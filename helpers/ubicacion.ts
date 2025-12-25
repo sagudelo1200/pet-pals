@@ -3,17 +3,28 @@ import { GeoPoint } from 'firebase/firestore'
 export function geoPointToCoords(gp: any) {
   if (!gp) return undefined
   if (gp.latitude !== undefined && gp.longitude !== undefined)
-    return { lat: gp.latitude, lng: gp.longitude }
+    return { latitude: gp.latitude, longitude: gp.longitude }
+  if (gp.lat !== undefined && gp.lng !== undefined)
+    return { latitude: gp.lat, longitude: gp.lng }
   return undefined
 }
 
-export function coordsToGeoPoint(coords: { lat: number; lng: number }) {
-  return new GeoPoint(coords.lat, coords.lng)
+export function coordsToGeoPoint(
+  coords:
+    | { latitude?: number; longitude?: number }
+    | { lat?: number; lng?: number }
+) {
+  const lat = (coords as any).latitude ?? (coords as any).lat
+  const lng = (coords as any).longitude ?? (coords as any).lng
+  return new GeoPoint(lat || 0, lng || 0)
 }
 
-export function esCoordenadaValida(c?: { lat?: number; lng?: number }) {
+export function esCoordenadaValida(
+  c?: { lat?: number; lng?: number } | { latitude?: number; longitude?: number }
+) {
   if (!c) return false
-  const { lat, lng } = c as any
+  const lat = (c as any).latitude ?? (c as any).lat
+  const lng = (c as any).longitude ?? (c as any).lng
   if (typeof lat !== 'number' || typeof lng !== 'number') return false
   if (lat < -90 || lat > 90) return false
   if (lng < -180 || lng > 180) return false

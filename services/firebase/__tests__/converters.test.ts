@@ -1,9 +1,5 @@
 /* eslint-env jest */
-import {
-  toDomain,
-  toDb,
-  isFirestoreTimestamp,
-} from '@/services/firebase/converters'
+import { toDomain, toDb, isFirestoreTimestamp } from '@/services/firebase/comun'
 import { Timestamp } from 'firebase/firestore'
 
 describe('convertidores - unitario', () => {

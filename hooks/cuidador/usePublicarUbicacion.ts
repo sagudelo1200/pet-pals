@@ -17,7 +17,7 @@ import { PaseoStatus } from '@/models/Paseo'
 export function usePublicarUbicacion(
   idPaseo: string | undefined,
   estadoPaseo: PaseoStatus | undefined
-) {
+): void {
   const subscription = useRef<Location.LocationSubscription | null>(null)
 
   useEffect(() => {
@@ -28,7 +28,7 @@ export function usePublicarUbicacion(
 
     if (!debeTrackear) {
       detenerTracking()
-      return
+      return undefined
     }
 
     iniciarTracking()

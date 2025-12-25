@@ -22,6 +22,7 @@ import {
 } from '@/components/ui'
 import { obtenerExperienciaPaseo } from '@/logic/paseos/PaseoStateRouter'
 import DetallePaseoBottomSheet from '@/components/paseos/DetallePaseoBottomSheet'
+import { Paseo } from '@/models/Paseo'
 
 const Dashboard: React.FC = () => {
   const { t } = useTranslation()
@@ -31,6 +32,7 @@ const Dashboard: React.FC = () => {
   const { proximos, cargando, refetch } = useAgendaCuidador()
   const [detalleVisible, setDetalleVisible] = useState(false)
   const [detalleTitle, setDetalleTitle] = useState('')
+  const [detallePaseo, setDetallePaseo] = useState<Paseo | null>(null)
 
   // Recargar estadísticas al enfocar la pantalla
   useFocusEffect(
@@ -152,6 +154,7 @@ const Dashboard: React.FC = () => {
                         experiencia.configuracion.titulo ||
                           t('paseos:detalle.titulo')
                       )
+                      setDetallePaseo(paseo)
                       setDetalleVisible(true)
                     }
                   }}
@@ -162,8 +165,12 @@ const Dashboard: React.FC = () => {
       </ScrollView>
       <DetallePaseoBottomSheet
         visible={detalleVisible}
-        onClose={() => setDetalleVisible(false)}
+        onClose={() => {
+          setDetalleVisible(false)
+          setDetallePaseo(null)
+        }}
         title={detalleTitle}
+        paseo={detallePaseo}
       />
     </Screen>
   )

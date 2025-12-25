@@ -8,9 +8,7 @@ import {
   type Unsubscribe,
 } from 'firebase/firestore'
 import { db } from '@/firebase.config'
-import { toDomain } from '@/services/firebase/converters'
-// ERR codes are produced via mapFirebaseError
-import { mapFirebaseError } from '@/services/firebase/errors'
+import { toDomain, mapFirebaseError } from '@/services/firebase/comun'
 import type { BaseModel } from '@/models/BaseModel'
 
 /**

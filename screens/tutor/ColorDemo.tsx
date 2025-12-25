@@ -30,7 +30,9 @@ import { UbicacionRef } from '@/models/Ubicacion'
 type ColorKey = keyof typeof COLOR
 
 const ColorDemo: React.FC = () => {
-  const colorKeys = (Object.keys(COLOR) as ColorKey[]).filter(k => k !== 'ESTADO')
+  const colorKeys = (Object.keys(COLOR) as ColorKey[]).filter(
+    k => k !== 'ESTADO'
+  )
   const [creandoMascota, setCreandoMascota] = useState(false)
 
   const crearMascotaSemilla = async () => {
@@ -172,11 +174,9 @@ const ColorDemo: React.FC = () => {
     }
   }
 
-
-
   // Debug Hook
   const { agregar, loading: loadingDir, direcciones } = useDirecciones()
-  
+
   // Estados para Sheets Fase 4
   const [mostrarSelector, setMostrarSelector] = useState(false)
   const [mostrarCrear, setMostrarCrear] = useState(false)
@@ -469,7 +469,7 @@ const ColorDemo: React.FC = () => {
           Prueba el hook que abstrae la lógica. ({direcciones.length} guardadas)
         </Text>
         <Button
-          title={loadingDir ? "Cargando..." : "1. Agregar 'Casa' (Hook)"}
+          title={loadingDir ? 'Cargando...' : "1. Agregar 'Casa' (Hook)"}
           variant="primario"
           onPress={async () => {
             try {
@@ -531,7 +531,10 @@ const ColorDemo: React.FC = () => {
           <AutocompletarDireccion
             onSelect={detalles => {
               setUbicacionSeleccionada(detalles.coordenadas)
-              Alert.alert('Lugar Seleccionado', JSON.stringify(detalles, null, 2))
+              Alert.alert(
+                'Lugar Seleccionado',
+                JSON.stringify(detalles, null, 2)
+              )
             }}
           />
         </View>
@@ -546,8 +549,10 @@ const ColorDemo: React.FC = () => {
       </View>
 
       <View style={{ height: 40 }} />
-      <Text style={styles.sectionTitle}>📍 Gestión de Direcciones (Fase 4)</Text>
-      
+      <Text style={styles.sectionTitle}>
+        📍 Gestión de Direcciones (Fase 4)
+      </Text>
+
       <View style={styles.card}>
         <Text style={styles.cardTitle}>Flujo Completo</Text>
         <Text style={{ color: COLOR.SUBTEXTO, marginBottom: 16 }}>
@@ -555,20 +560,35 @@ const ColorDemo: React.FC = () => {
         </Text>
 
         <Button
-          title={direcciones.length > 0 ? `Seleccionar (${direcciones.length})` : "Agregar primera dirección"}
+          title={
+            direcciones.length > 0
+              ? `Seleccionar (${direcciones.length})`
+              : 'Agregar primera dirección'
+          }
           variant="primario"
           onPress={() => setMostrarSelector(true)}
           fullWidth
           icon="map-marker"
         />
-        
+
         {/* Visualizador de la selección actual */}
         {ubiDemo !== null && (
-           <View style={{ marginTop: 12, padding: 12, backgroundColor: COLOR.BLOQUE, borderRadius: 8 }}>
-             <Text size={12} color={COLOR.SUBTEXTO} bold>DIRECCIÓN SELECCIONADA:</Text>
-             <Text bold>{ubiDemo.tipo}</Text>
-             <Text size={13} color={COLOR.SUBTEXTO}>{ubiDemo.ubicacion_id}</Text>
-           </View>
+          <View
+            style={{
+              marginTop: 12,
+              padding: 12,
+              backgroundColor: COLOR.BLOQUE,
+              borderRadius: 8,
+            }}
+          >
+            <Text size={12} color={COLOR.SUBTEXTO} bold>
+              DIRECCIÓN SELECCIONADA:
+            </Text>
+            <Text bold>{ubiDemo.tipo}</Text>
+            <Text size={13} color={COLOR.SUBTEXTO}>
+              {ubiDemo.ubicacion_id}
+            </Text>
+          </View>
         )}
       </View>
 
@@ -580,7 +600,7 @@ const ColorDemo: React.FC = () => {
         onClose={() => setMostrarSelector(false)}
         direcciones={direcciones}
         principalId={direcciones.find(d => d.es_principal)?.ubicacion_id}
-        alSeleccionar={(item) => setUbiDemo(item)}
+        alSeleccionar={item => setUbiDemo(item)}
         onAgregarNueva={() => {
           setMostrarSelector(false)
           setTimeout(() => setMostrarCrear(true), 500) // Delay para transición suave de modal a modal
@@ -590,24 +610,25 @@ const ColorDemo: React.FC = () => {
       <CrearDireccionSheet
         visible={mostrarCrear}
         onClose={() => setMostrarCrear(false)}
-        onGuardar={async (datos) => {
+        onGuardar={async datos => {
           try {
-             // Simulamos el ID real de la ubicación que vendría del backend tras crear el documento de 'ubicacion'
-             // En producción: primero se crea el documento Ubicacion, luego se linkea al usuario.
-             // Aquí hacemos un mock del ID pero usando el hook real para linkear.
-             const fakeUbicacionId = datos.placeId || `ubic_${Date.now()}`
-             await agregar(fakeUbicacionId, datos.alias)
-             Alert.alert("Éxito", "Dirección guardada correctamente")
+            // Simulamos el ID real de la ubicación que vendría del backend tras crear el documento de 'ubicacion'
+            // En producción: primero se crea el documento Ubicacion, luego se linkea al usuario.
+            // Aquí hacemos un mock del ID pero usando el hook real para linkear.
+            const fakeUbicacionId =
+              (datos as any).placeId ||
+              (datos as any).proveedor_place_id ||
+              `ubic_${Date.now()}`
+            await agregar(fakeUbicacionId, datos.alias)
+            Alert.alert('Éxito', 'Dirección guardada correctamente')
           } catch (e) {
-            Alert.alert("Error", String(e))
+            Alert.alert('Error', String(e))
           }
         }}
       />
-
     </Screen>
   )
 }
-
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLOR.BASE },

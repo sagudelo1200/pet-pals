@@ -9,7 +9,7 @@ import {
 } from 'firebase/firestore'
 import { db } from '@/firebase.config'
 import { Paseo } from '@/models/Paseo'
-import { toDomain } from '@/services/firebase/converters'
+import { toDomain } from '@/services/firebase/comun'
 import { useSeguimientoPaseo } from './useSeguimientoPaseo'
 
 export interface EventoPaseo {

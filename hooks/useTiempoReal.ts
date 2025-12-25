@@ -20,7 +20,7 @@ export function useTiempoReal<T = any>(ruta: string | null) {
       setDatos(null)
       setCargando(false)
       setError(null)
-      return
+      return undefined
     }
 
     setCargando(true)
@@ -29,11 +29,11 @@ export function useTiempoReal<T = any>(ruta: string | null) {
     // Iniciamos la escucha en tiempo real
     const cancelarSuscripcion = ServicioRealtime.escuchar<T>(
       ruta,
-      nuevosDatos => {
+      (nuevosDatos: T | null) => {
         setDatos(nuevosDatos)
         setCargando(false)
       },
-      mensajeError => {
+      (mensajeError: string) => {
         setError(mensajeError)
         setCargando(false)
       }

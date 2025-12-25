@@ -11,6 +11,7 @@ import Chip from '@/components/ui/Chip'
 import EmptyState from '@/components/ui/EmptyState'
 import PaseadorPerrosSvg from '@/assets/imgs/undraw/paseador_perros.svg'
 import { useAgendaCuidador } from '@/hooks/cuidador/useAgendaCuidador'
+import { Paseo } from '@/models/Paseo'
 import DetallePaseoBottomSheet from '@/components/paseos/DetallePaseoBottomSheet'
 import { obtenerExperienciaPaseo } from '@/logic/paseos/PaseoStateRouter'
 
@@ -23,6 +24,7 @@ const Agenda: React.FC = () => {
   const { proximos, historial, cargando, refetch } = useAgendaCuidador()
   const [detalleVisible, setDetalleVisible] = useState(false)
   const [detalleTitle, setDetalleTitle] = useState('')
+  const [detallePaseo, setDetallePaseo] = useState<Paseo | null>(null)
 
   const paseosFiltrados = activeTab === 'proximos' ? proximos : historial
 
@@ -39,6 +41,7 @@ const Agenda: React.FC = () => {
       setDetalleTitle(
         experiencia.configuracion.titulo || t('paseos:detalle.titulo')
       )
+      setDetallePaseo(paseo)
       setDetalleVisible(true)
     }
   }
@@ -112,8 +115,12 @@ const Agenda: React.FC = () => {
       />
       <DetallePaseoBottomSheet
         visible={detalleVisible}
-        onClose={() => setDetalleVisible(false)}
+        onClose={() => {
+          setDetalleVisible(false)
+          setDetallePaseo(null)
+        }}
         title={detalleTitle}
+        paseo={detallePaseo}
       />
     </Screen>
   )

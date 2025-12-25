@@ -7,9 +7,8 @@ import {
   type Unsubscribe,
 } from 'firebase/firestore'
 import { db } from '@/firebase.config'
-import { toDomain } from '@/services/firebase/converters'
+import { toDomain, mapFirebaseError } from '@/services/firebase/comun'
 import { ERR } from '@/constants'
-import { mapFirebaseError } from '@/services/firebase/errors'
 import type { BaseModel } from '@/models/BaseModel'
 
 /**

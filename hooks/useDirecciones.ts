@@ -10,15 +10,18 @@ export function useDirecciones() {
   const [error, setError] = useState<string | null>(null)
 
   // Las ubicaciones vienen del perfil de usuario (Firestore), no del objeto AuthUser (Firebase Auth)
-  const direcciones = useMemo(() => profile?.ubicaciones || [], [profile?.ubicaciones])
-  
+  const direcciones = useMemo(
+    () => profile?.ubicaciones || [],
+    [profile?.ubicaciones]
+  )
+
   const principal = useMemo(() => {
     return direcciones.find(d => d.es_principal)
   }, [direcciones])
 
   const agregar = useCallback(
-    async (datos: any, alias: string = 'Casa') => {
-      if (!user?.uid) return
+    async (datos: any, alias: string = 'Casa'): Promise<string> => {
+      if (!user?.uid) throw new Error('NO_AUTENTICADO')
       setLoading(true)
       setError(null)
 
@@ -29,25 +32,26 @@ export function useDirecciones() {
           estado: 'pendiente',
         }
         const resUbic = await ServicioUbicaciones.crear(ubicacionNueva)
-        if (!resUbic.success || !resUbic.data) throw new Error('ERROR_CREAR_UBICACION')
-        
+        if (!resUbic.success || !resUbic.data)
+          throw new Error('ERROR_CREAR_UBICACION')
+
         const nuevaId = resUbic.data.id
 
         // 2. Ligar al usuario con snapshot de coordenadas
         const resUser = await ServicioUsuario.agregarUbicacion(
-          user.uid, 
-          nuevaId, 
+          user.uid,
+          nuevaId,
           alias,
           datos.coordenadas // Snapshot crucial para el mapa
         )
-        
+
         if (!resUser.success) throw new Error(String(resUser.error))
 
         await recargarPerfil()
         return nuevaId // Retornar ID para seleccionarlo en UI
       } catch (e: any) {
-         setError(String(e))
-         throw e
+        setError(String(e))
+        throw e
       } finally {
         setLoading(false)
       }
@@ -56,11 +60,14 @@ export function useDirecciones() {
   )
 
   const fijarPrincipal = useCallback(
-    async (ubicacionId: string) => {
-      if (!user?.uid) return
+    async (ubicacionId: string): Promise<void> => {
+      if (!user?.uid) throw new Error('NO_AUTENTICADO')
       setLoading(true)
       setError(null)
-      const res = await ServicioUsuario.fijarUbicacionPrincipal(user.uid, ubicacionId)
+      const res = await ServicioUsuario.fijarUbicacionPrincipal(
+        user.uid,
+        ubicacionId
+      )
       setLoading(false)
       if (res.success) {
         await recargarPerfil()
@@ -73,8 +80,8 @@ export function useDirecciones() {
   )
 
   const eliminar = useCallback(
-    async (ubicacionId: string) => {
-      if (!user?.uid) return
+    async (ubicacionId: string): Promise<void> => {
+      if (!user?.uid) throw new Error('NO_AUTENTICADO')
       setLoading(true)
       setError(null)
       const res = await ServicioUsuario.eliminarUbicacion(user.uid, ubicacionId)

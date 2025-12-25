@@ -15,7 +15,7 @@ const MOCK_ERR = {
 
 jest.mock('@/constants', () => ({ ERR: MOCK_ERR }))
 
-const { mapFirebaseError } = require('@/services/firebase/errors')
+const { mapFirebaseError } = require('@/services/firebase/comun')
 
 describe('mapFirebaseError - mapeo de errores', () => {
   // Devuelve el mismo código si ya se le pasa un código válido de ERR

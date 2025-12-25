@@ -1,0 +1,1 @@
+export { ServicioAuth } from './auth'

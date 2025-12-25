@@ -1,8 +1,7 @@
 import { useCallback, useMemo, useState } from 'react'
 import { ServicioCrudBase } from '@/services/firebase'
 import type { BaseModel } from '@/models/BaseModel'
-import type { CrudResult } from '@/services/firebase/types'
-import { mapFirebaseError } from '@/services/firebase/errors'
+import { mapFirebaseError, type CrudResult } from '@/services/firebase/comun'
 
 /**
  * Hook fino para exponer un CRUD por colección basado en ServicioCrudBase.

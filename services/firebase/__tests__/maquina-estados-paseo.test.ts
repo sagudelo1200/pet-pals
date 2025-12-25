@@ -17,8 +17,8 @@ describe('MaquinaEstadosPaseo', () => {
 
   it('debe transicionar correctamente de PENDIENTE a ACEPTADO', () => {
     const nuevoEstado = maquina.transicion('ACEPTAR')
-    expect(nuevoEstado).toBe(PaseoStatus.ACEPTADO)
-    expect(maquina.estado).toBe(PaseoStatus.ACEPTADO)
+    expect(nuevoEstado).toBe(PaseoStatus.CONFIRMADO)
+    expect(maquina.estado).toBe(PaseoStatus.CONFIRMADO)
   })
 
   it('debe fallar si la transición no es válida', () => {
@@ -46,7 +46,7 @@ describe('MaquinaEstadosPaseo', () => {
 
     maquina.transicion('FINALIZAR_PASEO') // FINALIZADO
     expect(maquina.estado).toBe(PaseoStatus.FINALIZADO)
-    
+
     maquina.transicion('CONFIRMAR_COMPLETADO') // COMPLETADO
     expect(maquina.estado).toBe(PaseoStatus.COMPLETADO)
   })

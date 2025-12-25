@@ -9,7 +9,7 @@ interface Props {
   visible: boolean
   onClose: () => void
   title?: string
-  paseo: Paseo | null
+  paseo?: Paseo | null
 }
 
 const DetallePaseoBottomSheet: React.FC<Props> = ({
