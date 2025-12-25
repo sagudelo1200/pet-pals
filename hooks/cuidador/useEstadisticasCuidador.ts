@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '@/context/AuthContext'
-import { ServicioPaseo } from '@/services/firebase/paseo'
+import { ServicioPaseo } from '@/services/firebase'
 import { PaseoStatus } from '@/models/Paseo'
 
 interface EstadisticasCuidador {

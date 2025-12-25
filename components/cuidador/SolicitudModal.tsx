@@ -11,8 +11,7 @@ import {
 import { COLOR } from '@/constants'
 import { Paseo } from '@/models/Paseo'
 import { useTranslation } from 'react-i18next'
-import { ServicioPaseo } from '@/services/firebase/paseo'
-import { ServicioCrudBase } from '@/services/firebase/crud'
+import { ServicioPaseo, ServicioCrudBase } from '@/services/firebase'
 
 interface Props {
   visible: boolean

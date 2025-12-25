@@ -2,11 +2,10 @@ import { useState } from 'react'
 import { Alert } from 'react-native'
 import { useTranslation } from 'react-i18next'
 import { useNavigation } from '@react-navigation/native'
-import { ServicioPaseo } from '@/services/firebase/paseo'
+import { ServicioPaseo, ServicioCrudBase } from '@/services/firebase'
 import { Paseo } from '@/models/Paseo'
 
 import { useAuth } from '@/context/AuthContext'
-import { ServicioCrudBase } from '@/services/firebase/crud'
 import { PerfilPublico } from '@/models/PerfilPublico'
 
 export const useGestionPaseoCuidador = () => {

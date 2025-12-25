@@ -11,7 +11,7 @@ import {
 import { auth } from '@/firebase.config'
 import { AuthResult } from '@/services/firebase/comun'
 import { ERR } from '@/constants/errors'
-import { ServicioUsuario } from '@/services/firebase/usuario'
+import { ServicioUsuario } from '@/services/firebase'
 
 // Mapeo de errores de Firebase Auth a códigos de dominio
 function mapFirebaseAuthError(e: any): string {

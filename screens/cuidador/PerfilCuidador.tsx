@@ -19,7 +19,7 @@ import TextInput from '@/components/ui/TextInput'
 import ImagePicker from '@/components/ui/ImagePicker'
 import { TimePicker } from '@/components/ui'
 import { useAuth } from '@/context/AuthContext'
-import { ServicioCrudBase } from '@/services/firebase/crud'
+import { ServicioCrudBase } from '@/services/firebase'
 import { PerfilPublico } from '@/models/PerfilPublico'
 
 const PerfilCuidador: React.FC = () => {

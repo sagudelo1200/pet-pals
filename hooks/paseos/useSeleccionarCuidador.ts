@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/context/AuthContext'
-import { ServicioPerfilPublico } from '@/services/firebase/perfil-publico'
+import { ServicioPerfilPublico } from '@/services/firebase'
 
 interface CuidadorListItem {
   id: string

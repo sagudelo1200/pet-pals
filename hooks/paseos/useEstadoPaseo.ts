@@ -6,7 +6,7 @@ import {
   TransitionPayload,
 } from '@/services/firebase/maquina-estados-paseo'
 import { Paseo, PaseoStatus } from '@/models/Paseo'
-import { ServicioPaseo } from '@/services/firebase/paseo'
+import { ServicioPaseo } from '@/services/firebase'
 
 export function useEstadoPaseo(paseoInicial?: Partial<Paseo>) {
   // Referencia a la máquina para mantener la instancia entre renders

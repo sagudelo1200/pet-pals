@@ -1,7 +1,6 @@
 import { useState, useCallback, useMemo } from 'react'
 import { useAuth } from '@/context/AuthContext'
-import { ServicioUsuario } from '@/services/firebase/usuario'
-import { ServicioUbicaciones } from '@/services/firebase/ubicaciones'
+import { ServicioUsuario, ServicioUbicaciones } from '@/services/firebase'
 import { UbicacionRef } from '@/models/Ubicacion'
 
 export function useDirecciones() {

@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from 'react'
-import { ServicioUbicacion } from '@/services/firebase/ubicacion'
+import { ServicioUbicacion } from '@/services/firebase'
 import { Ubicacion } from '@/models/Ubicacion'
 
 type MapById = Record<string, Ubicacion>

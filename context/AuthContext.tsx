@@ -6,13 +6,13 @@ import React, {
   ReactNode,
 } from 'react'
 import { User } from 'firebase/auth'
-import { ServicioAuth } from '@/services/firebase/auth'
 import {
+  ServicioAuth,
   AuthUser,
   AuthContextType,
   AuthResult,
-} from '@/services/firebase/types'
-import { ServicioUsuario } from '@/services/firebase/usuario'
+} from '@/services/firebase'
+import { ServicioUsuario } from '@/services/firebase'
 import { RolUsuario, Usuario } from '@/models/Usuario'
 import { useSincronizacionPerfil } from '@/hooks/useSincronizacionPerfil'
 

@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import { useCollection } from '@/hooks/useCollection'
-import { ServicioPaseo } from '@/services/firebase/paseo'
+import { ServicioPaseo } from '@/services/firebase'
 import { Paseo } from '@/models/Paseo'
 import { ServicioAuth } from '@/services/firebase/auth'
 

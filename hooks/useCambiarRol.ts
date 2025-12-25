@@ -1,8 +1,7 @@
 import { useState } from 'react'
 import { useAuth } from '@/context/AuthContext'
 import { useRol } from '@/context/RolContext'
-import { ServicioUsuario } from '@/services/firebase/usuario'
-import { ServicioPerfilPublico } from '@/services/firebase/perfil-publico'
+import { ServicioUsuario, ServicioPerfilPublico } from '@/services/firebase'
 import type { RolUsuario } from '@/models/Usuario'
 
 export const useCambiarRol = () => {

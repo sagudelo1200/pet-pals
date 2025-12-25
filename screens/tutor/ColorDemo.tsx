@@ -18,9 +18,11 @@ import {
   AutocompletarDireccion,
 } from '@/components/ui'
 import Screen from '@/components/ui/Screen'
-import { ServicioMascota } from '@/services/firebase'
-import { ServicioUbicacion } from '@/services/firebase/ubicacion'
-import { ServicioAuth } from '@/services/firebase/auth'
+import {
+  ServicioMascota,
+  ServicioUbicacion,
+  ServicioAuth,
+} from '@/services/firebase'
 import { useDirecciones } from '@/hooks/useDirecciones'
 import type { Mascota } from '@/models/Mascota'
 import { Alert } from 'react-native'
@@ -469,7 +471,7 @@ const ColorDemo: React.FC = () => {
           Prueba el hook que abstrae la lógica. ({direcciones.length} guardadas)
         </Text>
         <Button
-          title={loadingDir ? 'Cargando...' : "1. Agregar 'Casa' (Hook)"}
+          title={loadingDir ? 'Cargando...' : '1. Agregar \'Casa\' (Hook)'}
           variant="primario"
           onPress={async () => {
             try {

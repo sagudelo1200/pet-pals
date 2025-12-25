@@ -11,13 +11,8 @@ const MOCK_ERR = {
 
 jest.mock('@/constants', () => ({ ERR: MOCK_ERR }))
 
-jest.mock('@/services/firebase/auth', () => ({
-  ServicioAuth: {
-    obtenerUsuarioActual: jest.fn(),
-  },
-}))
-
-jest.mock('@/services/firebase/crud', () => ({
+// Mock the concrete modules that ServicioMascota depends on so we test only its logic.
+jest.mock('@/services/firebase/firestore/base', () => ({
   ServicioCrudBase: {
     crear: jest.fn(),
     obtenerPorId: jest.fn(),
@@ -28,9 +23,19 @@ jest.mock('@/services/firebase/crud', () => ({
   },
 }))
 
+jest.mock('@/services/firebase/auth', () => ({
+  ServicioAuth: {
+    obtenerUsuarioActual: jest.fn(),
+  },
+}))
+
+const { ServicioCrudBase } = require('@/services/firebase/firestore/base')
 const { ServicioAuth } = require('@/services/firebase/auth')
-const { ServicioCrudBase } = require('@/services/firebase/crud')
-const { ServicioMascota } = require('@/services/firebase/mascota')
+
+// Require the real implementation of ServicioMascota
+const {
+  ServicioMascota,
+} = require('@/services/firebase/firestore/colecciones/mascota')
 
 describe('ServicioMascota - unitario', () => {
   beforeEach(() => {

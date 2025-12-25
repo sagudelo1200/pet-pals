@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import { Usuario } from '@/models/Usuario'
 import { PerfilPublico } from '@/models/PerfilPublico'
-import { ServicioPerfilPublico } from '@/services/firebase/perfil-publico'
+import { ServicioPerfilPublico } from '@/services/firebase'
 
 /**
  * Hook para sincronizar el perfil público con el perfil de usuario.
