@@ -1,4 +1,11 @@
-import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react'
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+  ReactNode,
+} from 'react'
 import { useTranslation } from 'react-i18next'
 import { ServicioMascota, ServicioAuth } from '@/services/firebase'
 import { useAuth } from '@/context/AuthContext'
@@ -9,16 +16,23 @@ interface MascotasContextType {
   loading: boolean
   error: string | null
   refrescar: () => Promise<void>
+  // eslint-disable-next-line no-unused-vars
   crear: (data: Partial<Mascota>) => Promise<void>
+  // eslint-disable-next-line no-unused-vars
   actualizar: (id: string, data: Partial<Mascota>) => Promise<void>
+  // eslint-disable-next-line no-unused-vars
   eliminar: (id: string) => Promise<void>
 }
 
-const MascotasContext = createContext<MascotasContextType>({} as MascotasContextType)
+const MascotasContext = createContext<MascotasContextType>(
+  {} as MascotasContextType
+)
 
 export const useMascotasContext = () => useContext(MascotasContext)
 
-export const MascotasProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+export const MascotasProvider: React.FC<{ children: ReactNode }> = ({
+  children,
+}) => {
   const { t } = useTranslation()
   const { user } = useAuth() // Get user from AuthContext
   const [mascotas, setMascotas] = useState<Mascota[]>([])

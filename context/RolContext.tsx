@@ -13,6 +13,7 @@ const ROL_ACTIVO_KEY = '@pet_pals_rol_activo'
 
 interface RolContextType {
   rolActivo: RolUsuario | null
+  // eslint-disable-next-line no-unused-vars
   cambiarRolActivo: (rol: RolUsuario) => Promise<void>
   tieneMultiplesRoles: boolean
   rolesDisponibles: RolUsuario[]

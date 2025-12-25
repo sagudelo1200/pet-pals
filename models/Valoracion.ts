@@ -8,7 +8,7 @@ export interface Valoracion extends BaseModel {
   /** ID del paseo valorado. */
   id_paseo: string
   /** ID del paseador que recibe la valoración. */
-  id_paseador: string
+  id_perfil: string
 
   /** Calificación del servicio en una escala de 1 a 5. */
   rating: number
