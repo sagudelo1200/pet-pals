@@ -1,0 +1,24 @@
+{
+  "rules": {
+    "seguimiento_paseos": {
+      "$paseoId": {
+        ".read": "auth != null",
+        "actual": {
+          ".read": "auth != null",
+          ".write": "auth != null && newData.hasChildren() && newData.child('latitud').isNumber() && newData.child('longitud').isNumber() && newData.child('actualizado_en').exists()"
+        },
+        "ruta": {
+          ".read": "auth != null",
+          "$entry": {
+            ".write": "auth != null && newData.child('latitud').isNumber() && newData.child('longitud').isNumber() && newData.child('actualizado_en').exists()",
+            ".validate": "newData.child('latitud').isNumber() && newData.child('longitud').isNumber()"
+          }
+        },
+        ".write": "false"
+      }
+    },
+
+    ".read": false,
+    ".write": false
+  }
+}

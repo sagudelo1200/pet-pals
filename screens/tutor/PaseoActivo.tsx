@@ -199,7 +199,7 @@ export default function PaseoActivo({ route, navigation }: Props) {
         {ruta.length > 0 && paseo?.estado === PaseoStatus.EN_PROGRESO && (
           <Polyline
             coordinates={ruta}
-            strokeColor={COLOR.PRIMARIO}
+            strokeColor={COLOR.ENFASIS}
             strokeWidth={4}
           />
         )}
