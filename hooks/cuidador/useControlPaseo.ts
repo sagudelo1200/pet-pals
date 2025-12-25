@@ -3,7 +3,7 @@ import { ServicioPaseo } from '@/services/firebase'
 import {
   crearMaquinaPaseo,
   type PaseoEvent,
-} from '@/logic/paseos/maquina-estados'
+} from '@/logic/paseos/maquinaEstados'
 import { Alert } from 'react-native'
 import { useTranslation } from 'react-i18next'
 import { usePaseoActivo } from '@/hooks/paseos/usePaseoActivo'

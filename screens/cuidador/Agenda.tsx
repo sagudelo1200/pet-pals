@@ -13,7 +13,7 @@ import PaseadorPerrosSvg from '@/assets/imgs/undraw/paseador_perros.svg'
 import { useAgendaCuidador } from '@/hooks/cuidador/useAgendaCuidador'
 import { Paseo } from '@/models/Paseo'
 import DetallePaseoBottomSheet from '@/components/paseos/DetallePaseoBottomSheet'
-import { obtenerExperienciaPaseo } from '@/logic/paseos/PaseoStateRouter'
+import { obtenerExperienciaPaseo } from '@/logic/paseos/routerPaseos'
 
 type TabTipo = 'proximos' | 'historial'
 

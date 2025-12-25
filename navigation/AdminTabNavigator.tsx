@@ -1,7 +1,7 @@
 import React from 'react'
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
 import Placeholder from '@/screens/Placeholder'
-import MiCuenta from '@/screens/shared/MiCuenta'
+import MiCuenta from '@/screens/comun/MiCuenta'
 import { COLOR } from '@/constants'
 
 const Tab = createBottomTabNavigator()

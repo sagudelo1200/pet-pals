@@ -15,7 +15,7 @@ import { useMascotas } from '@/hooks/useMascotas'
 import { usePaseos } from '@/hooks/paseos/usePaseos'
 import DetallePaseoBottomSheet from '@/components/paseos/DetallePaseoBottomSheet'
 import { Paseo, PaseoStatus } from '@/models/Paseo'
-import { obtenerExperienciaPaseo } from '@/logic/paseos/PaseoStateRouter'
+import { obtenerExperienciaPaseo } from '@/logic/paseos/routerPaseos'
 
 type TabTipo = 'proximos' | 'historial'
 

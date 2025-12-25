@@ -358,7 +358,7 @@ export class ServicioPaseo {
         const paseo = paseoDoc.data() as Paseo
 
         const { crearMaquinaPaseo } =
-          await import('@/logic/paseos/maquina-estados')
+          await import('@/logic/paseos/maquinaEstados')
         const maquina = crearMaquinaPaseo(paseo)
 
         if (!maquina.puede('INICIAR_RUTA')) {
@@ -399,7 +399,7 @@ export class ServicioPaseo {
         const paseo = paseoDoc.data() as Paseo
 
         const { crearMaquinaPaseo } =
-          await import('@/logic/paseos/maquina-estados')
+          await import('@/logic/paseos/maquinaEstados')
         const maquina = crearMaquinaPaseo(paseo)
 
         if (!maquina.puede('INICIAR_PASEO')) {
@@ -443,7 +443,7 @@ export class ServicioPaseo {
         const paseo = paseoDoc.data() as Paseo
 
         const { crearMaquinaPaseo } =
-          await import('@/logic/paseos/maquina-estados')
+          await import('@/logic/paseos/maquinaEstados')
         const maquina = crearMaquinaPaseo(paseo)
 
         if (!maquina.puede('FINALIZAR_PASEO')) {

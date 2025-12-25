@@ -20,7 +20,7 @@ import {
   ScreenHeader,
   TarjetaPaseo,
 } from '@/components/ui'
-import { obtenerExperienciaPaseo } from '@/logic/paseos/PaseoStateRouter'
+import { obtenerExperienciaPaseo } from '@/logic/paseos/routerPaseos'
 import DetallePaseoBottomSheet from '@/components/paseos/DetallePaseoBottomSheet'
 import { Paseo } from '@/models/Paseo'
 
