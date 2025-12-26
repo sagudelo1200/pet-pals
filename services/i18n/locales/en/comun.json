@@ -1,0 +1,42 @@
+{
+  "intenta_nuevamente": "Try again.",
+  "reintentar": "Retry",
+  "atras": "← Back",
+  "continuar": "Continue",
+  "permisos_requeridos": "Permissions required",
+  "error": "Error",
+  "eliminar": "Delete",
+  "cerrar": "Close",
+  "guardar": "Save",
+  "cancelar": "Cancel",
+  "ok": "OK",
+  "exito": "Success",
+  "confirmar": "Confirm",
+  "error_desconocido": "An unexpected error occurred. Please try again later.",
+  "seleccionar_rol_titulo": "Select your role",
+  "seleccionar_rol_subtitulo": "You have access to multiple roles",
+  "errores": {
+    "NO_AUTENTICADO": "You must sign in to continue.",
+    "PERMISOS_INSUFICIENTES": "You don't have permission to perform this action.",
+    "DOCUMENTO_NO_ENCONTRADO": "The requested resource does not exist.",
+    "ERROR_CONEXION": "Connection error with the realtime server.",
+    "SIN_DATOS": "No data available.",
+    "OPERACION_CANCELADA": "The operation was cancelled."
+  },
+  "maps": {
+    "buscar_placeholder": "Search address...",
+    "error_busqueda": "Error searching places",
+    "error_detalles": "Error fetching details"
+  },
+  "guardando": "Saving...",
+  "guardar_direccion": "Save Address",
+  "detalles": "Details",
+  "siguiente": "Next",
+  "cargando": "Loading...",
+  "volver": "Go back",
+  "proximamente": "Coming soon",
+  "en_desarrollo": "This section is under development. Stay tuned for updates!",
+  "aceptar": "Accept",
+  "idioma": "Language",
+  "idioma_subtitulo": "Choose app language"
+}

@@ -1,0 +1,82 @@
+{
+  "dashboard": {
+    "titulo": "Hello, {{nombre}}",
+    "subtitulo": "Manage your walks",
+    "solicitudes_pendientes": "Requests",
+    "paseos_activos": "Active",
+    "paseos_completados": "Completed",
+    "proximos_paseos": "Upcoming Walks",
+    "sin_paseos": "You have no upcoming walks"
+  },
+  "tabs": {
+    "dashboard": "Home",
+    "solicitudes": "Requests",
+    "agenda": "Schedule",
+    "mi_cuenta": "My Account"
+  },
+  "agenda": {
+    "titulo": "My Schedule",
+    "subtitulo": "Manage your active and future walks",
+    "tabs": {
+      "proximos": "Upcoming",
+      "historial": "History"
+    },
+    "vacio_proximos": "You have no scheduled walks",
+    "vacio_proximos_sub": "Accept requests to fill your schedule",
+    "vacio_historial": "You have no completed walks",
+    "asignado_a_ti": "Assigned to you"
+  },
+  "solicitudes": {
+    "titulo": "Walk Requests",
+    "subtitulo": "Available walks to accept",
+    "sin_solicitudes": "No requests available",
+    "sin_solicitudes_desc": "New requests will appear here",
+    "sin_mascotas": "Pet information not available",
+    "detalle_titulo": "Request Detail",
+    "directa": "Direct",
+    "mascota": "Pet",
+    "mascotas": "Pets",
+    "ubicacion_por_definir": "Location to be defined",
+    "min": "min",
+    "error_cargar": "Could not load the request",
+    "error_datos": "An error occurred loading the data",
+    "fase3_aceptar": "Accept functionality in development (Phase 3)",
+    "fase3_rechazar": "Reject functionality in development (Phase 3)",
+    "direccion_no_disponible": "Address not available",
+    "vista_mapa": "Map preview",
+    "solicitado_por": "Requested by",
+    "cliente_nuevo": "New client",
+    "raza_desconocida": "Unknown breed",
+    "ahora_no": "Not now",
+    "confirmar_ahora_no": "Are you sure you want to postpone this request? The request will remain available to other caregivers.",
+    "aceptar": "Accept Request",
+    "confirmar_aceptar": "Are you sure you want to accept this walk? You commit to providing the service.",
+    "exito_aceptar": "You have successfully accepted the walk!",
+    "ubicacion": "Location",
+    "perfil_incompleto_titulo": "Incomplete Profile",
+    "perfil_incompleto_desc": "You must complete your public caregiver profile before you can accept walk requests.",
+    "ir_a_perfil": "Go to My Profile"
+  },
+  "activos": {
+    "titulo": "Active Walks",
+    "subtitulo": "Accepted and in-progress walks",
+    "sin_activos": "You have no active walks",
+    "sin_activos_desc": "Walks you accept will appear here"
+  },
+  "paseo": {
+    "detalle_titulo": "Walk in Progress",
+    "iniciar_ruta": "Start Route",
+    "confirmar_ruta": "Are you ready to pick up the pet?",
+    "iniciar_paseo": "Start Walk",
+    "confirmar_inicio": "Do you have the pet and are you ready to start?",
+    "finalizar_paseo": "Finish Walk",
+    "confirmar_fin": "Have you returned the pet and completed the service?",
+    "paseo_finalizado": "Walk finished successfully",
+    "ver_mapa": "View location on map",
+    "mascotas": "Pets in the walk",
+    "accion_ir_a_recoger": "Go pick up",
+    "accion_empezar": "Begin Walk",
+    "accion_terminar": "Finish Walk",
+    "accion_ver_detalle": "View Detail"
+  }
+}

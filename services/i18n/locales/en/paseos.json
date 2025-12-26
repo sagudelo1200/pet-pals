@@ -1,0 +1,204 @@
+{
+  "define_hora": "Set the time",
+  "cuidador_disponible_rango": "The caregiver is available from {{inicio}} to {{fin}}",
+  "hora_inicio": "Start time",
+  "selecciona_hora": "Select time",
+  "duracion_paseo": "Walk duration",
+  "selecciona_duracion": "Select duration",
+  "cuando_sera_paseo": "When will the walk be?",
+  "elige_dia_ver_cuidadores": "Choose the day to see available caregivers",
+  "fecha_paseo": "Walk date",
+  "selecciona_fecha": "Select a date",
+  "detalles": "Details",
+  "siguiente": "Next",
+  "cargando": "Loading...",
+  "titulo": "Walks",
+  "subtitulo": "Manage your pets' walks",
+  "lista": {
+    "vacio_proximos": "You have no scheduled walks",
+    "vacio_completados": "You haven't completed any walks yet",
+    "programar_btn": "Schedule Walk"
+  },
+  "estados": {
+    "PENDIENTE": "Pending",
+    "CONFIRMADO": "Confirmed",
+    "EN_RUTA": "On the way",
+    "EN_PROGRESO": "In progress",
+    "FINALIZADO": "Finished",
+    "COMPLETADO": "Completed",
+    "CANCELADO": "Cancelled",
+    "ERROR": "Error"
+  },
+  "eventos": {
+    "ACEPTAR": "Accept walk",
+    "RECHAZAR": "Reject walk",
+    "INICIAR_RUTA": "Start route",
+    "LLEGAR": "Arrive at destination",
+    "INICIAR_PASEO": "Start walk",
+    "FINALIZAR_PASEO": "Finish walk",
+    "CONFIRMAR_COMPLETADO": "Confirm completed",
+    "CANCELAR": "Cancel walk"
+  },
+  "ui": {
+    "confirmCancel": "Are you sure you want to cancel this walk?"
+  },
+  "tarjeta": {
+    "cuidador": "Caregiver:",
+    "sin_cuidador": "Unassigned"
+  },
+  "errores": {
+    "PASEO_NO_ENCONTRADO": "The specified walk does not exist.",
+    "PASEO_NO_ES_COMPARTIDO": "This walk is private and does not accept other owners' pets.",
+    "ESTADO_DEL_PASEO_NO_ACEPTA_MASCOTAS": "The current walk status does not allow adding pets.",
+    "LIMITE_DE_MASCOTAS_SUPERADO": "The allowed pet limit for this walk has been reached.",
+    "MASCOTA_YA_AGREGADA": "This pet is already added to the walk.",
+    "SIN_MASCOTAS_TITULO": "Oops! You don't have pets",
+    "SIN_MASCOTAS_MSG": "To request a walk, first register a pet."
+  },
+  "boton_solicitar": "Request walk",
+  "flujo": {
+    "titulo": "Request Walk",
+    "cargando": "Loading...",
+    "errores": {
+      "fecha_hora_requerida": "Date and time required",
+      "ubicacion_requerida": "Start location required"
+    }
+  },
+  "pasos": {
+    "seleccionar_mascota": {
+      "emocional": "Your friend deserves the best walk",
+      "titulo": "Who's coming?",
+      "placeholder": "Select a pet"
+    },
+    "fecha_hora": {
+      "titulo": "When should we do it?",
+      "fecha_label": "Walk date",
+      "hora_label": "Preferred time",
+      "placeholder_fecha": "Select a date",
+      "placeholder_hora": "Select time",
+      "duracion_label": "Duration",
+      "placeholder_duracion": "Minutes"
+    },
+    "seleccionar_cuidador": {
+      "titulo": "Choose a Caregiver",
+      "lista_titulo": "Caregivers near you",
+      "solicitud_abierta_titulo": "Open Request",
+      "solicitud_abierta_desc": "Post your request so any available caregiver can accept it.",
+      "distancia": "{{distancia}} away",
+      "tarifa": "${{precio}} / hour",
+      "verificado": "Verified",
+      "cargando": "Loading caregivers...",
+      "error": "Error loading caregivers",
+      "sin_cuidadores": "Soon there will be caregivers available!",
+      "sin_cuidadores_desc": "We're working to connect you with the best caregivers for your pet",
+      "ver_horarios_cercanos": "See upcoming available times",
+      "fechas_disponibles_titulo": "Dates with available caregivers",
+      "disponibles_para_fecha": "{{count}} caregiver(s) available",
+      "no_encontrado_30dias": "We haven't found caregivers available in the next 30 days.",
+      "opciones_explicacion": "Sorry — you can receive notifications when there's availability or post an open request for any caregiver to accept.",
+      "recibir_notificacion": "Notify me",
+      "publicar_solicitud_abierta": "Post open request"
+    },
+    "confirmar": {
+      "titulo": "Review and confirm",
+      "resumen_mascotas": "Pets",
+      "resumen_fecha": "Date and Time",
+      "resumen_ubicacion": "Start Location",
+      "resumen_cuidador": "Caregiver",
+      "solicitud_abierta_nombre": "Open Request",
+      "tarifa_a_convenir": "Rate to be agreed",
+      "paseo_compartido_label": "Shared walk",
+      "paseo_compartido_desc": "Allow other owners to join the walk",
+      "ahorro_mensaje": "Save {{descuento}}% with a shared walk!",
+      "costo_servicio": "Service cost",
+      "descuento_compartido": "Shared walk discount",
+      "total": "Total to pay",
+      "btn_confirmar": "Confirm Request",
+      "exito_titulo": "Request Sent!",
+      "exito_msg": "Your request has been sent to {{name}}."
+    }
+  },
+  "solicitado": {
+    "titulo": "Request sent",
+    "chat": "Chat with {{name}}"
+  },
+  "en_curso": {
+    "titulo": "Walk in progress"
+  },
+  "resumen": {
+    "titulo": "Walk summary",
+    "rating": "How was it?"
+  },
+  "detalle": {
+    "titulo": "Walk detail",
+    "estado": "Status",
+    "esperando_cuidador": "Waiting for a caregiver to accept your request...",
+    "cuidador": "Assigned Caregiver"
+  },
+  "acciones": {
+    "cancelar": "Cancel Walk",
+    "confirmar_cancelar": "Are you sure you want to cancel this walk? This action cannot be undone."
+  },
+  "campos": {
+    "precio": "Price",
+    "duracion": "Duration"
+  },
+  "activo": {
+    "estado_label": "Live",
+    "estado_ok": "Everything is going great with your pet",
+    "mensaje_calma": "The walk is going well 🐾",
+    "mensajes": {
+      "confirmado": "{{cuidador}} accepted the walk.",
+      "en_ruta": "{{cuidador}} is on the way for {{mascota}}.",
+      "en_progreso": "{{mascota}} is with {{cuidador}}."
+    },
+    "tiempo_restante": "About {{tiempo}} min left",
+    "finalizado_titulo": "Walk Finished!",
+    "finalizado_mensaje": "{{nombre}} is already back home. We hope they enjoyed it!",
+    "no_encontrado": "We couldn't find this walk. Check your permissions or if the service is still valid.",
+    "chat_interno_aviso": "Soon you'll be able to chat directly with the caregiver from here for extra safety. 🐾🚀",
+    "mascota_protegida": "Active Protection",
+    "cuidador_verificado": "Verified Profiles",
+    "actividad_reciente": "Recent Activity",
+    "esperando_actividad": "Waiting for activity to start...",
+    "eventos_vacios": "No updates for now • Active monitoring",
+    "tipo_evento": {
+      "aceptar": "Request Accepted",
+      "foto": "Uploaded a photo",
+      "necesidad": "Did their business",
+      "hidratacion": "Had water",
+      "inicio": "Started route",
+      "llegada": "Arrived at destination",
+      "iniciar_ruta": "Started pickup route",
+      "iniciar_paseo": "Started official walk",
+      "finalizar_paseo": "Finished the walk"
+    },
+    "en_vivo": "LIVE",
+    "cancelado_titulo": "Walk Cancelled",
+    "cancelado_mensaje": "This walk has been cancelled."
+  },
+  "control": {
+    "iniciar_ruta": "Start Route",
+    "iniciar_paseo": "Start Walk",
+    "finalizar_paseo": "Finish Walk",
+    "ver_resumen": "View Summary",
+    "punto_recogida": "Pickup Point",
+    "ubicacion_desconocida": "Unknown location",
+    "tiempo_transcurrido": "Elapsed time",
+    "mascota": "Pet",
+    "ubicacion": "Meeting point",
+    "paseo_finalizado": "Walk successfully completed",
+    "transicion_invalida": "This action cannot be performed in the current state",
+    "gran_trabajo": "Great job!",
+    "exito_mensaje": "The walk with {{mascota}} has been successfully completed.",
+    "tiempo_total": "TOTAL TIME",
+    "finalizar_volver": "Finish and Return"
+  },
+  "finalizado": {
+    "titulo": "Walk Completed!",
+    "mensaje": "The walk with {{nombre}} has ended. We hope they enjoyed it!",
+    "calificar": "How was {{cuidador}}'s service?",
+    "excelente": "Excellent service!",
+    "toca_calificar": "Tap to rate"
+  }
+}

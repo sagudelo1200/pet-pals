@@ -9,6 +9,7 @@ import {
 } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Button, Card, Icon, Avatar } from '@/components/ui'
+import LanguageSwitcher from '@/components/ui/LanguageSwitcher'
 import Screen from '@/components/ui/Screen'
 import { tErrorMaybe } from '@/services/i18n'
 import { useAuth } from '@/context/AuthContext'
@@ -255,6 +256,8 @@ const MiCuenta = () => {
               </Card>
             )}
           </View>
+          {/* Selector de Idioma */}
+          <LanguageSwitcher />
 
           {/* Botón Cerrar Sesión */}
           <Button

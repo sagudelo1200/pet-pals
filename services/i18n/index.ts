@@ -10,6 +10,16 @@ import esCargando from './locales/es/cargando.json'
 import esPerfil from './locales/es/perfil.json'
 import esCuidador from './locales/es/cuidador.json'
 import esTutor from './locales/es/tutor.json'
+
+// English resources
+import enComun from './locales/en/comun.json'
+import enAuth from './locales/en/auth.json'
+import enMascotas from './locales/en/mascotas.json'
+import enPaseos from './locales/en/paseos.json'
+import enCargando from './locales/en/cargando.json'
+import enPerfil from './locales/en/perfil.json'
+import enCuidador from './locales/en/cuidador.json'
+import enTutor from './locales/en/tutor.json'
 import { ERR, type ErrorCode } from '@/constants/errors'
 
 // Detección opcional del idioma del dispositivo sin forzar dependencia inmediata
@@ -39,6 +49,16 @@ if (!i18n.isInitialized) {
         cuidador: esCuidador as any,
         tutor: esTutor as any,
       },
+      en: {
+        comun: enComun,
+        auth: enAuth as any,
+        mascotas: enMascotas as any,
+        paseos: enPaseos as any,
+        cargando: enCargando as any,
+        perfil: enPerfil as any,
+        cuidador: enCuidador as any,
+        tutor: enTutor as any,
+      },
     },
     ns: [
       'comun',
@@ -53,7 +73,7 @@ if (!i18n.isInitialized) {
     defaultNS: 'comun',
     fallbackLng: 'es',
     lng: detectDeviceLanguage() || 'es',
-    supportedLngs: ['es'],
+    supportedLngs: ['es', 'en'],
     interpolation: { escapeValue: false },
     returnNull: false,
     returnEmptyString: false,
@@ -63,7 +83,8 @@ if (!i18n.isInitialized) {
 }
 
 export function setLanguage(lang: string) {
-  const next = ['es'].includes(lang) ? lang : 'es'
+  const supported = ['es', 'en']
+  const next = supported.includes(lang) ? lang : 'es'
   return i18n.changeLanguage(next)
 }
 

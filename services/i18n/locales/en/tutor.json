@@ -1,0 +1,45 @@
+{
+  "dashboard": {
+    "titulo": "Hello, Owner",
+    "subtitulo": "Summary of your activity",
+    "proximo_paseo": "Next walk",
+    "acciones_rapidas": "Quick actions",
+    "actividad_reciente": "Recent activity",
+    "lo_mas_usado": "Most used",
+    "ultimos_movimientos": "Latest movements",
+    "solicitar_paseo": "Request walk",
+    "agregar_mascota": "Add pet",
+    "ver_historial": "View history"
+  },
+  "solicitud": {
+    "paso_mascota": "Select your pet",
+    "paso_direccion": "Where should we pick up your pet?",
+    "paso_fecha": "Which day?",
+    "paso_cuidador": "Choose a caregiver",
+    "paso_hora": "Walk time",
+    "paso_confirmar": "Confirm request",
+    "nueva_direccion": "New Address",
+    "sin_direcciones": "You have no saved addresses",
+    "direccion": {
+      "nueva_titulo": "New Address",
+      "busqueda_ayuda": "Search the exact address to place it on the map.",
+      "confirmar_titulo": "Confirm Location",
+      "ajuste_ayuda": "Move the map to adjust the exact position.",
+      "ubicacion_ajustada": "Adjusted Location",
+      "ubicacion_original": "Original Location",
+      "pin_personalizado": "📍 Pin at custom position",
+      "uso_pin_ayuda": "The pin position will be used",
+      "detalles_titulo": "Final Details",
+      "detalles_ayuda": "Give it a name to remember it easily.",
+      "alias_label": "ALIAS (e.g., Home, Work)",
+      "alias_placeholder": "Home",
+      "referencia_label": "REFERENCE (Optional)",
+      "referencia_placeholder": "E.g. Black gate, apt 201",
+      "tipo_default": "Location",
+      "ver_en_mapa": "View on map",
+      "nueva_btn": "New",
+      "direccion_btn": "Address",
+      "seleccionar_para_ver": "Select an address to view on the map"
+    }
+  }
+}

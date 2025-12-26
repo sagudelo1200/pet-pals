@@ -1,0 +1,140 @@
+{
+  "errores": {
+    "MASCOTA_REQUERIDA": "You must select a pet.",
+    "MASCOTAS_REQUERIDAS": "You must select at least one pet.",
+    "MASCOTA_NO_ENCONTRADA": "The specified pet does not exist.",
+    "MASCOTA_NO_PERTENECE_AL_USUARIO": "The pet does not belong to the current user.",
+    "TUTOR_NO_COINCIDE": "The pet's owner does not match the current user.",
+    "nombre_requerido": "Your pet's name is important to us",
+    "nombre_muy_corto": "Name must be at least 2 characters",
+    "especie_requerida": "Please tell us what type of pet it is",
+    "peso_invalido": "Weight must be a positive number",
+    "error_guardar": "We couldn't save the data. Please try again",
+    "error_eliminar": "We couldn't delete the pet. Please try again",
+    "error_cargar": "We couldn't load your pets. Please try again",
+    "error_cargar_imagen": "We couldn't upload the selected image.",
+    "sincronizacion_fallida": "Synchronization error"
+  },
+  "lista": {
+    "titulo": "Your Pets",
+    "subtitulo": "Manage your companions' profiles",
+    "refrescar": "Refresh",
+    "agregar": "Add pet"
+  },
+  "vacio": {
+    "titulo": "You don't have pets yet",
+    "subtitulo": "They're part of the family. We want to meet them!",
+    "boton": "Add your first pet"
+  },
+  "crear": {
+    "paso1": {
+      "emocional": "Every bond starts with a name.",
+      "titulo": "What's their name?",
+      "placeholder": "Your pet's name",
+      "continuar": "Continue"
+    },
+    "paso2": {
+      "titulo": "What breed are they?",
+      "placeholder": "Breed (optional)",
+      "saltar": "Skip",
+      "continuar": "Continue"
+    },
+    "paso3": {
+      "titulo": "They grow fast, right?",
+      "fecha_nacimiento": "Birthdate",
+      "edad_aproximada": "Approximate age",
+      "placeholder_anos": "Years",
+      "placeholder_meses": "Months",
+      "saltar": "Skip",
+      "continuar": "Continue"
+    },
+    "paso4": {
+      "titulo": "Let's add a photo",
+      "subtitulo": "We want to know them the way you see them.",
+      "tocar_agregar": "Tap to add photo",
+      "camara": "Take photo",
+      "galeria": "Choose from gallery",
+      "saltar": "Skip",
+      "continuar": "Continue"
+    },
+    "confirmacion": {
+      "titulo": "Almost ready!",
+      "subtitulo": "One last look before saving.",
+      "guardar": "Save pet",
+      "editar": "Edit information"
+    }
+  },
+  "editar": {
+    "titulo": "Edit Pet",
+    "guardar": "Save changes"
+  },
+  "detalle": {
+    "informacion_basica": "Basic Information",
+    "salud": "Health",
+    "comportamiento": "Behavior",
+    "editar": "Edit",
+    "eliminar": "Delete",
+    "sobre_mi": "About me",
+    "sin_descripcion": "No description available.",
+    "vacuna": "Vaccine: "
+  },
+  "eliminar": {
+    "titulo": "Do you want to delete {{nombre}}?",
+    "mensaje": "This action cannot be undone. Are you sure you want to delete your pet?",
+    "confirmar": "Yes, delete",
+    "cancelar": "Cancel"
+  },
+  "campos": {
+    "nombre": "Name",
+    "tipo": "Type",
+    "raza": "Breed",
+    "edad": "Age",
+    "fecha_nacimiento": "Birthdate",
+    "genero": "Gender",
+    "tamano": "Size",
+    "peso": "Weight",
+    "esterilizado": "Neutered",
+    "nivel_energia": "Energy level"
+  },
+  "edad": {
+    "dia": "day",
+    "dias": "days",
+    "mes": "month",
+    "meses": "months",
+    "año": "year",
+    "años": "years"
+  },
+  "tipos": {
+    "perro": "Dog",
+    "gato": "Cat",
+    "otro": "Other"
+  },
+  "generos": {
+    "macho": "Male",
+    "hembra": "Female",
+    "undefined": "Not defined"
+  },
+  "tamanos": {
+    "muy_pequeno": "Very small",
+    "pequeno": "Small",
+    "mediano": "Medium",
+    "grande": "Large",
+    "gigante": "Giant",
+    "undefined": "Not defined"
+  },
+  "energia": {
+    "bajo": "Low",
+    "medio": "Medium",
+    "alto": "High",
+    "undefined": "Not defined"
+  },
+  "mensajes": {
+    "creado": "{{nombre}} has been added to your family 🎉",
+    "actualizado": "{{nombre}}'s information updated",
+    "eliminado": "Pet deleted",
+    "error": "An error occurred. Please try again.",
+    "permisos_galeria": "We need permission to access your gallery",
+    "permisos_camara": "We need permission to access your camera",
+    "rollback_realizado": "Changes couldn't be saved. Reverted to the previous version."
+  }
+}

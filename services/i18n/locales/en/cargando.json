@@ -1,0 +1,39 @@
+{
+  "general": [
+    "⏳ Loading...",
+    "🚀 Preparing everything...",
+    "✨ One moment please...",
+    "🔄 Syncing data..."
+  ],
+  "auth": [
+    "🔐 Verifying your credentials...",
+    "👋 Welcome back! Signing in...",
+    "🛡️ Securing your connection...",
+    "🔑 Opening PetPals...",
+    "✨ Preparing your experience..."
+  ],
+  "mascota": [
+    "🚶‍♂️🐕 A daily walk keeps your dog happy and healthy.",
+    "💧🐶 Always bring fresh water on walks.",
+    "🦴🍖 A balanced diet is key to your pet's health.",
+    "🐾🔍 Check their paws after a walk for small stones.",
+    "🧘‍♂️🐕 Exercise reduces stress and anxiety.",
+    "☀️🔥🐾 Avoid walking during hot hours to protect their paws.",
+    "🐶💤 'Another walk? I'm ready for the adventure!'",
+    "🌎🐕 Every walk is an adventure for your dog.",
+    "🐶➡️👋 A wagging tail is pure joy.",
+    "🐕💨 'Run, jump and play! The world is ours!'",
+    "🐾❤️ 'A walk with you is the best part of my day.'",
+    "🐕🌳 'Exploring new places is my favorite hobby.'",
+    "🦺🐕 Always use a leash for your dog's safety.",
+    "💩🗑️ Always pick up your pet's waste.",
+    "📅🐶 Keep vaccinations and deworming up to date.",
+    "👂🐶 Listen to your dog; their body language says a lot."
+  ],
+  "cuidador": [
+    "🗺️ Searching for nearby caregivers...",
+    "🚶 Preparing the walk...",
+    "📍 Locating the best services...",
+    "🤝 Connecting with experts..."
+  ]
+}
