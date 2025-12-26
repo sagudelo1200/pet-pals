@@ -1,6 +1,14 @@
 import React, { useEffect } from 'react'
-import { StyleSheet, Alert, View, Text } from 'react-native'
-import { Button } from '@/components/ui'
+import {
+  StyleSheet,
+  Alert,
+  View,
+  Text,
+  Pressable,
+  ActivityIndicator,
+} from 'react-native'
+import GoogleLogo from '@/assets/imgs/logos/google.svg'
+import { COLOR } from '@/constants'
 import { useGoogleAuth } from '@/hooks/useGoogleAuth'
 import { useAuth } from '@/context/AuthContext'
 import { useTranslation } from 'react-i18next'
@@ -39,20 +47,31 @@ export const GoogleSignInButton = () => {
     <View style={styles.container}>
       <View style={styles.separatorContainer}>
         <View style={styles.separatorLine} />
-        <Text style={styles.separatorText}>
-          {t('auth:oContinuarCon', { defaultValue: 'O continuar con' })}
-        </Text>
+        <Text style={styles.separatorText}>{t('auth:o_prueba')}</Text>
         <View style={styles.separatorLine} />
       </View>
 
-      <Button
-        title={t('auth:googleSignIn', { defaultValue: 'Continuar con Google' })}
+      <Pressable
         onPress={handlePress}
-        variant="base"
-        style={styles.button}
-        textStyle={styles.text}
-        loading={googleLoading}
-      />
+        style={({ pressed }) => [
+          styles.button,
+          { opacity: pressed || googleLoading ? 0.8 : 1 },
+        ]}
+        accessibilityRole="button"
+      >
+        {googleLoading ? (
+          <ActivityIndicator size="small" color={COLOR.TEXTO} />
+        ) : (
+          <>
+            <View style={styles.logoWrap}>
+              <GoogleLogo width={20} height={20} />
+            </View>
+            <Text style={styles.text}>
+              {t('auth:googleSignIn', { defaultValue: 'Continuar con Google' })}
+            </Text>
+          </>
+        )}
+      </Pressable>
     </View>
   )
 }
@@ -80,14 +99,27 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   button: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: COLOR.BASE,
     borderWidth: 1,
-    borderColor: '#E0E0E0',
+    borderColor: COLOR.BORDE,
     width: 280,
     alignSelf: 'center',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    borderRadius: 8,
   },
   text: {
-    color: '#757575',
+    color: COLOR.TEXTO,
     fontWeight: '600',
+  },
+  logoWrap: {
+    marginRight: 10,
+    width: 20,
+    height: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 })

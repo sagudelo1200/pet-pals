@@ -1,5 +1,5 @@
-import React, { useEffect, useRef } from 'react'
-import { StyleSheet, View, Animated, Dimensions, Image } from 'react-native'
+import { FC, useEffect, useRef } from 'react'
+import { StyleSheet, View, Animated, Dimensions } from 'react-native'
 import { Text } from 'galio-framework'
 import { COLOR } from '@/constants'
 import { Button, Screen } from '@/components/ui'
@@ -7,12 +7,12 @@ import { useNavigation } from '@react-navigation/native'
 import type { AuthFlowParamList } from '@/navigation/types'
 import type { StackNavigationProp } from '@react-navigation/stack'
 import { useTranslation } from 'react-i18next'
+import { LinearGradient } from 'expo-linear-gradient'
+import PaseoTranquilo from '@/assets/imgs/undraw/paseo_tranquilo.svg'
 
 type Nav = StackNavigationProp<AuthFlowParamList>
 
-const { height } = Dimensions.get('window')
-
-const Bienvenida: React.FC = () => {
+const Bienvenida: FC = () => {
   const navigation = useNavigation<Nav>()
   const { t } = useTranslation()
 
@@ -102,27 +102,23 @@ const Bienvenida: React.FC = () => {
       disableDismiss
       includeTopInset
     >
-      {/* Círculos decorativos suaves */}
-      <View style={styles.decorativeCircle1} />
-      <View style={styles.decorativeCircle2} />
+      <LinearGradient
+        colors={[COLOR.BASE, COLOR.BLOQUE]}
+        style={StyleSheet.absoluteFill}
+        start={[0.08, 0.02]}
+        end={[0.9, 0.95]}
+      />
 
-      {/* Logo con animación */}
       <Animated.View
         style={[
-          styles.logoContainer,
-          {
-            opacity: logoOpacity,
-            transform: [{ scale: logoScale }],
-          },
+          styles.illustrationWrap,
+          { opacity: logoOpacity, transform: [{ scale: logoScale }] },
         ]}
       >
-        <View style={styles.logoBackground}>
-          <Image
-            source={require('@/assets/imgs/petpals-logo.png')}
-            style={styles.logo}
-            resizeMode="contain"
-          />
-        </View>
+        <PaseoTranquilo
+          width={Math.min(620, Dimensions.get('window').width - 48)}
+          height={320}
+        />
       </Animated.View>
 
       {/* Mensaje de bienvenida */}
@@ -135,15 +131,17 @@ const Bienvenida: React.FC = () => {
           },
         ]}
       >
-        <Text h3 style={styles.welcomeTitle}>
-          {t('auth:bienvenida.titulo')}
-        </Text>
-        <Text style={styles.welcomeSubtitle}>
-          {t('auth:bienvenida.subtitulo')}
-        </Text>
-        <Text style={styles.welcomeDescription}>
-          {t('auth:bienvenida.descripcion')}
-        </Text>
+        <View style={styles.card}>
+          <Text h3 style={styles.welcomeTitle}>
+            {t('auth:bienvenida.titulo')}
+          </Text>
+          <Text style={styles.welcomeSubtitle}>
+            {t('auth:bienvenida.subtitulo')}
+          </Text>
+          <Text style={styles.welcomeDescription}>
+            {t('auth:bienvenida.descripcion')}
+          </Text>
+        </View>
       </Animated.View>
 
       {/* Botones */}
@@ -172,19 +170,11 @@ const Bienvenida: React.FC = () => {
         <Button
           title={t('auth:bienvenida.botones.crearCuenta')}
           onPress={handleCreateAccount}
-          variant="secundario"
+          variant="contorno"
           fullWidth
           style={styles.secondaryButton}
         />
       </Animated.View>
-
-      {/* Huellas decorativas */}
-      <View style={styles.pawPrint1}>
-        <Text style={styles.pawEmoji}>🐾</Text>
-      </View>
-      <View style={styles.pawPrint2}>
-        <Text style={styles.pawEmoji}>🐾</Text>
-      </View>
     </Screen>
   )
 }
@@ -197,112 +187,72 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     paddingHorizontal: 32,
-    justifyContent: 'center',
+    justifyContent: 'flex-start',
     alignItems: 'center',
-  },
-  decorativeCircle1: {
-    position: 'absolute',
-    top: -100,
-    right: -100,
-    width: 300,
-    height: 300,
-    borderRadius: 150,
-    backgroundColor: `${COLOR.PRIMARIO}15`, // 15 = ~8% opacity
-  },
-  decorativeCircle2: {
-    position: 'absolute',
-    bottom: -80,
-    left: -80,
-    width: 250,
-    height: 250,
-    borderRadius: 125,
-    backgroundColor: `${COLOR.ENFASIS}10`, // 10 = ~6% opacity
-  },
-  logoContainer: {
-    marginBottom: 48,
-    alignItems: 'center',
-  },
-  logoBackground: {
-    width: 140,
-    height: 140,
-    borderRadius: 70,
-    backgroundColor: COLOR.BLOQUE,
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: COLOR.PRIMARIO,
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.3,
-    shadowRadius: 24,
-    elevation: 8,
-    borderWidth: 2,
-    borderColor: COLOR.BORDE,
-  },
-  logo: {
-    width: 100,
-    height: 100,
   },
   messageContainer: {
     alignItems: 'center',
-    marginBottom: 56,
+    marginBottom: 8,
     paddingHorizontal: 8,
-  },
-  welcomeTitle: {
-    fontSize: 32,
-    fontWeight: '700',
-    color: COLOR.TEXTO,
-    textAlign: 'center',
-    marginBottom: 12,
-    letterSpacing: -0.5,
-  },
-  welcomeSubtitle: {
-    fontSize: 18,
-    fontWeight: '500',
-    color: COLOR.ENFASIS,
-    textAlign: 'center',
-    marginBottom: 20,
-    letterSpacing: 0.2,
-  },
-  welcomeDescription: {
-    fontSize: 16,
-    color: COLOR.SUBTEXTO,
-    textAlign: 'center',
-    lineHeight: 24,
-    maxWidth: 320,
   },
   buttonsContainer: {
     width: '100%',
-    maxWidth: 340,
+    maxWidth: 420,
+    marginTop: 36,
+    paddingHorizontal: 24,
+  },
+  illustrationWrap: {
+    width: '100%',
+    alignItems: 'center',
+    marginTop: 36,
+    marginBottom: 8,
+  },
+  card: {
+    backgroundColor: `${COLOR.BLOQUE}E8`,
+    padding: 24,
+    borderRadius: 22,
+    alignSelf: 'stretch',
+    marginHorizontal: 16,
+    maxWidth: 420,
+    alignItems: 'center',
+    shadowColor: COLOR.SOMBRA,
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.32,
+    shadowRadius: 18,
+    elevation: 12,
+    borderWidth: 1,
+    borderColor: `${COLOR.TEXTO}22`,
+  },
+  welcomeTitle: {
+    fontSize: 32,
+    fontWeight: '800',
+    color: COLOR.TEXTO,
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  welcomeSubtitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: COLOR.PRIMARIO,
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  welcomeDescription: {
+    fontSize: 15,
+    color: COLOR.SUBTEXTO,
+    textAlign: 'center',
+    lineHeight: 20,
+    maxWidth: 360,
   },
   primaryButton: {
-    marginBottom: 16,
-    height: 56,
-    borderRadius: 28,
-    shadowColor: COLOR.PRIMARIO,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.4,
-    shadowRadius: 12,
-    elevation: 6,
+    marginBottom: 18,
+    height: 64,
+    borderRadius: 18,
   },
   secondaryButton: {
     marginTop: 8,
-    height: 48,
-  },
-  pawPrint1: {
-    position: 'absolute',
-    top: height * 0.15,
-    left: 30,
-    opacity: 0.08,
-    transform: [{ rotate: '-15deg' }],
-  },
-  pawPrint2: {
-    position: 'absolute',
-    bottom: height * 0.25,
-    right: 40,
-    opacity: 0.06,
-    transform: [{ rotate: '25deg' }],
-  },
-  pawEmoji: {
-    fontSize: 48,
+    height: 56,
+    borderRadius: 18,
   },
 })
 
