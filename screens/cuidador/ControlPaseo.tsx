@@ -31,7 +31,7 @@ type ControlPaseoRouteProp = RouteProp<AuthStackParamList, 'ControlPaseo'>
 
 const ESTADOS_FLUJO = [
   PaseoStatus.CONFIRMADO,
-  PaseoStatus.EN_RUTA,
+  PaseoStatus.EN_CAMINO,
   PaseoStatus.EN_PROGRESO,
   PaseoStatus.FINALIZADO,
 ]
@@ -137,7 +137,7 @@ const ControlPaseo: React.FC = () => {
       if (
         paseo?.estado === PaseoStatus.PENDIENTE ||
         paseo?.estado === PaseoStatus.CONFIRMADO ||
-        paseo?.estado === PaseoStatus.EN_RUTA
+        paseo?.estado === PaseoStatus.EN_CAMINO
       ) {
         setTiempoTranscurrido('00:00:00')
       }
@@ -183,7 +183,7 @@ const ControlPaseo: React.FC = () => {
           evento: 'INICIAR_RUTA',
           color: estadoColor.primario,
         }
-      case PaseoStatus.EN_RUTA:
+      case PaseoStatus.EN_CAMINO:
         return {
           label: t('paseos:control.iniciar_paseo'),
           icon: '🐕',

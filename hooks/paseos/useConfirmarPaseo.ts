@@ -6,7 +6,7 @@ import {
   ServicioPerfilPublico,
   ServicioUbicacion,
 } from '@/services/firebase'
-import { PaseoStatus } from '@/models/Paseo'
+import { ESTADOS_PASEO } from '@/models/Paseo'
 import { useAuth } from '@/context/AuthContext'
 import type { Ubicacion } from '@/models/Ubicacion'
 
@@ -129,7 +129,7 @@ export const useConfirmarPaseo = ({
       const result = await ServicioPaseo.crearConMascotas(
         {
           tipo_paseo: 'solicitado',
-          estado: PaseoStatus.PENDIENTE,
+          estado: ESTADOS_PASEO.PENDIENTE,
           fecha_hora_inicio: fechaInicio,
           duracion_estimada: duracion || 60,
           precio: total,

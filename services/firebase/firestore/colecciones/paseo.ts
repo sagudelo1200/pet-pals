@@ -1,5 +1,5 @@
 import { ServicioCrudBase } from '@/services/firebase/firestore/base'
-import { Paseo, PaseoStatus } from '@/models/Paseo'
+import { Paseo, ESTADOS_PASEO } from '@/models/Paseo'
 import { CrudResult, mapFirebaseError } from '@/services/firebase/comun'
 import { ServicioAuth } from '@/services/firebase/auth/auth'
 import type { Mascota } from '@/models/Mascota'
@@ -26,7 +26,7 @@ export class ServicioPaseo {
     const { limit } = require('firebase/firestore')
     return query(
       collection(db, this.COLLECTION),
-      where('estado', '==', PaseoStatus.PENDIENTE),
+      where('estado', '==', ESTADOS_PASEO.PENDIENTE),
       orderBy('creado_en', 'desc'),
       limit(30)
     )
@@ -65,7 +65,7 @@ export class ServicioPaseo {
 
         const data = paseoDoc.data() as Paseo
 
-        if (data.estado !== PaseoStatus.PENDIENTE) {
+        if (data.estado !== ESTADOS_PASEO.PENDIENTE) {
           throw new Error('El paseo ya no está disponible (estado incorrecto)')
         }
         if (data.id_cuidador && data.id_cuidador !== currentUser.uid) {
@@ -79,7 +79,7 @@ export class ServicioPaseo {
           id_cuidador: currentUser.uid,
           cuidador_nombre_visual: currentUser.displayName || 'Cuidador',
           cuidador_foto_visual: currentUser.photoURL || null,
-          estado: PaseoStatus.CONFIRMADO,
+          estado: ESTADOS_PASEO.CONFIRMADO,
           actualizado_en: serverTimestamp(),
           actualizado_por: currentUser.uid,
         })
@@ -366,7 +366,7 @@ export class ServicioPaseo {
         }
 
         transaction.update(paseoRef, {
-          estado: PaseoStatus.EN_RUTA,
+          estado: ESTADOS_PASEO.EN_CAMINO,
           actualizado_en: serverTimestamp(),
           actualizado_por: currentUser.uid,
         })
@@ -374,7 +374,7 @@ export class ServicioPaseo {
 
       await this.registrarEvento(paseoId, 'INICIAR_RUTA', {
         estado_anterior: 'CONFIRMADO',
-        estado_nuevo: 'EN_RUTA',
+        estado_nuevo: 'EN_CAMINO',
       })
 
       return { success: true }
@@ -407,7 +407,7 @@ export class ServicioPaseo {
         }
 
         transaction.update(paseoRef, {
-          estado: PaseoStatus.EN_PROGRESO,
+          estado: ESTADOS_PASEO.EN_PROGRESO,
           fecha_inicio_real: serverTimestamp(),
           actualizado_en: serverTimestamp(),
           actualizado_por: currentUser.uid,
@@ -415,7 +415,7 @@ export class ServicioPaseo {
       })
 
       await this.registrarEvento(paseoId, 'INICIAR_PASEO', {
-        estado_anterior: 'EN_RUTA',
+        estado_anterior: 'EN_CAMINO',
         estado_nuevo: 'EN_PROGRESO',
       })
 
@@ -451,7 +451,7 @@ export class ServicioPaseo {
         }
 
         transaction.update(paseoRef, {
-          estado: PaseoStatus.FINALIZADO,
+          estado: ESTADOS_PASEO.FINALIZADO,
           fecha_fin_real: serverTimestamp(),
           actualizado_en: serverTimestamp(),
           actualizado_por: currentUser.uid,

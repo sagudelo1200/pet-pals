@@ -1,12 +1,15 @@
 import { useState, useEffect, useRef } from 'react'
-import { PaseoStatus } from '@/models/Paseo'
+import { ESTADOS_PASEO } from '@/models/Paseo'
 
-export function usePaseoTimer(estado: PaseoStatus, fechaInicio?: Date | null) {
+export function usePaseoTimer(
+  estado: ESTADOS_PASEO,
+  fechaInicio?: Date | null
+) {
   const [segundos, setSegundos] = useState(0)
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   useEffect(() => {
-    if (estado === PaseoStatus.EN_PROGRESO && fechaInicio) {
+    if (estado === ESTADOS_PASEO.EN_PROGRESO && fechaInicio) {
       // Asegurar que fechaInicio sea un objeto Date
       const start =
         fechaInicio instanceof Date ? fechaInicio : new Date(fechaInicio)
@@ -33,7 +36,7 @@ export function usePaseoTimer(estado: PaseoStatus, fechaInicio?: Date | null) {
         intervalRef.current = null
       }
       // Si no está en progreso, reseteamos a 0 (o podríamos mantener el último valor si quisiéramos)
-      if (estado !== PaseoStatus.EN_PROGRESO) {
+      if (estado !== ESTADOS_PASEO.EN_PROGRESO) {
         setSegundos(0)
       }
     }

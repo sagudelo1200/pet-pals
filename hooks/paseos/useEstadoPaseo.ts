@@ -5,7 +5,7 @@ import {
   PaseoEvent,
   TransitionPayload,
 } from '@/logic/paseos/maquinaEstados'
-import { Paseo, PaseoStatus } from '@/models/Paseo'
+import { Paseo, ESTADOS_PASEO } from '@/models/Paseo'
 import { ServicioPaseo } from '@/services/firebase'
 
 export function useEstadoPaseo(paseoInicial?: Partial<Paseo>) {
@@ -15,7 +15,7 @@ export function useEstadoPaseo(paseoInicial?: Partial<Paseo>) {
   )
 
   // Estado reactivo para la UI
-  const [estado, setEstado] = useState<PaseoStatus>(maquinaRef.current.estado)
+  const [estado, setEstado] = useState<ESTADOS_PASEO>(maquinaRef.current.estado)
   const [cargando, setCargando] = useState(false)
   const [error, setError] = useState<string | null>(null)
 

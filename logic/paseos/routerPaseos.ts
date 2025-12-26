@@ -1,4 +1,4 @@
-import { Paseo, PaseoStatus } from '@/models/Paseo'
+import { Paseo, ESTADOS_PASEO } from '@/models/Paseo'
 import { RolUsuario } from '@/models/Usuario'
 
 /**
@@ -76,20 +76,20 @@ export const obtenerExperienciaPaseo = (
   // 1. Estados Comunes (Independientes del Rol)
   // ---------------------------------------------------------
   switch (estado) {
-    case PaseoStatus.FINALIZADO:
+    case ESTADOS_PASEO.FINALIZADO:
       return {
         tipo: 'MODAL',
         id: 'ResumenPaseo',
         configuracion: { mostrarMapa: false, esInteractivo: true },
       }
-    case PaseoStatus.COMPLETADO:
+    case ESTADOS_PASEO.COMPLETADO:
       return {
         tipo: 'MODAL',
         id: 'DetalleHistorico',
         configuracion: { mostrarMapa: false, esInteractivo: false },
       }
-    case PaseoStatus.CANCELADO:
-    case PaseoStatus.ERROR:
+    case ESTADOS_PASEO.CANCELADO:
+    case ESTADOS_PASEO.ERROR:
       return {
         tipo: 'MODAL',
         id: 'AvisoCancelacion',
@@ -104,20 +104,20 @@ export const obtenerExperienciaPaseo = (
   // TUTOR
   if (rol === 'tutor') {
     switch (estado) {
-      case PaseoStatus.PENDIENTE:
+      case ESTADOS_PASEO.PENDIENTE:
         return {
           tipo: 'MODAL',
           id: 'EsperandoCuidador',
           configuracion: { mostrarMapa: false, esInteractivo: true },
         }
-      case PaseoStatus.CONFIRMADO:
+      case ESTADOS_PASEO.CONFIRMADO:
         return {
           tipo: 'MODAL',
           id: 'PreparacionPaseo',
           configuracion: { mostrarMapa: false, esInteractivo: true },
         }
-      case PaseoStatus.EN_RUTA:
-      case PaseoStatus.EN_PROGRESO:
+      case ESTADOS_PASEO.EN_CAMINO:
+      case ESTADOS_PASEO.EN_PROGRESO:
         return {
           tipo: 'PANTALLA',
           id: 'PaseoActivo',
@@ -129,15 +129,15 @@ export const obtenerExperienciaPaseo = (
   // CUIDADOR
   if (rol === 'cuidador') {
     switch (estado) {
-      case PaseoStatus.PENDIENTE:
+      case ESTADOS_PASEO.PENDIENTE:
         return {
           tipo: 'MODAL',
           id: 'SolicitudRecibida',
           configuracion: { mostrarMapa: false, esInteractivo: true },
         }
-      case PaseoStatus.CONFIRMADO:
-      case PaseoStatus.EN_RUTA:
-      case PaseoStatus.EN_PROGRESO:
+      case ESTADOS_PASEO.CONFIRMADO:
+      case ESTADOS_PASEO.EN_CAMINO:
+      case ESTADOS_PASEO.EN_PROGRESO:
         return {
           tipo: 'PANTALLA',
           id: 'ControlPaseo',

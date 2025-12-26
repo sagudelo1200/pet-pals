@@ -2,7 +2,7 @@ import React from 'react'
 import { Text, StyleSheet, View, ActivityIndicator } from 'react-native'
 import { BottomSheet, Button, Icon, Avatar } from '@/components/ui'
 import { COLOR } from '@/constants'
-import { Paseo, PaseoStatus } from '@/models/Paseo'
+import { Paseo, ESTADOS_PASEO } from '@/models/Paseo'
 import { useTranslation } from 'react-i18next'
 
 interface Props {
@@ -130,9 +130,9 @@ const DetallePaseoBottomSheet: React.FC<Props> = ({
 
   const renderContent = () => {
     switch (paseo.estado) {
-      case PaseoStatus.PENDIENTE:
+      case ESTADOS_PASEO.PENDIENTE:
         return renderPendiente()
-      case PaseoStatus.CONFIRMADO:
+      case ESTADOS_PASEO.CONFIRMADO:
         return renderConfirmado()
       default:
         return <Text style={styles.title}>{title || ''}</Text>

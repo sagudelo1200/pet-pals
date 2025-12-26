@@ -9,7 +9,7 @@ Este documento describe el diseño de la máquina de estados para el modelo "Pas
 | **PENDIENTE**   | Tutor solicitó el paseo; aún sin respuesta.                |
 | **ACEPTADO**    | Un Cuidador aceptó la solicitud (preparación).             |
 | **PROGRAMADO**  | Paseo con fecha/hora confirmada (opcional, intermedio).    |
-| **EN_RUTA**     | Cuidador en camino hacia inicio (opcional).                |
+| **EN_CAMINO**   | Cuidador en camino hacia inicio (opcional).                |
 | **EN_PROGRESO** | Paseo activo (Cuidador inició el paseo).                   |
 | **FINALIZADO**  | Cuidador marcó que terminó el paseo y espera confirmación. |
 | **COMPLETADO**  | Tutor y/o sistema confirma cierre; reseñas pendientes.     |
@@ -43,14 +43,14 @@ stateDiagram-v2
     PENDIENTE --> CANCELADO: CANCELAR
 
     ACEPTADO --> PROGRAMADO: PROGRAMAR
-    ACEPTADO --> EN_RUTA: INICIAR_RUTA
+    ACEPTADO --> EN_CAMINO: INICIAR_RUTA
     ACEPTADO --> CANCELADO: CANCELAR
 
-    PROGRAMADO --> EN_RUTA: INICIAR_RUTA
+    PROGRAMADO --> EN_CAMINO: INICIAR_RUTA
     PROGRAMADO --> CANCELADO: CANCELAR
 
-    EN_RUTA --> EN_PROGRESO: LLEGAR / INICIAR_PASEO
-    EN_RUTA --> CANCELADO: CANCELAR
+    EN_CAMINO --> EN_PROGRESO: LLEGAR / INICIAR_PASEO
+    EN_CAMINO --> CANCELADO: CANCELAR
 
     EN_PROGRESO --> FINALIZADO: FINALIZAR_PASEO
 
@@ -64,11 +64,14 @@ stateDiagram-v2
 ## Ejemplo de Uso
 
 ```typescript
-import { createPaseoMachine, PaseoStatus } from 'services/paseos/maquinaEstados'
+import {
+  createPaseoMachine,
+  ESTADOS_PASEO,
+} from 'services/paseos/maquinaEstados'
 
-const machine = createPaseoMachine({ estado: PaseoStatus.PENDIENTE })
+const machine = createPaseoMachine({ estado: ESTADOS_PASEO.PENDIENTE })
 const nextState = machine.transition('ACEPTAR')
-// nextState === PaseoStatus.ACEPTADO
+// nextState === ESTADOS_PASEO.ACEPTADO
 ```
 
 ## Pruebas

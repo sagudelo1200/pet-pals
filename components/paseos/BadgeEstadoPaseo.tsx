@@ -1,27 +1,27 @@
 import { View, Text, StyleSheet } from 'react-native'
 import { useTranslation } from 'react-i18next'
 import { COLOR } from '@/constants/Theme'
-import { PaseoStatus } from '@/models/Paseo'
+import { ESTADOS_PASEO } from '@/models/Paseo'
 import { Feather } from '@expo/vector-icons'
 
 interface Props {
-  estado: PaseoStatus
+  estado: ESTADOS_PASEO
 }
 
 export const BadgeEstadoPaseo = ({ estado }: Props) => {
   const { t } = useTranslation()
 
   // Configuración de colores e iconos según estado
-  const getConfig = (estado: PaseoStatus) => {
+  const getConfig = (estado: ESTADOS_PASEO) => {
     switch (estado) {
-      case PaseoStatus.PENDIENTE: {
+      case ESTADOS_PASEO.PENDIENTE: {
         return {
           bg: COLOR.INACTIVO,
           text: COLOR.SUBTEXTO,
           icon: 'clock',
         }
       }
-      case PaseoStatus.CONFIRMADO: {
+      case ESTADOS_PASEO.CONFIRMADO: {
         const conf = COLOR.ESTADO.CONFIRMADO
         return {
           bg: conf.fondo,
@@ -29,15 +29,15 @@ export const BadgeEstadoPaseo = ({ estado }: Props) => {
           icon: 'check',
         }
       }
-      case PaseoStatus.EN_RUTA: {
-        const ruta = COLOR.ESTADO.EN_RUTA
+      case ESTADOS_PASEO.EN_CAMINO: {
+        const ruta = COLOR.ESTADO.EN_CAMINO
         return {
           bg: ruta.fondo,
           text: ruta.primario,
           icon: 'map-pin',
         }
       }
-      case PaseoStatus.EN_PROGRESO: {
+      case ESTADOS_PASEO.EN_PROGRESO: {
         const prog = COLOR.ESTADO.EN_PROGRESO
         return {
           bg: prog.fondo,
@@ -45,7 +45,7 @@ export const BadgeEstadoPaseo = ({ estado }: Props) => {
           icon: 'activity',
         }
       }
-      case PaseoStatus.FINALIZADO: {
+      case ESTADOS_PASEO.FINALIZADO: {
         const fin = COLOR.ESTADO.FINALIZADO
         return {
           bg: fin.fondo,
@@ -53,7 +53,7 @@ export const BadgeEstadoPaseo = ({ estado }: Props) => {
           icon: 'flag',
         }
       }
-      case PaseoStatus.COMPLETADO: {
+      case ESTADOS_PASEO.COMPLETADO: {
         const comp = COLOR.ESTADO.COMPLETADO
         return {
           bg: comp.fondo,
@@ -61,8 +61,8 @@ export const BadgeEstadoPaseo = ({ estado }: Props) => {
           icon: 'check-circle',
         }
       }
-      case PaseoStatus.CANCELADO:
-      case PaseoStatus.ERROR: {
+      case ESTADOS_PASEO.CANCELADO:
+      case ESTADOS_PASEO.ERROR: {
         const err = COLOR.ESTADO.ERROR
         return {
           bg: err.fondo,

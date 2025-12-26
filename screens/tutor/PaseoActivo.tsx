@@ -20,7 +20,7 @@ import { Mapa, Icon, Avatar, Spacer, Button } from '@/components/ui'
 import { usePaseoActivo } from '@/hooks/paseos/usePaseoActivo'
 import { AuthStackParamList } from '@/navigation/types'
 import { COLOR } from '@/constants'
-import { PaseoStatus } from '@/models/Paseo'
+import { ESTADOS_PASEO } from '@/models/Paseo'
 
 type Props = StackScreenProps<AuthStackParamList, 'PaseoActivo'>
 
@@ -46,14 +46,14 @@ export default function PaseoActivo({ route, navigation }: Props) {
   useEffect(() => {
     if (!paseo || yaNotificado || navigationAttempted.current) return
     if (
-      paseo.estado === PaseoStatus.FINALIZADO ||
-      paseo.estado === PaseoStatus.COMPLETADO
+      paseo.estado === ESTADOS_PASEO.FINALIZADO ||
+      paseo.estado === ESTADOS_PASEO.COMPLETADO
     ) {
       navigationAttempted.current = true
       setYaNotificado(true)
       navigation.navigate('PaseoFinalizado', { paseoId })
     }
-    if (paseo.estado === PaseoStatus.CANCELADO) {
+    if (paseo.estado === ESTADOS_PASEO.CANCELADO) {
       navigationAttempted.current = true
       setYaNotificado(true)
       Alert.alert(
@@ -159,11 +159,11 @@ export default function PaseoActivo({ route, navigation }: Props) {
       mascota: paseo.mascota_nombre_visual,
     }
     switch (paseo.estado) {
-      case PaseoStatus.CONFIRMADO:
+      case ESTADOS_PASEO.CONFIRMADO:
         return t('paseos:activo.mensajes.confirmado', placeholders)
-      case PaseoStatus.EN_RUTA:
-        return t('paseos:activo.mensajes.en_ruta', placeholders)
-      case PaseoStatus.EN_PROGRESO:
+      case ESTADOS_PASEO.EN_CAMINO:
+        return t('paseos:activo.mensajes.EN_CAMINO', placeholders)
+      case ESTADOS_PASEO.EN_PROGRESO:
         return t('paseos:activo.mensajes.en_progreso', placeholders)
       default:
         return t(`paseos:estados.${paseo.estado}`)
@@ -196,7 +196,7 @@ export default function PaseoActivo({ route, navigation }: Props) {
           ubicacionInicio || { latitude: -34.6037, longitude: -58.3816 }
         }
       >
-        {ruta.length > 0 && paseo?.estado === PaseoStatus.EN_PROGRESO && (
+        {ruta.length > 0 && paseo?.estado === ESTADOS_PASEO.EN_PROGRESO && (
           <Polyline
             coordinates={ruta}
             strokeColor={COLOR.ENFASIS}
@@ -208,17 +208,17 @@ export default function PaseoActivo({ route, navigation }: Props) {
             coordinate={ubicacionActual}
             zIndex={999}
             anchor={
-              paseo?.estado === PaseoStatus.EN_PROGRESO
+              paseo?.estado === ESTADOS_PASEO.EN_PROGRESO
                 ? { x: 0.52, y: 0.52 }
                 : undefined
             }
             pinColor={
-              paseo?.estado === PaseoStatus.EN_PROGRESO
+              paseo?.estado === ESTADOS_PASEO.EN_PROGRESO
                 ? 'transparent'
                 : COLOR.ENFASIS
             }
           >
-            {paseo?.estado === PaseoStatus.EN_PROGRESO && (
+            {paseo?.estado === ESTADOS_PASEO.EN_PROGRESO && (
               <View style={styles.liveMarkerWrapper}>
                 <View style={styles.liveMarkerIcon}>
                   <Icon name="paw" size={18} color={COLOR.TEXTO} />
@@ -361,15 +361,15 @@ export default function PaseoActivo({ route, navigation }: Props) {
   )
 }
 
-function estadoIcono(estado: PaseoStatus) {
+function estadoIcono(estado: ESTADOS_PASEO) {
   switch (estado) {
-    case PaseoStatus.CONFIRMADO:
+    case ESTADOS_PASEO.CONFIRMADO:
       return 'checkmark-circle'
-    case PaseoStatus.EN_RUTA:
+    case ESTADOS_PASEO.EN_CAMINO:
       return 'bicycle'
-    case PaseoStatus.EN_PROGRESO:
+    case ESTADOS_PASEO.EN_PROGRESO:
       return 'walk'
-    case PaseoStatus.FINALIZADO:
+    case ESTADOS_PASEO.FINALIZADO:
       return 'flag'
     default:
       return 'help'

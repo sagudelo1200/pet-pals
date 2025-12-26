@@ -14,7 +14,7 @@ import PaseadorPerrosSvg from '@/assets/imgs/undraw/paseador_perros.svg'
 import { useMascotas } from '@/hooks/useMascotas'
 import { usePaseos } from '@/hooks/paseos/usePaseos'
 import DetallePaseoBottomSheet from '@/components/paseos/DetallePaseoBottomSheet'
-import { Paseo, PaseoStatus } from '@/models/Paseo'
+import { Paseo, ESTADOS_PASEO } from '@/models/Paseo'
 import { obtenerExperienciaPaseo } from '@/logic/paseos/routerPaseos'
 
 type TabTipo = 'proximos' | 'historial'
@@ -83,10 +83,10 @@ const Paseos: React.FC = () => {
     () =>
       (paseos || []).filter(p =>
         [
-          PaseoStatus.PENDIENTE,
-          PaseoStatus.CONFIRMADO,
-          PaseoStatus.EN_RUTA,
-          PaseoStatus.EN_PROGRESO,
+          ESTADOS_PASEO.PENDIENTE,
+          ESTADOS_PASEO.CONFIRMADO,
+          ESTADOS_PASEO.EN_CAMINO,
+          ESTADOS_PASEO.EN_PROGRESO,
         ].includes(p.estado)
       ),
     [paseos]
@@ -96,9 +96,9 @@ const Paseos: React.FC = () => {
     () =>
       (paseos || []).filter(p =>
         [
-          PaseoStatus.COMPLETADO,
-          PaseoStatus.FINALIZADO,
-          PaseoStatus.CANCELADO,
+          ESTADOS_PASEO.COMPLETADO,
+          ESTADOS_PASEO.FINALIZADO,
+          ESTADOS_PASEO.CANCELADO,
         ].includes(p.estado)
       ),
     [paseos]

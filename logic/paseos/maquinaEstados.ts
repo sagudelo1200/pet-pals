@@ -1,4 +1,4 @@
-import { PaseoStatus, type Paseo } from '@/models/Paseo'
+import { ESTADOS_PASEO, type Paseo } from '@/models/Paseo'
 
 // ==========================================
 // Tipos y Eventos
@@ -30,35 +30,35 @@ export interface TransitionPayload {
 // ==========================================
 
 type Transiciones = {
-  [_key in PaseoStatus]?: {
-    [_evt in PaseoEvent]?: PaseoStatus
+  [_key in ESTADOS_PASEO]?: {
+    [_evt in PaseoEvent]?: ESTADOS_PASEO
   }
 }
 
 const CONFIG_MAQUINA: Transiciones = {
-  [PaseoStatus.PENDIENTE]: {
-    ACEPTAR: PaseoStatus.CONFIRMADO,
-    CANCELAR: PaseoStatus.CANCELADO,
+  [ESTADOS_PASEO.PENDIENTE]: {
+    ACEPTAR: ESTADOS_PASEO.CONFIRMADO,
+    CANCELAR: ESTADOS_PASEO.CANCELADO,
   },
-  [PaseoStatus.CONFIRMADO]: {
-    INICIAR_RUTA: PaseoStatus.EN_RUTA,
-    INICIAR_PASEO: PaseoStatus.EN_PROGRESO,
-    CANCELAR: PaseoStatus.CANCELADO,
+  [ESTADOS_PASEO.CONFIRMADO]: {
+    INICIAR_RUTA: ESTADOS_PASEO.EN_CAMINO,
+    INICIAR_PASEO: ESTADOS_PASEO.EN_PROGRESO,
+    CANCELAR: ESTADOS_PASEO.CANCELADO,
   },
-  [PaseoStatus.EN_RUTA]: {
-    LLEGAR: PaseoStatus.EN_PROGRESO,
-    INICIAR_PASEO: PaseoStatus.EN_PROGRESO,
-    CANCELAR: PaseoStatus.CANCELADO,
+  [ESTADOS_PASEO.EN_CAMINO]: {
+    LLEGAR: ESTADOS_PASEO.EN_PROGRESO,
+    INICIAR_PASEO: ESTADOS_PASEO.EN_PROGRESO,
+    CANCELAR: ESTADOS_PASEO.CANCELADO,
   },
-  [PaseoStatus.EN_PROGRESO]: {
-    FINALIZAR_PASEO: PaseoStatus.FINALIZADO,
+  [ESTADOS_PASEO.EN_PROGRESO]: {
+    FINALIZAR_PASEO: ESTADOS_PASEO.FINALIZADO,
   },
-  [PaseoStatus.FINALIZADO]: {
-    CONFIRMAR_COMPLETADO: PaseoStatus.COMPLETADO,
+  [ESTADOS_PASEO.FINALIZADO]: {
+    CONFIRMAR_COMPLETADO: ESTADOS_PASEO.COMPLETADO,
   },
-  [PaseoStatus.COMPLETADO]: {},
-  [PaseoStatus.CANCELADO]: {},
-  [PaseoStatus.ERROR]: {},
+  [ESTADOS_PASEO.COMPLETADO]: {},
+  [ESTADOS_PASEO.CANCELADO]: {},
+  [ESTADOS_PASEO.ERROR]: {},
 }
 
 // ==========================================
@@ -66,27 +66,27 @@ const CONFIG_MAQUINA: Transiciones = {
 // ==========================================
 
 export class MaquinaEstadosPaseo {
-  private _estado: PaseoStatus
+  private _estado: ESTADOS_PASEO
   private _contexto: Partial<Paseo>
 
   constructor(
-    estadoInicial: PaseoStatus = PaseoStatus.PENDIENTE,
+    estadoInicial: ESTADOS_PASEO = ESTADOS_PASEO.PENDIENTE,
     contexto: Partial<Paseo> = {}
   ) {
     this._estado = estadoInicial
     this._contexto = contexto
   }
 
-  get estado(): PaseoStatus {
+  get estado(): ESTADOS_PASEO {
     return this._estado
   }
 
   puede(evento: PaseoEvent): boolean {
     const permitidos = CONFIG_MAQUINA[this._estado]
     const NON_TRANSITION_EVENTS: PaseoEvent[] = ['RECHAZAR']
-    const ALLOWED_NON_TRANSITION_FROM: PaseoStatus[] = [
-      PaseoStatus.PENDIENTE,
-      PaseoStatus.CONFIRMADO,
+    const ALLOWED_NON_TRANSITION_FROM: ESTADOS_PASEO[] = [
+      ESTADOS_PASEO.PENDIENTE,
+      ESTADOS_PASEO.CONFIRMADO,
     ]
 
     if (permitidos && permitidos[evento]) return true
@@ -101,7 +101,7 @@ export class MaquinaEstadosPaseo {
     return false
   }
 
-  transicion(evento: PaseoEvent, payload?: TransitionPayload): PaseoStatus {
+  transicion(evento: PaseoEvent, payload?: TransitionPayload): ESTADOS_PASEO {
     if (!this.puede(evento)) {
       throw new Error(`Transición inválida: ${this._estado} -> ${evento}`)
     }
@@ -121,11 +121,11 @@ export class MaquinaEstadosPaseo {
   }
 
   private validarTransicion(
-    desde: PaseoStatus,
-    hacia: PaseoStatus,
+    desde: ESTADOS_PASEO,
+    hacia: ESTADOS_PASEO,
     payload?: TransitionPayload
   ) {
-    if (hacia === PaseoStatus.CANCELADO) {
+    if (hacia === ESTADOS_PASEO.CANCELADO) {
       if (!payload?.motivo) {
         throw new Error('Se requiere un motivo para cancelar el paseo.')
       }
@@ -147,7 +147,7 @@ export class MaquinaEstadosPaseo {
 
 export function crearMaquinaPaseo(paseo?: Partial<Paseo>): MaquinaEstadosPaseo {
   return new MaquinaEstadosPaseo(
-    paseo?.estado || PaseoStatus.PENDIENTE,
+    paseo?.estado || ESTADOS_PASEO.PENDIENTE,
     paseo || {}
   )
 }

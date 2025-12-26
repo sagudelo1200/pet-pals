@@ -6,7 +6,7 @@ import {
   ahoraRealtime,
 } from '@/services/firebase'
 import { UbicacionRealtime } from '@/models/Ubicacion'
-import { PaseoStatus } from '@/models/Paseo'
+import { ESTADOS_PASEO } from '@/models/Paseo'
 
 /**
  * Hook para que el cuidador publique su ubicación en tiempo real durante un paseo.
@@ -16,13 +16,13 @@ import { PaseoStatus } from '@/models/Paseo'
  */
 export function usePublicarUbicacion(
   idPaseo: string | undefined,
-  estadoPaseo: PaseoStatus | undefined
+  estadoPaseo: ESTADOS_PASEO | undefined
 ): void {
   const subscription = useRef<Location.LocationSubscription | null>(null)
 
   useEffect(() => {
     // Solo trackeamos si el paseo está en un estado activo
-    const estadosActivos = [PaseoStatus.EN_RUTA, PaseoStatus.EN_PROGRESO]
+    const estadosActivos = [ESTADOS_PASEO.EN_CAMINO, ESTADOS_PASEO.EN_PROGRESO]
     const debeTrackear =
       idPaseo && estadoPaseo && estadosActivos.includes(estadoPaseo)
 
@@ -79,7 +79,7 @@ export function usePublicarUbicacion(
             )
 
             // 2. Agregar al historial de la ruta (solo si el paseo está en progreso)
-            if (estadoPaseo === PaseoStatus.EN_PROGRESO) {
+            if (estadoPaseo === ESTADOS_PASEO.EN_PROGRESO) {
               ServicioRealtime.agregarLista(
                 RUTAS_REALTIME.historialRuta(idPaseo),
                 payload

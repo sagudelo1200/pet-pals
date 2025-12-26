@@ -126,8 +126,8 @@ service cloud.firestore {
     function transicion_estado_valida(estadoActual, estadoNuevo) {
       return (
         (estadoActual == 'PENDIENTE' && estadoNuevo == 'CONFIRMADO') ||
-        (estadoActual == 'CONFIRMADO' && estadoNuevo == 'EN_RUTA') ||
-        (estadoActual == 'EN_RUTA' && estadoNuevo == 'EN_PROGRESO') ||
+        (estadoActual == 'CONFIRMADO' && estadoNuevo == 'EN_CAMINO') ||
+        (estadoActual == 'EN_CAMINO' && estadoNuevo == 'EN_PROGRESO') ||
         (estadoActual == 'EN_PROGRESO' && estadoNuevo == 'FINALIZADO') ||
         (estadoActual == 'FINALIZADO' && estadoNuevo == 'COMPLETADO')
       );

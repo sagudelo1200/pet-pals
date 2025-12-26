@@ -22,7 +22,7 @@
   "estados": {
     "PENDIENTE": "Pending",
     "CONFIRMADO": "Confirmed",
-    "EN_RUTA": "On the way",
+    "EN_CAMINO": "On the way",
     "EN_PROGRESO": "In progress",
     "FINALIZADO": "Finished",
     "COMPLETADO": "Completed",
@@ -149,7 +149,7 @@
     "mensaje_calma": "The walk is going well 🐾",
     "mensajes": {
       "confirmado": "{{cuidador}} accepted the walk.",
-      "en_ruta": "{{cuidador}} is on the way for {{mascota}}.",
+      "EN_CAMINO": "{{cuidador}} is on the way for {{mascota}}.",
       "en_progreso": "{{mascota}} is with {{cuidador}}."
     },
     "tiempo_restante": "About {{tiempo}} min left",

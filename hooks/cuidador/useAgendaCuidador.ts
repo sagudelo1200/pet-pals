@@ -20,7 +20,7 @@ export function useAgendaCuidador() {
     return query(
       collection(db, 'paseos'),
       where('id_cuidador', '==', uid),
-      where('estado', 'in', ['CONFIRMADO', 'EN_RUTA', 'EN_PROGRESO']),
+      where('estado', 'in', ['CONFIRMADO', 'EN_CAMINO', 'EN_PROGRESO']),
       orderBy('fecha_hora_inicio', 'asc') // Los más cercanos primero
     )
   }, [uid])

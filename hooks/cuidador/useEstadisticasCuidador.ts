@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '@/context/AuthContext'
 import { ServicioPaseo } from '@/services/firebase'
-import { PaseoStatus } from '@/models/Paseo'
+import { ESTADOS_PASEO } from '@/models/Paseo'
 
 interface EstadisticasCuidador {
   solicitudesPendientes: number
@@ -31,7 +31,7 @@ export const useEstadisticasCuidador = (): EstadisticasCuidador => {
     try {
       // Solicitudes disponibles (sin cuidador asignado)
       const solicitudesRes = await ServicioPaseo.obtenerPorEstado(
-        PaseoStatus.PENDIENTE
+        ESTADOS_PASEO.PENDIENTE
       )
       const solicitudes = solicitudesRes.success
         ? solicitudesRes.data || []
@@ -40,25 +40,25 @@ export const useEstadisticasCuidador = (): EstadisticasCuidador => {
 
       // Optimización: Consultar todos los paseos del cuidador en una sola query
       const todosRes = await ServicioPaseo.obtenerPorCuidadorYEstado(user.uid, [
-        PaseoStatus.CONFIRMADO,
-        PaseoStatus.EN_RUTA,
-        PaseoStatus.EN_PROGRESO,
-        PaseoStatus.COMPLETADO,
-        PaseoStatus.FINALIZADO,
+        ESTADOS_PASEO.CONFIRMADO,
+        ESTADOS_PASEO.EN_CAMINO,
+        ESTADOS_PASEO.EN_PROGRESO,
+        ESTADOS_PASEO.COMPLETADO,
+        ESTADOS_PASEO.FINALIZADO,
       ])
       const todos = todosRes.success ? todosRes.data || [] : []
 
       const activos = todos.filter(p =>
         [
-          PaseoStatus.CONFIRMADO,
-          PaseoStatus.EN_RUTA,
-          PaseoStatus.EN_PROGRESO,
+          ESTADOS_PASEO.CONFIRMADO,
+          ESTADOS_PASEO.EN_CAMINO,
+          ESTADOS_PASEO.EN_PROGRESO,
         ].includes(p.estado)
       )
       const completados = todos.filter(
         p =>
-          p.estado === PaseoStatus.COMPLETADO ||
-          p.estado === PaseoStatus.FINALIZADO
+          p.estado === ESTADOS_PASEO.COMPLETADO ||
+          p.estado === ESTADOS_PASEO.FINALIZADO
       )
 
       setEstadisticas({

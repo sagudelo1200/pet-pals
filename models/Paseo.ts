@@ -12,11 +12,11 @@ export type TipoPaseo = 'solicitado' | 'programado'
  * Controla el flujo desde solicitud hasta conclusión o cancelación.
  */
 /* eslint-disable no-unused-vars */
-// Los valores del enum `PaseoStatus` se usan en múltiples módulos del proyecto.
-export enum PaseoStatus {
+// Los valores del enum `ESTADOS_PASEO` se usan en múltiples módulos del proyecto.
+export enum ESTADOS_PASEO {
   PENDIENTE = 'PENDIENTE',
   CONFIRMADO = 'CONFIRMADO',
-  EN_RUTA = 'EN_RUTA',
+  EN_CAMINO = 'EN_CAMINO',
   EN_PROGRESO = 'EN_PROGRESO',
   FINALIZADO = 'FINALIZADO',
   COMPLETADO = 'COMPLETADO',
@@ -64,7 +64,7 @@ export interface Paseo extends BaseModel {
   /** Costo del servicio en la moneda local. */
   precio: number
   /** Estado actual del paseo. */
-  estado: PaseoStatus
+  estado: ESTADOS_PASEO
   /** Fecha y hora real de inicio del paseo (cuando pasa a EN_PROGRESO). */
   fecha_inicio_real?: Date
   /** Fecha y hora real de fin del paseo (cuando pasa a FINALIZADO). */

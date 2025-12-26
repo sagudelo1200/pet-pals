@@ -22,7 +22,7 @@
   "estados": {
     "PENDIENTE": "Pendiente",
     "CONFIRMADO": "Confirmado",
-    "EN_RUTA": "En camino",
+    "EN_CAMINO": "En camino",
     "EN_PROGRESO": "En progreso",
     "FINALIZADO": "Finalizado",
     "COMPLETADO": "Completado",
@@ -149,7 +149,7 @@
     "mensaje_calma": "El paseo va genial 🐾",
     "mensajes": {
       "confirmado": "{{cuidador}} aceptó el paseo.",
-      "en_ruta": "{{cuidador}} va por {{mascota}}.",
+      "EN_CAMINO": "{{cuidador}} va por {{mascota}}.",
       "en_progreso": "{{mascota}} está con {{cuidador}}."
     },
     "tiempo_restante": "Faltan aprox. {{tiempo}} min",

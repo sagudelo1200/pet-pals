@@ -28,7 +28,7 @@ export const COLOR = {
       fondo: '#3B82F615',
       texto: '#1E40AF',
     },
-    EN_RUTA: {
+    EN_CAMINO: {
       primario: '#F59E0B', // Ámbar
       fondo: '#F59E0B15',
       texto: '#D97706',
