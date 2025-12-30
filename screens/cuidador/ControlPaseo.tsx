@@ -21,7 +21,7 @@ import { Ionicons } from '@expo/vector-icons'
 import * as Haptics from 'expo-haptics'
 import { BlurView } from 'expo-blur'
 import { COLOR } from '@/constants'
-import { PaseoStatus } from '@/models/Paseo'
+import { ESTADOS_PASEO } from '@/models/Paseo'
 import { useControlPaseo } from '@/hooks/cuidador/useControlPaseo'
 import { usePublicarUbicacion } from '@/hooks/cuidador/usePublicarUbicacion'
 import { Button, Mapa, Icon } from '@/components/ui'
@@ -30,10 +30,10 @@ import type { AuthStackParamList } from '@/navigation/types'
 type ControlPaseoRouteProp = RouteProp<AuthStackParamList, 'ControlPaseo'>
 
 const ESTADOS_FLUJO = [
-  PaseoStatus.CONFIRMADO,
-  PaseoStatus.EN_CAMINO,
-  PaseoStatus.EN_PROGRESO,
-  PaseoStatus.FINALIZADO,
+  ESTADOS_PASEO.CONFIRMADO,
+  ESTADOS_PASEO.EN_CAMINO,
+  ESTADOS_PASEO.EN_PROGRESO,
+  ESTADOS_PASEO.FINALIZADO,
 ]
 
 const ControlPaseo: React.FC = () => {
@@ -94,7 +94,7 @@ const ControlPaseo: React.FC = () => {
 
   // Animación de pulso y glow para el botón activo
   useEffect(() => {
-    if (paseo?.estado === PaseoStatus.EN_PROGRESO) {
+    if (paseo?.estado === ESTADOS_PASEO.EN_PROGRESO) {
       // Pulso del botón
       Animated.loop(
         Animated.sequence([
@@ -131,13 +131,16 @@ const ControlPaseo: React.FC = () => {
 
   // Temporizador en tiempo real
   useEffect(() => {
-    if (!paseo?.fecha_inicio_real || paseo.estado !== PaseoStatus.EN_PROGRESO) {
+    if (
+      !paseo?.fecha_inicio_real ||
+      paseo.estado !== ESTADOS_PASEO.EN_PROGRESO
+    ) {
       // Si no hay fecha o no está en progreso, no activamos el intervalo,
       // pero si está FINALIZADO, mantenemos el último valor calculado.
       if (
-        paseo?.estado === PaseoStatus.PENDIENTE ||
-        paseo?.estado === PaseoStatus.CONFIRMADO ||
-        paseo?.estado === PaseoStatus.EN_CAMINO
+        paseo?.estado === ESTADOS_PASEO.PENDIENTE ||
+        paseo?.estado === ESTADOS_PASEO.CONFIRMADO ||
+        paseo?.estado === ESTADOS_PASEO.EN_CAMINO
       ) {
         setTiempoTranscurrido('00:00:00')
       }
@@ -164,7 +167,7 @@ const ControlPaseo: React.FC = () => {
 
   // Configuración del botón según estado
   const getButtonConfig = (
-    estado: PaseoStatus
+    estado: ESTADOS_PASEO
   ): {
     label: string
     icon: string
@@ -176,28 +179,28 @@ const ControlPaseo: React.FC = () => {
       COLOR.ESTADO.CONFIRMADO
 
     switch (estado) {
-      case PaseoStatus.CONFIRMADO:
+      case ESTADOS_PASEO.CONFIRMADO:
         return {
           label: t('paseos:control.iniciar_ruta'),
           icon: '🚶',
           evento: 'INICIAR_RUTA',
           color: estadoColor.primario,
         }
-      case PaseoStatus.EN_CAMINO:
+      case ESTADOS_PASEO.EN_CAMINO:
         return {
           label: t('paseos:control.iniciar_paseo'),
           icon: '🐕',
           evento: 'INICIAR_PASEO',
           color: estadoColor.primario,
         }
-      case PaseoStatus.EN_PROGRESO:
+      case ESTADOS_PASEO.EN_PROGRESO:
         return {
           label: t('paseos:control.finalizar_paseo'),
           icon: '🏁',
           evento: 'FINALIZAR_PASEO',
           color: estadoColor.primario,
         }
-      case PaseoStatus.FINALIZADO:
+      case ESTADOS_PASEO.FINALIZADO:
         return {
           label: t('paseos:control.ver_resumen'),
           icon: '✅',
@@ -246,7 +249,7 @@ const ControlPaseo: React.FC = () => {
       if (config.evento === 'FINALIZAR_PASEO') {
         setShowSuccess(true)
       }
-    } else if (paseo.estado === PaseoStatus.FINALIZADO) {
+    } else if (paseo.estado === ESTADOS_PASEO.FINALIZADO) {
       setShowSuccess(true)
     }
   }
@@ -262,7 +265,7 @@ const ControlPaseo: React.FC = () => {
     )
   }
 
-  const estadoCompletado = (estado: PaseoStatus) => {
+  const estadoCompletado = (estado: ESTADOS_PASEO) => {
     if (!paseo) return false
     const estadoActualIndex = ESTADOS_FLUJO.indexOf(paseo.estado)
     const estadoIndex = ESTADOS_FLUJO.indexOf(estado)
@@ -322,7 +325,7 @@ const ControlPaseo: React.FC = () => {
         }}
       >
         {/* Ruta recorrida */}
-        {ruta.length > 0 && paseo?.estado === PaseoStatus.EN_PROGRESO && (
+        {ruta.length > 0 && paseo?.estado === ESTADOS_PASEO.EN_PROGRESO && (
           <Polyline
             coordinates={ruta}
             strokeColor={COLOR.PRIMARIO}
@@ -335,17 +338,17 @@ const ControlPaseo: React.FC = () => {
             coordinate={ubicacionActual}
             zIndex={999}
             anchor={
-              paseo?.estado === PaseoStatus.EN_PROGRESO
+              paseo?.estado === ESTADOS_PASEO.EN_PROGRESO
                 ? { x: 0.52, y: 0.52 }
                 : undefined
             }
             pinColor={
-              paseo?.estado === PaseoStatus.EN_PROGRESO
+              paseo?.estado === ESTADOS_PASEO.EN_PROGRESO
                 ? 'transparent'
                 : COLOR.ENFASIS
             }
           >
-            {paseo?.estado === PaseoStatus.EN_PROGRESO && (
+            {paseo?.estado === ESTADOS_PASEO.EN_PROGRESO && (
               <View style={styles.liveMarkerWrapper}>
                 <View style={styles.liveMarkerIcon}>
                   <Icon name="paw" size={18} color={COLOR.TEXTO} />
@@ -485,7 +488,7 @@ const ControlPaseo: React.FC = () => {
               transform: [
                 {
                   scale:
-                    paseo.estado === PaseoStatus.EN_PROGRESO
+                    paseo.estado === ESTADOS_PASEO.EN_PROGRESO
                       ? pulseAnim
                       : scaleAnim,
                 },
@@ -541,7 +544,7 @@ const ControlPaseo: React.FC = () => {
 const HeaderContent: React.FC<{
   navigation: any
   tiempoTranscurrido: string
-  estado: PaseoStatus
+  estado: ESTADOS_PASEO
   estadoColor: any
   t: any
 }> = ({ navigation, tiempoTranscurrido, estado, estadoColor, t }) => (

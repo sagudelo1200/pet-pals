@@ -9,6 +9,7 @@ import {
 } from 'firebase/firestore'
 import { db } from '@/firebase.config'
 import { Paseo } from '@/models/Paseo'
+import { paseoActivo } from '../../logic/paseos/gestor/paseoActivo'
 import { toDomain } from '@/services/firebase/comun'
 import { useSeguimientoPaseo } from './useSeguimientoPaseo'
 
@@ -44,9 +45,21 @@ export const usePaseoActivo = (paseoId: string) => {
       snapshot => {
         if (snapshot.exists()) {
           const data = toDomain(snapshot.data()) as Paseo
-          setPaseo({ id: snapshot.id, ...data })
+          const paseoDoc = { id: snapshot.id, ...data } as Paseo
+          setPaseo(paseoDoc)
+          try {
+            paseoActivo.setPaseoActivo(paseoDoc)
+          } catch (e) {
+            // No bloquear la UI si el store falla
+            console.warn('paseoActivo: error al setear paseo', e)
+          }
         } else {
           setPaseo(null)
+          try {
+            paseoActivo.limpiarPaseoActivo()
+          } catch (e) {
+            console.warn('paseoActivo: error al limpiar paseo', e)
+          }
         }
         setLoading(false)
       },
