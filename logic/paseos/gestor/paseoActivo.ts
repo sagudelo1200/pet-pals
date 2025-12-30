@@ -176,10 +176,12 @@ export class PaseoActivoGestor {
     const res = await ServicioPaseo.aceptarSolicitud(this._paseo.id)
     
     if (res.success) {
-      // Aplicar transición local para feedback inmediato
-      const localRes = this.aplicarTransicion(EVENTOS.ACEPTAR)
-      if (localRes.ok === false) {
-        console.warn('paseoActivo: Inconsistencia tras aceptarPaseoAsync', localRes.error)
+      // Verificar si ya fue actualizado por listener externo para evitar warning
+      if (this.puede(EVENTOS.ACEPTAR)) {
+        const localRes = this.aplicarTransicion(EVENTOS.ACEPTAR)
+        if (localRes.ok === false) {
+          console.warn('paseoActivo: Inconsistencia tras aceptarPaseoAsync', localRes.error)
+        }
       }
     }
     return res
@@ -195,9 +197,11 @@ export class PaseoActivoGestor {
     const res = await ServicioPaseo.iniciarRuta(this._paseo.id)
     
     if (res.success) {
-      const localRes = this.aplicarTransicion(EVENTOS.INICIAR_RUTA)
-      if (localRes.ok === false) {
-         console.warn('paseoActivo: Inconsistencia tras iniciarRutaAsync', localRes.error)
+      if (this.puede(EVENTOS.INICIAR_RUTA)) {
+        const localRes = this.aplicarTransicion(EVENTOS.INICIAR_RUTA)
+        if (localRes.ok === false) {
+           console.warn('paseoActivo: Inconsistencia tras iniciarRutaAsync', localRes.error)
+        }
       }
     }
     return res
@@ -213,12 +217,14 @@ export class PaseoActivoGestor {
     const res = await ServicioPaseo.iniciarPaseo(this._paseo.id)
     
     if (res.success) {
-      const fecha = new Date() // Usamos hora local para feedback inmediato
-      const localRes = this.aplicarTransicion(EVENTOS.INICIAR_PASEO, {
-        fecha_inicio_real: fecha,
-      })
-      if (localRes.ok === false) {
-        console.warn('paseoActivo: Inconsistencia tras iniciarPaseoAsync', localRes.error)
+      if (this.puede(EVENTOS.INICIAR_PASEO)) {
+        const fecha = new Date() // Usamos hora local para feedback inmediato
+        const localRes = this.aplicarTransicion(EVENTOS.INICIAR_PASEO, {
+          fecha_inicio_real: fecha,
+        })
+        if (localRes.ok === false) {
+          console.warn('paseoActivo: Inconsistencia tras iniciarPaseoAsync', localRes.error)
+        }
       }
     }
     return res
@@ -234,12 +240,14 @@ export class PaseoActivoGestor {
     const res = await ServicioPaseo.finalizarPaseo(this._paseo.id)
     
     if (res.success) {
-      const fecha = new Date()
-      const localRes = this.aplicarTransicion(EVENTOS.FINALIZAR_PASEO, {
-        fecha_fin_real: fecha,
-      })
-       if (localRes.ok === false) {
-        console.warn('paseoActivo: Inconsistencia tras finalizarPaseoAsync', localRes.error)
+      if (this.puede(EVENTOS.FINALIZAR_PASEO)) {
+        const fecha = new Date()
+        const localRes = this.aplicarTransicion(EVENTOS.FINALIZAR_PASEO, {
+          fecha_fin_real: fecha,
+        })
+         if (localRes.ok === false) {
+          console.warn('paseoActivo: Inconsistencia tras finalizarPaseoAsync', localRes.error)
+        }
       }
     }
     return res
@@ -258,9 +266,11 @@ export class PaseoActivoGestor {
     } as any)
 
     if (res.success) {
-      const localRes = this.aplicarTransicion(EVENTOS.CANCELAR, { motivo })
-       if (localRes.ok === false) {
-         console.warn('paseoActivo: Inconsistencia tras cancelarPaseoAsync', localRes.error)
+      if (this.puede(EVENTOS.CANCELAR)) {
+        const localRes = this.aplicarTransicion(EVENTOS.CANCELAR, { motivo })
+         if (localRes.ok === false) {
+           console.warn('paseoActivo: Inconsistencia tras cancelarPaseoAsync', localRes.error)
+        }
       }
     }
     
