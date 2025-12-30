@@ -7,11 +7,13 @@ import { Paseo } from '@/models/Paseo'
 
 import { useAuth } from '@/context/AuthContext'
 import { PerfilPublico } from '@/models/PerfilPublico'
+import { useGestorPaseoActivo } from '@/hooks/paseos/useGestorPaseoActivo'
 
 export const useGestionPaseoCuidador = () => {
   const { t } = useTranslation()
   const navigation = useNavigation()
   const { user } = useAuth()
+  const gestor = useGestorPaseoActivo()
   const [cargando, setCargando] = useState(false)
 
   const aceptarSolicitud = async (paseo: Paseo, onSuccess?: () => void) => {
@@ -58,7 +60,11 @@ export const useGestionPaseoCuidador = () => {
           text: t('cuidador:solicitudes.aceptar'),
           onPress: async () => {
             setCargando(true)
-            const res = await ServicioPaseo.aceptarSolicitud(paseo.id)
+            
+            // Usamos el gestor para aceptar
+            gestor.gestion.seleccionar(paseo)
+            const res = await gestor.acciones.aceptar()
+            
             setCargando(false)
 
             if (res.success) {
@@ -78,6 +84,7 @@ export const useGestionPaseoCuidador = () => {
                   },
                   {
                     text: 'Ver Agenda',
+                    // TODO: Actualizar cuando la navegación a Agenda esté lista
                     onPress: () => {
                       navigation.navigate('Agenda' as never)
                     },
@@ -85,6 +92,8 @@ export const useGestionPaseoCuidador = () => {
                 ]
               )
             } else {
+              // Limpiar gestor si falla, aunque el estado no habrá cambiado
+              gestor.gestion.limpiar()
               Alert.alert(
                 t('comun:error'),
                 res.error || t('comun:error_desconocido')

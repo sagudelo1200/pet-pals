@@ -15,6 +15,18 @@ export type EVENTOS_PASEO =
   | 'CONFIRMAR_COMPLETADO'
   | 'CANCELAR'
 
+export const EVENTOS = {
+  SOLICITAR: 'SOLICITAR',
+  ACEPTAR: 'ACEPTAR',
+  RECHAZAR: 'RECHAZAR',
+  INICIAR_RUTA: 'INICIAR_RUTA',
+  LLEGAR: 'LLEGAR',
+  INICIAR_PASEO: 'INICIAR_PASEO',
+  FINALIZAR_PASEO: 'FINALIZAR_PASEO',
+  CONFIRMAR_COMPLETADO: 'CONFIRMAR_COMPLETADO',
+  CANCELAR: 'CANCELAR',
+} as const
+
 // Payload opcional para transiciones
 export interface TransitionPayload {
   motivo?: string // Para CANCELAR o RECHAZAR

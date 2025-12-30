@@ -9,7 +9,7 @@ import {
 } from 'firebase/firestore'
 import { db } from '@/firebase.config'
 import { Paseo } from '@/models/Paseo'
-import { paseoActivo } from '../../logic/paseos/gestor/paseoActivo'
+import { paseoActivo } from '@/logic/paseos/gestor/paseoActivo'
 import { toDomain } from '@/services/firebase/comun'
 import { useSeguimientoPaseo } from './useSeguimientoPaseo'
 
@@ -22,15 +22,20 @@ export interface EventoPaseo {
 }
 
 /**
- * Hook para manejar la lógica de un paseo en progreso (Tutor).
- * Se suscribe al documento del paseo en tiempo real.
+ * Hook "Sincronizador".
+ * Su responsabilidad es escuchar Firebase y mantener actualizado al Singleton `paseoActivo`.
+ * También devuelve los datos crudos para quien lo invoca (legacy support).
+ * 
+ * @param paseoId ID del paseo a sincronizar
  */
-export const usePaseoActivo = (paseoId: string) => {
+export const useSincronizadorPaseo = (paseoId: string) => {
   const [paseo, setPaseo] = useState<Paseo | null>(null)
   const [loading, setLoading] = useState(true)
   const [eventos, setEventos] = useState<EventoPaseo[]>([])
 
   // Integración con Realtime Database para el tracking
+  // Nota: Esto quizás debería moverse a otro lado si queremos desacoplar totalmente, 
+  // pero por ahora lo mantenemos aquí para no romper funcionalidad.
   const { ubicacionActual, ruta } = useSeguimientoPaseo(paseoId)
 
   useEffect(() => {
@@ -47,18 +52,20 @@ export const usePaseoActivo = (paseoId: string) => {
           const data = toDomain(snapshot.data()) as Paseo
           const paseoDoc = { id: snapshot.id, ...data } as Paseo
           setPaseo(paseoDoc)
+          
+          // ALIMENTAMOS EL SINGLETON
           try {
             paseoActivo.setPaseoActivo(paseoDoc)
           } catch (e) {
-            // No bloquear la UI si el store falla
-            console.warn('paseoActivo: error al setear paseo', e)
+            console.warn('paseoActivo: error al setear paseo en singleton', e)
           }
         } else {
           setPaseo(null)
+          // LIMPIAMOS EL SINGLETON
           try {
             paseoActivo.limpiarPaseoActivo()
           } catch (e) {
-            console.warn('paseoActivo: error al limpiar paseo', e)
+            console.warn('paseoActivo: error al limpiar paseo singleton', e)
           }
         }
         setLoading(false)
@@ -71,6 +78,7 @@ export const usePaseoActivo = (paseoId: string) => {
 
     // 2. Suscripción a eventos (Hitos)
     const eventosRef = collection(db, 'paseos', paseoId, 'eventos')
+    // Nota: El ordenamiento y límite son correctos
     const qEventos = query(eventosRef, orderBy('creado_en', 'desc'), limit(50))
     const unsubEventos = onSnapshot(
       qEventos,
@@ -89,6 +97,9 @@ export const usePaseoActivo = (paseoId: string) => {
     return () => {
       unsubPaseo()
       unsubEventos()
+      // Opcional: limpiar singleton al desmontar si es la única fuente de verdad
+      // paseoActivo.limpiarPaseoActivo() 
+      // Cuidado con desmontajes al navegar entre pestañas.
     }
   }, [paseoId])
 

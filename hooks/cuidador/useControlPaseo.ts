@@ -1,18 +1,18 @@
 import { useState } from 'react'
-import type { EVENTOS_PASEO } from '@/logic/paseos/maquinaEstados'
-import { paseoActivo } from '../../logic/paseos/gestor/paseoActivo'
+import { EVENTOS_PASEO, EVENTOS } from '@/logic/paseos/maquinaEstados'
+import { paseoActivo } from '@/logic/paseos/gestor/paseoActivo'
 import { Alert } from 'react-native'
 import { useTranslation } from 'react-i18next'
-import { usePaseoActivo } from '@/hooks/paseos/usePaseoActivo'
+import { useSincronizadorPaseo } from '@/hooks/paseos/useSincronizadorPaseo'
 
 /**
  * Hook para controlar un paseo desde la perspectiva del cuidador.
- * Reutiliza usePaseoActivo y agrega funcionalidad de cambio de estado.
+ * Reutiliza useSincronizadorPaseo y agrega funcionalidad de cambio de estado.
  */
 export const useControlPaseo = (paseoId: string) => {
   const { t } = useTranslation()
   const { paseo, loading, eventos, ruta, ubicacionActual } =
-    usePaseoActivo(paseoId)
+    useSincronizadorPaseo(paseoId)
   const [procesando, setProcesando] = useState(false)
 
   // Cambiar estado del paseo usando la máquina de estados
@@ -23,13 +23,13 @@ export const useControlPaseo = (paseoId: string) => {
     try {
       let resultado
       switch (evento) {
-        case 'INICIAR_RUTA':
+        case EVENTOS.INICIAR_RUTA:
           resultado = await paseoActivo.iniciarRutaAsync()
           break
-        case 'INICIAR_PASEO':
+        case EVENTOS.INICIAR_PASEO:
           resultado = await paseoActivo.iniciarPaseoAsync()
           break
-        case 'FINALIZAR_PASEO':
+        case EVENTOS.FINALIZAR_PASEO:
           resultado = await paseoActivo.finalizarPaseoAsync()
           break
         default:

@@ -17,7 +17,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
 import { BlurView } from 'expo-blur'
 import { Mapa, Icon, Avatar, Spacer, Button } from '@/components/ui'
-import { usePaseoActivo } from '@/hooks/paseos/usePaseoActivo'
+import { useSincronizadorPaseo } from '@/hooks/paseos/useSincronizadorPaseo'
 import { AuthStackParamList } from '@/navigation/types'
 import { COLOR } from '@/constants'
 import { ESTADOS_PASEO } from '@/models/Paseo'
@@ -29,7 +29,7 @@ export default function PaseoActivo({ route, navigation }: Props) {
   const { t } = useTranslation()
   const insets = useSafeAreaInsets()
   const { paseo, loading, eventos, ruta, ubicacionActual } =
-    usePaseoActivo(paseoId)
+    useSincronizadorPaseo(paseoId)
 
   const [yaNotificado, setYaNotificado] = useState(false)
   const navigationAttempted = useRef(false)

@@ -12,6 +12,7 @@ import { COLOR } from '@/constants'
 import { Paseo } from '@/models/Paseo'
 import { useTranslation } from 'react-i18next'
 import { ServicioPaseo, ServicioCrudBase } from '@/services/firebase'
+import { useGestorPaseoActivo } from '@/hooks/paseos/useGestorPaseoActivo'
 
 interface Props {
   visible: boolean
@@ -22,6 +23,7 @@ interface Props {
 const SolicitudModal: React.FC<Props> = ({ visible, paseo, onClose }) => {
   const { t } = useTranslation()
   const navigation = useNavigation<any>()
+  const { acciones, gestion } = useGestorPaseoActivo()
   const [loading, setLoading] = useState(false)
   const [mascotas, setMascotas] = useState<any[]>([])
   const [loadingMascotas, setLoadingMascotas] = useState(false)
@@ -74,20 +76,29 @@ const SolicitudModal: React.FC<Props> = ({ visible, paseo, onClose }) => {
   const handleAceptar = async () => {
     setLoading(true)
     try {
-      const res = await ServicioPaseo.aceptarSolicitud(paseo.id)
+      // 1. Inicializamos el gestor con el paseo actual para poder operar sobre él
+      gestion.seleccionar(paseo)
+      
+      // 2. Ejecutamos la acción de negocio a través del gestor
+      const res = await acciones.aceptar()
+      
       setLoading(false)
-      if (res && (res as any).success !== false) {
+      
+      if (res.success) {
         onClose()
         // Navegar al panel de control del paseo
         navigation.navigate('ControlPaseo', { paseoId: paseo.id })
       } else {
+        // En caso de error, limpiamos el gestor para no dejar estado sucio
+        gestion.limpiar()
         Alert.alert(
           t('comun:error'),
-          (res as any).error || t('comun:error_desconocido')
+          res.error || t('comun:error_desconocido')
         )
       }
     } catch (_e) {
       setLoading(false)
+      gestion.limpiar()
       Alert.alert(t('comun:error'), t('comun:error_desconocido'))
     }
   }

@@ -53,7 +53,14 @@
     "LIMITE_DE_MASCOTAS_SUPERADO": "The allowed pet limit for this walk has been reached.",
     "MASCOTA_YA_AGREGADA": "This pet is already added to the walk.",
     "SIN_MASCOTAS_TITULO": "Oops! You don't have pets",
-    "SIN_MASCOTAS_MSG": "To request a walk, first register a pet."
+    "SIN_MASCOTAS_MSG": "To request a walk, first register a pet.",
+    "NO_HAY_PASEO_ACTIVO": "There is no active walk at this time",
+    "transicion_invalida": "This action is not allowed in the current state",
+    "estado_incorrecto": "The walk is not in the expected state",
+    "sin_permisos": "You don't have permission to perform this action",
+    "error_red": "Connection error. Check your internet",
+    "error_validacion": "The provided data is not valid",
+    "motivo_requerido": "A reason is required for this action"
   },
   "boton_solicitar": "Request walk",
   "flujo": {

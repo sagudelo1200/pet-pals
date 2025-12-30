@@ -53,7 +53,14 @@
     "LIMITE_DE_MASCOTAS_SUPERADO": "Se alcanzó el límite permitido de mascotas para este paseo.",
     "MASCOTA_YA_AGREGADA": "Esta mascota ya está agregada al paseo.",
     "SIN_MASCOTAS_TITULO": "¡Ups! No tienes mascotas",
-    "SIN_MASCOTAS_MSG": "Para solicitar un paseo, primero debes registrar una mascota."
+    "SIN_MASCOTAS_MSG": "Para solicitar un paseo, primero debes registrar una mascota.",
+    "NO_HAY_PASEO_ACTIVO": "No hay un paseo activo en este momento",
+    "transicion_invalida": "Esta acción no está permitida en el estado actual",
+    "estado_incorrecto": "El paseo no está en el estado esperado",
+    "sin_permisos": "No tienes permisos para realizar esta acción",
+    "error_red": "Error de conexión. Verifica tu internet",
+    "error_validacion": "Los datos proporcionados no son válidos",
+    "motivo_requerido": "Se requiere un motivo para esta acción"
   },
   "boton_solicitar": "Solicitar paseo",
   "flujo": {
