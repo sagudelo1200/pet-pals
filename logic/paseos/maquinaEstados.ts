@@ -4,7 +4,7 @@ import { ESTADOS_PASEO, type Paseo } from '@/models/Paseo'
 // Tipos y Eventos
 // ==========================================
 
-export type PaseoEvent =
+export type EVENTOS_PASEO =
   | 'SOLICITAR'
   | 'ACEPTAR'
   | 'RECHAZAR'
@@ -31,7 +31,7 @@ export interface TransitionPayload {
 
 type Transiciones = {
   [_key in ESTADOS_PASEO]?: {
-    [_evt in PaseoEvent]?: ESTADOS_PASEO
+    [_evt in EVENTOS_PASEO]?: ESTADOS_PASEO
   }
 }
 
@@ -81,9 +81,9 @@ export class MaquinaEstadosPaseo {
     return this._estado
   }
 
-  puede(evento: PaseoEvent): boolean {
+  puede(evento: EVENTOS_PASEO): boolean {
     const permitidos = CONFIG_MAQUINA[this._estado]
-    const NON_TRANSITION_EVENTS: PaseoEvent[] = ['RECHAZAR']
+    const NON_TRANSITION_EVENTS: EVENTOS_PASEO[] = ['RECHAZAR']
     const ALLOWED_NON_TRANSITION_FROM: ESTADOS_PASEO[] = [
       ESTADOS_PASEO.PENDIENTE,
       ESTADOS_PASEO.CONFIRMADO,
@@ -101,12 +101,15 @@ export class MaquinaEstadosPaseo {
     return false
   }
 
-  transicion(evento: PaseoEvent, payload?: TransitionPayload): ESTADOS_PASEO {
+  transicion(
+    evento: EVENTOS_PASEO,
+    payload?: TransitionPayload
+  ): ESTADOS_PASEO {
     if (!this.puede(evento)) {
       throw new Error(`Transición inválida: ${this._estado} -> ${evento}`)
     }
 
-    const NON_TRANSITION_EVENTS: PaseoEvent[] = ['RECHAZAR']
+    const NON_TRANSITION_EVENTS: EVENTOS_PASEO[] = ['RECHAZAR']
     if (NON_TRANSITION_EVENTS.includes(evento)) {
       this.registrarEvento(evento, payload)
       return this._estado
@@ -132,7 +135,7 @@ export class MaquinaEstadosPaseo {
     }
   }
 
-  private registrarEvento(evento: PaseoEvent, payload?: TransitionPayload) {
+  private registrarEvento(evento: EVENTOS_PASEO, payload?: TransitionPayload) {
     const registro = {
       evento,
       payload,

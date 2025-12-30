@@ -1,9 +1,6 @@
 import { useState } from 'react'
-import { ServicioPaseo } from '@/services/firebase'
-import {
-  crearMaquinaPaseo,
-  type PaseoEvent,
-} from '@/logic/paseos/maquinaEstados'
+import type { EVENTOS_PASEO } from '@/logic/paseos/maquinaEstados'
+import { paseoActivo } from '../../logic/paseos/gestor/paseoActivo'
 import { Alert } from 'react-native'
 import { useTranslation } from 'react-i18next'
 import { usePaseoActivo } from '@/hooks/paseos/usePaseoActivo'
@@ -19,30 +16,21 @@ export const useControlPaseo = (paseoId: string) => {
   const [procesando, setProcesando] = useState(false)
 
   // Cambiar estado del paseo usando la máquina de estados
-  const cambiarEstado = async (evento: PaseoEvent) => {
+  const cambiarEstado = async (evento: EVENTOS_PASEO) => {
     if (!paseo) return
 
     setProcesando(true)
     try {
-      // Validar transición con la máquina
-      const maquina = crearMaquinaPaseo(paseo)
-      if (!maquina.puede(evento)) {
-        Alert.alert(t('comun:error'), t('paseos:control.transicion_invalida'))
-        setProcesando(false)
-        return
-      }
-
-      // Ejecutar transición según el evento
       let resultado
       switch (evento) {
         case 'INICIAR_RUTA':
-          resultado = await ServicioPaseo.iniciarRuta(paseo.id)
+          resultado = await paseoActivo.iniciarRutaAsync()
           break
         case 'INICIAR_PASEO':
-          resultado = await ServicioPaseo.iniciarPaseo(paseo.id)
+          resultado = await paseoActivo.iniciarPaseoAsync()
           break
         case 'FINALIZAR_PASEO':
-          resultado = await ServicioPaseo.finalizarPaseo(paseo.id)
+          resultado = await paseoActivo.finalizarPaseoAsync()
           break
         default:
           throw new Error('Evento no implementado')

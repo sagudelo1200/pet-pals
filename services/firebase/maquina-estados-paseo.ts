@@ -4,7 +4,7 @@ import { ESTADOS_PASEO, type Paseo } from '../../models/Paseo'
 // Tipos y Eventos
 // ==========================================
 
-export type PaseoEvent =
+export type EVENTOS_PASEO =
   | 'SOLICITAR'
   | 'ACEPTAR'
   | 'RECHAZAR'
@@ -33,7 +33,7 @@ type Transiciones = {
   // eslint-disable-next-line no-unused-vars
   [key in ESTADOS_PASEO]?: {
     // eslint-disable-next-line no-unused-vars
-    [key in PaseoEvent]?: ESTADOS_PASEO
+    [key in EVENTOS_PASEO]?: ESTADOS_PASEO
   }
 }
 
@@ -86,9 +86,9 @@ export class MaquinaEstadosPaseo {
   /**
    * Verifica si es posible realizar una transición dado un evento.
    */
-  puede(evento: PaseoEvent): boolean {
+  puede(evento: EVENTOS_PASEO): boolean {
     const permitidos = CONFIG_MAQUINA[this._estado]
-    const NON_TRANSITION_EVENTS: PaseoEvent[] = ['RECHAZAR']
+    const NON_TRANSITION_EVENTS: EVENTOS_PASEO[] = ['RECHAZAR']
     const ALLOWED_NON_TRANSITION_FROM: ESTADOS_PASEO[] = [
       ESTADOS_PASEO.PENDIENTE,
       ESTADOS_PASEO.CONFIRMADO,
@@ -111,13 +111,16 @@ export class MaquinaEstadosPaseo {
    * Ejecuta una transición.
    * Retorna el nuevo estado si es exitoso, o lanza error si no es válida.
    */
-  transicion(evento: PaseoEvent, payload?: TransitionPayload): ESTADOS_PASEO {
+  transicion(
+    evento: EVENTOS_PASEO,
+    payload?: TransitionPayload
+  ): ESTADOS_PASEO {
     if (!this.puede(evento)) {
       throw new Error(`Transición inválida: ${this._estado} -> ${evento}`)
     }
 
     // Eventos que no causan cambio de estado (se registran)
-    const NON_TRANSITION_EVENTS: PaseoEvent[] = ['RECHAZAR']
+    const NON_TRANSITION_EVENTS: EVENTOS_PASEO[] = ['RECHAZAR']
     if (NON_TRANSITION_EVENTS.includes(evento)) {
       this.registrarEvento(evento, payload)
       return this._estado
@@ -154,7 +157,7 @@ export class MaquinaEstadosPaseo {
   /**
    * Registra eventos que no provocan cambio de estado (historial/auditoría).
    */
-  private registrarEvento(evento: PaseoEvent, payload?: TransitionPayload) {
+  private registrarEvento(evento: EVENTOS_PASEO, payload?: TransitionPayload) {
     const registro = {
       evento,
       payload,

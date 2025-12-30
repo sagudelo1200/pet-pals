@@ -2,7 +2,7 @@ import { useState, useRef, useCallback } from 'react'
 import {
   crearMaquinaPaseo,
   MaquinaEstadosPaseo,
-  PaseoEvent,
+  EVENTOS_PASEO,
   TransitionPayload,
 } from '@/logic/paseos/maquinaEstados'
 import { Paseo, ESTADOS_PASEO } from '@/models/Paseo'
@@ -22,7 +22,7 @@ export function useEstadoPaseo(paseoInicial?: Partial<Paseo>) {
   /**
    * Verifica si una transición es posible desde el estado actual
    */
-  const puede = useCallback((evento: PaseoEvent): boolean => {
+  const puede = useCallback((evento: EVENTOS_PASEO): boolean => {
     return maquinaRef.current.puede(evento)
   }, [])
 
@@ -31,7 +31,7 @@ export function useEstadoPaseo(paseoInicial?: Partial<Paseo>) {
    */
   const transicion = useCallback(
     async (
-      evento: PaseoEvent,
+      evento: EVENTOS_PASEO,
       payload?: TransitionPayload
     ): Promise<{ success: boolean; error?: string }> => {
       try {

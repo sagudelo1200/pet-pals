@@ -5,6 +5,8 @@ import type {
   ResultadoAccion,
 } from './paseoActivo.types'
 import { useEffect, useState } from 'react'
+import { ServicioPaseo } from '@/services/firebase'
+import type { CrudResult } from '@/services/firebase/comun/types'
 
 type Listener = (_p: PaseoActivoType | null) => void
 
@@ -134,6 +136,93 @@ class PaseoActivoGestor {
 
   cancelarPaseo(motivo?: string): ResultadoAccion {
     return this.aplicarTransicion('CANCELAR', { motivo })
+  }
+
+  // Métodos asíncronos que llaman al servicio y aplican la transición local si la operación en backend tuvo éxito.
+  async aceptarPaseoAsync(): Promise<CrudResult<void>> {
+    if (!this._paseo) return { success: false, error: 'No hay paseo activo' }
+    const res = await ServicioPaseo.aceptarSolicitud(this._paseo.id)
+    if (res.success) {
+      try {
+        this.aplicarTransicion('ACEPTAR')
+      } catch (_err) {
+        console.warn(
+          'paseoActivo: error aplicando transición local ACEPTAR',
+          _err
+        )
+      }
+    }
+    return res
+  }
+
+  async iniciarRutaAsync(): Promise<CrudResult<void>> {
+    if (!this._paseo) return { success: false, error: 'No hay paseo activo' }
+    const res = await ServicioPaseo.iniciarRuta(this._paseo.id)
+    if (res.success) {
+      try {
+        this.aplicarTransicion('INICIAR_RUTA')
+      } catch (_err) {
+        console.warn(
+          'paseoActivo: error aplicando transición local INICIAR_RUTA',
+          _err
+        )
+      }
+    }
+    return res
+  }
+
+  async iniciarPaseoAsync(): Promise<CrudResult<void>> {
+    if (!this._paseo) return { success: false, error: 'No hay paseo activo' }
+    const res = await ServicioPaseo.iniciarPaseo(this._paseo.id)
+    if (res.success) {
+      try {
+        this.aplicarTransicion('INICIAR_PASEO', {
+          fecha_inicio_real: new Date(),
+        })
+      } catch (_err) {
+        console.warn(
+          'paseoActivo: error aplicando transición local INICIAR_PASEO',
+          _err
+        )
+      }
+    }
+    return res
+  }
+
+  async finalizarPaseoAsync(): Promise<CrudResult<void>> {
+    if (!this._paseo) return { success: false, error: 'No hay paseo activo' }
+    const res = await ServicioPaseo.finalizarPaseo(this._paseo.id)
+    if (res.success) {
+      try {
+        this.aplicarTransicion('FINALIZAR_PASEO', {
+          fecha_fin_real: new Date(),
+        })
+      } catch (_err) {
+        console.warn(
+          'paseoActivo: error aplicando transición local FINALIZAR_PASEO',
+          _err
+        )
+      }
+    }
+    return res
+  }
+
+  async cancelarPaseoAsync(motivo?: string): Promise<CrudResult<any>> {
+    if (!this._paseo) return { success: false, error: 'No hay paseo activo' }
+    const res = await ServicioPaseo.actualizar(this._paseo.id, {
+      estado: 'CANCELADO',
+    } as any)
+    if (res.success) {
+      try {
+        this.aplicarTransicion('CANCELAR', { motivo })
+      } catch (_err) {
+        console.warn(
+          'paseoActivo: error aplicando transición local CANCELAR',
+          _err
+        )
+      }
+    }
+    return res
   }
 }
 
