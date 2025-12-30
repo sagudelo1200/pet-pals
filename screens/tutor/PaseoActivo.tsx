@@ -45,14 +45,11 @@ export default function PaseoActivo({ route, navigation }: Props) {
 
   useEffect(() => {
     if (!paseo || yaNotificado || navigationAttempted.current) return
-    if (
-      paseo.estado === ESTADOS_PASEO.FINALIZADO ||
-      paseo.estado === ESTADOS_PASEO.COMPLETADO
-    ) {
-      navigationAttempted.current = true
-      setYaNotificado(true)
-      navigation.navigate('PaseoFinalizado', { paseoId })
-    }
+    
+    // NOTA: La redirección a 'PaseoFinalizado' se reemplaza por GlobalPaseoManager
+    // que mostrará un Overlay global.
+    // Solo manejamos acciones críticas aquí si fuera necesario.
+    
     if (paseo.estado === ESTADOS_PASEO.CANCELADO) {
       navigationAttempted.current = true
       setYaNotificado(true)
