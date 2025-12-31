@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { Alert } from 'react-native'
 import * as ImagePicker from 'expo-image-picker'
 import { useTranslation } from 'react-i18next'
-import { ServicioMascota } from '@/services/firebase'
+import * as GestorMascota from '@/logic/mascotas/gestorMascota'
 import type { Mascota } from '@/models/Mascota'
 
 export const useEdicionMascota = (
@@ -35,8 +35,8 @@ export const useEdicionMascota = (
 
       setLoading(true)
       try {
-        const resultado = await ServicioMascota.obtenerPorId(mascotaId)
-        if (resultado.success && resultado.data) {
+        const resultado = await GestorMascota.obtenerPorId(mascotaId)
+        if (resultado && resultado.success && resultado.data) {
           setMascota(resultado.data)
         } else {
           setError(t('mascotas:errores.error_cargar'))
@@ -84,14 +84,18 @@ export const useEdicionMascota = (
 
     try {
       // 4. Ejecutar petición en segundo plano
-      const resultado = await ServicioMascota.actualizar(mascota.id, editedData)
+      const resultado = await GestorMascota.actualizarMascota(
+        mascota.id,
+        editedData
+      )
 
-      if (resultado.success && resultado.data) {
-        // 5. Confirmar con datos reales del servidor (ej. timestamps actualizados)
-        setMascota(resultado.data)
+      if (resultado && resultado.success && (resultado as any).data) {
+        setMascota((resultado as any).data)
+        setCambiosRealizados(true)
+      } else if (resultado && resultado.success) {
         setCambiosRealizados(true)
       } else {
-        throw new Error(resultado.error || 'Error al guardar')
+        throw new Error((resultado as any)?.error || 'Error al guardar')
       }
     } catch (error) {
       // 6. Rollback en caso de error
@@ -164,8 +168,9 @@ export const useEdicionMascota = (
     // UI Optimista: No esperamos a que termine para dar feedback visual
     // La navegación debe ocurrir inmediatamente en el componente
     try {
-      await ServicioMascota.eliminar(mascota.id)
-      return { success: true }
+      const res = await GestorMascota.eliminarMascota(mascota.id)
+      if (res && res.success) return { success: true }
+      return { success: false, error: (res as any)?.error }
     } catch (e) {
       console.error('Error al eliminar mascota:', e)
       return { success: false, error: e }

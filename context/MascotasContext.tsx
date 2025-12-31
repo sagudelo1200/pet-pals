@@ -7,7 +7,7 @@ import React, {
   ReactNode,
 } from 'react'
 import { useTranslation } from 'react-i18next'
-import { ServicioMascota } from '@/services/firebase'
+import * as GestorMascota from '@/logic/mascotas/gestorMascota'
 import { useAuth } from '@/context/AuthContext'
 import type { Mascota } from '@/models/Mascota'
 
@@ -49,8 +49,8 @@ export const MascotasProvider: React.FC<{ children: ReactNode }> = ({
     try {
       setLoading(true)
       setError(null)
-      const resultado = await ServicioMascota.obtenerPorUsuario(user.uid)
-      if (resultado.success && resultado.data) {
+      const resultado = await GestorMascota.obtenerPorUsuario(user.uid)
+      if (resultado && resultado.success && resultado.data) {
         setMascotas(resultado.data)
       } else {
         setError(t('mascotas:errores.error_cargar'))
@@ -92,9 +92,8 @@ export const MascotasProvider: React.FC<{ children: ReactNode }> = ({
 
       // 2. Ejecutar operación en segundo plano
       try {
-        const resultado = await ServicioMascota.crear(data as Mascota)
-        if (resultado.success && resultado.data) {
-          // Reemplazar temporal con real
+        const resultado = await GestorMascota.crearMascota(data as Mascota)
+        if (resultado && resultado.success && resultado.data) {
           setMascotas(prev =>
             prev.map(m => (m.id === tempId ? resultado.data! : m))
           )
@@ -116,12 +115,12 @@ export const MascotasProvider: React.FC<{ children: ReactNode }> = ({
       try {
         setLoading(true)
         setError(null)
-        const resultado = await ServicioMascota.actualizar(id, data)
-        if (resultado.success) {
+        const resultado = await GestorMascota.actualizarMascota(id, data)
+        if (resultado && resultado.success) {
           await cargarMascotas()
         } else {
           setError(t('mascotas:errores.error_guardar'))
-          throw new Error(resultado.error)
+          throw new Error((resultado as any)?.error)
         }
       } catch (err) {
         setError(t('mascotas:errores.error_guardar'))
@@ -139,11 +138,11 @@ export const MascotasProvider: React.FC<{ children: ReactNode }> = ({
       try {
         setMascotas(prev => prev.filter(m => m.id !== id))
         setError(null)
-        const resultado = await ServicioMascota.eliminar(id)
-        if (!resultado.success) {
+        const resultado = await GestorMascota.eliminarMascota(id)
+        if (!resultado || !resultado.success) {
           setMascotas(mascotasAnteriores)
           setError(t('mascotas:errores.error_eliminar'))
-          throw new Error(resultado.error)
+          throw new Error((resultado as any)?.error)
         }
       } catch (err) {
         setMascotas(mascotasAnteriores)

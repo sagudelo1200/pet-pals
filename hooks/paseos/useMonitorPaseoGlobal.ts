@@ -15,34 +15,44 @@ export function useMonitorPaseoGlobal() {
 
   // 1. Sincronizador Global: Escucha paseos activos del usuario
   useEffect(() => {
-    if (!user?.uid) return
+    if (!user?.uid) {
+      // No user: no listener. Return a noop cleanup for consistent return type.
+      return () => {}
+    }
 
     // Buscar cualquier paseo que esté en curso o recién finalizado
     const q = query(
       collection(db, 'paseos'),
       where('creado_por', '==', user.uid),
       where('estado', 'in', [
-        ESTADOS_PASEO.CONFIRMADO, 
-        ESTADOS_PASEO.EN_CAMINO, 
-        ESTADOS_PASEO.EN_PROGRESO, 
-        ESTADOS_PASEO.FINALIZADO 
+        ESTADOS_PASEO.CONFIRMADO,
+        ESTADOS_PASEO.EN_CAMINO,
+        ESTADOS_PASEO.EN_PROGRESO,
+        ESTADOS_PASEO.FINALIZADO,
       ]),
       limit(1)
     )
 
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      if (!snapshot.empty) {
-        const doc = snapshot.docs[0]
-        const data = { id: doc.id, ...doc.data() } as Paseo
-        paseoActivo.setPaseoActivo(data)
-      } else {
-        if (paseoActivo.getPaseoActivo() !== null) {
-          paseoActivo.limpiarPaseoActivo()
+    const unsubscribe = onSnapshot(
+      q,
+      snapshot => {
+        if (!snapshot.empty) {
+          const doc = snapshot.docs[0]
+          const data = { id: doc.id, ...doc.data() } as Paseo
+          paseoActivo.setPaseoActivo(data)
+        } else {
+          if (paseoActivo.getPaseoActivo() !== null) {
+            paseoActivo.limpiarPaseoActivo()
+          }
         }
+      },
+      error => {
+        console.error(
+          '[useMonitorPaseoGlobal] Error listening to active walks:',
+          error
+        )
       }
-    }, (error) => {
-      console.error('[useMonitorPaseoGlobal] Error listening to active walks:', error)
-    })
+    )
 
     return () => unsubscribe()
   }, [user?.uid])
@@ -57,15 +67,15 @@ export function useMonitorPaseoGlobal() {
     // Detectar transición a FINALIZADO
     if (paseo.estado === ESTADOS_PASEO.FINALIZADO) {
       if (lastPaseoId.current !== paseo.id) {
-         setShowFinishedModal(true)
-         lastPaseoId.current = paseo.id 
+        setShowFinishedModal(true)
+        lastPaseoId.current = paseo.id
       }
     }
   }, [paseo?.estado, paseo?.id])
 
   const handleClose = async () => {
     if (paseo?.id) {
-       await ServicioPaseo.actualizarEstado(paseo.id, ESTADOS_PASEO.COMPLETADO)
+      await ServicioPaseo.actualizarEstado(paseo.id, ESTADOS_PASEO.COMPLETADO)
     }
     setShowFinishedModal(false)
     paseoActivo.limpiarPaseoActivo()
@@ -74,6 +84,6 @@ export function useMonitorPaseoGlobal() {
   return {
     showFinishedModal,
     paseo,
-    handleClose
+    handleClose,
   }
 }

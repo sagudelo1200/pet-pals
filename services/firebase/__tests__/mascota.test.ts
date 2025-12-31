@@ -43,42 +43,21 @@ describe('ServicioMascota - unitario', () => {
   })
 
   // Si no hay usuario autenticado, crear debe fallar con NO_AUTENTICADO
-  test('crear devuelve NO_AUTENTICADO si no hay usuario', async () => {
-    ServicioAuth.obtenerUsuarioActual.mockReturnValue(undefined)
-    const res = await ServicioMascota.crear({
-      nombre: 'Fido',
-      especie: 'perro',
-    })
-    expect(res.success).toBe(false)
-    expect(res.error).toBe(MOCK_ERR.COMUN.NO_AUTENTICADO)
-  })
-
-  // Si el payload incluye creado_por distinto al uid actual, debe fallar
-  test('crear devuelve TUTOR_NO_COINCIDE cuando creado_por no coincide', async () => {
-    ServicioAuth.obtenerUsuarioActual.mockReturnValue({ uid: 'u1' })
-    const res = await ServicioMascota.crear({
-      nombre: 'Fido',
-      especie: 'perro',
-      creado_por: 'u2',
-    })
-    expect(res.success).toBe(false)
-    expect(res.error).toBe(MOCK_ERR.MASCOTAS.TUTOR_NO_COINCIDE)
-  })
-
   // Debe delegar en ServicioCrudBase.crear y devolver su resultado
   test('crear delega en ServicioCrudBase.crear y retorna resultado', async () => {
-    ServicioAuth.obtenerUsuarioActual.mockReturnValue({ uid: 'u1' })
     const created = {
       success: true,
-      data: { id: 'm1', nombre: 'Fido', especie: 'perro', creado_por: 'u1' },
+      data: { id: 'm1', nombre: 'Fido', especie: 'perro' },
     }
     ServicioCrudBase.crear.mockResolvedValue(created)
 
-    const res = await ServicioMascota.crear({
-      nombre: 'Fido',
-      especie: 'perro',
-    })
+    const payload = { nombre: 'Fido', especie: 'perro' }
+    const res = await ServicioMascota.crear(payload)
     expect(ServicioCrudBase.crear).toHaveBeenCalled()
+    // el segundo argumento pasado a crear debe ser el payload tal cual
+    const callArgs = ServicioCrudBase.crear.mock.calls[0]
+    expect(callArgs[0]).toBe('mascotas')
+    expect(callArgs[1]).toEqual(payload)
     expect(res).toEqual(created)
   })
 
@@ -155,31 +134,5 @@ describe('ServicioMascota - unitario', () => {
     expect(res).toEqual(out)
   })
 
-  // Crear: comprobar que el payload enviado incluye creado_por y activo por defecto
-  test('crear envía creado_por y activo por defecto al ServicioCrudBase.crear', async () => {
-    ServicioAuth.obtenerUsuarioActual.mockReturnValue({ uid: 'u9' })
-    const created = {
-      success: true,
-      data: {
-        id: 'm9',
-        nombre: 'Bolt',
-        especie: 'perro',
-        creado_por: 'u9',
-        activo: true,
-      },
-    }
-    ServicioCrudBase.crear.mockResolvedValue(created)
-
-    const res = await ServicioMascota.crear({
-      nombre: 'Bolt',
-      especie: 'perro',
-    })
-    expect(ServicioCrudBase.crear).toHaveBeenCalled()
-    const callArgs = ServicioCrudBase.crear.mock.calls[0]
-    expect(callArgs[0]).toBe('mascotas')
-    // payload is second arg
-    expect(callArgs[1].creado_por).toBe('u9')
-    expect(callArgs[1].activo).toBe(true)
-    expect(res).toEqual(created)
-  })
+  // Nota: la lógica de ownership/defaults se mueve a logic/mascotas (gestor). Aqui solo verificamos delegación.
 })

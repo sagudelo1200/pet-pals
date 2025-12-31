@@ -18,11 +18,8 @@ import {
   AutocompletarDireccion,
 } from '@/components/ui'
 import Screen from '@/components/ui/Screen'
-import {
-  ServicioMascota,
-  ServicioUbicacion,
-  ServicioAuth,
-} from '@/services/firebase'
+import { ServicioUbicacion, ServicioAuth } from '@/services/firebase'
+import * as GestorMascota from '@/logic/mascotas/gestorMascota'
 import { useDirecciones } from '@/hooks/useDirecciones'
 import type { Mascota } from '@/models/Mascota'
 import { SelectorDireccionSheet } from '@/components/ui/Direcciones/SelectorDireccionSheet'
@@ -89,16 +86,19 @@ const ColorDemo: React.FC = () => {
     }
 
     try {
-      const resultado = await ServicioMascota.crear(mascotaData)
+      const resultado = await GestorMascota.crearMascota(mascotaData)
 
-      if (resultado.success && resultado.data) {
+      if (resultado && resultado.success && resultado.data) {
         Alert.alert(
           '✅ Mascota creada',
           `${resultado.data.nombre} ha sido creado exitosamente.\n\nID: ${resultado.data.id}`,
           [{ text: 'OK' }]
         )
       } else {
-        Alert.alert('Error', resultado.error || 'No se pudo crear la mascota')
+        Alert.alert(
+          'Error',
+          (resultado as any).error || 'No se pudo crear la mascota'
+        )
       }
     } catch (error) {
       Alert.alert('Error', 'Ocurrió un error inesperado')

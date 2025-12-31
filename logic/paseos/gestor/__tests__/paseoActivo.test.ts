@@ -15,10 +15,9 @@ jest.mock('@/services/firebase', () => ({
   },
 }))
 
-describe('PaseoActivoGestor', () => {
-  // let gestor: PaseoActivoGestor
+describe('GestorPaseoActivo', () => {
+  // let gestor: GestorPaseoActivo
 
-  
   // Paseo dummy para pruebas
   const paseoMock: Paseo = {
     id: 'paseo-123',
@@ -31,7 +30,7 @@ describe('PaseoActivoGestor', () => {
     fecha_hora_inicio: new Date(),
     duracion_estimada: 60,
     precio: 20000,
-    // ... otros campos requeridos por BaseModel o Paseo si fuese estricto, 
+    // ... otros campos requeridos por BaseModel o Paseo si fuese estricto,
     // pero Partial suele ser suficiente en lógica interna si se maneja bien,
     // aunque setPaseoActivo espera Paseo completo. Ajustaremos según necesidad.
   } as any
@@ -42,9 +41,9 @@ describe('PaseoActivoGestor', () => {
     // Para testear bien, vamos a asumir que podemos limpiar el estado.
     paseoActivo.limpiarPaseoActivo()
     jest.clearAllMocks()
-    
+
     // Si queremos testear una instancia fresca:
-    // gestor = new PaseoActivoGestor() 
+    // gestor = new GestorPaseoActivo()
     // Pero el archivo exporta la instancia. Usaremos la instancia exportada.
   })
 
@@ -68,7 +67,7 @@ describe('PaseoActivoGestor', () => {
 
     // Primera llamada al suscribir
     expect(listener).toHaveBeenCalledWith(null)
-    
+
     paseoActivo.setPaseoActivo(paseoMock)
     expect(listener).toHaveBeenCalledTimes(2)
     expect(listener.mock.calls[1][0].id).toBe(paseoMock.id)
@@ -78,7 +77,7 @@ describe('PaseoActivoGestor', () => {
 
   it('debe validar transiciones inválidas con puede()', () => {
     paseoActivo.setPaseoActivo(paseoMock) // PENDIENTE
-    
+
     // PENDIENTE -> FINALIZAR_PASEO no es válido
     expect(paseoActivo.puede(EVENTOS.FINALIZAR_PASEO)).toBe(false)
     // PENDIENTE -> ACEPTAR es válido
@@ -87,13 +86,15 @@ describe('PaseoActivoGestor', () => {
 
   it('aceptarPaseoAsync debe llamar al servicio y actualizar estado local', async () => {
     paseoActivo.setPaseoActivo(paseoMock)
-    ;(ServicioPaseo.aceptarSolicitud as jest.Mock).mockResolvedValue({ success: true })
+    ;(ServicioPaseo.aceptarSolicitud as jest.Mock).mockResolvedValue({
+      success: true,
+    })
 
     const res = await paseoActivo.aceptarPaseoAsync()
-    
+
     expect(res.success).toBe(true)
     expect(ServicioPaseo.aceptarSolicitud).toHaveBeenCalledWith(paseoMock.id)
-    
+
     const activo = paseoActivo.getPaseoActivo()
     expect(activo?.estado).toBe(ESTADOS_PASEO.CONFIRMADO)
     expect(activo?.timestamps.confirmado).toBeDefined()
@@ -101,13 +102,13 @@ describe('PaseoActivoGestor', () => {
 
   it('no debe actualizar estado local si el servicio falla', async () => {
     paseoActivo.setPaseoActivo(paseoMock)
-    ;(ServicioPaseo.aceptarSolicitud as jest.Mock).mockResolvedValue({ 
-      success: false, 
-      error: 'Error backend' 
+    ;(ServicioPaseo.aceptarSolicitud as jest.Mock).mockResolvedValue({
+      success: false,
+      error: 'Error backend',
     })
 
     const res = await paseoActivo.aceptarPaseoAsync()
-    
+
     expect(res.success).toBe(false)
     const activo = paseoActivo.getPaseoActivo()
     expect(activo?.estado).toBe(ESTADOS_PASEO.PENDIENTE) // Se mantiene
@@ -115,10 +116,10 @@ describe('PaseoActivoGestor', () => {
 
   it('iniciarRutaAsync debe validar transición antes de llamar servicio', async () => {
     // Si estamos en PENDIENTE, no podemos INICIAR_RUTA (primero debe ser CONFIRMADO)
-    paseoActivo.setPaseoActivo(paseoMock) 
-    
+    paseoActivo.setPaseoActivo(paseoMock)
+
     const res = await paseoActivo.iniciarRutaAsync()
-    
+
     expect(res.success).toBe(false)
     expect(res.error).toBe('TRANSICION_INVALIDA')
     expect(ServicioPaseo.iniciarRuta).not.toHaveBeenCalled()
@@ -128,23 +129,31 @@ describe('PaseoActivoGestor', () => {
     paseoActivo.setPaseoActivo(paseoMock)
 
     // 1. Aceptar
-    ;(ServicioPaseo.aceptarSolicitud as jest.Mock).mockResolvedValue({ success: true })
+    ;(ServicioPaseo.aceptarSolicitud as jest.Mock).mockResolvedValue({
+      success: true,
+    })
     await paseoActivo.aceptarPaseoAsync()
     expect(paseoActivo.getPaseoActivo()?.estado).toBe(ESTADOS_PASEO.CONFIRMADO)
 
     // 2. Iniciar Ruta
-    ;(ServicioPaseo.iniciarRuta as jest.Mock).mockResolvedValue({ success: true })
+    ;(ServicioPaseo.iniciarRuta as jest.Mock).mockResolvedValue({
+      success: true,
+    })
     await paseoActivo.iniciarRutaAsync()
     expect(paseoActivo.getPaseoActivo()?.estado).toBe(ESTADOS_PASEO.EN_CAMINO)
 
     // 3. Iniciar Paseo
-    ;(ServicioPaseo.iniciarPaseo as jest.Mock).mockResolvedValue({ success: true })
+    ;(ServicioPaseo.iniciarPaseo as jest.Mock).mockResolvedValue({
+      success: true,
+    })
     await paseoActivo.iniciarPaseoAsync()
     expect(paseoActivo.getPaseoActivo()?.estado).toBe(ESTADOS_PASEO.EN_PROGRESO)
     expect(paseoActivo.getPaseoActivo()?.timestamps.iniciado).toBeDefined()
 
     // 4. Finalizar
-    ;(ServicioPaseo.finalizarPaseo as jest.Mock).mockResolvedValue({ success: true })
+    ;(ServicioPaseo.finalizarPaseo as jest.Mock).mockResolvedValue({
+      success: true,
+    })
     await paseoActivo.finalizarPaseoAsync()
     expect(paseoActivo.getPaseoActivo()?.estado).toBe(ESTADOS_PASEO.FINALIZADO)
     expect(paseoActivo.getPaseoActivo()?.esActivo).toBe(false)

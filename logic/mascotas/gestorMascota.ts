@@ -1,5 +1,4 @@
-import { ServicioMascota } from '@/services/firebase/firestore/colecciones/mascota'
-import { ServicioAuth } from '@/services/firebase/auth/auth'
+import { ServicioMascota, ServicioAuth } from '@/services/firebase'
 import { ERR } from '@/constants'
 import {
   verificarPropietarioMascota,
@@ -7,32 +6,51 @@ import {
 } from '@/logic/mascotas/reglasMascota'
 import type { Mascota } from '@/models/Mascota'
 
-export async function crearMascota(data: Partial<Mascota>) {
+type Result<T> = { success: true; data: T } | { success: false; error?: string }
+
+export async function crearMascota(
+  data: Partial<Mascota>
+): Promise<Result<Mascota>> {
   const current = ServicioAuth.obtenerUsuarioActual()
   const uid = current?.uid
   if (!uid) return { success: false, error: ERR.COMUN.NO_AUTENTICADO }
 
-  // Validación de ownership: si viene creado_por, debe coincidir
   if (!verificarPropietarioMascota(data as any, uid)) {
     return { success: false, error: ERR.MASCOTAS.TUTOR_NO_COINCIDE }
   }
 
-  // Aplicar defaults de dominio
-  const payload = { ...(data as any), activo: defaultActivoEnCreacion(data) }
+  const payload: Partial<Mascota> = {
+    ...(data as any),
+    activo: defaultActivoEnCreacion(data),
+  }
 
-  return ServicioMascota.crear(payload as any)
+  const res = await ServicioMascota.crear(payload as Mascota)
+  return res as Result<Mascota>
 }
 
-export async function obtenerPorUsuario(userId: string) {
-  return ServicioMascota.obtenerPorUsuario(userId)
+export async function obtenerPorUsuario(
+  userId: string
+): Promise<Result<Mascota[]>> {
+  const res = await ServicioMascota.obtenerPorUsuario(userId)
+  return res as Result<Mascota[]>
 }
 
-export async function actualizarMascota(id: string, data: Partial<Mascota>) {
-  return ServicioMascota.actualizar(id, data as any)
+export async function obtenerPorId(id: string): Promise<Result<Mascota>> {
+  const res = await ServicioMascota.obtenerPorId(id)
+  return res as Result<Mascota>
 }
 
-export async function eliminarMascota(id: string) {
-  return ServicioMascota.eliminar(id)
+export async function actualizarMascota(
+  id: string,
+  data: Partial<Mascota>
+): Promise<Result<null>> {
+  const res = await ServicioMascota.actualizar(id, data as any)
+  return res as Result<null>
+}
+
+export async function eliminarMascota(id: string): Promise<Result<null>> {
+  const res = await ServicioMascota.eliminar(id)
+  return res as Result<null>
 }
 
 export default {
