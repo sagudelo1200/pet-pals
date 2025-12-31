@@ -18,10 +18,6 @@ import {
 } from '@/services/firebase/comun'
 import { ServicioAuth } from '@/services/firebase/auth/auth'
 import { Ubicacion } from '@/models/Ubicacion'
-import {
-  normalizeComponentsForLATAM,
-  esCoordenadaValida,
-} from '@/helpers/ubicacion'
 
 export class ServicioUbicacion {
   private static readonly COLLECTION = 'ubicaciones'
@@ -86,24 +82,13 @@ export class ServicioUbicacion {
     }
   }
 
-  static async crearSiNoExiste(
+  static async crear(
     payload: Omit<
       Ubicacion,
       'id' | 'creado_en' | 'actualizado_en' | 'creado_por' | 'actualizado_por'
     >
   ): Promise<CrudResult<Ubicacion>> {
     try {
-      const validationError = this.validarPayload(payload)
-      if (validationError) return { success: false, error: validationError }
-
-      const existente = await this.buscarPorProveedorPlaceId(
-        payload.proveedor,
-        payload.proveedor_place_id
-      )
-      if (existente.success && existente.data) {
-        return { success: true, data: existente.data }
-      }
-
       const colRef = collection(db, this.COLLECTION)
       const docRef = doc(colRef)
       const id = docRef.id
@@ -138,10 +123,6 @@ export class ServicioUbicacion {
         componentes_raw_to_store = map
       }
 
-      const componentes_normalized = normalizeComponentsForLATAM(
-        componentes_raw_to_store
-      )
-
       const dataToSave: any = {
         id,
         proveedor: payload.proveedor,
@@ -149,7 +130,7 @@ export class ServicioUbicacion {
         direccion_formateada: payload.direccion_formateada,
         coordenadas: gp,
         componentes_raw: componentes_raw_to_store ?? null,
-        componentes: componentes_normalized ?? {},
+        componentes: (payload as any).componentes ?? {},
         viewport: payload.viewport ?? null,
         alias: payload.alias ?? null,
         instrucciones: payload.instrucciones ?? null,
@@ -166,39 +147,5 @@ export class ServicioUbicacion {
     } catch (err: any) {
       return { success: false, error: mapFirebaseError(err) }
     }
-  }
-
-  private static validarPayload(
-    payload: Omit<
-      Ubicacion,
-      'id' | 'creado_en' | 'actualizado_en' | 'creado_por' | 'actualizado_por'
-    >
-  ): string | null {
-    const proveedoresSoportados = ['google', 'mapbox']
-    if (
-      !payload.proveedor ||
-      !proveedoresSoportados.includes(payload.proveedor)
-    )
-      return 'PROVEEDOR_INVALIDO'
-
-    if (
-      !payload.proveedor_place_id ||
-      String(payload.proveedor_place_id).trim() === ''
-    )
-      return 'PROVEEDOR_O_PLACE_ID_REQUERIDO'
-
-    if (!payload.coordenadas) return 'COORDENADAS_REQUERIDAS'
-    if (!esCoordenadaValida(payload.coordenadas)) return 'COORDENADAS_INVALIDAS'
-
-    if (
-      !payload.direccion_formateada ||
-      String(payload.direccion_formateada).trim() === ''
-    )
-      return 'DIRECCION_FORMATO_REQUERIDO'
-
-    const raw = (payload as any).componentes_raw ?? (payload as any).componentes
-    if (Array.isArray(raw) && raw.length > 200) return 'COMPONENTES_TOO_LARGE'
-
-    return null
   }
 }

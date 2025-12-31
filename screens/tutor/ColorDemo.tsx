@@ -18,7 +18,8 @@ import {
   AutocompletarDireccion,
 } from '@/components/ui'
 import Screen from '@/components/ui/Screen'
-import { ServicioUbicacion, ServicioAuth } from '@/services/firebase'
+import { ServicioAuth } from '@/services/firebase'
+import { crearSiNoExiste } from '@/logic/ubicaciones'
 import * as GestorMascota from '@/logic/mascotas/gestorMascota'
 import { useDirecciones } from '@/hooks/useDirecciones'
 import type { Mascota } from '@/models/Mascota'
@@ -136,7 +137,7 @@ const ColorDemo: React.FC = () => {
         estado: 'verificada',
       }
       console.log('DEBUG: crearUbicacionValida payload', payload)
-      const res = await ServicioUbicacion.crearSiNoExiste(payload)
+      const res = await crearSiNoExiste(payload)
       console.log('DEBUG: ServicioUbicacion.crearSiNoExiste res', res)
       if (res.success && res.data) {
         Alert.alert('OK', `Ubicación creada/recuperada id: ${res.data.id}`)
@@ -160,7 +161,7 @@ const ColorDemo: React.FC = () => {
         coordenadas: { lat: null, lng: null },
       }
       console.log('DEBUG: crearUbicacionInvalida payload', payload)
-      const res = await ServicioUbicacion.crearSiNoExiste(payload)
+      const res = await crearSiNoExiste(payload)
       console.log(
         'DEBUG: ServicioUbicacion.crearSiNoExiste res (invalida)',
         res

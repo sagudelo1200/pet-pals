@@ -1,11 +1,8 @@
 import { useState, useCallback, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useMascotas } from '@/hooks/useMascotas'
-import {
-  ServicioPaseo,
-  ServicioPerfilPublico,
-  ServicioUbicacion,
-} from '@/services/firebase'
+import { ServicioPerfilPublico, ServicioUbicacion } from '@/services/firebase'
+import { crearConMascotas } from '@/logic/paseos'
 import { ESTADOS_PASEO } from '@/models/Paseo'
 import { useAuth } from '@/context/AuthContext'
 import type { Ubicacion } from '@/models/Ubicacion'
@@ -126,7 +123,7 @@ export const useConfirmarPaseo = ({
       const [hours, minutes] = hora.split(':').map(Number)
       fechaInicio.setHours(hours, minutes, 0, 0)
 
-      const result = await ServicioPaseo.crearConMascotas(
+      const result = await crearConMascotas(
         {
           tipo_paseo: 'solicitado',
           estado: ESTADOS_PASEO.PENDIENTE,

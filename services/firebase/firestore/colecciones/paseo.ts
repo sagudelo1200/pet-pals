@@ -2,9 +2,7 @@ import { ServicioCrudBase } from '@/services/firebase/firestore/base'
 import { Paseo, ESTADOS_PASEO } from '@/models/Paseo'
 import { CrudResult, mapFirebaseError } from '@/services/firebase/comun'
 import { ServicioAuth } from '@/services/firebase/auth/auth'
-import type { Mascota } from '@/models/Mascota'
-import { addMascotasAlPaseo } from '@/services/firebase/firestore/colecciones/paseo-mascota'
-import { MAX_MASCOTAS_POR_PASEO, ERR } from '@/constants'
+import { ERR } from '@/constants'
 import {
   collection,
   query,
@@ -16,8 +14,6 @@ import {
   serverTimestamp,
 } from 'firebase/firestore'
 import { db } from '@/firebase.config'
-
-import type { Ubicacion } from '@/models/Ubicacion'
 
 export class ServicioPaseo {
   private static readonly COLLECTION = 'paseos'
@@ -54,159 +50,24 @@ export class ServicioPaseo {
     const currentUser = ServicioAuth.obtenerUsuarioActual()
     if (!currentUser) return { success: false, error: ERR.COMUN.NO_AUTENTICADO }
 
-    try {
-      await runTransaction(db, async transaction => {
-        const paseoRef = doc(db, this.COLLECTION, paseoId)
-        const paseoDoc = await transaction.get(paseoRef)
-
-        if (!paseoDoc.exists()) {
-          throw new Error(ERR.COMUN.DOCUMENTO_NO_ENCONTRADO)
-        }
-
-        const data = paseoDoc.data() as Paseo
-
-        if (data.estado !== ESTADOS_PASEO.PENDIENTE) {
-          throw new Error('El paseo ya no está disponible (estado incorrecto)')
-        }
-        if (data.id_cuidador && data.id_cuidador !== currentUser.uid) {
-          throw new Error('El paseo ya fue tomado por otro cuidador')
-        }
-        if (data.creado_por === currentUser.uid) {
-          throw new Error('No puedes aceptar tu propio paseo')
-        }
-
-        transaction.update(paseoRef, {
-          id_cuidador: currentUser.uid,
-          cuidador_nombre_visual: currentUser.displayName || 'Cuidador',
-          cuidador_foto_visual: currentUser.photoURL || null,
-          estado: ESTADOS_PASEO.CONFIRMADO,
-          actualizado_en: serverTimestamp(),
-          actualizado_por: currentUser.uid,
-        })
-      })
-
-      await this.registrarEvento(paseoId, 'ACEPTAR', {
-        estado_anterior: 'PENDIENTE',
-        estado_nuevo: 'CONFIRMADO',
-        id_cuidador: ServicioAuth.obtenerUsuarioActual()?.uid,
-      })
-
-      return { success: true }
-    } catch (error) {
-      return { success: false, error: mapFirebaseError(error) }
+    const fields: Record<string, any> = {
+      id_cuidador: currentUser.uid,
+      cuidador_nombre_visual: currentUser.displayName || 'Cuidador',
+      cuidador_foto_visual: currentUser.photoURL || null,
+      actualizado_por: currentUser.uid,
     }
+
+    return this.transicionarEstado(
+      paseoId,
+      ESTADOS_PASEO.PENDIENTE,
+      ESTADOS_PASEO.CONFIRMADO,
+      fields
+    )
   }
 
-  static async crearConMascotas(
-    data: Omit<
-      Paseo,
-      | 'id'
-      | 'creado_en'
-      | 'actualizado_en'
-      | 'creado_por'
-      | 'actualizado_por'
-      | 'mascotas_count'
-    >,
-    mascotaIds: string[],
-    direccion?: Ubicacion
-  ): Promise<CrudResult<Paseo>> {
-    const current = ServicioAuth.obtenerUsuarioActual()
-    const uid = current?.uid
-    if (!uid) return { success: false, error: ERR.COMUN.NO_AUTENTICADO }
-
-    const unique = Array.from(new Set((mascotaIds || []).filter(Boolean)))
-    const maxPaseo =
-      typeof (data as any).cupo_maximo_mascotas === 'number'
-        ? (data as any).cupo_maximo_mascotas
-        : MAX_MASCOTAS_POR_PASEO
-    const max = Math.min(MAX_MASCOTAS_POR_PASEO, maxPaseo)
-    if (unique.length > max)
-      return { success: false, error: ERR.PASEOS.LIMITE_DE_MASCOTAS_SUPERADO }
-
-    const mascotasData: any[] = []
-    if (unique.length > 0) {
-      const resultados = await Promise.all(
-        unique.map(mid =>
-          ServicioCrudBase.obtenerPorId<Mascota>('mascotas', mid)
-        )
-      )
-
-      for (const res of resultados) {
-        if (!res.success || !res.data)
-          return { success: false, error: ERR.MASCOTAS.MASCOTA_NO_ENCONTRADA }
-
-        const m = res.data as any
-        if (m.creado_por !== uid)
-          return {
-            success: false,
-            error: ERR.MASCOTAS.MASCOTA_NO_PERTENECE_AL_USUARIO,
-          }
-        mascotasData.push(m)
-      }
-    }
-
-    let locationData: any = {}
-    const locObj = (data.ubicacion_inicio as any) || direccion
-
-    if (locObj && typeof locObj === 'object') {
-      const snap = {
-        direccion_formateada: locObj.direccion_formateada || '',
-        coordenadas: {
-          latitude: Number(locObj.coordenadas.latitude),
-          longitude: Number(locObj.coordenadas.longitude),
-        },
-        id_origen: locObj.id,
-        alias: locObj.alias,
-      }
-      locationData = {
-        ubicacion_inicio: snap,
-        ubicacion_inicio_txt:
-          locObj.alias || locObj.direccion_formateada || 'Ubicación',
-      }
-    }
-
-    let visualData: any = {}
-    if (mascotasData.length > 0) {
-      const fotos: string[] = []
-      let primerNombre = ''
-
-      const limit = Math.min(mascotasData.length, 4)
-      for (let i = 0; i < limit; i++) {
-        const d = mascotasData[i]
-        if (i === 0) primerNombre = d.nombre
-        if (d.foto_url || d.foto) fotos.push(d.foto_url || d.foto)
-      }
-
-      visualData = {
-        mascota_nombre_visual: primerNombre,
-        mascota_foto_visual: fotos[0],
-        mascotas_fotos_visual: fotos,
-      }
-    }
-
-    const paseoRes = await ServicioCrudBase.crear<Paseo>(this.COLLECTION, {
-      ...(data as any),
-      ...locationData,
-      creado_por: uid,
-      cupo_maximo_mascotas: max,
-      mascotas_count: unique.length,
-      mascota_ids: unique,
-      ...visualData,
-    } as any)
-
-    if (!paseoRes.success || !paseoRes.data) return paseoRes
-
-    if (unique.length > 0) {
-      const addRes = await addMascotasAlPaseo(
-        paseoRes.data.id,
-        unique,
-        direccion
-      )
-      if (!addRes.success)
-        return { success: false, error: (addRes as any).error }
-    }
-
-    return paseoRes
+  static async crearConMascotas(): Promise<CrudResult<Paseo>> {
+    // Deprecated: orchestration must live in /logic. Use `@/logic/paseos`.
+    return { success: false, error: 'DEPRECATED: usar @/logic/paseos' }
   }
 
   static async obtenerPorId(id: string): Promise<CrudResult<Paseo>> {
@@ -345,92 +206,50 @@ export class ServicioPaseo {
   static async iniciarRuta(paseoId: string): Promise<CrudResult<void>> {
     const currentUser = ServicioAuth.obtenerUsuarioActual()
     if (!currentUser) return { success: false, error: ERR.COMUN.NO_AUTENTICADO }
-
-    try {
-      await runTransaction(db, async transaction => {
-        const paseoRef = doc(db, this.COLLECTION, paseoId)
-        const paseoDoc = await transaction.get(paseoRef)
-
-        if (!paseoDoc.exists()) {
-          throw new Error(ERR.COMUN.DOCUMENTO_NO_ENCONTRADO)
-        }
-
-        const paseo = paseoDoc.data() as Paseo
-
-        const { crearMaquinaPaseo } =
-          await import('@/logic/paseos/maquinaEstados')
-        const maquina = crearMaquinaPaseo(paseo)
-
-        if (!maquina.puede('INICIAR_RUTA')) {
-          throw new Error('No se puede iniciar ruta desde el estado actual')
-        }
-
-        transaction.update(paseoRef, {
-          estado: ESTADOS_PASEO.EN_CAMINO,
-          actualizado_en: serverTimestamp(),
-          actualizado_por: currentUser.uid,
-        })
-      })
-
-      await this.registrarEvento(paseoId, 'INICIAR_RUTA', {
-        estado_anterior: 'CONFIRMADO',
-        estado_nuevo: 'EN_CAMINO',
-      })
-
-      return { success: true }
-    } catch (error) {
-      return { success: false, error: mapFirebaseError(error) }
-    }
+    return this.transicionarEstado(
+      paseoId,
+      ESTADOS_PASEO.CONFIRMADO,
+      ESTADOS_PASEO.EN_CAMINO,
+      {
+        actualizado_por: currentUser.uid,
+      }
+    )
   }
 
   static async iniciarPaseo(paseoId: string): Promise<CrudResult<void>> {
     const currentUser = ServicioAuth.obtenerUsuarioActual()
     if (!currentUser) return { success: false, error: ERR.COMUN.NO_AUTENTICADO }
-
-    try {
-      await runTransaction(db, async transaction => {
-        const paseoRef = doc(db, this.COLLECTION, paseoId)
-        const paseoDoc = await transaction.get(paseoRef)
-
-        if (!paseoDoc.exists()) {
-          throw new Error(ERR.COMUN.DOCUMENTO_NO_ENCONTRADO)
-        }
-
-        const paseo = paseoDoc.data() as Paseo
-
-        const { crearMaquinaPaseo } =
-          await import('@/logic/paseos/maquinaEstados')
-        const maquina = crearMaquinaPaseo(paseo)
-
-        if (!maquina.puede('INICIAR_PASEO')) {
-          throw new Error('No se puede iniciar paseo desde el estado actual')
-        }
-
-        transaction.update(paseoRef, {
-          estado: ESTADOS_PASEO.EN_PROGRESO,
-          fecha_inicio_real: serverTimestamp(),
-          actualizado_en: serverTimestamp(),
-          actualizado_por: currentUser.uid,
-        })
-      })
-
-      await this.registrarEvento(paseoId, 'INICIAR_PASEO', {
-        estado_anterior: 'EN_CAMINO',
-        estado_nuevo: 'EN_PROGRESO',
-      })
-
-      return { success: true }
-    } catch (error) {
-      return { success: false, error: mapFirebaseError(error) }
-    }
+    return this.transicionarEstado(
+      paseoId,
+      ESTADOS_PASEO.EN_CAMINO,
+      ESTADOS_PASEO.EN_PROGRESO,
+      {
+        fecha_inicio_real: serverTimestamp(),
+        actualizado_por: currentUser.uid,
+      }
+    )
   }
 
   static async finalizarPaseo(paseoId: string): Promise<CrudResult<void>> {
     const currentUser = ServicioAuth.obtenerUsuarioActual()
     if (!currentUser) return { success: false, error: ERR.COMUN.NO_AUTENTICADO }
+    return this.transicionarEstado(
+      paseoId,
+      ESTADOS_PASEO.EN_PROGRESO,
+      ESTADOS_PASEO.FINALIZADO,
+      {
+        fecha_fin_real: serverTimestamp(),
+        actualizado_por: currentUser.uid,
+      }
+    )
+  }
 
-    let _duracionReal: number | undefined
-
+  static async transicionarEstado(
+    paseoId: string,
+    esperado: string,
+    nuevo: string,
+    fields: Record<string, any> = {}
+  ): Promise<CrudResult<void>> {
     try {
       await runTransaction(db, async transaction => {
         const paseoRef = doc(db, this.COLLECTION, paseoId)
@@ -440,27 +259,18 @@ export class ServicioPaseo {
           throw new Error(ERR.COMUN.DOCUMENTO_NO_ENCONTRADO)
         }
 
-        const paseo = paseoDoc.data() as Paseo
+        const data = paseoDoc.data() as Paseo
 
-        const { crearMaquinaPaseo } =
-          await import('@/logic/paseos/maquinaEstados')
-        const maquina = crearMaquinaPaseo(paseo)
-
-        if (!maquina.puede('FINALIZAR_PASEO')) {
-          throw new Error('No se puede finalizar desde el estado actual')
+        if (data.estado !== esperado) {
+          throw new Error(ERR.PASEOS.ESTADO_NO_ESPERADO)
         }
 
         transaction.update(paseoRef, {
-          estado: ESTADOS_PASEO.FINALIZADO,
-          fecha_fin_real: serverTimestamp(),
+          ...fields,
+          estado: nuevo,
           actualizado_en: serverTimestamp(),
-          actualizado_por: currentUser.uid,
+          // actualizado_por se debe pasar explícitamente en fields si se desea
         })
-      })
-
-      await this.registrarEvento(paseoId, 'FINALIZAR_PASEO', {
-        estado_anterior: 'EN_PROGRESO',
-        estado_nuevo: 'FINALIZADO',
       })
 
       return { success: true }

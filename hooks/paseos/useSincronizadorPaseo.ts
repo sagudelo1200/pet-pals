@@ -9,7 +9,7 @@ import {
 } from 'firebase/firestore'
 import { db } from '@/firebase.config'
 import { Paseo } from '@/models/Paseo'
-import { paseoActivo } from '@/logic/paseos/gestor/paseoActivo'
+import { paseoActivo } from '@/logic/paseos'
 import { toDomain } from '@/services/firebase/comun'
 import { useSeguimientoPaseo } from './useSeguimientoPaseo'
 
@@ -25,7 +25,7 @@ export interface EventoPaseo {
  * Hook "Sincronizador".
  * Su responsabilidad es escuchar Firebase y mantener actualizado al Singleton `paseoActivo`.
  * También devuelve los datos crudos para quien lo invoca (legacy support).
- * 
+ *
  * @param paseoId ID del paseo a sincronizar
  */
 export const useSincronizadorPaseo = (paseoId: string) => {
@@ -34,7 +34,7 @@ export const useSincronizadorPaseo = (paseoId: string) => {
   const [eventos, setEventos] = useState<EventoPaseo[]>([])
 
   // Integración con Realtime Database para el tracking
-  // Nota: Esto quizás debería moverse a otro lado si queremos desacoplar totalmente, 
+  // Nota: Esto quizás debería moverse a otro lado si queremos desacoplar totalmente,
   // pero por ahora lo mantenemos aquí para no romper funcionalidad.
   const { ubicacionActual, ruta } = useSeguimientoPaseo(paseoId)
 
@@ -52,7 +52,7 @@ export const useSincronizadorPaseo = (paseoId: string) => {
           const data = toDomain(snapshot.data()) as Paseo
           const paseoDoc = { id: snapshot.id, ...data } as Paseo
           setPaseo(paseoDoc)
-          
+
           // ALIMENTAMOS EL SINGLETON
           try {
             paseoActivo.setPaseoActivo(paseoDoc)
@@ -98,7 +98,7 @@ export const useSincronizadorPaseo = (paseoId: string) => {
       unsubPaseo()
       unsubEventos()
       // Opcional: limpiar singleton al desmontar si es la única fuente de verdad
-      // paseoActivo.limpiarPaseoActivo() 
+      // paseoActivo.limpiarPaseoActivo()
       // Cuidado con desmontajes al navegar entre pestañas.
     }
   }, [paseoId])

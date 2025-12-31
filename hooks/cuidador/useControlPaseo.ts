@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { EVENTOS_PASEO, EVENTOS } from '@/logic/paseos/maquinaEstados'
-import { paseoActivo } from '@/logic/paseos/gestor/paseoActivo'
+import { paseoActivo } from '@/logic/paseos'
 import { Alert } from 'react-native'
 import { useTranslation } from 'react-i18next'
 import { useSincronizadorPaseo } from '@/hooks/paseos/useSincronizadorPaseo'

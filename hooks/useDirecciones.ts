@@ -1,6 +1,7 @@
 import { useState, useCallback, useMemo } from 'react'
 import { useAuth } from '@/context/AuthContext'
-import { ServicioUsuario, ServicioUbicacion } from '@/services/firebase'
+import { ServicioUsuario } from '@/services/firebase'
+import { crearSiNoExiste } from '@/logic/ubicaciones'
 
 export function useDirecciones() {
   const { user, profile, recargarPerfil } = useAuth()
@@ -29,9 +30,7 @@ export function useDirecciones() {
           ...datos, // debe incluir coordenadas, direccion_formateada, etc.
           estado: 'pendiente',
         }
-        const resUbic = await ServicioUbicacion.crearSiNoExiste(
-          ubicacionNueva as any
-        )
+        const resUbic = await crearSiNoExiste(ubicacionNueva as any)
         if (!resUbic.success || !resUbic.data)
           throw new Error('ERROR_CREAR_UBICACION')
 

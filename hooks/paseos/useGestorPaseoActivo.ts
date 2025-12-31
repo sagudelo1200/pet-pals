@@ -1,13 +1,12 @@
 import { useState, useEffect } from 'react'
-import { paseoActivo } from '@/logic/paseos/gestor/paseoActivo'
-import type { PaseoActivo } from '@/logic/paseos/gestor/paseoActivo.types'
+import { paseoActivo, type PaseoActivo } from '@/logic/paseos'
 import { ESTADOS_PASEO, Paseo } from '@/models/Paseo'
 import { EVENTOS } from '@/logic/paseos/maquinaEstados'
 
 /**
  * Hook para interactuar con el Paseo Activo Global.
  * Permite leer el estado reactivamente y ejecutar acciones de negocio.
- * 
+ *
  * Requiere que el paseo haya sido inicializado previamente (ej. por useSincronizadorPaseo).
  */
 export function useGestorPaseoActivo() {
@@ -25,17 +24,17 @@ export function useGestorPaseoActivo() {
     // Estado
     paseo: state,
     hayPaseo: !!state,
-    
+
     // Validadores directos
     esPendiente: state?.estado === ESTADOS_PASEO.PENDIENTE,
     esConfirmado: state?.estado === ESTADOS_PASEO.CONFIRMADO,
     esEnCamino: state?.estado === ESTADOS_PASEO.EN_CAMINO,
     esEnProgreso: state?.estado === ESTADOS_PASEO.EN_PROGRESO,
     esFinalizado: state?.estado === ESTADOS_PASEO.FINALIZADO,
-    
+
     // Método de validación de acciones
     puede: (evento: string) => paseoActivo.puede(evento),
-    
+
     // Constantes expuestas para consumidores
     EVENTOS,
     ESTADOS: ESTADOS_PASEO,
@@ -48,11 +47,11 @@ export function useGestorPaseoActivo() {
       finalizar: () => paseoActivo.finalizarPaseoAsync(),
       cancelar: (motivo: string) => paseoActivo.cancelarPaseoAsync(motivo),
     },
-    
+
     // Acciones de gestión local
     gestion: {
       seleccionar: (p: Paseo) => paseoActivo.setPaseoActivo(p),
       limpiar: () => paseoActivo.limpiarPaseoActivo(),
-    }
+    },
   }
 }
