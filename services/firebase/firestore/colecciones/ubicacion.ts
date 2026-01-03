@@ -10,13 +10,11 @@ import {
 } from 'firebase/firestore'
 import { db } from '@/firebase.config'
 import {
-  toDb,
-  nowServerTimestamp,
   toDomain,
   mapFirebaseError,
+  camposSistemaCrear,
   type CrudResult,
 } from '@/services/firebase/comun'
-import { ServicioAuth } from '@/services/firebase/auth/auth'
 import { Ubicacion } from '@/models/Ubicacion'
 
 export class ServicioUbicacion {
@@ -93,15 +91,8 @@ export class ServicioUbicacion {
       const docRef = doc(colRef)
       const id = docRef.id
 
-      const currentUser = ServicioAuth.obtenerUsuarioActual()
-      const base: any = {
-        creado_en: nowServerTimestamp(),
-        actualizado_en: nowServerTimestamp(),
-        creado_por:
-          // permitir pasar creado_por en el payload (útil si el cliente lo provee)
-          (payload as any)?.creado_por ?? currentUser?.uid,
-        actualizado_por: currentUser?.uid,
-      }
+      // Generar campos de sistema desde auth.currentUser
+      const base = camposSistemaCrear()
 
       const gp = new GeoPoint(
         (payload.coordenadas as any).latitude ??
@@ -110,7 +101,14 @@ export class ServicioUbicacion {
           (payload.coordenadas as any).lng
       )
 
-      const dataToSave: any = {
+      // Validar que tenemos un usuario autenticado
+      if (!base.creado_por) {
+        return { success: false, error: 'NO_AUTENTICADO' }
+      }
+
+      // Los datos ya vienen en formato Firestore (GeoPoint, serverTimestamp, etc.)
+      // NO aplicar toDb() porque destruiría las sentinelas de Firestore
+      const finalData: any = {
         id,
         proveedor: payload.proveedor,
         proveedor_place_id: payload.proveedor_place_id,
@@ -118,17 +116,24 @@ export class ServicioUbicacion {
         coordenadas: gp,
         componentes_raw: (payload as any).componentes_raw ?? null,
         componentes: (payload as any).componentes ?? {},
-        viewport: payload.viewport ?? null,
-        alias: payload.alias ?? null,
-        instrucciones: payload.instrucciones ?? null,
-        metadata: payload.metadata ?? null,
         componentes_source:
           (payload as any).componentes_source ?? payload.proveedor,
         estado: payload.estado ?? 'pendiente',
-        ...base,
+        ...base, // campos de sistema con serverTimestamp intacto
       }
 
-      await setDoc(docRef, toDb(dataToSave))
+      // Agregar campos opcionales solo si tienen valor
+      if (payload.viewport) finalData.viewport = payload.viewport
+      if (payload.alias) finalData.alias = payload.alias
+      if (payload.instrucciones) finalData.instrucciones = payload.instrucciones
+      if (
+        (payload as any).metadata &&
+        Object.keys((payload as any).metadata).length > 0
+      ) {
+        finalData.metadata = (payload as any).metadata
+      }
+
+      await setDoc(docRef, finalData)
 
       return this.obtenerPorId(id)
     } catch (err: any) {

@@ -33,7 +33,6 @@ export function useDirecciones() {
         const ubicacionNueva = {
           ...datos, // debe incluir coordenadas, direccion_formateada, etc.
           estado: 'pendiente',
-          creado_por: user?.uid,
         }
         const resUbic = await GestorUbicaciones.crearSiNoExiste(
           ubicacionNueva as any

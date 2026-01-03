@@ -85,10 +85,6 @@ export const GestorUbicaciones = {
         componentes_source:
           (payload as any).componentes_source ?? payload.proveedor,
         estado: payload.estado ?? 'pendiente',
-        // Forward creator if provided by caller (useful to satisfy security rules)
-        ...((payload as any).creado_por
-          ? { creado_por: (payload as any).creado_por }
-          : {}),
       }
 
       return ServicioUbicacion.crear(dataToSave)
