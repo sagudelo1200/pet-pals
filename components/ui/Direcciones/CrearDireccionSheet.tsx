@@ -80,8 +80,8 @@ export const CrearDireccionSheet: React.FC<CrearDireccionSheetProps> = ({
     setInitialRegion({
       latitude,
       longitude,
-      latitudeDelta: 0.005,
-      longitudeDelta: 0.005,
+      latitudeDelta: 0.001,
+      longitudeDelta: 0.001,
     })
     setStep('MAPA_CONFIRMACION')
   }
@@ -149,8 +149,9 @@ export const CrearDireccionSheet: React.FC<CrearDireccionSheetProps> = ({
             {initialRegion && (
               <Mapa
                 interactivo
-                pinCentro
                 alto={300}
+                pinCentro
+                zoom={19}
                 // Usamos key para que se remonte si cambia la region inicial (reset)
                 key={`map-${initialRegion.latitude}-${initialRegion.longitude}`}
                 coordenadas={{

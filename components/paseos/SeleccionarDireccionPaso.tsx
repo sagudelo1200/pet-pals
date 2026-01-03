@@ -1,5 +1,6 @@
-import React, { useState } from 'react'
+import React, { useState, useRef, useEffect } from 'react'
 import { View, StyleSheet, FlatList, ActivityIndicator } from 'react-native'
+import MapView from 'react-native-maps'
 import { Text } from 'galio-framework'
 import { COLOR } from '@/constants'
 import Button from '@/components/ui/Button'
@@ -27,6 +28,7 @@ export const SeleccionarDireccionPaso: React.FC<Props> = ({
 }) => {
   const { t } = useTranslation()
   const { direcciones, loading, agregar } = useDirecciones()
+  const mapRef = useRef<MapView>(null)
 
   const [seleccionada, setSeleccionada] = useState<string | null>(
     direccionInicialId || (direcciones[0] ? direcciones[0].ubicacion_id : null)
@@ -38,6 +40,21 @@ export const SeleccionarDireccionPaso: React.FC<Props> = ({
 
   // Usar las coordenadas del snapshot en la referencia
   const coordenadasPreview = direccionObj?.coordenadas || undefined
+
+  // Centrar el mapa cuando cambia la dirección seleccionada
+  useEffect(() => {
+    if (coordenadasPreview && mapRef.current) {
+      mapRef.current.animateToRegion(
+        {
+          latitude: coordenadasPreview.latitude,
+          longitude: coordenadasPreview.longitude,
+          latitudeDelta: 0.002, // Zoom muy cercano
+          longitudeDelta: 0.002 * 0.421,
+        },
+        300 // Duración de la animación en ms
+      )
+    }
+  }, [coordenadasPreview])
 
   return (
     <View style={styles.container}>
@@ -89,13 +106,14 @@ export const SeleccionarDireccionPaso: React.FC<Props> = ({
       {/* Mapa Preview (Estático) */}
       <View style={styles.mapContainer}>
         <Mapa
+          ref={mapRef}
           alto={150}
           marcador
           coordenadas={
             coordenadasPreview || { latitude: 4.62, longitude: -74.08 }
           } // Fallback bogota
           style={{ borderRadius: 12 }}
-          zoom={16}
+          zoom={19}
         />
         {!seleccionada && (
           <View style={styles.mapOverlay}>
@@ -132,7 +150,6 @@ export const SeleccionarDireccionPaso: React.FC<Props> = ({
           try {
             // Ahora pasamos 'datos' completo (con coords) y el alias
             const nuevaId = await agregar(datos, datos.alias)
-            console.log('Nueva ID guardada:', nuevaId)
             if (nuevaId) {
               setSeleccionada(nuevaId)
               setMostrarCrear(false)
