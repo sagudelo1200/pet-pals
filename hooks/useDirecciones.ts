@@ -1,12 +1,22 @@
 import { useState, useCallback, useMemo } from 'react'
 import { useAuth } from '@/context/AuthContext'
-import { ServicioUsuario } from '@/services/firebase'
-import { crearSiNoExiste } from '@/logic/ubicaciones'
+import {
+  crearSiNoExiste,
+  obtenerClaveI18nErrorUbicacion,
+} from '@/logic/ubicaciones'
+import {
+  agregarUbicacion,
+  fijarUbicacionPrincipal,
+  eliminarUbicacion,
+} from '@/logic/usuarios'
+import { useTranslation } from 'react-i18next'
 
 export function useDirecciones() {
   const { user, profile, recargarPerfil } = useAuth()
+  const { t } = useTranslation()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
   // Las ubicaciones vienen del perfil de usuario (Firestore), no del objeto AuthUser (Firebase Auth)
   const direcciones = useMemo(
@@ -23,6 +33,7 @@ export function useDirecciones() {
       if (!user?.uid) throw new Error('NO_AUTENTICADO')
       setLoading(true)
       setError(null)
+      setErrorMessage(null)
 
       try {
         // 1. Crear documento real en /direcciones
@@ -31,25 +42,39 @@ export function useDirecciones() {
           estado: 'pendiente',
         }
         const resUbic = await crearSiNoExiste(ubicacionNueva as any)
-        if (!resUbic.success || !resUbic.data)
-          throw new Error('ERROR_CREAR_UBICACION')
+        if (!resUbic.success || !resUbic.data) {
+          const code = String(resUbic.error ?? 'ERROR_CREAR_UBICACION')
+          const key = obtenerClaveI18nErrorUbicacion(code)
+          setError(code)
+          setErrorMessage(key ? t(key) : t('ubicaciones:errores.generico'))
+          throw new Error(code)
+        }
 
         const nuevaId = resUbic.data.id
 
         // 2. Ligar al usuario con snapshot de coordenadas
-        const resUser = await ServicioUsuario.agregarUbicacion(
+        const resUser = await agregarUbicacion(
           user.uid,
           nuevaId,
           alias,
           datos.coordenadas // Snapshot crucial para el mapa
         )
 
-        if (!resUser.success) throw new Error(String(resUser.error))
+        if (!resUser.success) {
+          const code = String(resUser.error ?? 'ERROR_AGREGAR_UBICACION')
+          const key = obtenerClaveI18nErrorUbicacion(code)
+          setError(code)
+          setErrorMessage(key ? t(key) : t('ubicaciones:errores.generico'))
+          throw new Error(code)
+        }
 
         await recargarPerfil()
         return nuevaId // Retornar ID para seleccionarlo en UI
       } catch (e: any) {
-        setError(String(e))
+        const code = typeof e === 'string' ? e : (e?.message ?? String(e))
+        const key = obtenerClaveI18nErrorUbicacion(code)
+        setError(String(code))
+        setErrorMessage(key ? t(key) : t('ubicaciones:errores.generico'))
         throw e
       } finally {
         setLoading(false)
@@ -63,16 +88,17 @@ export function useDirecciones() {
       if (!user?.uid) throw new Error('NO_AUTENTICADO')
       setLoading(true)
       setError(null)
-      const res = await ServicioUsuario.fijarUbicacionPrincipal(
-        user.uid,
-        ubicacionId
-      )
+      setErrorMessage(null)
+      const res = await fijarUbicacionPrincipal(user.uid, ubicacionId)
       setLoading(false)
       if (res.success) {
         await recargarPerfil()
       } else {
-        setError(String(res.error))
-        throw new Error(String(res.error))
+        const code = String(res.error)
+        const key = obtenerClaveI18nErrorUbicacion(code)
+        setError(code)
+        setErrorMessage(key ? t(key) : t('ubicaciones:errores.generico'))
+        throw new Error(code)
       }
     },
     [user?.uid, recargarPerfil]
@@ -83,13 +109,17 @@ export function useDirecciones() {
       if (!user?.uid) throw new Error('NO_AUTENTICADO')
       setLoading(true)
       setError(null)
-      const res = await ServicioUsuario.eliminarUbicacion(user.uid, ubicacionId)
+      setErrorMessage(null)
+      const res = await eliminarUbicacion(user.uid, ubicacionId)
       setLoading(false)
       if (res.success) {
         await recargarPerfil()
       } else {
-        setError(String(res.error))
-        throw new Error(String(res.error))
+        const code = String(res.error)
+        const key = obtenerClaveI18nErrorUbicacion(code)
+        setError(code)
+        setErrorMessage(key ? t(key) : t('ubicaciones:errores.generico'))
+        throw new Error(code)
       }
     },
     [user?.uid, recargarPerfil]
@@ -100,6 +130,8 @@ export function useDirecciones() {
     principal,
     loading,
     error,
+    // Mensaje localizado para mostrar en la UI (puede ser null)
+    errorMessage,
     agregar,
     fijarPrincipal,
     eliminar,

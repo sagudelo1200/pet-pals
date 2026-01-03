@@ -23,38 +23,10 @@ export class ServicioUsuario {
     uid: string,
     datosUsuario: Partial<Usuario>
   ): Promise<CrudResult<void>> {
-    try {
-      const batch = writeBatch(db)
-
-      const usuarioRef = doc(db, this.COLLECTION, uid)
-      const datosUsuarioDb = {
-        ...toDb(datosUsuario),
-        actualizado_en: serverTimestamp(),
-        actualizado_por: uid,
-      }
-      batch.update(usuarioRef, datosUsuarioDb)
-
-      const perfilRef = doc(db, this.PUBLIC_COLLECTION, uid)
-      const datosPerfilPublico: Partial<PerfilPublico> = {}
-
-      if (datosUsuario.nombre) datosPerfilPublico.nombre = datosUsuario.nombre
-      if (datosUsuario.foto) datosPerfilPublico.foto = datosUsuario.foto
-
-      if (Object.keys(datosPerfilPublico).length > 0) {
-        batch.set(
-          perfilRef,
-          {
-            ...datosPerfilPublico,
-            actualizado_en: serverTimestamp(),
-          },
-          { merge: true }
-        )
-      }
-
-      await batch.commit()
-      return { success: true, data: undefined }
-    } catch (error) {
-      return { success: false, error: mapFirebaseError(error) }
+    // Deprecated: use logic/usuarios.actualizarPerfilCompleto which orchestrates business rules
+    return {
+      success: false,
+      error: 'DEPRECATED: usar logic/usuarios.actualizarPerfilCompleto',
     }
   }
 
@@ -94,6 +66,41 @@ export class ServicioUsuario {
         success: false,
         error: mapFirebaseError(error),
       }
+    }
+  }
+
+  static async commitPerfilBatch(
+    uid: string,
+    datosUsuario: Partial<Usuario>,
+    datosPerfilPublico: Partial<PerfilPublico>
+  ): Promise<CrudResult<void>> {
+    try {
+      const batch = writeBatch(db)
+
+      const usuarioRef = doc(db, this.COLLECTION, uid)
+      const datosUsuarioDb = {
+        ...toDb(datosUsuario),
+        actualizado_en: serverTimestamp(),
+        actualizado_por: uid,
+      }
+      batch.update(usuarioRef, datosUsuarioDb)
+
+      const perfilRef = doc(db, this.PUBLIC_COLLECTION, uid)
+      if (Object.keys(datosPerfilPublico || {}).length > 0) {
+        batch.set(
+          perfilRef,
+          {
+            ...toDb(datosPerfilPublico),
+            actualizado_en: serverTimestamp(),
+          },
+          { merge: true }
+        )
+      }
+
+      await batch.commit()
+      return { success: true, data: undefined }
+    } catch (error) {
+      return { success: false, error: mapFirebaseError(error) }
     }
   }
 

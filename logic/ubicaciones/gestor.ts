@@ -9,11 +9,35 @@ type CrearPayload = Omit<
   'id' | 'creado_en' | 'actualizado_en' | 'creado_por' | 'actualizado_por'
 >
 
+// Mapeo de códigos de error a claves i18n. Las funciones de este gestor
+// devuelven códigos de error (no mensajes) para permitir que la capa UI
+// transforme dichos códigos en mensajes localizados.
+export function obtenerClaveI18nErrorUbicacion(error?: string | null) {
+  if (!error) return null
+  switch (error) {
+    case 'PROVEEDOR_INVALIDO':
+      return 'ubicaciones:errores.proveedor_invalido'
+    case 'PROVEEDOR_O_PLACE_ID_REQUERIDO':
+      return 'ubicaciones:errores.proveedor_o_place_id_requerido'
+    case 'COORDENADAS_REQUERIDAS':
+      return 'ubicaciones:errores.coordenadas_requeridas'
+    case 'COORDENADAS_INVALIDAS':
+      return 'ubicaciones:errores.coordenadas_invalidas'
+    case 'DIRECCION_FORMATO_REQUERIDO':
+      return 'ubicaciones:errores.direccion_formato_requerido'
+    case 'COMPONENTES_TOO_LARGE':
+      return 'ubicaciones:errores.componentes_demasiado_grandes'
+    default:
+      return null
+  }
+}
+
 export async function crearSiNoExiste(
   payload: CrearPayload
 ): Promise<CrudResult<Ubicacion>> {
   try {
-    console.log('Crear ubicacion si no existe, payload:', payload)
+    // Validamos el payload; `validarPayload` devuelve un código de error
+    // (string) o null. Devolvemos dicho código para que la UI lo mapee.
     const validationError = validarPayload(payload)
     if (validationError) return { success: false, error: validationError }
 

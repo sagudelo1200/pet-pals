@@ -1,0 +1,11 @@
+{
+  "errores": {
+    "proveedor_invalido": "Proveedor no soportado. Usa Google o Mapbox.",
+    "proveedor_o_place_id_requerido": "Se requiere proveedor y place_id.",
+    "coordenadas_requeridas": "Se requieren coordenadas para la ubicación.",
+    "coordenadas_invalidas": "Coordenadas inválidas.",
+    "direccion_formato_requerido": "La dirección en formato legible es obligatoria.",
+    "componentes_demasiado_grandes": "Los componentes de dirección son demasiado grandes.",
+    "generico": "Error al procesar la ubicación. Intenta nuevamente más tarde."
+  }
+}

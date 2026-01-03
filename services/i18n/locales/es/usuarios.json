@@ -1,0 +1,6 @@
+{
+  "errores": {
+    "usuario_no_encontrado": "No se encontró el usuario solicitado.",
+    "generico": "Error al procesar la solicitud del usuario. Intenta nuevamente."
+  }
+}
