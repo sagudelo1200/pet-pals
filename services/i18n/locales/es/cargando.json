@@ -1,39 +1,43 @@
 {
   "general": [
-    "⏳ Cargando...",
-    "🚀 Preparando todo...",
-    "✨ Un momento por favor...",
-    "🔄 Sincronizando datos..."
+    "Un momento, estamos preparando todo",
+    "Cargando tu experiencia",
+    "Dejando todo listo",
+    "Ya casi está"
   ],
   "auth": [
-    "🔐 Verificando tus credenciales...",
-    "👋 ¡Hola de nuevo! Iniciando sesión...",
-    "🛡️ Asegurando tu conexión...",
-    "🔑 Abriendo las puertas de PetPals...",
-    "✨ Preparando tu experiencia..."
+    "Qué bueno verte de nuevo",
+    "Estamos preparando tu espacio",
+    "Entrando a PetPals",
+    "Todo está listo para continuar"
   ],
   "mascota": [
-    "🚶‍♂️🐕 Un paseo diario mantiene a tu perro feliz y saludable.",
-    "💧🐶 Lleva siempre agua fresca en los paseos.",
-    "🦴🍖 Una dieta equilibrada es clave para la salud de tu mascota.",
-    "🐾🔍 Revisa sus patitas al volver, pueden tener piedritas.",
-    "🧘‍♂️🐕 El ejercicio reduce el estrés y la ansiedad.",
-    "☀️🔥🐾 Evita pasear en horas de calor para cuidar sus patas.",
-    "🐶💤 '¿Otra vez pasear? ¡Estoy listo para la aventura!'",
-    "🌎🐕 Cada paseo es una aventura para tu perro.",
-    "🐶➡️👋 Una cola moviéndose es pura alegría.",
-    "🐕💨 '¡Corre, salta y juega! ¡El mundo es nuestro!'",
-    "🐾❤️ 'Un paseo contigo es lo mejor del día.'",
-    "🐕🌳 'Explorar nuevos lugares es mi pasatiempo favorito.'",
-    "🦺🐕 Usa siempre correa para la seguridad de tu perro.",
-    "💩🗑️ Recoge siempre los desechos de tu mascota.",
-    "📅🐶 Mantén sus vacunas y desparasitaciones al día.",
-    "👂🐶 Escucha a tu perro, su lenguaje corporal dice mucho."
+    "Los primeros minutos del paseo siempre son los más emocionantes",
+    "Oler también es parte del paseo",
+    "Algunos perros prefieren caminar adelante, otros quedarse cerca",
+    "Un paseo tranquilo suele ser mejor que uno largo",
+    "Las paradas también cuentan",
+    "Cada ruta tiene olores nuevos, incluso si es la misma de siempre",
+    "Caminar a su ritmo cambia todo",
+    "El paseo empieza cuando sale, no cuando llega",
+    "Para muchos perros, este es el mejor momento del día",
+    "Mirar alrededor también es explorar",
+    "No todos los paseos necesitan prisa",
+    "El entorno importa más de lo que parece",
+    "Un paseo constante genera confianza",
+    "Los pequeños desvíos hacen el recorrido interesante",
+    "Hay días de energía alta y días de caminar despacio",
+    "La rutina también da seguridad",
+    "El paseo es una conversación sin palabras",
+    "Volver cansado suele ser buena señal",
+    "El silencio también acompaña",
+    "Caminar juntos ordena el día",
+    "Cada paseo deja algo distinto"
   ],
   "cuidador": [
-    "🗺️ Buscando cuidadores cercanos...",
-    "🚶 Preparando el paseo...",
-    "📍 Localizando los mejores servicios...",
-    "🤝 Conectando con expertos..."
+    "Buscando a alguien en quien confiar",
+    "Preparando un paseo seguro",
+    "Conectando con personas que cuidan de verdad",
+    "Todo listo para empezar el recorrido"
   ]
 }
