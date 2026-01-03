@@ -32,7 +32,12 @@ export function mapFirebaseError(err: unknown): ErrorCode {
   // Normalizar códigos de Firebase
   // Evitar imprimir 'undefined' cuando no exista `message`. Mostrar JSON del error como fallback.
   const mensajeLog = anyErr?.message ?? JSON.stringify(anyErr)
-  console.warn('Firebase error', code ? `{${code}}:` : ':', mensajeLog)
+  // Si se ejecuta desde los __test__, evitar el console.warn
+  if (typeof jest === 'undefined') {
+    console.warn(
+      `mapFirebaseError: mapeando error Firebase: [${code}] ${mensajeLog}`
+    )
+  }
 
   switch (code) {
     case 'permission-denied':
