@@ -13,8 +13,8 @@ jest.mock('@/services/firebase', () => ({
   },
 }))
 
-describe('gestorMascota', () => {
-  let Gestor: typeof import('@/logic/mascotas/gestorMascota')
+describe('GestorMascotas', () => {
+  let Gestor: typeof import('@/logic/mascotas/gestor')
   let ServicioMascota: any
   let ServicioAuth: any
 
@@ -23,32 +23,32 @@ describe('gestorMascota', () => {
     const svc = require('@/services/firebase')
     ServicioMascota = svc.ServicioMascota
     ServicioAuth = svc.ServicioAuth
-    Gestor = require('@/logic/mascotas/gestorMascota')
+    Gestor = require('@/logic/mascotas/gestor')
     jest.clearAllMocks()
   })
 
-  test('crearMascota devuelve error si no hay usuario', async () => {
+  test('crear devuelve error si no hay usuario', async () => {
     ;(ServicioAuth.obtenerUsuarioActual as jest.Mock).mockReturnValue(undefined)
-    const res = await Gestor.crearMascota({ nombre: 'X' })
+    const res = await Gestor.GestorMascotas.crear({ nombre: 'X' })
     expect(res.success).toBe(false)
   })
 
-  test('crearMascota falla si creado_por no coincide', async () => {
+  test('crear falla si creado_por no coincide', async () => {
     ;(ServicioAuth.obtenerUsuarioActual as jest.Mock).mockReturnValue({
       uid: 'u1',
     })
-    const res = await Gestor.crearMascota({ creado_por: 'u2' } as any)
+    const res = await Gestor.GestorMascotas.crear({ creado_por: 'u2' } as any)
     expect(res.success).toBe(false)
   })
 
-  test('crearMascota delega a ServicioMascota.crear cuando es válido', async () => {
+  test('crear delega a ServicioMascota.crear cuando es válido', async () => {
     ;(ServicioAuth.obtenerUsuarioActual as jest.Mock).mockReturnValue({
       uid: 'u1',
     })
     const mockRes = { success: true, data: { id: 'm1', nombre: 'X' } }
     ;(ServicioMascota.crear as jest.Mock).mockResolvedValue(mockRes)
 
-    const res = await Gestor.crearMascota({ nombre: 'X' })
+    const res = await Gestor.GestorMascotas.crear({ nombre: 'X' })
     expect(ServicioMascota.crear).toHaveBeenCalled()
     expect(res).toEqual(mockRes)
   })
@@ -56,7 +56,7 @@ describe('gestorMascota', () => {
   test('obtenerPorUsuario delega', async () => {
     const mockRes = { success: true, data: [{ id: 'm1' }] }
     ;(ServicioMascota.obtenerPorUsuario as jest.Mock).mockResolvedValue(mockRes)
-    const res = await Gestor.obtenerPorUsuario('u1')
+    const res = await Gestor.GestorMascotas.obtenerPorUsuario('u1')
     expect(ServicioMascota.obtenerPorUsuario).toHaveBeenCalledWith('u1')
     expect(res).toEqual(mockRes)
   })
@@ -64,25 +64,25 @@ describe('gestorMascota', () => {
   test('obtenerPorId delega', async () => {
     const mockRes = { success: true, data: { id: 'm1' } }
     ;(ServicioMascota.obtenerPorId as jest.Mock).mockResolvedValue(mockRes)
-    const res = await Gestor.obtenerPorId('m1')
+    const res = await Gestor.GestorMascotas.obtenerPorId('m1')
     expect(ServicioMascota.obtenerPorId).toHaveBeenCalledWith('m1')
     expect(res).toEqual(mockRes)
   })
 
-  test('actualizarMascota delega', async () => {
+  test('actualizar delega', async () => {
     const mockRes = { success: true }
     ;(ServicioMascota.actualizar as jest.Mock).mockResolvedValue(mockRes)
-    const res = await Gestor.actualizarMascota('m1', { nombre: 'Y' })
+    const res = await Gestor.GestorMascotas.actualizar('m1', { nombre: 'Y' })
     expect(ServicioMascota.actualizar).toHaveBeenCalledWith('m1', {
       nombre: 'Y',
     })
     expect(res).toEqual(mockRes)
   })
 
-  test('eliminarMascota delega', async () => {
+  test('eliminar delega', async () => {
     const mockRes = { success: true }
     ;(ServicioMascota.eliminar as jest.Mock).mockResolvedValue(mockRes)
-    const res = await Gestor.eliminarMascota('m1')
+    const res = await Gestor.GestorMascotas.eliminar('m1')
     expect(ServicioMascota.eliminar).toHaveBeenCalledWith('m1')
     expect(res).toEqual(mockRes)
   })

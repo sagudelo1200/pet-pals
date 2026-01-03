@@ -1,11 +1,9 @@
 import { ServicioUsuario } from '@/services/firebase'
-import { ServicioPerfilPublico } from '@/services/firebase/firestore/colecciones/perfil-publico'
 import { Usuario } from '@/models/Usuario'
 import { PerfilPublico } from '@/models/PerfilPublico'
 import {
   agregarUbicacionRef,
   fijarPrincipalRef,
-  eliminarUbicacionRef,
 } from '@/helpers/logicaUbicacion'
 import { CrudResult } from '@/services/firebase/comun'
 

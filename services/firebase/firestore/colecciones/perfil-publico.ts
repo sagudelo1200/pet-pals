@@ -1,7 +1,27 @@
 import { ServicioCrudBase } from '@/services/firebase/firestore/base'
-import { mapFirebaseError, type CrudResult } from '@/services/firebase/comun'
+import {
+  mapFirebaseError,
+  type CrudResult,
+  toDb,
+  nowServerTimestamp,
+} from '@/services/firebase/comun'
 import type { PerfilPublico } from '@/models/PerfilPublico'
+import { db } from '@/firebase.config'
+import {
+  collection,
+  query,
+  where,
+  orderBy,
+  limit,
+  getDocs,
+  doc,
+  setDoc,
+} from 'firebase/firestore'
 
+/**
+ * Servicio de persistencia para Perfiles Públicos.
+ * Solo realiza operaciones CRUD básicas.
+ */
 export class ServicioPerfilPublico {
   private static readonly COLLECTION = 'perfil_publico'
 
@@ -11,29 +31,33 @@ export class ServicioPerfilPublico {
     return ServicioCrudBase.crear<PerfilPublico>(this.COLLECTION, data as any)
   }
 
-  static async crearConId(
+  /**
+   * Crea o actualiza un perfil público con un ID específico (usualmente el UID del usuario).
+   */
+  static async guardarConId(
     uid: string,
     data: Partial<PerfilPublico>
   ): Promise<CrudResult<PerfilPublico>> {
     try {
-      const { db } = await import('@/firebase.config')
-      const { doc, setDoc, serverTimestamp } =
-        await import('firebase/firestore')
-
       const docRef = doc(db, this.COLLECTION, uid)
-      const dataConCamposSistema = {
-        ...data,
+      const finalData = {
+        ...toDb(data),
         id: uid,
-        creado_en: serverTimestamp(),
-        actualizado_en: serverTimestamp(),
+        actualizado_en: nowServerTimestamp(),
         actualizado_por: uid,
       }
 
-      await setDoc(docRef, dataConCamposSistema)
+      // Si es creación (no tiene creado_en), lo añadimos
+      if (!(data as any).creado_en) {
+        ;(finalData as any).creado_en = nowServerTimestamp()
+        ;(finalData as any).creado_por = uid
+      }
+
+      await setDoc(docRef, finalData, { merge: true })
 
       return {
         success: true,
-        data: { ...dataConCamposSistema, id: uid } as unknown as PerfilPublico,
+        data: { ...finalData, id: uid } as unknown as PerfilPublico,
       }
     } catch (e: any) {
       return { success: false, error: mapFirebaseError(e) }
@@ -59,20 +83,27 @@ export class ServicioPerfilPublico {
     return ServicioCrudBase.eliminar(this.COLLECTION, id)
   }
 
-  static async obtenerCuidadoresDisponibles(): Promise<
-    CrudResult<PerfilPublico[]>
-  > {
+  /**
+   * Ejecuta una consulta de perfiles públicos basada en filtros.
+   * La lógica de qué filtros aplicar debe venir de /logic.
+   */
+  static async buscarPerfiles(
+    filtros: { campo: string; op: any; valor: any }[],
+    orden?: { campo: string; dir: 'asc' | 'desc' },
+    limite: number = 20
+  ): Promise<CrudResult<PerfilPublico[]>> {
     try {
-      const { db } = await import('@/firebase.config')
-      const { collection, query, where, orderBy, limit, getDocs } =
-        await import('firebase/firestore')
+      let q = query(collection(db, this.COLLECTION))
 
-      const q = query(
-        collection(db, this.COLLECTION),
-        where('verificacion', '==', 'verificado'),
-        orderBy('rating_promedio', 'desc'),
-        limit(21)
-      )
+      for (const f of filtros) {
+        q = query(q, where(f.campo, f.op, f.valor))
+      }
+
+      if (orden) {
+        q = query(q, orderBy(orden.campo, orden.dir))
+      }
+
+      q = query(q, limit(limite))
 
       const snapshot = await getDocs(q)
       const perfiles: PerfilPublico[] = []
@@ -87,32 +118,29 @@ export class ServicioPerfilPublico {
     }
   }
 
+  /** @deprecated Usar buscarPerfiles con filtros desde logic */
+  static async obtenerCuidadoresDisponibles(): Promise<
+    CrudResult<PerfilPublico[]>
+  > {
+    return this.buscarPerfiles(
+      [{ campo: 'verificacion', op: '==', valor: 'verificado' }],
+      { campo: 'rating_promedio', dir: 'desc' },
+      21
+    )
+  }
+
+  /** @deprecated Usar buscarPerfiles con filtros desde logic */
   static async obtenerPorUsuario(
     uid: string
   ): Promise<CrudResult<PerfilPublico>> {
-    try {
-      const { db } = await import('@/firebase.config')
-      const { collection, query, where, getDocs } =
-        await import('firebase/firestore')
-
-      const q = query(
-        collection(db, this.COLLECTION),
-        where('creado_por', '==', uid)
-      )
-
-      const snapshot = await getDocs(q)
-
-      if (snapshot.empty) {
-        return { success: false, error: 'PERFIL_NO_ENCONTRADO' }
-      }
-
-      const doc = snapshot.docs[0]
-      return {
-        success: true,
-        data: { id: doc.id, ...doc.data() } as PerfilPublico,
-      }
-    } catch (e: any) {
-      return { success: false, error: mapFirebaseError(e) }
+    const res = await this.buscarPerfiles(
+      [{ campo: 'creado_por', op: '==', valor: uid }],
+      undefined,
+      1
+    )
+    if (res.success && res.data && res.data.length > 0) {
+      return { success: true, data: res.data[0] }
     }
+    return { success: false, error: 'PERFIL_NO_ENCONTRADO' }
   }
 }

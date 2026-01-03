@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import * as WebBrowser from 'expo-web-browser'
 import * as Google from 'expo-auth-session/providers/google'
 import { GoogleAuthProvider } from 'firebase/auth'
-import { ServicioAuth } from '@/services/firebase/auth/auth'
+import { GestorAuth } from '@/logic/auth'
 
 WebBrowser.maybeCompleteAuthSession()
 
@@ -57,8 +57,8 @@ export const useGoogleAuth = () => {
         console.log('🔵 Creando credential de Firebase...')
         const credential = GoogleAuthProvider.credential(id_token)
 
-        console.log('🔵 Llamando a ServicioAuth.ingresarConGoogle...')
-        const authResult = await ServicioAuth.ingresarConGoogle(credential)
+        console.log('🔵 Llamando a GestorAuth.ingresarConGoogle...')
+        const authResult = await GestorAuth.ingresarConGoogle(credential)
 
         console.log('🔵 Resultado de ingresarConGoogle:', authResult)
         return authResult

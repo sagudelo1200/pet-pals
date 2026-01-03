@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import { Usuario } from '@/models/Usuario'
 import { PerfilPublico } from '@/models/PerfilPublico'
-import { ServicioPerfilPublico } from '@/services/firebase'
+import { GestorPerfilPublico } from '@/logic/usuarios/perfilPublico'
 
 /**
  * Hook para sincronizar el perfil público con el perfil de usuario.
@@ -17,7 +17,7 @@ export const useSincronizacionPerfil = (
     const verificarYCrearPerfilPublico = async () => {
       try {
         // 1. Verificar si existe perfil público
-        const res = await ServicioPerfilPublico.obtenerPorId(usuario.id)
+        const res = await GestorPerfilPublico.obtenerPorId(usuario.id)
 
         // Si ya existe, no hacemos nada (la sincronización de actualizaciones se maneja al editar)
         if (res.success && res.data) return
@@ -30,7 +30,7 @@ export const useSincronizacionPerfil = (
           // Inicializar otros campos opcionales si es necesario
         }
 
-        await ServicioPerfilPublico.crearConId(usuario.id, datosPerfil)
+        await GestorPerfilPublico.inicializarPerfil(usuario.id, datosPerfil)
       } catch (error) {
         console.error('Error en sincronización de perfil público:', error)
       }

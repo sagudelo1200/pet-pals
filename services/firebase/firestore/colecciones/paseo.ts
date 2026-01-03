@@ -12,19 +12,22 @@ import {
   runTransaction,
   doc,
   serverTimestamp,
+  getDocs,
 } from 'firebase/firestore'
 import { db } from '@/firebase.config'
 
+/**
+ * Servicio de persistencia para Paseos.
+ * Solo realiza operaciones CRUD y transiciones atómicas.
+ */
 export class ServicioPaseo {
   private static readonly COLLECTION = 'paseos'
 
   static getQuerySolicitudesPendientes(): Query {
-    const { limit } = require('firebase/firestore')
     return query(
       collection(db, this.COLLECTION),
       where('estado', '==', ESTADOS_PASEO.PENDIENTE),
-      orderBy('creado_en', 'desc'),
-      limit(30)
+      orderBy('creado_en', 'desc')
     )
   }
 
@@ -34,40 +37,7 @@ export class ServicioPaseo {
       'id' | 'creado_en' | 'actualizado_en' | 'creado_por' | 'actualizado_por'
     >
   ): Promise<CrudResult<Paseo>> {
-    const currentUser = ServicioAuth.obtenerUsuarioActual()
-    const uid = currentUser?.uid
-    if (!uid) return { success: false, error: ERR.COMUN.NO_AUTENTICADO }
-
-    const payload: typeof data & { creado_por: string } = {
-      ...data,
-      creado_por: uid,
-    }
-
-    return ServicioCrudBase.crear<Paseo>(this.COLLECTION, payload as any)
-  }
-
-  static async aceptarSolicitud(paseoId: string): Promise<CrudResult<void>> {
-    const currentUser = ServicioAuth.obtenerUsuarioActual()
-    if (!currentUser) return { success: false, error: ERR.COMUN.NO_AUTENTICADO }
-
-    const fields: Record<string, any> = {
-      id_cuidador: currentUser.uid,
-      cuidador_nombre_visual: currentUser.displayName || 'Cuidador',
-      cuidador_foto_visual: currentUser.photoURL || null,
-      actualizado_por: currentUser.uid,
-    }
-
-    return this.transicionarEstado(
-      paseoId,
-      ESTADOS_PASEO.PENDIENTE,
-      ESTADOS_PASEO.CONFIRMADO,
-      fields
-    )
-  }
-
-  static async crearConMascotas(): Promise<CrudResult<Paseo>> {
-    // Deprecated: orchestration must live in /logic. Use `@/logic/paseos`.
-    return { success: false, error: 'DEPRECATED: usar @/logic/paseos' }
+    return ServicioCrudBase.crear<Paseo>(this.COLLECTION, data as any)
   }
 
   static async obtenerPorId(id: string): Promise<CrudResult<Paseo>> {
@@ -80,176 +50,23 @@ export class ServicioPaseo {
   ): Promise<CrudResult<Paseo>> {
     return ServicioCrudBase.actualizar<Paseo>(this.COLLECTION, id, data)
   }
+
   static async eliminar(id: string): Promise<CrudResult<boolean>> {
     return ServicioCrudBase.eliminar(this.COLLECTION, id)
   }
 
-  static async obtenerTodos(): Promise<CrudResult<Paseo[]>> {
-    return ServicioCrudBase.obtenerTodos<Paseo>(this.COLLECTION)
-  }
-
-  static async registrarEvento(
-    paseoId: string,
-    evento: string,
-    payload?: Record<string, any>
-  ): Promise<CrudResult<void>> {
-    const currentUser = ServicioAuth.obtenerUsuarioActual()
-    try {
-      const entry = {
-        evento,
-        payload: payload || {},
-        actor: currentUser?.uid || null,
-        creado_en: serverTimestamp(),
-      }
-
-      const { collection, addDoc } = await import('firebase/firestore')
-      const eventosCol = collection(db, this.COLLECTION, paseoId, 'eventos')
-      await addDoc(eventosCol, {
-        ...entry,
-        creado_por: currentUser?.uid || null,
-      })
-
-      return { success: true }
-    } catch (error) {
-      return { success: false, error: mapFirebaseError(error) }
-    }
-  }
-
-  static async obtenerPorCuidador(
-    cuidadorId: string
-  ): Promise<CrudResult<Paseo[]>> {
-    return ServicioCrudBase.buscar<Paseo>(
-      this.COLLECTION,
-      'id_cuidador',
-      cuidadorId
-    )
-  }
-
-  static async obtenerPorMascota(
-    mascotaId: string
-  ): Promise<CrudResult<Paseo[]>> {
-    try {
-      const { db } = await import('@/firebase.config')
-      const { collection, query, where, getDocs, orderBy } =
-        await import('firebase/firestore')
-
-      const q = query(
-        collection(db, this.COLLECTION),
-        where('mascota_ids', 'array-contains', mascotaId),
-        orderBy('fecha_hora_inicio', 'desc')
-      )
-
-      const snap = await getDocs(q)
-      const results: Paseo[] = []
-      snap.forEach(d => {
-        results.push({ id: d.id, ...d.data() } as Paseo)
-      })
-
-      return { success: true, data: results }
-    } catch (e: any) {
-      return { success: false, error: mapFirebaseError(e) }
-    }
-  }
-
-  static async obtenerPorEstado(estado: string): Promise<CrudResult<Paseo[]>> {
-    return ServicioCrudBase.buscar<Paseo>(this.COLLECTION, 'estado', estado)
-  }
-
-  static async actualizarEstado(
-    id: string,
-    nuevoEstado: string,
-    meta: Record<string, any> = {}
-  ): Promise<CrudResult<Paseo>> {
-    const data: any = {
-      estado: nuevoEstado,
-      ...meta,
-    }
-    return this.actualizar(id, data)
-  }
-
-  static async obtenerPorCuidadorYEstado(
-    cuidadorId: string,
-    estados: string[]
-  ): Promise<CrudResult<Paseo[]>> {
-    try {
-      const { db } = await import('@/firebase.config')
-      const { collection, query, where, getDocs } =
-        await import('firebase/firestore')
-
-      const q = query(
-        collection(db, this.COLLECTION),
-        where('id_cuidador', '==', cuidadorId),
-        where('estado', 'in', estados)
-      )
-
-      const snapshot = await getDocs(q)
-      const paseos: Paseo[] = []
-      snapshot.forEach(doc => {
-        paseos.push({ id: doc.id, ...doc.data() } as Paseo)
-      })
-
-      return { success: true, data: paseos }
-    } catch (e: any) {
-      return { success: false, error: mapFirebaseError(e) }
-    }
-  }
-
-  static async asignarCuidador(
-    paseoId: string,
-    cuidadorId: string
-  ): Promise<CrudResult<Paseo>> {
-    return this.actualizar(paseoId, {
-      id_cuidador: cuidadorId,
-    })
-  }
-
-  static async iniciarRuta(paseoId: string): Promise<CrudResult<void>> {
-    const currentUser = ServicioAuth.obtenerUsuarioActual()
-    if (!currentUser) return { success: false, error: ERR.COMUN.NO_AUTENTICADO }
-    return this.transicionarEstado(
-      paseoId,
-      ESTADOS_PASEO.CONFIRMADO,
-      ESTADOS_PASEO.EN_CAMINO,
-      {
-        actualizado_por: currentUser.uid,
-      }
-    )
-  }
-
-  static async iniciarPaseo(paseoId: string): Promise<CrudResult<void>> {
-    const currentUser = ServicioAuth.obtenerUsuarioActual()
-    if (!currentUser) return { success: false, error: ERR.COMUN.NO_AUTENTICADO }
-    return this.transicionarEstado(
-      paseoId,
-      ESTADOS_PASEO.EN_CAMINO,
-      ESTADOS_PASEO.EN_PROGRESO,
-      {
-        fecha_inicio_real: serverTimestamp(),
-        actualizado_por: currentUser.uid,
-      }
-    )
-  }
-
-  static async finalizarPaseo(paseoId: string): Promise<CrudResult<void>> {
-    const currentUser = ServicioAuth.obtenerUsuarioActual()
-    if (!currentUser) return { success: false, error: ERR.COMUN.NO_AUTENTICADO }
-    return this.transicionarEstado(
-      paseoId,
-      ESTADOS_PASEO.EN_PROGRESO,
-      ESTADOS_PASEO.FINALIZADO,
-      {
-        fecha_fin_real: serverTimestamp(),
-        actualizado_por: currentUser.uid,
-      }
-    )
-  }
-
-  static async transicionarEstado(
+  /**
+   * Realiza una transición de estado atómica.
+   */
+  static async commitEstadoTransaccional(
     paseoId: string,
     esperado: string,
     nuevo: string,
     fields: Record<string, any> = {}
   ): Promise<CrudResult<void>> {
+    const uid = ServicioAuth.obtenerUsuarioActual()?.uid
+    if (!uid) return { success: false, error: ERR.COMUN.NO_AUTENTICADO }
+
     try {
       await runTransaction(db, async transaction => {
         const paseoRef = doc(db, this.COLLECTION, paseoId)
@@ -269,13 +86,63 @@ export class ServicioPaseo {
           ...fields,
           estado: nuevo,
           actualizado_en: serverTimestamp(),
-          // actualizado_por se debe pasar explícitamente en fields si se desea
+          actualizado_por: uid,
         })
       })
 
       return { success: true }
     } catch (error) {
       return { success: false, error: mapFirebaseError(error) }
+    }
+  }
+
+  static async registrarEvento(
+    paseoId: string,
+    evento: string,
+    payload?: Record<string, any>
+  ): Promise<CrudResult<void>> {
+    const currentUser = ServicioAuth.obtenerUsuarioActual()
+    try {
+      const entry = {
+        evento,
+        payload: payload || {},
+        actor: currentUser?.uid || null,
+        creado_en: serverTimestamp(),
+        creado_por: currentUser?.uid || null,
+      }
+
+      const { addDoc } = await import('firebase/firestore')
+      const eventosCol = collection(db, this.COLLECTION, paseoId, 'eventos')
+      await addDoc(eventosCol, entry)
+
+      return { success: true }
+    } catch (error) {
+      return { success: false, error: mapFirebaseError(error) }
+    }
+  }
+
+  static async buscarPaseos(
+    filtros: { campo: string; op: any; valor: any }[],
+    orden?: { campo: string; dir: 'asc' | 'desc' }
+  ): Promise<CrudResult<Paseo[]>> {
+    try {
+      let q = query(collection(db, this.COLLECTION))
+      for (const f of filtros) {
+        q = query(q, where(f.campo, f.op, f.valor))
+      }
+      if (orden) {
+        q = query(q, orderBy(orden.campo, orden.dir))
+      }
+
+      const snap = await getDocs(q)
+      const results: Paseo[] = []
+      snap.forEach(d => {
+        results.push({ id: d.id, ...d.data() } as Paseo)
+      })
+
+      return { success: true, data: results }
+    } catch (e: any) {
+      return { success: false, error: mapFirebaseError(e) }
     }
   }
 }

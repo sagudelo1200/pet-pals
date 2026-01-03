@@ -1,17 +1,36 @@
 /* eslint-env jest */
 import { paseoActivo } from '@/logic/paseos'
-import { ServicioPaseo } from '@/services/firebase'
+import { ServicioPaseo, ServicioAuth } from '@/services/firebase'
 import { ESTADOS_PASEO, Paseo } from '@/models/Paseo'
 import { EVENTOS } from '@/logic/paseos/maquinaEstados'
 
-// Mock de ServicioPaseo
+// Mock de ServicioPaseo y ServicioAuth
+jest.mock('@/services/firebase/auth/auth', () => ({
+  ServicioAuth: {
+    obtenerUsuarioActual: jest.fn(() => ({
+      uid: 'cuidador-1',
+      displayName: 'Pedro',
+      photoURL: 'http://foto.com',
+    })),
+  },
+}))
+
 jest.mock('@/services/firebase', () => ({
   ServicioPaseo: {
-    aceptarSolicitud: jest.fn(),
+    commitEstadoTransaccional: jest.fn(),
+    registrarEvento: jest.fn(),
+    obtenerPorId: jest.fn(),
+    actualizar: jest.fn(),
     iniciarRuta: jest.fn(),
     iniciarPaseo: jest.fn(),
     finalizarPaseo: jest.fn(),
-    actualizar: jest.fn(),
+  },
+  ServicioAuth: {
+    obtenerUsuarioActual: jest.fn(() => ({
+      uid: 'cuidador-1',
+      displayName: 'Pedro',
+      photoURL: 'http://foto.com',
+    })),
   },
 }))
 
@@ -69,14 +88,19 @@ describe('GestorPaseoActivo', () => {
 
   it('aceptarPaseoAsync debe llamar al servicio y actualizar estado local', async () => {
     paseoActivo.setPaseoActivo(paseoMock)
-    ;(ServicioPaseo.aceptarSolicitud as jest.Mock).mockResolvedValue({
+    ;(ServicioPaseo.commitEstadoTransaccional as jest.Mock).mockResolvedValue({
       success: true,
     })
 
     const res = await paseoActivo.aceptarPaseoAsync()
 
     expect(res.success).toBe(true)
-    expect(ServicioPaseo.aceptarSolicitud).toHaveBeenCalledWith(paseoMock.id)
+    expect(ServicioPaseo.commitEstadoTransaccional).toHaveBeenCalledWith(
+      paseoMock.id,
+      ESTADOS_PASEO.PENDIENTE,
+      ESTADOS_PASEO.CONFIRMADO,
+      expect.any(Object)
+    )
 
     const activo = paseoActivo.getPaseoActivo()
     expect(activo?.estado).toBe(ESTADOS_PASEO.CONFIRMADO)
@@ -85,7 +109,7 @@ describe('GestorPaseoActivo', () => {
 
   it('no debe actualizar estado local si el servicio falla', async () => {
     paseoActivo.setPaseoActivo(paseoMock)
-    ;(ServicioPaseo.aceptarSolicitud as jest.Mock).mockResolvedValue({
+    ;(ServicioPaseo.commitEstadoTransaccional as jest.Mock).mockResolvedValue({
       success: false,
       error: 'Error backend',
     })
@@ -104,30 +128,25 @@ describe('GestorPaseoActivo', () => {
 
     expect(res.success).toBe(false)
     expect(res.error).toBe('TRANSICION_INVALIDA')
-    expect(ServicioPaseo.iniciarRuta).not.toHaveBeenCalled()
+    expect(ServicioPaseo.commitEstadoTransaccional).not.toHaveBeenCalled()
   })
 
   it('flujo completo feliz: Aseptar -> Iniciar Ruta -> Iniciar Paseo -> Finalizar', async () => {
     paseoActivo.setPaseoActivo(paseoMock)
-    ;(ServicioPaseo.aceptarSolicitud as jest.Mock).mockResolvedValue({
+    ;(ServicioPaseo.commitEstadoTransaccional as jest.Mock).mockResolvedValue({
       success: true,
     })
+
     await paseoActivo.aceptarPaseoAsync()
     expect(paseoActivo.getPaseoActivo()?.estado).toBe(ESTADOS_PASEO.CONFIRMADO)
-    ;(ServicioPaseo.iniciarRuta as jest.Mock).mockResolvedValue({
-      success: true,
-    })
+
     await paseoActivo.iniciarRutaAsync()
     expect(paseoActivo.getPaseoActivo()?.estado).toBe(ESTADOS_PASEO.EN_CAMINO)
-    ;(ServicioPaseo.iniciarPaseo as jest.Mock).mockResolvedValue({
-      success: true,
-    })
+
     await paseoActivo.iniciarPaseoAsync()
     expect(paseoActivo.getPaseoActivo()?.estado).toBe(ESTADOS_PASEO.EN_PROGRESO)
     expect(paseoActivo.getPaseoActivo()?.timestamps.iniciado).toBeDefined()
-    ;(ServicioPaseo.finalizarPaseo as jest.Mock).mockResolvedValue({
-      success: true,
-    })
+
     await paseoActivo.finalizarPaseoAsync()
     expect(paseoActivo.getPaseoActivo()?.estado).toBe(ESTADOS_PASEO.FINALIZADO)
     expect(paseoActivo.getPaseoActivo()?.esActivo).toBe(false)

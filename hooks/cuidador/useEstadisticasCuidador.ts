@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '@/context/AuthContext'
-import { ServicioPaseo } from '@/services/firebase'
-import { ESTADOS_PASEO } from '@/models/Paseo'
+import { obtenerEstadisticasCuidador } from '@/logic/paseos/gestor'
 
 interface EstadisticasCuidador {
   solicitudesPendientes: number
@@ -29,45 +28,16 @@ export const useEstadisticasCuidador = (): EstadisticasCuidador => {
 
     setEstadisticas(prev => ({ ...prev, cargando: true }))
     try {
-      // Solicitudes disponibles (sin cuidador asignado)
-      const solicitudesRes = await ServicioPaseo.obtenerPorEstado(
-        ESTADOS_PASEO.PENDIENTE
-      )
-      const solicitudes = solicitudesRes.success
-        ? solicitudesRes.data || []
-        : []
-      const solicitudesSinAsignar = solicitudes.filter(p => !p.id_cuidador)
+      const res = await obtenerEstadisticasCuidador(user.uid)
 
-      // Optimización: Consultar todos los paseos del cuidador en una sola query
-      const todosRes = await ServicioPaseo.obtenerPorCuidadorYEstado(user.uid, [
-        ESTADOS_PASEO.CONFIRMADO,
-        ESTADOS_PASEO.EN_CAMINO,
-        ESTADOS_PASEO.EN_PROGRESO,
-        ESTADOS_PASEO.COMPLETADO,
-        ESTADOS_PASEO.FINALIZADO,
-      ])
-      const todos = todosRes.success ? todosRes.data || [] : []
-
-      const activos = todos.filter(p =>
-        [
-          ESTADOS_PASEO.CONFIRMADO,
-          ESTADOS_PASEO.EN_CAMINO,
-          ESTADOS_PASEO.EN_PROGRESO,
-        ].includes(p.estado)
-      )
-      const completados = todos.filter(
-        p =>
-          p.estado === ESTADOS_PASEO.COMPLETADO ||
-          p.estado === ESTADOS_PASEO.FINALIZADO
-      )
-
-      setEstadisticas({
-        solicitudesPendientes: solicitudesSinAsignar.length,
-        paseosActivos: activos.length,
-        paseosCompletados: completados.length,
-        valoracionPromedio: 0, // TODO: Implementar cuando exista sistema de valoraciones
-        cargando: false,
-      })
+      if (res.success && res.data) {
+        setEstadisticas({
+          ...res.data,
+          cargando: false,
+        })
+      } else {
+        setEstadisticas(prev => ({ ...prev, cargando: false }))
+      }
     } catch (error) {
       console.error('Error cargando estadísticas:', error)
       setEstadisticas(prev => ({ ...prev, cargando: false }))

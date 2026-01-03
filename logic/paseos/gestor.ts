@@ -1,9 +1,11 @@
-import { ServicioCrudBase } from '@/services/firebase/firestore/base'
-import { ServicioAuth } from '@/services/firebase/auth/auth'
-import { ServicioPaseo } from '@/services/firebase'
+import {
+  ServicioAuth,
+  ServicioPaseo,
+  ServicioCrudBase,
+  ServicioPaseoMascota,
+} from '@/services/firebase'
 import { ESTADOS_PASEO, type Paseo } from '@/models/Paseo'
 import type { Mascota } from '@/models/Mascota'
-import { addMascotasAlPaseo } from '@/services/firebase/firestore/colecciones/paseo-mascota'
 import { MAX_MASCOTAS_POR_PASEO, ERR } from '@/constants'
 import type { Ubicacion } from '@/models/Ubicacion'
 import { crearMaquinaPaseo, EVENTOS } from './maquinaEstados'
@@ -229,7 +231,19 @@ export class GestorPaseoActivo {
       return { success: false, error: 'TRANSICION_INVALIDA' }
     }
 
-    const res = await ServicioPaseo.aceptarSolicitud(this._paseo.id)
+    const current = ServicioAuth.obtenerUsuarioActual()
+    if (!current) return { success: false, error: ERR.COMUN.NO_AUTENTICADO }
+
+    const res = await ServicioPaseo.commitEstadoTransaccional(
+      this._paseo.id,
+      ESTADOS_PASEO.PENDIENTE,
+      ESTADOS_PASEO.CONFIRMADO,
+      {
+        id_cuidador: current.uid,
+        cuidador_nombre_visual: current.displayName || 'Cuidador',
+        cuidador_foto_visual: current.photoURL || null,
+      }
+    )
 
     if (res.success) {
       if (this.puede(EVENTOS.ACEPTAR)) {
@@ -252,7 +266,11 @@ export class GestorPaseoActivo {
       return { success: false, error: 'TRANSICION_INVALIDA' }
     }
 
-    const res = await ServicioPaseo.iniciarRuta(this._paseo.id)
+    const res = await ServicioPaseo.commitEstadoTransaccional(
+      this._paseo.id,
+      ESTADOS_PASEO.CONFIRMADO,
+      ESTADOS_PASEO.EN_CAMINO
+    )
 
     if (res.success) {
       if (this.puede(EVENTOS.INICIAR_RUTA)) {
@@ -275,7 +293,13 @@ export class GestorPaseoActivo {
       return { success: false, error: 'TRANSICION_INVALIDA' }
     }
 
-    const res = await ServicioPaseo.iniciarPaseo(this._paseo.id)
+    const { serverTimestamp } = await import('firebase/firestore')
+    const res = await ServicioPaseo.commitEstadoTransaccional(
+      this._paseo.id,
+      ESTADOS_PASEO.EN_CAMINO,
+      ESTADOS_PASEO.EN_PROGRESO,
+      { fecha_inicio_real: serverTimestamp() }
+    )
 
     if (res.success) {
       if (this.puede(EVENTOS.INICIAR_PASEO)) {
@@ -301,7 +325,13 @@ export class GestorPaseoActivo {
       return { success: false, error: 'TRANSICION_INVALIDA' }
     }
 
-    const res = await ServicioPaseo.finalizarPaseo(this._paseo.id)
+    const { serverTimestamp } = await import('firebase/firestore')
+    const res = await ServicioPaseo.commitEstadoTransaccional(
+      this._paseo.id,
+      ESTADOS_PASEO.EN_PROGRESO,
+      ESTADOS_PASEO.FINALIZADO,
+      { fecha_fin_real: serverTimestamp() }
+    )
 
     if (res.success) {
       if (this.puede(EVENTOS.FINALIZAR_PASEO)) {
@@ -350,6 +380,33 @@ export class GestorPaseoActivo {
 }
 
 export const paseoActivo = new GestorPaseoActivo()
+
+// ---------- Helpers de denormalización ----------
+function prepararDataPaseoMascota(
+  paseoId: string,
+  mascota: any,
+  direccion?: Ubicacion
+) {
+  return {
+    id: mascota.id,
+    id_paseo: paseoId,
+    id_mascota: mascota.id,
+    id_usuario: mascota.creado_por,
+    estado_mascota: 'pendiente',
+    direccion: direccion
+      ? {
+          id_origen: direccion.id,
+          alias: direccion.alias,
+          direccion_formateada: direccion.direccion_formateada,
+          coordenadas: {
+            latitude: Number(direccion.coordenadas.latitude),
+            longitude: Number(direccion.coordenadas.longitude),
+          },
+          instrucciones: direccion.instrucciones || null,
+        }
+      : null,
+  }
+}
 
 // ---------- Funciones públicas del gestor (crearConMascotas) ----------
 export async function crearConMascotas(
@@ -437,10 +494,9 @@ export async function crearConMascotas(
     }
   }
 
-  const paseoRes = await ServicioCrudBase.crear<Paseo>('paseos', {
+  const paseoRes = await ServicioPaseo.crear({
     ...(data as any),
     ...locationData,
-    creado_por: uid,
     cupo_maximo_mascotas: max,
     mascotas_count: unique.length,
     mascota_ids: unique,
@@ -450,7 +506,13 @@ export async function crearConMascotas(
   if (!paseoRes.success || !paseoRes.data) return paseoRes as any
 
   if (unique.length > 0) {
-    const addRes = await addMascotasAlPaseo(paseoRes.data.id, unique, direccion)
+    const payloadMascotas = mascotasData.map(m =>
+      prepararDataPaseoMascota(paseoRes.data!.id, m, direccion)
+    )
+    const addRes = await ServicioPaseoMascota.commitMascotasBatch(
+      paseoRes.data.id,
+      payloadMascotas
+    )
     if (!addRes.success) return { success: false, error: (addRes as any).error }
   }
 
@@ -478,12 +540,23 @@ export async function aceptarSolicitud(paseoId: string) {
   const cuidador_nombre_visual = current.displayName || 'Cuidador'
   const cuidador_foto_visual = current.photoURL || null
 
-  const res = await ServicioPaseo.aceptarSolicitud(paseoId)
+  const res = await ServicioPaseo.commitEstadoTransaccional(
+    paseoId,
+    ESTADOS_PASEO.PENDIENTE,
+    ESTADOS_PASEO.CONFIRMADO,
+    {
+      id_cuidador: uid,
+      cuidador_nombre_visual,
+      cuidador_foto_visual,
+    }
+  )
 
   if (res.success) {
     try {
       paseoActivo.aceptarPaseo()
-    } catch (_) {}
+    } catch (e) {
+      console.warn('Error actualizando paseoActivo:', e)
+    }
     // registrar evento técnico
     await ServicioPaseo.registrarEvento(paseoId, 'ACEPTAR', {
       estado_anterior: 'PENDIENTE',
@@ -510,11 +583,17 @@ export async function iniciarRuta(paseoId: string) {
   if (!maquina.puede('INICIAR_RUTA'))
     return { success: false, error: 'TRANSICION_INVALIDA' }
 
-  const res = await ServicioPaseo.iniciarRuta(paseoId)
+  const res = await ServicioPaseo.commitEstadoTransaccional(
+    paseoId,
+    ESTADOS_PASEO.CONFIRMADO,
+    ESTADOS_PASEO.EN_CAMINO
+  )
   if (res.success) {
     try {
       paseoActivo.iniciarRuta()
-    } catch (_) {}
+    } catch (e) {
+      console.warn('Error actualizando paseoActivo:', e)
+    }
     await ServicioPaseo.registrarEvento(paseoId, 'INICIAR_RUTA', {
       estado_anterior: 'CONFIRMADO',
       estado_nuevo: 'EN_CAMINO',
@@ -537,11 +616,19 @@ export async function iniciarPaseo(paseoId: string) {
   if (!maquina.puede('INICIAR_PASEO'))
     return { success: false, error: 'TRANSICION_INVALIDA' }
 
-  const res = await ServicioPaseo.iniciarPaseo(paseoId)
+  const { serverTimestamp } = await import('firebase/firestore')
+  const res = await ServicioPaseo.commitEstadoTransaccional(
+    paseoId,
+    ESTADOS_PASEO.EN_CAMINO,
+    ESTADOS_PASEO.EN_PROGRESO,
+    { fecha_inicio_real: serverTimestamp() }
+  )
   if (res.success) {
     try {
       paseoActivo.iniciarPaseo(new Date())
-    } catch (_) {}
+    } catch (e) {
+      console.warn('Error actualizando paseoActivo:', e)
+    }
     await ServicioPaseo.registrarEvento(paseoId, 'INICIAR_PASEO', {
       estado_anterior: 'EN_CAMINO',
       estado_nuevo: 'EN_PROGRESO',
@@ -564,11 +651,19 @@ export async function finalizarPaseo(paseoId: string) {
   if (!maquina.puede('FINALIZAR_PASEO'))
     return { success: false, error: 'TRANSICION_INVALIDA' }
 
-  const res = await ServicioPaseo.finalizarPaseo(paseoId)
+  const { serverTimestamp } = await import('firebase/firestore')
+  const res = await ServicioPaseo.commitEstadoTransaccional(
+    paseoId,
+    ESTADOS_PASEO.EN_PROGRESO,
+    ESTADOS_PASEO.FINALIZADO,
+    { fecha_fin_real: serverTimestamp() }
+  )
   if (res.success) {
     try {
       paseoActivo.finalizarPaseo(new Date())
-    } catch (_) {}
+    } catch (e) {
+      console.warn('Error actualizando paseoActivo:', e)
+    }
     await ServicioPaseo.registrarEvento(paseoId, 'FINALIZAR_PASEO', {
       estado_anterior: 'EN_PROGRESO',
       estado_nuevo: 'FINALIZADO',
@@ -626,12 +721,91 @@ export async function agregarMascota(paseoId: string, mascotaId: string) {
       error: ERR.MASCOTAS.MASCOTA_NO_PERTENECE_AL_USUARIO,
     }
 
-  // Llamar al servicio para la actualización atómica (el servicio solo hace el write y evita duplicados)
-  const res = await addMascotasAlPaseo(paseoId, [mascotaId], undefined)
+  // Preparar data denormalizada
+  const dataMascota = prepararDataPaseoMascota(paseoId, m.data, undefined)
+
+  // Llamar al servicio para la actualización atómica y transaccional
+  const res = await ServicioPaseoMascota.commitMascotaTransaccional(
+    paseoId,
+    mascotaId,
+    dataMascota
+  )
   if (res.success) {
     await ServicioPaseo.registrarEvento(paseoId, 'AGREGAR_MASCOTA', {
       id_mascota: mascotaId,
     })
   }
+  return res
+}
+
+// ---------- Consultas de dominio ----------
+
+export async function obtenerEstadisticasCuidador(cuidadorId: string) {
+  // 1. Solicitudes pendientes globales (sin cuidador)
+  const solicitudesRes = await ServicioPaseo.buscarPaseos([
+    { campo: 'estado', op: '==', valor: ESTADOS_PASEO.PENDIENTE },
+  ])
+
+  // 2. Paseos vinculados al cuidador
+  const misPaseosRes = await ServicioPaseo.buscarPaseos([
+    { campo: 'id_cuidador', op: '==', valor: cuidadorId },
+    {
+      campo: 'estado',
+      op: 'in',
+      valor: [
+        ESTADOS_PASEO.CONFIRMADO,
+        ESTADOS_PASEO.EN_CAMINO,
+        ESTADOS_PASEO.EN_PROGRESO,
+        ESTADOS_PASEO.FINALIZADO,
+        ESTADOS_PASEO.COMPLETADO,
+      ],
+    },
+  ])
+
+  if (!solicitudesRes.success || !misPaseosRes.success) {
+    return {
+      success: false,
+      error: solicitudesRes.error || misPaseosRes.error,
+    }
+  }
+
+  const solicitudes = (solicitudesRes.data || []).filter(p => !p.id_cuidador)
+  const misPaseos = misPaseosRes.data || []
+
+  const activos = misPaseos.filter(p =>
+    [
+      ESTADOS_PASEO.CONFIRMADO,
+      ESTADOS_PASEO.EN_CAMINO,
+      ESTADOS_PASEO.EN_PROGRESO,
+    ].includes(p.estado)
+  )
+
+  const completados = misPaseos.filter(p =>
+    [ESTADOS_PASEO.FINALIZADO, ESTADOS_PASEO.COMPLETADO].includes(p.estado)
+  )
+
+  return {
+    success: true,
+    data: {
+      solicitudesPendientes: solicitudes.length,
+      paseosActivos: activos.length,
+      paseosCompletados: completados.length,
+      valoracionPromedio: 0, // TODO: Integrar con logic/valoraciones
+    },
+  }
+}
+
+export async function completarPaseo(paseoId: string) {
+  const res = await ServicioPaseo.actualizar(paseoId, {
+    estado: ESTADOS_PASEO.COMPLETADO,
+  })
+
+  if (res.success) {
+    await ServicioPaseo.registrarEvento(paseoId, 'COMPLETAR', {
+      estado_anterior: ESTADOS_PASEO.FINALIZADO,
+      estado_nuevo: ESTADOS_PASEO.COMPLETADO,
+    })
+  }
+
   return res
 }

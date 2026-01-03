@@ -108,28 +108,13 @@ export class ServicioUbicacion {
           (payload.coordenadas as any).lng
       )
 
-      const rawComponents: any =
-        (payload as any).componentes_raw ?? (payload as any).componentes ?? null
-      let componentes_raw_to_store: any = rawComponents
-      if (Array.isArray(rawComponents)) {
-        const map: Record<string, any> = {}
-        for (const item of rawComponents) {
-          const name = item.long_name ?? item.short_name
-          if (!item.types) continue
-          for (const t of item.types) {
-            if (!map[t]) map[t] = name
-          }
-        }
-        componentes_raw_to_store = map
-      }
-
       const dataToSave: any = {
         id,
         proveedor: payload.proveedor,
         proveedor_place_id: payload.proveedor_place_id,
         direccion_formateada: payload.direccion_formateada,
         coordenadas: gp,
-        componentes_raw: componentes_raw_to_store ?? null,
+        componentes_raw: (payload as any).componentes_raw ?? null,
         componentes: (payload as any).componentes ?? {},
         viewport: payload.viewport ?? null,
         alias: payload.alias ?? null,

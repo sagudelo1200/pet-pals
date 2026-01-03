@@ -1,11 +1,17 @@
 import { useEffect, useState, useRef } from 'react'
-import { collection, query, where, limit, onSnapshot } from 'firebase/firestore'
+import {
+  collection,
+  query,
+  where,
+  limit,
+  onSnapshot,
+  orderBy,
+} from 'firebase/firestore'
 import { db } from '@/firebase.config'
 import { Paseo, ESTADOS_PASEO } from '@/models/Paseo'
-import { paseoActivo } from '@/logic/paseos'
+import { paseoActivo, completarPaseo } from '@/logic/paseos'
 import { useGestorPaseoActivo } from '@/hooks/paseos/useGestorPaseoActivo'
 import { ServicioAuth } from '@/services/firebase/auth/auth'
-import { ServicioPaseo } from '@/services/firebase'
 
 export function useMonitorPaseoGlobal() {
   const user = ServicioAuth.obtenerUsuarioActual()
@@ -30,6 +36,7 @@ export function useMonitorPaseoGlobal() {
         ESTADOS_PASEO.EN_PROGRESO,
         ESTADOS_PASEO.FINALIZADO,
       ]),
+      orderBy('creado_en', 'desc'),
       limit(1)
     )
 
@@ -75,7 +82,7 @@ export function useMonitorPaseoGlobal() {
 
   const handleClose = async () => {
     if (paseo?.id) {
-      await ServicioPaseo.actualizarEstado(paseo.id, ESTADOS_PASEO.COMPLETADO)
+      await completarPaseo(paseo.id)
     }
     setShowFinishedModal(false)
     paseoActivo.limpiarPaseoActivo()

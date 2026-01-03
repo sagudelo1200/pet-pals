@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { useAuth } from '@/context/AuthContext'
 import { useRol } from '@/context/RolContext'
-import { ServicioUsuario, ServicioPerfilPublico } from '@/services/firebase'
+import { ServicioUsuario } from '@/services/firebase'
+import { GestorPerfilPublico } from '@/logic/usuarios/perfilPublico'
 import type { RolUsuario } from '@/models/Usuario'
 
 export const useCambiarRol = () => {
@@ -43,9 +44,7 @@ export const useCambiarRol = () => {
       // Si el nuevo rol es cuidador, crear perfil público si no existe
       if (nuevoRol === 'cuidador') {
         // Intentar obtener por ID directo primero (más eficiente)
-        const perfilExistente = await ServicioPerfilPublico.obtenerPorId(
-          user.uid
-        )
+        const perfilExistente = await GestorPerfilPublico.obtenerPorId(user.uid)
 
         if (!perfilExistente.success) {
           // Crear perfil público básico con el UID del usuario
@@ -53,15 +52,14 @@ export const useCambiarRol = () => {
             (profile as any).nombre || user.displayName || 'Usuario'
           const fotoUsuario = (profile as any).foto || user.photoURL || ''
 
-          await ServicioPerfilPublico.crearConId(user.uid, {
+          await GestorPerfilPublico.inicializarPerfil(user.uid, {
             nombre: nombreUsuario,
             foto: fotoUsuario,
             verificacion: 'pendiente',
             rating_promedio: 0,
-            cantidad_paseos_realizados: 0,
+            total_valoraciones: 0,
             tarifa_por_hora: 15000, // Tarifa por defecto
             creado_por: user.uid,
-            actualizado_por: user.uid,
           } as any)
         }
       }

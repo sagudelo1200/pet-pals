@@ -1,8 +1,6 @@
 import { useState, useEffect } from 'react'
-import { Alert } from 'react-native'
-import * as ImagePicker from 'expo-image-picker'
 import { useTranslation } from 'react-i18next'
-import * as GestorMascota from '@/logic/mascotas/gestorMascota'
+import { GestorMascotas } from '@/logic/mascotas/gestor'
 import type { Mascota } from '@/models/Mascota'
 
 export const useEdicionMascota = (
@@ -35,7 +33,7 @@ export const useEdicionMascota = (
 
       setLoading(true)
       try {
-        const resultado = await GestorMascota.obtenerPorId(mascotaId)
+        const resultado = await GestorMascotas.obtenerPorId(mascotaId)
         if (resultado && resultado.success && resultado.data) {
           setMascota(resultado.data)
         } else {
@@ -84,10 +82,7 @@ export const useEdicionMascota = (
 
     try {
       // 4. Ejecutar petición en segundo plano
-      const resultado = await GestorMascota.actualizarMascota(
-        mascota.id,
-        editedData
-      )
+      const resultado = await GestorMascotas.actualizar(mascota.id, editedData)
 
       if (resultado && resultado.success && (resultado as any).data) {
         setMascota((resultado as any).data)
@@ -168,7 +163,7 @@ export const useEdicionMascota = (
     // UI Optimista: No esperamos a que termine para dar feedback visual
     // La navegación debe ocurrir inmediatamente en el componente
     try {
-      const res = await GestorMascota.eliminarMascota(mascota.id)
+      const res = await GestorMascotas.eliminar(mascota.id)
       if (res && res.success) return { success: true }
       return { success: false, error: (res as any)?.error }
     } catch (e) {

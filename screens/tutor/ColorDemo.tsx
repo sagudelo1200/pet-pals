@@ -20,7 +20,7 @@ import {
 import Screen from '@/components/ui/Screen'
 import { ServicioAuth } from '@/services/firebase'
 import { crearSiNoExiste } from '@/logic/ubicaciones'
-import * as GestorMascota from '@/logic/mascotas/gestorMascota'
+import { GestorMascotas } from '@/logic/mascotas/gestor'
 import { useDirecciones } from '@/hooks/useDirecciones'
 import type { Mascota } from '@/models/Mascota'
 import { SelectorDireccionSheet } from '@/components/ui/Direcciones/SelectorDireccionSheet'
@@ -87,7 +87,7 @@ const ColorDemo: React.FC = () => {
     }
 
     try {
-      const resultado = await GestorMascota.crearMascota(mascotaData)
+      const resultado = await GestorMascotas.crear(mascotaData)
 
       if (resultado && resultado.success && resultado.data) {
         Alert.alert(

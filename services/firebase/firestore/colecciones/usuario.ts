@@ -9,26 +9,10 @@ import {
   nowServerTimestamp,
   mapFirebaseError,
 } from '@/services/firebase/comun'
-import {
-  agregarUbicacionRef,
-  fijarPrincipalRef,
-  eliminarUbicacionRef,
-} from '@/helpers/logicaUbicacion'
 
 export class ServicioUsuario {
   private static readonly COLLECTION = 'usuarios'
   private static readonly PUBLIC_COLLECTION = 'perfil_publico'
-
-  static async actualizarPerfilCompleto(
-    uid: string,
-    datosUsuario: Partial<Usuario>
-  ): Promise<CrudResult<void>> {
-    // Deprecated: use logic/usuarios.actualizarPerfilCompleto which orchestrates business rules
-    return {
-      success: false,
-      error: 'DEPRECATED: usar logic/usuarios.actualizarPerfilCompleto',
-    }
-  }
 
   static async crear(
     data: Omit<
@@ -133,78 +117,34 @@ export class ServicioUsuario {
   }
 
   static async agregarUbicacion(
-    userId: string,
-    ubicacionId: string,
-    alias?: string,
-    coordenadas?: { latitude: number; longitude: number }
+    _userId: string,
+    _ubicacionId: string,
+    _alias?: string,
+    _coordenadas?: { latitude: number; longitude: number }
   ): Promise<CrudResult<Usuario>> {
-    try {
-      const userRes = await this.obtenerPorId(userId)
-      if (!userRes.success || !userRes.data)
-        throw new Error('USUARIO_NO_ENCONTRADO')
-
-      const usuario = userRes.data
-      const { lista, idPrincipal } = agregarUbicacionRef(
-        usuario.ubicaciones || [],
-        ubicacionId,
-        alias,
-        coordenadas
-      )
-
-      return this.actualizar(userId, {
-        ubicaciones: lista,
-        ubicacion_principal_id: idPrincipal,
-      })
-    } catch (err: any) {
-      return { success: false, error: mapFirebaseError(err) }
+    return {
+      success: false,
+      error: 'DEPRECATED: usar logic/usuarios.agregarUbicacion',
     }
   }
 
   static async fijarUbicacionPrincipal(
-    userId: string,
-    ubicacionId: string
+    _userId: string,
+    _ubicacionId: string
   ): Promise<CrudResult<Usuario>> {
-    try {
-      const userRes = await this.obtenerPorId(userId)
-      if (!userRes.success || !userRes.data)
-        throw new Error('USUARIO_NO_ENCONTRADO')
-
-      const usuario = userRes.data
-      const { lista, idPrincipal } = fijarPrincipalRef(
-        usuario.ubicaciones || [],
-        ubicacionId
-      )
-
-      return this.actualizar(userId, {
-        ubicaciones: lista,
-        ubicacion_principal_id: idPrincipal,
-      })
-    } catch (err: any) {
-      return { success: false, error: mapFirebaseError(err) }
+    return {
+      success: false,
+      error: 'DEPRECATED: usar logic/usuarios.fijarUbicacionPrincipal',
     }
   }
 
   static async eliminarUbicacion(
-    userId: string,
-    ubicacionId: string
+    _userId: string,
+    _ubicacionId: string
   ): Promise<CrudResult<Usuario>> {
-    try {
-      const userRes = await this.obtenerPorId(userId)
-      if (!userRes.success || !userRes.data)
-        throw new Error('USUARIO_NO_ENCONTRADO')
-
-      const usuario = userRes.data
-      const { lista, idPrincipal } = eliminarUbicacionRef(
-        usuario.ubicaciones || [],
-        ubicacionId
-      )
-
-      return this.actualizar(userId, {
-        ubicaciones: lista,
-        ubicacion_principal_id: idPrincipal ?? undefined,
-      })
-    } catch (err: any) {
-      return { success: false, error: mapFirebaseError(err) }
+    return {
+      success: false,
+      error: 'DEPRECATED: usar logic/usuarios.eliminarUbicacion',
     }
   }
 }

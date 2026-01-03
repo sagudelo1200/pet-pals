@@ -7,7 +7,7 @@ import React, {
   ReactNode,
 } from 'react'
 import { useTranslation } from 'react-i18next'
-import * as GestorMascota from '@/logic/mascotas/gestorMascota'
+import { GestorMascotas } from '@/logic/mascotas/gestor'
 import { useAuth } from '@/context/AuthContext'
 import type { Mascota } from '@/models/Mascota'
 
@@ -49,7 +49,7 @@ export const MascotasProvider: React.FC<{ children: ReactNode }> = ({
     try {
       setLoading(true)
       setError(null)
-      const resultado = await GestorMascota.obtenerPorUsuario(user.uid)
+      const resultado = await GestorMascotas.obtenerPorUsuario(user.uid)
       if (resultado && resultado.success && resultado.data) {
         setMascotas(resultado.data)
       } else {
@@ -92,7 +92,7 @@ export const MascotasProvider: React.FC<{ children: ReactNode }> = ({
 
       // 2. Ejecutar operación en segundo plano
       try {
-        const resultado = await GestorMascota.crearMascota(data as Mascota)
+        const resultado = await GestorMascotas.crear(data as Mascota)
         if (resultado && resultado.success && resultado.data) {
           setMascotas(prev =>
             prev.map(m => (m.id === tempId ? resultado.data! : m))
@@ -115,7 +115,7 @@ export const MascotasProvider: React.FC<{ children: ReactNode }> = ({
       try {
         setLoading(true)
         setError(null)
-        const resultado = await GestorMascota.actualizarMascota(id, data)
+        const resultado = await GestorMascotas.actualizar(id, data)
         if (resultado && resultado.success) {
           await cargarMascotas()
         } else {
@@ -138,7 +138,7 @@ export const MascotasProvider: React.FC<{ children: ReactNode }> = ({
       try {
         setMascotas(prev => prev.filter(m => m.id !== id))
         setError(null)
-        const resultado = await GestorMascota.eliminarMascota(id)
+        const resultado = await GestorMascotas.eliminar(id)
         if (!resultado || !resultado.success) {
           setMascotas(mascotasAnteriores)
           setError(t('mascotas:errores.error_eliminar'))

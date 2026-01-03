@@ -17,10 +17,7 @@ export {
 } from './firestore/colecciones/paseo'
 export { ServicioPerfilPublico } from './firestore/colecciones/perfil-publico'
 export { ServicioUbicacion } from './firestore/colecciones/ubicacion'
-export {
-  addMascotasAlPaseo,
-  addMascotaAlPaseo,
-} from './firestore/colecciones/paseo-mascota'
+export { ServicioPaseoMascota } from './firestore/colecciones/paseo-mascota'
 
 // Auth
 export { ServicioAuth } from './auth/auth'

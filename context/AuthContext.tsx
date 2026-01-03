@@ -13,6 +13,7 @@ import {
   AuthContextType,
   AuthResult,
 } from '@/services/firebase'
+import { GestorAuth } from '@/logic/auth'
 import { RolUsuario, Usuario } from '@/models/Usuario'
 import { useSincronizacionPerfil } from '@/hooks/useSincronizacionPerfil'
 
@@ -88,7 +89,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     password: string
   ): Promise<AuthResult> => {
     setCargando(true)
-    const result = await ServicioAuth.ingresarConCorreo(email, password)
+    const result = await GestorAuth.ingresarConCorreo(email, password)
     // Si falla, desactivar cargando; en caso contrario, el listener bajará el flag
     if (!result.success) setCargando(false)
     return result
@@ -100,7 +101,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     displayName: string
   ): Promise<AuthResult> => {
     setCargando(true)
-    const result = await ServicioAuth.registrarConCorreo(
+    const result = await GestorAuth.registrarConCorreo(
       email,
       password,
       displayName
@@ -111,7 +112,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   /** Función para cerrar la sesión actual */
   const cerrarSesion = async (): Promise<AuthResult> => {
     setCargando(true)
-    const result = await ServicioAuth.cerrarSesion()
+    const result = await GestorAuth.cerrarSesion()
     if (!result.success) setCargando(false)
     return result
   }
@@ -130,7 +131,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   /** Función para iniciar sesión con Google */
   const ingresarConGoogle = async (credential: any): Promise<AuthResult> => {
     setCargando(true)
-    const result = await ServicioAuth.ingresarConGoogle(credential)
+    const result = await GestorAuth.ingresarConGoogle(credential)
     if (!result.success) setCargando(false)
     return result
   }
