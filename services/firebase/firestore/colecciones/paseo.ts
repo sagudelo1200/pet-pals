@@ -1,6 +1,11 @@
 import { ServicioCrudBase } from '@/services/firebase/firestore/base'
 import { Paseo, ESTADOS_PASEO } from '@/models/Paseo'
-import { CrudResult, mapFirebaseError } from '@/services/firebase/comun'
+import {
+  CrudResult,
+  mapFirebaseError,
+  camposSistemaActualizar,
+  camposSistemaCrear,
+} from '@/services/firebase/comun'
 import { ServicioAuth } from '@/services/firebase/auth/auth'
 import { ERR } from '@/constants'
 import {
@@ -11,7 +16,6 @@ import {
   type Query,
   runTransaction,
   doc,
-  serverTimestamp,
   getDocs,
 } from 'firebase/firestore'
 import { db } from '@/firebase.config'
@@ -84,11 +88,13 @@ export class ServicioPaseo {
           throw new Error(ERR.PASEOS.ESTADO_NO_ESPERADO)
         }
 
+        // Generar campos de sistema de actualización
+        const updateFields = camposSistemaActualizar(uid)
+
         transaction.update(paseoRef, {
           ...fields,
           estado: nuevo,
-          actualizado_en: serverTimestamp(),
-          actualizado_por: uid,
+          ...updateFields,
         })
       })
 
@@ -104,6 +110,8 @@ export class ServicioPaseo {
     payload?: Record<string, any>
   ): Promise<CrudResult<void>> {
     const currentUser = ServicioAuth.obtenerUsuarioActual()
+    if (!currentUser) return { success: false, error: ERR.COMUN.NO_AUTENTICADO }
+
     try {
       // Crear una entrada local optimista para mostrar inmediatamente en UI
       const localId = `local_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`
@@ -111,9 +119,8 @@ export class ServicioPaseo {
         id: localId,
         evento,
         payload: payload || {},
-        actor: currentUser?.uid || null,
+        actor: currentUser.uid,
         creado_en: new Date(), // fecha local hasta confirmación del servidor
-        creado_por: currentUser?.uid || null,
         _local: true,
       }
       // Push a buffer
@@ -121,12 +128,13 @@ export class ServicioPaseo {
       buf.unshift(localEntry)
       this.pendingEventos.set(paseoId, buf)
 
+      // Usar campos del sistema consistente con el resto del proyecto
+      const camposSistema = camposSistemaCrear(currentUser.uid)
       const entry = {
         evento,
         payload: payload || {},
-        actor: currentUser?.uid || null,
-        creado_en: serverTimestamp(),
-        creado_por: currentUser?.uid || null,
+        actor: currentUser.uid,
+        ...camposSistema,
       }
 
       const { addDoc } = await import('firebase/firestore')

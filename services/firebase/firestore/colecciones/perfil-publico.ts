@@ -3,7 +3,8 @@ import {
   mapFirebaseError,
   type CrudResult,
   toDb,
-  nowServerTimestamp,
+  camposSistemaCrear,
+  camposSistemaActualizar,
 } from '@/services/firebase/comun'
 import type { PerfilPublico } from '@/models/PerfilPublico'
 import { db } from '@/firebase.config'
@@ -40,17 +41,21 @@ export class ServicioPerfilPublico {
   ): Promise<CrudResult<PerfilPublico>> {
     try {
       const docRef = doc(db, this.COLLECTION, uid)
-      const finalData = {
-        ...toDb(data),
-        id: uid,
-        actualizado_en: nowServerTimestamp(),
-        actualizado_por: uid,
+
+      let systemFields: any
+      // Si es creación (no tiene creado_en), usar campos de creación
+      if (!(data as any).creado_en) {
+        systemFields = camposSistemaCrear(uid)
+      } else {
+        // Si ya existe, solo actualizar campos de actualización
+        systemFields = camposSistemaActualizar(uid)
       }
 
-      // Si es creación (no tiene creado_en), lo añadimos
-      if (!(data as any).creado_en) {
-        ;(finalData as any).creado_en = nowServerTimestamp()
-        ;(finalData as any).creado_por = uid
+      const dataTransformed = toDb(data)
+      const finalData = {
+        ...dataTransformed,
+        id: uid,
+        ...systemFields,
       }
 
       await setDoc(docRef, finalData, { merge: true })

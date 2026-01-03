@@ -7,9 +7,10 @@ import {
   increment,
 } from 'firebase/firestore'
 import {
-  nowServerTimestamp,
   toDb,
   mapFirebaseError,
+  camposSistemaCrear,
+  camposSistemaActualizar,
 } from '@/services/firebase/comun'
 import { ServicioAuth } from '@/services/firebase/auth/auth'
 import { ERR } from '@/constants'
@@ -38,12 +39,10 @@ export class ServicioPaseoMascota {
 
       for (const data of mascotasData) {
         const ref = doc(col, data.id)
+        const camposSistema = camposSistemaCrear(uid)
         const finalData = {
           ...toDb(data),
-          creado_en: nowServerTimestamp(),
-          actualizado_en: nowServerTimestamp(),
-          creado_por: uid,
-          actualizado_por: uid,
+          ...camposSistema,
         }
         batch.set(ref, finalData)
       }
@@ -74,17 +73,16 @@ export class ServicioPaseoMascota {
         const subSnap = await tx.get(subRef)
         if (subSnap.exists()) throw new Error(ERR.MASCOTAS.MASCOTA_YA_AGREGADA)
 
+        const camposSistemaCreacion = camposSistemaCrear(uid)
         tx.set(subRef, {
           ...toDb(data),
-          creado_en: nowServerTimestamp(),
-          actualizado_en: nowServerTimestamp(),
-          creado_por: uid,
-          actualizado_por: uid,
+          ...camposSistemaCreacion,
         })
+
+        const camposSistemaActualizacion = camposSistemaActualizar(uid)
         tx.update(paseoRef, {
           mascotas_count: increment(1),
-          actualizado_en: nowServerTimestamp(),
-          actualizado_por: uid,
+          ...camposSistemaActualizacion,
         })
       })
 

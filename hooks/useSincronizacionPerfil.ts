@@ -26,7 +26,6 @@ export const useSincronizacionPerfil = (
           nombre: usuario.nombre,
           foto: usuario.foto || null, // Firestore no acepta undefined
           verificacion: usuario.verificado ? 'verificado' : 'pendiente',
-          creado_por: usuario.id,
           // Inicializar otros campos opcionales si es necesario
         }
 

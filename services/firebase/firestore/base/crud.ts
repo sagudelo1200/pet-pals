@@ -13,10 +13,11 @@ import { db } from '@/firebase.config'
 import { BaseModel } from '@/models/BaseModel'
 import {
   CrudResult,
-  nowServerTimestamp,
   toDb,
   toDomain,
   mapFirebaseError,
+  camposSistemaCrear,
+  camposSistemaActualizar,
 } from '@/services/firebase/comun'
 import { ERR } from '@/constants'
 
@@ -32,13 +33,12 @@ export class ServicioCrudBase {
     >
   ): Promise<CrudResult<T>> {
     try {
-      const { ServicioAuth } = await import('@/services/firebase/auth/auth')
-      const currentUser = ServicioAuth.obtenerUsuarioActual()
-      const base = {
-        creado_en: nowServerTimestamp(),
-        actualizado_en: nowServerTimestamp(),
-        creado_por: currentUser?.uid,
-        actualizado_por: currentUser?.uid,
+      // Generar campos de sistema desde auth.currentUser
+      const base = camposSistemaCrear()
+
+      // Validar que tenemos un usuario autenticado
+      if (!base.creado_por) {
+        return { success: false, error: 'NO_AUTENTICADO' }
       }
 
       // Creamos un docRef con id generado por cliente para cumplir las reglas
@@ -46,7 +46,10 @@ export class ServicioCrudBase {
       const docRef = doc(colRef)
       const id = docRef.id
 
-      const docDataDb = { id, ...toDb(data), ...base }
+      // Aplicar toDb solo a los datos de dominio, NO a los campos de sistema
+      const dataTransformed = toDb(data)
+      const docDataDb = { id, ...dataTransformed, ...base }
+
       await setDoc(docRef, docDataDb)
 
       // Re-leer para retornar en formato de dominio (Date)
@@ -93,15 +96,19 @@ export class ServicioCrudBase {
     data: Partial<Omit<T, 'id' | 'creado_en' | 'creado_por'>>
   ): Promise<CrudResult<T>> {
     try {
-      const { ServicioAuth } = await import('@/services/firebase/auth/auth')
-      const currentUser = ServicioAuth.obtenerUsuarioActual()
+      // Generar campos de sistema de actualización
+      const updateFields = camposSistemaActualizar()
+
+      // Validar que tenemos un usuario autenticado
+      if (!updateFields.actualizado_por) {
+        return { success: false, error: 'NO_AUTENTICADO' }
+      }
+
       const docRef = doc(db, collectionName, id)
 
-      const updateDataDb = {
-        ...toDb(data),
-        actualizado_en: nowServerTimestamp(),
-        actualizado_por: currentUser?.uid,
-      }
+      // Aplicar toDb solo a los datos de dominio, NO a los campos de sistema
+      const dataTransformed = toDb(data)
+      const updateDataDb = { ...dataTransformed, ...updateFields }
 
       await updateDoc(docRef, updateDataDb)
 

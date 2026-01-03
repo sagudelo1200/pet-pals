@@ -66,7 +66,6 @@ export const GestorUsuarios = {
             rating_promedio: 0,
             total_valoraciones: 0,
             tarifa_por_hora: 15000,
-            creado_por: uid,
           } as any)
         }
       }

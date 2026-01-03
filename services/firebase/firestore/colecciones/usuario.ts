@@ -2,12 +2,13 @@ import { ServicioCrudBase } from '@/services/firebase/firestore/base'
 import { Usuario } from '@/models/Usuario'
 import { PerfilPublico } from '@/models/PerfilPublico'
 import { db } from '@/firebase.config'
-import { doc, setDoc, writeBatch, serverTimestamp } from 'firebase/firestore'
+import { doc, setDoc, writeBatch } from 'firebase/firestore'
 import {
   CrudResult,
   toDb,
-  nowServerTimestamp,
   mapFirebaseError,
+  camposSistemaCrear,
+  camposSistemaActualizar,
 } from '@/services/firebase/comun'
 
 export class ServicioUsuario {
@@ -31,18 +32,18 @@ export class ServicioUsuario {
     >
   ): Promise<CrudResult<Usuario>> {
     try {
-      const base: any = {
-        creado_en: nowServerTimestamp(),
-        actualizado_en: nowServerTimestamp(),
-        creado_por: uid,
-        actualizado_por: uid,
-      }
+      // Generar campos de sistema con uid explícito
+      const base: any = camposSistemaCrear(uid)
+
       if (!(data as any).fecha_registro) {
-        base.fecha_registro = nowServerTimestamp()
+        base.fecha_registro = base.creado_en
       }
 
       const ref = doc(db, this.COLLECTION, uid)
-      await setDoc(ref, { id: uid, ...toDb(data), ...base })
+
+      // Aplicar toDb solo a los datos de dominio
+      const dataTransformed = toDb(data)
+      await setDoc(ref, { id: uid, ...dataTransformed, ...base })
 
       return ServicioCrudBase.obtenerPorId<Usuario>(this.COLLECTION, uid)
     } catch (error: any) {
@@ -61,11 +62,13 @@ export class ServicioUsuario {
     try {
       const batch = writeBatch(db)
 
+      // Generar campos de sistema de actualización con uid explícito
+      const updateFields = camposSistemaActualizar(uid)
+
       const usuarioRef = doc(db, this.COLLECTION, uid)
       const datosUsuarioDb = {
         ...toDb(datosUsuario),
-        actualizado_en: serverTimestamp(),
-        actualizado_por: uid,
+        ...updateFields,
       }
       batch.update(usuarioRef, datosUsuarioDb)
 
@@ -75,7 +78,7 @@ export class ServicioUsuario {
           perfilRef,
           {
             ...toDb(datosPerfilPublico),
-            actualizado_en: serverTimestamp(),
+            actualizado_en: updateFields.actualizado_en,
           },
           { merge: true }
         )

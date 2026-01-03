@@ -33,7 +33,9 @@ describe('GestorMascotas', () => {
     expect(res.success).toBe(false)
   })
 
-  test('crear falla si creado_por no coincide', async () => {
+  test('crear falla si creado_por no coincide (si se envía)', async () => {
+    // Aunque ya no se debe enviar creado_por desde el cliente,
+    // la validación previene intentos maliciosos
     ;(ServicioAuth.obtenerUsuarioActual as jest.Mock).mockReturnValue({
       uid: 'u1',
     })
