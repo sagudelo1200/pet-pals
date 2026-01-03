@@ -18,7 +18,11 @@ export interface Ubicacion extends BaseModel {
   /** dirección formateada tal como la devuelve el proveedor */
   direccion_formateada: string
 
-  /** coordenadas geográficas obligatorias — fuente de verdad para cualquier cálculo */
+  /**
+   * Coordenadas geográficas obligatorias — fuente de verdad para cualquier cálculo.
+   * ESTÁNDAR: siempre usar {latitude, longitude}. NO usar {lat, lng}.
+   * Los conversores de Firebase transforman automáticamente a/desde GeoPoint.
+   */
   coordenadas: {
     latitude: number
     longitude: number
@@ -69,8 +73,7 @@ export interface Ubicacion extends BaseModel {
  */
 export interface UbicacionRef {
   ubicacion_id: string
-  /** tipo semántico: 'domicilio' | 'sede' | 'punto_servicio' | 'vacacional' | ... */
-  tipo?: string
+  alias?: string
   es_principal?: boolean
   desde?: Date
   hasta?: Date

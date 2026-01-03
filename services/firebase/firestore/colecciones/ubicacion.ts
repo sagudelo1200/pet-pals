@@ -6,11 +6,11 @@ import {
   query,
   where,
   getDocs,
-  GeoPoint,
 } from 'firebase/firestore'
 import { db } from '@/firebase.config'
 import {
   toDomain,
+  toDb,
   mapFirebaseError,
   camposSistemaCrear,
   type CrudResult,
@@ -20,16 +20,9 @@ import { Ubicacion } from '@/models/Ubicacion'
 export class ServicioUbicacion {
   private static readonly COLLECTION = 'ubicaciones'
 
+  // Conversión simplificada: toDomain ya maneja GeoPoint automáticamente
   private static mapSnapshotToDomain(id: string, data: any): Ubicacion {
-    const domain = toDomain(data) as any
-    if (
-      domain.coordenadas &&
-      (domain.coordenadas as any).latitude !== undefined
-    ) {
-      const gp = domain.coordenadas as GeoPoint
-      domain.coordenadas = { latitude: gp.latitude, longitude: gp.longitude }
-    }
-    return { id, ...(domain as Ubicacion) }
+    return { id, ...toDomain<Ubicacion>(data) }
   }
 
   static async obtenerPorId(id: string): Promise<CrudResult<Ubicacion>> {
@@ -94,43 +87,34 @@ export class ServicioUbicacion {
       // Generar campos de sistema desde auth.currentUser
       const base = camposSistemaCrear()
 
-      const gp = new GeoPoint(
-        (payload.coordenadas as any).latitude ??
-          (payload.coordenadas as any).lat,
-        (payload.coordenadas as any).longitude ??
-          (payload.coordenadas as any).lng
-      )
-
       // Validar que tenemos un usuario autenticado
       if (!base.creado_por) {
         return { success: false, error: 'NO_AUTENTICADO' }
       }
 
-      // Los datos ya vienen en formato Firestore (GeoPoint, serverTimestamp, etc.)
-      // NO aplicar toDb() porque destruiría las sentinelas de Firestore
-      const finalData: any = {
-        id,
+      // toDb() convierte automáticamente:
+      // - Dates → Timestamps
+      // - {latitude, longitude} → GeoPoint
+      const dataToSave = toDb({
         proveedor: payload.proveedor,
         proveedor_place_id: payload.proveedor_place_id,
         direccion_formateada: payload.direccion_formateada,
-        coordenadas: gp,
+        coordenadas: payload.coordenadas,
         componentes_raw: (payload as any).componentes_raw ?? null,
         componentes: (payload as any).componentes ?? {},
         componentes_source:
           (payload as any).componentes_source ?? payload.proveedor,
         estado: payload.estado ?? 'pendiente',
-        ...base, // campos de sistema con serverTimestamp intacto
-      }
+        viewport: payload.viewport,
+        alias: payload.alias,
+        instrucciones: payload.instrucciones,
+        metadata: (payload as any).metadata,
+      })
 
-      // Agregar campos opcionales solo si tienen valor
-      if (payload.viewport) finalData.viewport = payload.viewport
-      if (payload.alias) finalData.alias = payload.alias
-      if (payload.instrucciones) finalData.instrucciones = payload.instrucciones
-      if (
-        (payload as any).metadata &&
-        Object.keys((payload as any).metadata).length > 0
-      ) {
-        finalData.metadata = (payload as any).metadata
+      const finalData = {
+        id,
+        ...dataToSave,
+        ...base, // campos de sistema con serverTimestamp intacto
       }
 
       await setDoc(docRef, finalData)

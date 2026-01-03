@@ -2,7 +2,7 @@
 import { toDomain, toDb, isFirestoreTimestamp } from '@/services/firebase/comun'
 import { Timestamp } from 'firebase/firestore'
 
-describe('convertidores - unitario', () => {
+describe('conversores - unitario', () => {
   // Verifica que isFirestoreTimestamp detecte objetos que implementan toDate/toMillis
   test('isFirestoreTimestamp detecta objetos con toDate y toMillis', () => {
     const fake = { toDate: () => new Date(), toMillis: () => 123 }

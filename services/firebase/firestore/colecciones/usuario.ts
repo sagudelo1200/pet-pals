@@ -101,39 +101,8 @@ export class ServicioUsuario {
   ): Promise<CrudResult<Usuario>> {
     return ServicioCrudBase.actualizar<Usuario>(this.COLLECTION, id, data)
   }
+
   static async eliminar(id: string): Promise<CrudResult<boolean>> {
     return ServicioCrudBase.eliminar(this.COLLECTION, id)
-  }
-
-  static async agregarUbicacion(
-    _userId: string,
-    _ubicacionId: string,
-    _alias?: string,
-    _coordenadas?: { latitude: number; longitude: number }
-  ): Promise<CrudResult<Usuario>> {
-    return {
-      success: false,
-      error: 'DEPRECATED: usar logic/usuarios.agregarUbicacion',
-    }
-  }
-
-  static async fijarUbicacionPrincipal(
-    _userId: string,
-    _ubicacionId: string
-  ): Promise<CrudResult<Usuario>> {
-    return {
-      success: false,
-      error: 'DEPRECATED: usar logic/usuarios.fijarUbicacionPrincipal',
-    }
-  }
-
-  static async eliminarUbicacion(
-    _userId: string,
-    _ubicacionId: string
-  ): Promise<CrudResult<Usuario>> {
-    return {
-      success: false,
-      error: 'DEPRECATED: usar logic/usuarios.eliminarUbicacion',
-    }
   }
 }

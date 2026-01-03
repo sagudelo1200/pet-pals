@@ -1,26 +1,6 @@
 import { BaseModel } from './BaseModel'
 import { UbicacionRef } from './Ubicacion'
 
-/**
- * Dirección postal/domicilio estructurada.
- *
- * Nota: mantenemos este tipo por compatibilidad pero NO debe usarse
- * para nuevos desarrollos. Use `Ubicacion` y referencias (`UbicacionRef`).
- */
-export interface Direccion {
-  calle?: string
-  numero?: string
-  barrio?: string
-  comuna?: string
-  ciudad?: string
-  departamento?: string
-  pais?: string
-  codigo_postal?: string
-  coordenadas?: { lat: number; lng: number }
-  referencia?: string
-  descripcion?: string
-}
-
 /** Roles posibles del usuario en la plataforma */
 export type RolUsuario = 'admin' | 'tutor' | 'cuidador'
 
@@ -56,7 +36,7 @@ export interface Usuario extends BaseModel {
    * Identificador de la ubicación principal (si aplica). Mantener para consultas rápidas.
    * Opcional: puede ser `undefined` si el usuario no definió una principal.
    */
-  ubicacion_principal_id?: string
+  id_ubicacion_principal?: string
   /** Zona o sector (texto libre) */
   zona?: string
 

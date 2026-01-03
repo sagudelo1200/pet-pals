@@ -121,7 +121,7 @@ export const GestorUsuarios = {
 
       return ServicioUsuario.actualizar(userId, {
         ubicaciones: lista,
-        ubicacion_principal_id: idPrincipal,
+        id_ubicacion_principal: idPrincipal,
       })
     } catch (e: any) {
       return { success: false, error: String(e) }
@@ -145,7 +145,7 @@ export const GestorUsuarios = {
 
       return ServicioUsuario.actualizar(userId, {
         ubicaciones: lista,
-        ubicacion_principal_id: idPrincipal,
+        id_ubicacion_principal: idPrincipal,
       })
     } catch (e: any) {
       return { success: false, error: String(e) }
@@ -169,7 +169,7 @@ export const GestorUsuarios = {
 
       return ServicioUsuario.actualizar(userId, {
         ubicaciones: lista,
-        ubicacion_principal_id: idPrincipal ?? undefined,
+        id_ubicacion_principal: idPrincipal ?? undefined,
       })
     } catch (e: any) {
       return { success: false, error: String(e) }

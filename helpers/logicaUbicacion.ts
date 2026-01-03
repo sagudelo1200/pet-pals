@@ -15,7 +15,7 @@ export function agregarUbicacionRef(
   const nuevaRef: UbicacionRef = {
     ubicacion_id: nuevaUbicacionId,
     es_principal: listaActual.length === 0, // Primera es principal
-    tipo: alias || 'Casa', // Default tipo
+    alias: alias || 'Casa',
     desde: new Date(),
     coordenadas,
   }

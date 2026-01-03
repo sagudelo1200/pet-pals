@@ -468,11 +468,34 @@ export async function crearConMascotas(
   const locObj = (data.ubicacion_inicio as any) || direccion
 
   if (locObj && typeof locObj === 'object') {
+    // Validar que coordenadas existan y sean válidas
+    if (
+      !locObj.coordenadas ||
+      typeof locObj.coordenadas.latitude === 'undefined' ||
+      typeof locObj.coordenadas.longitude === 'undefined'
+    ) {
+      return {
+        success: false,
+        error: ERR.PASEOS.UBICACION_INVALIDA,
+      }
+    }
+
+    const lat = Number(locObj.coordenadas.latitude)
+    const lng = Number(locObj.coordenadas.longitude)
+
+    // Verificar que las coordenadas convertidas sean números válidos
+    if (isNaN(lat) || isNaN(lng)) {
+      return {
+        success: false,
+        error: ERR.PASEOS.COORDENADAS_INVALIDAS,
+      }
+    }
+
     const snap = {
       direccion_formateada: locObj.direccion_formateada || '',
       coordenadas: {
-        latitude: Number(locObj.coordenadas.latitude),
-        longitude: Number(locObj.coordenadas.longitude),
+        latitude: lat,
+        longitude: lng,
       },
       id_origen: locObj.id,
       alias: locObj.alias,

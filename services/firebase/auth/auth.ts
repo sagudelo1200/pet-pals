@@ -32,37 +32,6 @@ function mapFirebaseAuthError(e: any): string {
 }
 
 export class ServicioAuth {
-  // Registro con email y contraseña
-  static async registrarConCorreo(
-    _email: string,
-    _password: string,
-    _displayName: string
-  ): Promise<AuthResult> {
-    return {
-      success: false,
-      error: 'DEPRECATED: usar GestorAuth.registrarConCorreo de @/logic/auth',
-    }
-  }
-
-  // Ingreso con correo y contraseña
-  static async ingresarConCorreo(
-    _email: string,
-    _password: string
-  ): Promise<AuthResult> {
-    return {
-      success: false,
-      error: 'DEPRECATED: usar GestorAuth.ingresarConCorreo de @/logic/auth',
-    }
-  }
-
-  // Ingreso con Google (Credential)
-  static async ingresarConGoogle(_credential: any): Promise<AuthResult> {
-    return {
-      success: false,
-      error: 'DEPRECATED: usar GestorAuth.ingresarConGoogle de @/logic/auth',
-    }
-  }
-
   // Cerrar sesión
   static async cerrarSesion(): Promise<AuthResult> {
     try {

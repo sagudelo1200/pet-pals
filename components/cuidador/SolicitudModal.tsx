@@ -142,7 +142,7 @@ const SolicitudModal: React.FC<Props> = ({ visible, paseo, onClose }) => {
             <Text style={styles.subtitlePremium} numberOfLines={1}>
               {paseo.ubicacion_inicio_txt ||
                 (typeof paseo.ubicacion_inicio === 'object'
-                  ? paseo.ubicacion_inicio.alias ||
+                  ? (paseo.ubicacion_inicio as any).alias ||
                     paseo.ubicacion_inicio.direccion_formateada
                   : paseo.ubicacion_inicio) ||
                 ''}

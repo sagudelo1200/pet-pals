@@ -21,41 +21,56 @@ export const UbicacionHorizontal: React.FC<Props> = ({
 }) => {
   const { t } = useTranslation()
   const getIconName = () => {
-    switch (ubicacion.tipo) {
-      case 'casa': return 'home'
-      case 'trabajo': return 'briefcase'
-      case 'parque': return 'tree'
-      default: return 'map-marker-alt'
-    }
+    const aliasLower = ubicacion.alias?.toLowerCase() || ''
+    if (aliasLower.includes('casa') || aliasLower.includes('home'))
+      return 'home'
+    if (
+      aliasLower.includes('trabajo') ||
+      aliasLower.includes('work') ||
+      aliasLower.includes('oficina')
+    )
+      return 'briefcase'
+    if (aliasLower.includes('parque') || aliasLower.includes('park'))
+      return 'tree'
+    return 'map-marker-alt'
   }
 
   return (
     <TouchableOpacity
-      style={[
-        styles.container,
-        seleccionada && styles.selected,
-        style
-      ]}
+      style={[styles.container, seleccionada && styles.selected, style]}
       onPress={onPress}
       activeOpacity={0.8}
     >
       <View style={[styles.iconContainer, seleccionada && styles.iconSelected]}>
-        <Icon 
-          name={getIconName()} 
-          size={20} 
-          color={seleccionada ? COLOR.BASE : COLOR.PRIMARIO} 
+        <Icon
+          name={getIconName()}
+          size={20}
+          color={seleccionada ? COLOR.BASE : COLOR.PRIMARIO}
         />
       </View>
-      
+
       <View style={styles.textContainer}>
-        <Text bold size={12} color={seleccionada ? COLOR.PRIMARIO : COLOR.TEXTO} numberOfLines={1} style={{ textAlign: 'center', marginBottom: 2 }}>
-          {ubicacion.tipo || t('tutor:solicitud.direccion.tipo_default')}
+        <Text
+          bold
+          size={12}
+          color={seleccionada ? COLOR.PRIMARIO : COLOR.TEXTO}
+          numberOfLines={1}
+          style={{ textAlign: 'center', marginBottom: 2 }}
+        >
+          {ubicacion.alias || t('tutor:solicitud.direccion.tipo_default')}
         </Text>
-        <Text size={10} color={COLOR.SUBTEXTO} numberOfLines={1} style={{ textAlign: 'center' }}>
-          {ubicacion.ubicacion_id ? ubicacion.ubicacion_id.slice(0, 15) + '...' : t('tutor:solicitud.direccion.ver_en_mapa')}
+        <Text
+          size={10}
+          color={COLOR.SUBTEXTO}
+          numberOfLines={1}
+          style={{ textAlign: 'center' }}
+        >
+          {ubicacion.ubicacion_id
+            ? ubicacion.ubicacion_id.slice(0, 15) + '...'
+            : t('tutor:solicitud.direccion.ver_en_mapa')}
         </Text>
       </View>
-      
+
       {seleccionada && (
         <View style={styles.checkBadge}>
           <Icon name="check" size={10} color={COLOR.BASE} />
@@ -66,7 +81,10 @@ export const UbicacionHorizontal: React.FC<Props> = ({
 }
 
 // Botón especial para "Agregar Nueva"
-export const AgregarUbicacionHorizontal: React.FC<{ onPress: () => void, style?: any }> = ({ onPress, style }) => {
+export const AgregarUbicacionHorizontal: React.FC<{
+  onPress: () => void
+  style?: any
+}> = ({ onPress, style }) => {
   const { t } = useTranslation()
   return (
     <TouchableOpacity
@@ -74,11 +92,16 @@ export const AgregarUbicacionHorizontal: React.FC<{ onPress: () => void, style?:
       onPress={onPress}
       activeOpacity={0.8}
     >
-       <View style={[styles.iconContainer, styles.addIconContainer]}>
+      <View style={[styles.iconContainer, styles.addIconContainer]}>
         <Icon name="plus" size={20} color={COLOR.TEXTO} />
       </View>
       <View style={styles.textContainer}>
-        <Text bold size={12} color={COLOR.TEXTO} style={{ textAlign: 'center' }}>
+        <Text
+          bold
+          size={12}
+          color={COLOR.TEXTO}
+          style={{ textAlign: 'center' }}
+        >
           {t('tutor:solicitud.direccion.nueva_btn')}
         </Text>
         <Text size={10} color={COLOR.SUBTEXTO} style={{ textAlign: 'center' }}>
@@ -142,5 +165,5 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     borderWidth: 1,
     borderColor: COLOR.BASE,
-  }
+  },
 })

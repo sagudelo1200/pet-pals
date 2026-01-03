@@ -122,7 +122,7 @@ const ColorDemo: React.FC = () => {
         proveedor: 'google',
         proveedor_place_id: 'place_123_test',
         direccion_formateada: 'Cra 7 #45, Bogotá, Colombia',
-        coordenadas: { lat: 4.653, lng: -74.0608 },
+        coordenadas: { latitude: 4.653, longitude: -74.0608 },
         componentes_raw: [
           { long_name: 'Cra 7', types: ['route'] },
           { long_name: '45', types: ['street_number'] },
@@ -161,7 +161,7 @@ const ColorDemo: React.FC = () => {
         proveedor: 'unknown',
         proveedor_place_id: '',
         direccion_formateada: '',
-        coordenadas: { lat: null, lng: null },
+        coordenadas: { latitude: null, longitude: null },
       }
       console.log('DEBUG: crearUbicacionInvalida payload', payload)
       const res = await GestorUbicaciones.crearSiNoExiste(payload)
@@ -589,7 +589,7 @@ const ColorDemo: React.FC = () => {
             <Text size={12} color={COLOR.SUBTEXTO} bold>
               DIRECCIÓN SELECCIONADA:
             </Text>
-            <Text bold>{ubiDemo.tipo}</Text>
+            <Text bold>{ubiDemo.alias || 'Sin alias'}</Text>
             <Text size={13} color={COLOR.SUBTEXTO}>
               {ubiDemo.ubicacion_id}
             </Text>

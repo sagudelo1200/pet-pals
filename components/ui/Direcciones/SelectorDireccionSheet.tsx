@@ -27,8 +27,12 @@ export const SelectorDireccionSheet: React.FC<SelectorDireccionSheetProps> = ({
 }) => {
   const renderItem = ({ item }: { item: UbicacionRef }) => {
     const esPrincipal = item.ubicacion_id === principalId
-    const isHome = item.tipo === 'Casa'
-    const isWork = item.tipo === 'Trabajo'
+    const alias = item.alias?.toLowerCase() || ''
+    const isHome = alias.includes('casa') || alias.includes('home')
+    const isWork =
+      alias.includes('trabajo') ||
+      alias.includes('work') ||
+      alias.includes('oficina')
     const iconName = isHome ? 'home' : isWork ? 'briefcase' : 'map-marker'
 
     return (
@@ -55,7 +59,7 @@ export const SelectorDireccionSheet: React.FC<SelectorDireccionSheetProps> = ({
 
         <View style={styles.infoBox}>
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-            <Text style={styles.alias}>{item.tipo || 'Ubicación'}</Text>
+            <Text style={styles.alias}>{item.alias || 'Ubicación'}</Text>
             {esPrincipal && (
               <>
                 <Spacer horizontal size={8} />

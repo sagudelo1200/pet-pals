@@ -1,4 +1,4 @@
 export { mapFirebaseError } from './errors'
 export * from './types'
-export * from './converters'
+export * from './conversores'
 export * from './camposSistema'

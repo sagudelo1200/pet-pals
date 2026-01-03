@@ -1,4 +1,4 @@
-import { nowServerTimestamp } from './converters'
+import { nowServerTimestamp } from './conversores'
 import { ServicioAuth } from '@/services/firebase/auth/auth'
 
 export interface CamposSistemaCreacion {

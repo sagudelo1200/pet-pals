@@ -104,7 +104,7 @@ export const TarjetaSolicitud: React.FC<Props> = ({ solicitud, onPress }) => {
             <Text style={styles.ubicacionText} numberOfLines={1}>
               {solicitud.ubicacion_inicio_txt ||
                 (typeof solicitud.ubicacion_inicio === 'object'
-                  ? solicitud.ubicacion_inicio.alias ||
+                  ? (solicitud.ubicacion_inicio as any).alias ||
                     solicitud.ubicacion_inicio.direccion_formateada
                   : solicitud.ubicacion_inicio) ||
                 t('cuidador:solicitudes.ubicacion_por_definir')}

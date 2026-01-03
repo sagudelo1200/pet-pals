@@ -34,7 +34,7 @@ Ejemplo JSON (representación en la capa de dominio):
 Relaciones y notas breves:
 
 - Sirve como base para todos los modelos en `models/`.
-- Convertir `Timestamp` ↔ `Date` en la capa de persistencia (ver `services/firebase/converters.ts`).
+- Convertir `Timestamp` ↔ `Date` en la capa de persistencia (ver `services/firebase/comun/conversores.ts`).
 
 Validaciones y recomendaciones:
 
