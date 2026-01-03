@@ -22,6 +22,8 @@ import { db } from '@/firebase.config'
  */
 export class ServicioPaseo {
   private static readonly COLLECTION = 'paseos'
+  // Buffer local para eventos creados por el cliente y aún no confirmados por el servidor
+  private static pendingEventos: Map<string, any[]> = new Map()
 
   static getQuerySolicitudesPendientes(): Query {
     return query(
@@ -103,6 +105,22 @@ export class ServicioPaseo {
   ): Promise<CrudResult<void>> {
     const currentUser = ServicioAuth.obtenerUsuarioActual()
     try {
+      // Crear una entrada local optimista para mostrar inmediatamente en UI
+      const localId = `local_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`
+      const localEntry: any = {
+        id: localId,
+        evento,
+        payload: payload || {},
+        actor: currentUser?.uid || null,
+        creado_en: new Date(), // fecha local hasta confirmación del servidor
+        creado_por: currentUser?.uid || null,
+        _local: true,
+      }
+      // Push a buffer
+      const buf = this.pendingEventos.get(paseoId) || []
+      buf.unshift(localEntry)
+      this.pendingEventos.set(paseoId, buf)
+
       const entry = {
         evento,
         payload: payload || {},
@@ -115,10 +133,26 @@ export class ServicioPaseo {
       const eventosCol = collection(db, this.COLLECTION, paseoId, 'eventos')
       await addDoc(eventosCol, entry)
 
+      // Al confirmarse en el servidor, eliminamos el local optimista
+      const remain = (this.pendingEventos.get(paseoId) || []).filter(
+        (e: any) => e.id !== localId
+      )
+      if (remain.length) this.pendingEventos.set(paseoId, remain)
+      else this.pendingEventos.delete(paseoId)
+
       return { success: true }
     } catch (error) {
+      // En caso de error, eliminar el optimista y propagar el error
+      const before = this.pendingEventos.get(paseoId) || []
+      const after = before.filter((e: any) => !e._local)
+      if (after.length) this.pendingEventos.set(paseoId, after)
+      else this.pendingEventos.delete(paseoId)
       return { success: false, error: mapFirebaseError(error) }
     }
+  }
+
+  static obtenerEventosPendientes(paseoId: string) {
+    return (this.pendingEventos.get(paseoId) || []).slice()
   }
 
   static async buscarPaseos(

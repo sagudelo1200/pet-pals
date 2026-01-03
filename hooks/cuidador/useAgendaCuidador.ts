@@ -1,8 +1,7 @@
 import { useMemo } from 'react'
-import { collection, query, where, orderBy, limit } from 'firebase/firestore'
-import { db } from '@/firebase.config'
 import { useCollection } from '@/hooks/useCollection'
-import { ServicioAuth } from '@/services/firebase/auth/auth'
+import { GestorAuth } from '@/logic/auth'
+import { GestorPaseos } from '@/logic/paseos'
 import { Paseo } from '@/models/Paseo'
 
 /**
@@ -10,32 +9,19 @@ import { Paseo } from '@/models/Paseo'
  * Separa los paseos en 'proximos' (activos) y 'historial' (pasados).
  */
 export function useAgendaCuidador() {
-  const user = ServicioAuth.obtenerUsuarioActual()
+  const user = GestorAuth.obtenerUsuarioActual()
   const uid = user?.uid
 
-  // Query para paseos próximos (Activos)
+  // Query para paseos próximos (Activos) a través del gestor
   const qProximos = useMemo(() => {
     if (!uid) return null
-
-    return query(
-      collection(db, 'paseos'),
-      where('id_cuidador', '==', uid),
-      where('estado', 'in', ['CONFIRMADO', 'EN_CAMINO', 'EN_PROGRESO']),
-      orderBy('fecha_hora_inicio', 'asc') // Los más cercanos primero
-    )
+    return GestorPaseos.obtenerQueryAgendaCuidador(uid)
   }, [uid])
 
-  // Query para historial (Inactivos)
+  // Query para historial (Inactivos) a través del gestor
   const qHistorial = useMemo(() => {
     if (!uid) return null
-
-    return query(
-      collection(db, 'paseos'),
-      where('id_cuidador', '==', uid),
-      where('estado', 'in', ['COMPLETADO', 'FINALIZADO', 'CANCELADO']),
-      orderBy('fecha_hora_inicio', 'desc'), // Los más recientes primero
-      limit(30)
-    )
+    return GestorPaseos.obtenerQueryHistorialCuidador(uid)
   }, [uid])
 
   const {

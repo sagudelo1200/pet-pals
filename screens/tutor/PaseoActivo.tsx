@@ -45,11 +45,11 @@ export default function PaseoActivo({ route, navigation }: Props) {
 
   useEffect(() => {
     if (!paseo || yaNotificado || navigationAttempted.current) return
-    
+
     // NOTA: La redirección a 'PaseoFinalizado' se reemplaza por GlobalPaseoManager
     // que mostrará un Overlay global.
     // Solo manejamos acciones críticas aquí si fuera necesario.
-    
+
     if (paseo.estado === ESTADOS_PASEO.CANCELADO) {
       navigationAttempted.current = true
       setYaNotificado(true)
@@ -139,7 +139,7 @@ export default function PaseoActivo({ route, navigation }: Props) {
         </Text>
         <Spacer size={24} />
         <Button
-          title={t('comun:volver')}
+          title={t('comun:atras')}
           onPress={() => navigation.goBack()}
           variant="secundario"
         />

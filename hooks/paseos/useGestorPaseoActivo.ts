@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { paseoActivo, type PaseoActivo } from '@/logic/paseos'
+import { GestorPaseos } from '@/logic/paseos'
 import { ESTADOS_PASEO, Paseo } from '@/models/Paseo'
 import { EVENTOS } from '@/logic/paseos/maquinaEstados'
 
@@ -10,13 +10,13 @@ import { EVENTOS } from '@/logic/paseos/maquinaEstados'
  * Requiere que el paseo haya sido inicializado previamente (ej. por useSincronizadorPaseo).
  */
 export function useGestorPaseoActivo() {
-  const [state, setState] = useState<PaseoActivo | null>(
-    paseoActivo.getPaseoActivo()
+  const [state, setState] = useState<any | null>(
+    GestorPaseos.paseoActivo.getPaseoActivo()
   )
 
   useEffect(() => {
     // Suscribirse a cambios en el gestor
-    const unsub = paseoActivo.suscribir(setState)
+    const unsub = GestorPaseos.paseoActivo.suscribir(setState)
     return unsub
   }, [])
 
@@ -33,7 +33,7 @@ export function useGestorPaseoActivo() {
     esFinalizado: state?.estado === ESTADOS_PASEO.FINALIZADO,
 
     // Método de validación de acciones
-    puede: (evento: string) => paseoActivo.puede(evento),
+    puede: (evento: string) => GestorPaseos.paseoActivo.puede(evento),
 
     // Constantes expuestas para consumidores
     EVENTOS,
@@ -41,17 +41,18 @@ export function useGestorPaseoActivo() {
 
     // Acciones de negocio (Asíncronas por defecto para UI)
     acciones: {
-      aceptar: () => paseoActivo.aceptarPaseoAsync(),
-      iniciarRuta: () => paseoActivo.iniciarRutaAsync(),
-      iniciarPaseo: () => paseoActivo.iniciarPaseoAsync(),
-      finalizar: () => paseoActivo.finalizarPaseoAsync(),
-      cancelar: (motivo: string) => paseoActivo.cancelarPaseoAsync(motivo),
+      aceptar: () => GestorPaseos.paseoActivo.aceptarPaseoAsync(),
+      iniciarRuta: () => GestorPaseos.paseoActivo.iniciarRutaAsync(),
+      iniciarPaseo: () => GestorPaseos.paseoActivo.iniciarPaseoAsync(),
+      finalizar: () => GestorPaseos.paseoActivo.finalizarPaseoAsync(),
+      cancelar: (motivo: string) =>
+        GestorPaseos.paseoActivo.cancelarPaseoAsync(motivo),
     },
 
     // Acciones de gestión local
     gestion: {
-      seleccionar: (p: Paseo) => paseoActivo.setPaseoActivo(p),
-      limpiar: () => paseoActivo.limpiarPaseoActivo(),
+      seleccionar: (p: Paseo) => GestorPaseos.paseoActivo.setPaseoActivo(p),
+      limpiar: () => GestorPaseos.paseoActivo.limpiarPaseoActivo(),
     },
   }
 }

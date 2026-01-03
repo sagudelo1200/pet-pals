@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '@/context/AuthContext'
-import { obtenerEstadisticasCuidador } from '@/logic/paseos/gestor'
+import { GestorPaseos } from '@/logic/paseos'
 
 interface EstadisticasCuidador {
   solicitudesPendientes: number
@@ -28,7 +28,7 @@ export const useEstadisticasCuidador = (): EstadisticasCuidador => {
 
     setEstadisticas(prev => ({ ...prev, cargando: true }))
     try {
-      const res = await obtenerEstadisticasCuidador(user.uid)
+      const res = await GestorPaseos.obtenerEstadisticasCuidador(user.uid)
 
       if (res.success && res.data) {
         setEstadisticas({

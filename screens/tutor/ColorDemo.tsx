@@ -19,8 +19,8 @@ import {
 } from '@/components/ui'
 import Screen from '@/components/ui/Screen'
 import { ServicioAuth } from '@/services/firebase'
-import { crearSiNoExiste } from '@/logic/ubicaciones'
-import { GestorMascotas } from '@/logic/mascotas/gestor'
+import { GestorUbicaciones } from '@/logic/ubicaciones'
+import { GestorMascotas } from '@/logic/mascotas'
 import { useDirecciones } from '@/hooks/useDirecciones'
 import type { Mascota } from '@/models/Mascota'
 import { SelectorDireccionSheet } from '@/components/ui/Direcciones/SelectorDireccionSheet'
@@ -137,8 +137,11 @@ const ColorDemo: React.FC = () => {
         estado: 'verificada',
       }
       console.log('DEBUG: crearUbicacionValida payload', payload)
-      const res = await crearSiNoExiste(payload)
-      console.log('DEBUG: ServicioUbicacion.crearSiNoExiste res', res)
+      const res = await GestorUbicaciones.crearSiNoExiste(payload)
+      console.log(
+        'DEBUG: ServicioUbicacion.GestorUbicaciones.crearSiNoExiste res',
+        res
+      )
       if (res.success && res.data) {
         Alert.alert('OK', `Ubicación creada/recuperada id: ${res.data.id}`)
       } else {
@@ -161,9 +164,9 @@ const ColorDemo: React.FC = () => {
         coordenadas: { lat: null, lng: null },
       }
       console.log('DEBUG: crearUbicacionInvalida payload', payload)
-      const res = await crearSiNoExiste(payload)
+      const res = await GestorUbicaciones.crearSiNoExiste(payload)
       console.log(
-        'DEBUG: ServicioUbicacion.crearSiNoExiste res (invalida)',
+        'DEBUG: ServicioUbicacion.GestorUbicaciones.crearSiNoExiste res (invalida)',
         res
       )
       Alert.alert(

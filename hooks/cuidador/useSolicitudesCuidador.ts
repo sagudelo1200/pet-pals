@@ -1,14 +1,17 @@
 import { useMemo } from 'react'
 import { useCollection } from '@/hooks/useCollection'
-import { ServicioPaseo } from '@/services/firebase'
+import { GestorPaseos } from '@/logic/paseos'
 import { Paseo } from '@/models/Paseo'
-import { ServicioAuth } from '@/services/firebase/auth/auth'
+import { GestorAuth } from '@/logic/auth'
 
 export function useSolicitudesCuidador() {
-  const user = ServicioAuth.obtenerUsuarioActual()
+  const user = GestorAuth.obtenerUsuarioActual()
 
   // Memoizamos la query para evitar recrearla en cada render
-  const query = useMemo(() => ServicioPaseo.getQuerySolicitudesPendientes(), [])
+  const query = useMemo(
+    () => GestorPaseos.obtenerQuerySolicitudesPendientes(),
+    []
+  )
 
   // Usamos listen: true para actualizaciones en tiempo real
   const { data, cargando, error } = useCollection<Paseo>(query, {

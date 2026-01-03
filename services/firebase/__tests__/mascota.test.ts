@@ -83,31 +83,6 @@ describe('ServicioMascota - unitario', () => {
     expect(res).toEqual(ures)
   })
 
-  // obtenerPorTamano utiliza buscar con el campo tamano
-  test('obtenerPorTamano usa buscar con tamano', async () => {
-    const tres = {
-      success: true,
-      data: [{ id: 'm2', nombre: 'Rex', tamano: 'grande' }],
-    }
-    ServicioCrudBase.buscar.mockResolvedValue(tres)
-    const res = await ServicioMascota.obtenerPorTamano('grande')
-    expect(ServicioCrudBase.buscar).toHaveBeenCalledWith(
-      'mascotas',
-      'tamano',
-      'grande'
-    )
-    expect(res).toEqual(tres)
-  })
-
-  // obtenerTodos delega a ServicioCrudBase.obtenerTodos
-  test('obtenerTodos delega a ServicioCrudBase.obtenerTodos', async () => {
-    const all = { success: true, data: [{ id: 'm1' }, { id: 'm2' }] }
-    ServicioCrudBase.obtenerTodos.mockResolvedValue(all)
-    const res = await ServicioMascota.obtenerTodos()
-    expect(ServicioCrudBase.obtenerTodos).toHaveBeenCalledWith('mascotas')
-    expect(res).toEqual(all)
-  })
-
   // actualizar delega a ServicioCrudBase.actualizar
   test('actualizar delega a ServicioCrudBase.actualizar', async () => {
     const updated = {

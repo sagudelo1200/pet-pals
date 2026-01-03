@@ -1,8 +1,7 @@
 import { useMemo } from 'react'
-import { collection, query, where, orderBy, limit } from 'firebase/firestore'
-import { db } from '@/firebase.config'
 import { useCollection } from '@/hooks/useCollection'
-import { ServicioAuth } from '@/services/firebase/auth/auth'
+import { GestorAuth } from '@/logic/auth'
+import { GestorPaseos } from '@/logic/paseos'
 import { Paseo } from '@/models/Paseo'
 
 /**
@@ -10,19 +9,13 @@ import { Paseo } from '@/models/Paseo'
  * Se suscribe a cambios en tiempo real.
  */
 export function usePaseos() {
-  const user = ServicioAuth.obtenerUsuarioActual()
+  const user = GestorAuth.obtenerUsuarioActual()
   const uid = user?.uid
 
-  // Crear query memoizada
+  // Crear query memoizada a través del gestor
   const q = useMemo(() => {
     if (!uid) return null
-
-    return query(
-      collection(db, 'paseos'),
-      where('creado_por', '==', uid),
-      orderBy('fecha_hora_inicio', 'desc'),
-      limit(30)
-    )
+    return GestorPaseos.obtenerQueryPaseosTutor(uid)
   }, [uid])
 
   // Usar useCollection con listen=true

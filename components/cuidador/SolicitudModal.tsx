@@ -11,7 +11,8 @@ import {
 import { COLOR } from '@/constants'
 import { Paseo } from '@/models/Paseo'
 import { useTranslation } from 'react-i18next'
-import { ServicioPaseo, ServicioCrudBase } from '@/services/firebase'
+import { GestorPaseos } from '@/logic/paseos'
+import { GestorMascotas } from '@/logic/mascotas'
 import { useGestorPaseoActivo } from '@/hooks/paseos/useGestorPaseoActivo'
 
 interface Props {
@@ -45,7 +46,7 @@ const SolicitudModal: React.FC<Props> = ({ visible, paseo, onClose }) => {
         if (ids.length > 0) {
           const results: any[] = []
           for (const id of ids.slice(0, 8)) {
-            const res = await ServicioCrudBase.obtenerPorId('mascotas', id)
+            const res = await GestorMascotas.obtenerPorId(id)
             if (res.success && res.data) results.push(res.data)
           }
           if (mounted) setMascotas(results)
@@ -78,12 +79,12 @@ const SolicitudModal: React.FC<Props> = ({ visible, paseo, onClose }) => {
     try {
       // 1. Inicializamos el gestor con el paseo actual para poder operar sobre él
       gestion.seleccionar(paseo)
-      
+
       // 2. Ejecutamos la acción de negocio a través del gestor
       const res = await acciones.aceptar()
-      
+
       setLoading(false)
-      
+
       if (res.success) {
         onClose()
         // Navegar al panel de control del paseo
@@ -91,10 +92,7 @@ const SolicitudModal: React.FC<Props> = ({ visible, paseo, onClose }) => {
       } else {
         // En caso de error, limpiamos el gestor para no dejar estado sucio
         gestion.limpiar()
-        Alert.alert(
-          t('comun:error'),
-          res.error || t('comun:error_desconocido')
-        )
+        Alert.alert(t('comun:error'), res.error || t('comun:error_desconocido'))
       }
     } catch (_e) {
       setLoading(false)
@@ -118,9 +116,7 @@ const SolicitudModal: React.FC<Props> = ({ visible, paseo, onClose }) => {
             onPress: async () => {
               setLoading(true)
               try {
-                await ServicioPaseo.registrarEvento(paseo.id, 'RECHAZAR', {
-                  motivo: 'RECHAZADO_POR_CUIDADOR',
-                })
+                await GestorPaseos.rechazarPaseo(paseo.id)
               } catch (_e) {
                 // ignore
               }

@@ -1,8 +1,9 @@
 import { useState, useCallback, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useMascotas } from '@/hooks/useMascotas'
-import { ServicioPerfilPublico, ServicioUbicacion } from '@/services/firebase'
-import { crearConMascotas } from '@/logic/paseos'
+import { GestorPerfilPublico } from '@/logic/usuarios/perfilPublico'
+import { GestorUbicaciones } from '@/logic/ubicaciones'
+import { GestorPaseos } from '@/logic/paseos'
 import { ESTADOS_PASEO } from '@/models/Paseo'
 import { useAuth } from '@/context/AuthContext'
 import type { Ubicacion } from '@/models/Ubicacion'
@@ -52,13 +53,13 @@ export const useConfirmarPaseo = ({
         const promises: Promise<any>[] = []
 
         if (cuidadorId) {
-          promises.push(ServicioPerfilPublico.obtenerPorId(cuidadorId))
+          promises.push(GestorPerfilPublico.obtenerPorId(cuidadorId))
         } else {
           promises.push(Promise.resolve(null))
         }
 
         if (direccionId) {
-          promises.push(ServicioUbicacion.obtenerPorId(direccionId))
+          promises.push(GestorUbicaciones.obtenerPorId(direccionId))
         } else {
           promises.push(Promise.resolve(null))
         }
@@ -123,7 +124,7 @@ export const useConfirmarPaseo = ({
       const [hours, minutes] = hora.split(':').map(Number)
       fechaInicio.setHours(hours, minutes, 0, 0)
 
-      const result = await crearConMascotas(
+      const result = await GestorPaseos.crearConMascotas(
         {
           tipo_paseo: 'solicitado',
           estado: ESTADOS_PASEO.PENDIENTE,

@@ -1,11 +1,6 @@
 import { useEffect, useRef } from 'react'
 import * as Location from 'expo-location'
-import {
-  ServicioRealtime,
-  RUTAS_REALTIME,
-  ahoraRealtime,
-} from '@/services/firebase'
-import { UbicacionRealtime } from '@/models/Ubicacion'
+import { GestorSeguimiento } from '@/logic/paseos/seguimiento'
 import { ESTADOS_PASEO } from '@/models/Paseo'
 
 /**
@@ -59,32 +54,12 @@ export function usePublicarUbicacion(
           distanceInterval: 10, // O cada 10 metros
         },
         location => {
-          const { latitude, longitude, speed, heading, accuracy } =
-            location.coords
-
-          const payload: UbicacionRealtime = {
-            latitud: latitude,
-            longitud: longitude,
-            velocidad: speed ?? undefined,
-            rumbo: heading ?? undefined,
-            precision: accuracy ?? undefined,
-            actualizado_en: ahoraRealtime(),
-          }
-
-          if (idPaseo) {
-            // 1. Actualizar la ubicación actual (sobrescribir para el marcador en vivo)
-            ServicioRealtime.guardar(
-              RUTAS_REALTIME.ubicacionActual(idPaseo),
-              payload
+          if (idPaseo && estadoPaseo) {
+            GestorSeguimiento.publicarUbicacion(
+              idPaseo,
+              estadoPaseo,
+              location.coords
             )
-
-            // 2. Agregar al historial de la ruta (solo si el paseo está en progreso)
-            if (estadoPaseo === ESTADOS_PASEO.EN_PROGRESO) {
-              ServicioRealtime.agregarLista(
-                RUTAS_REALTIME.historialRuta(idPaseo),
-                payload
-              )
-            }
           }
         }
       )

@@ -1,1 +1,1 @@
-export * from './gestor'
+export { GestorAuth } from './gestor'

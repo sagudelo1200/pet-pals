@@ -1,5 +1,5 @@
 /* eslint-env jest */
-import { paseoActivo } from '@/logic/paseos'
+import { GestorPaseos } from '@/logic/paseos'
 import { ServicioPaseo, ServicioAuth } from '@/services/firebase'
 import { ESTADOS_PASEO, Paseo } from '@/models/Paseo'
 import { EVENTOS } from '@/logic/paseos/maquinaEstados'
@@ -49,18 +49,18 @@ describe('GestorPaseoActivo', () => {
   } as any
 
   beforeEach(() => {
-    paseoActivo.limpiarPaseoActivo()
+    GestorPaseos.paseoActivo.limpiarPaseoActivo()
     jest.clearAllMocks()
   })
 
   it('debe iniciar sin paseo activo', () => {
-    expect(paseoActivo.getPaseoActivo()).toBeNull()
+    expect(GestorPaseos.paseoActivo.getPaseoActivo()).toBeNull()
   })
 
   it('debe permitir setear un paseo activo', () => {
-    const res = paseoActivo.setPaseoActivo(paseoMock)
+    const res = GestorPaseos.paseoActivo.setPaseoActivo(paseoMock)
     expect(res.ok).toBe(true)
-    const activo = paseoActivo.getPaseoActivo()
+    const activo = GestorPaseos.paseoActivo.getPaseoActivo()
     expect(activo).not.toBeNull()
     expect(activo?.id).toBe(paseoMock.id)
     expect(activo?.estado).toBe(ESTADOS_PASEO.PENDIENTE)
@@ -69,11 +69,11 @@ describe('GestorPaseoActivo', () => {
 
   it('debe notificar a los suscriptores al cambiar estado', () => {
     const listener = jest.fn()
-    const unsubscribe = paseoActivo.suscribir(listener)
+    const unsubscribe = GestorPaseos.paseoActivo.suscribir(listener)
 
     expect(listener).toHaveBeenCalledWith(null)
 
-    paseoActivo.setPaseoActivo(paseoMock)
+    GestorPaseos.paseoActivo.setPaseoActivo(paseoMock)
     expect(listener).toHaveBeenCalledTimes(2)
     expect(listener.mock.calls[1][0].id).toBe(paseoMock.id)
 
@@ -81,18 +81,18 @@ describe('GestorPaseoActivo', () => {
   })
 
   it('debe validar transiciones inválidas con puede()', () => {
-    paseoActivo.setPaseoActivo(paseoMock)
-    expect(paseoActivo.puede(EVENTOS.FINALIZAR_PASEO)).toBe(false)
-    expect(paseoActivo.puede(EVENTOS.ACEPTAR)).toBe(true)
+    GestorPaseos.paseoActivo.setPaseoActivo(paseoMock)
+    expect(GestorPaseos.paseoActivo.puede(EVENTOS.FINALIZAR_PASEO)).toBe(false)
+    expect(GestorPaseos.paseoActivo.puede(EVENTOS.ACEPTAR)).toBe(true)
   })
 
   it('aceptarPaseoAsync debe llamar al servicio y actualizar estado local', async () => {
-    paseoActivo.setPaseoActivo(paseoMock)
+    GestorPaseos.paseoActivo.setPaseoActivo(paseoMock)
     ;(ServicioPaseo.commitEstadoTransaccional as jest.Mock).mockResolvedValue({
       success: true,
     })
 
-    const res = await paseoActivo.aceptarPaseoAsync()
+    const res = await GestorPaseos.paseoActivo.aceptarPaseoAsync()
 
     expect(res.success).toBe(true)
     expect(ServicioPaseo.commitEstadoTransaccional).toHaveBeenCalledWith(
@@ -102,29 +102,29 @@ describe('GestorPaseoActivo', () => {
       expect.any(Object)
     )
 
-    const activo = paseoActivo.getPaseoActivo()
+    const activo = GestorPaseos.paseoActivo.getPaseoActivo()
     expect(activo?.estado).toBe(ESTADOS_PASEO.CONFIRMADO)
     expect(activo?.timestamps.confirmado).toBeDefined()
   })
 
   it('no debe actualizar estado local si el servicio falla', async () => {
-    paseoActivo.setPaseoActivo(paseoMock)
+    GestorPaseos.paseoActivo.setPaseoActivo(paseoMock)
     ;(ServicioPaseo.commitEstadoTransaccional as jest.Mock).mockResolvedValue({
       success: false,
       error: 'Error backend',
     })
 
-    const res = await paseoActivo.aceptarPaseoAsync()
+    const res = await GestorPaseos.paseoActivo.aceptarPaseoAsync()
 
     expect(res.success).toBe(false)
-    const activo = paseoActivo.getPaseoActivo()
+    const activo = GestorPaseos.paseoActivo.getPaseoActivo()
     expect(activo?.estado).toBe(ESTADOS_PASEO.PENDIENTE)
   })
 
   it('iniciarRutaAsync debe validar transición antes de llamar servicio', async () => {
-    paseoActivo.setPaseoActivo(paseoMock)
+    GestorPaseos.paseoActivo.setPaseoActivo(paseoMock)
 
-    const res = await paseoActivo.iniciarRutaAsync()
+    const res = await GestorPaseos.paseoActivo.iniciarRutaAsync()
 
     expect(res.success).toBe(false)
     expect(res.error).toBe('TRANSICION_INVALIDA')
@@ -132,23 +132,23 @@ describe('GestorPaseoActivo', () => {
   })
 
   it('flujo completo feliz: Aseptar -> Iniciar Ruta -> Iniciar Paseo -> Finalizar', async () => {
-    paseoActivo.setPaseoActivo(paseoMock)
+    GestorPaseos.paseoActivo.setPaseoActivo(paseoMock)
     ;(ServicioPaseo.commitEstadoTransaccional as jest.Mock).mockResolvedValue({
       success: true,
     })
 
-    await paseoActivo.aceptarPaseoAsync()
-    expect(paseoActivo.getPaseoActivo()?.estado).toBe(ESTADOS_PASEO.CONFIRMADO)
+    await GestorPaseos.paseoActivo.aceptarPaseoAsync()
+    expect(GestorPaseos.paseoActivo.getPaseoActivo()?.estado).toBe(ESTADOS_PASEO.CONFIRMADO)
 
-    await paseoActivo.iniciarRutaAsync()
-    expect(paseoActivo.getPaseoActivo()?.estado).toBe(ESTADOS_PASEO.EN_CAMINO)
+    await GestorPaseos.paseoActivo.iniciarRutaAsync()
+    expect(GestorPaseos.paseoActivo.getPaseoActivo()?.estado).toBe(ESTADOS_PASEO.EN_CAMINO)
 
-    await paseoActivo.iniciarPaseoAsync()
-    expect(paseoActivo.getPaseoActivo()?.estado).toBe(ESTADOS_PASEO.EN_PROGRESO)
-    expect(paseoActivo.getPaseoActivo()?.timestamps.iniciado).toBeDefined()
+    await GestorPaseos.paseoActivo.iniciarPaseoAsync()
+    expect(GestorPaseos.paseoActivo.getPaseoActivo()?.estado).toBe(ESTADOS_PASEO.EN_PROGRESO)
+    expect(GestorPaseos.paseoActivo.getPaseoActivo()?.timestamps.iniciado).toBeDefined()
 
-    await paseoActivo.finalizarPaseoAsync()
-    expect(paseoActivo.getPaseoActivo()?.estado).toBe(ESTADOS_PASEO.FINALIZADO)
-    expect(paseoActivo.getPaseoActivo()?.esActivo).toBe(false)
+    await GestorPaseos.paseoActivo.finalizarPaseoAsync()
+    expect(GestorPaseos.paseoActivo.getPaseoActivo()?.estado).toBe(ESTADOS_PASEO.FINALIZADO)
+    expect(GestorPaseos.paseoActivo.getPaseoActivo()?.esActivo).toBe(false)
   })
 })

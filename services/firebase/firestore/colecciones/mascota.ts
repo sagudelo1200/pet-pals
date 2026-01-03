@@ -29,10 +29,6 @@ export class ServicioMascota {
     return ServicioCrudBase.eliminar(this.COLLECTION, id)
   }
 
-  static async obtenerTodos(): Promise<CrudResult<Mascota[]>> {
-    return ServicioCrudBase.obtenerTodos<Mascota>(this.COLLECTION)
-  }
-
   // Métodos específicos
   static async obtenerPorUsuario(
     userId: string
@@ -42,11 +38,5 @@ export class ServicioMascota {
       'creado_por',
       userId
     )
-  }
-
-  static async obtenerPorTamano(
-    tamano: string
-  ): Promise<CrudResult<Mascota[]>> {
-    return ServicioCrudBase.buscar<Mascota>(this.COLLECTION, 'tamano', tamano)
   }
 }

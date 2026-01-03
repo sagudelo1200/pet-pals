@@ -97,7 +97,9 @@ export class ServicioUbicacion {
       const base: any = {
         creado_en: nowServerTimestamp(),
         actualizado_en: nowServerTimestamp(),
-        creado_por: currentUser?.uid,
+        creado_por:
+          // permitir pasar creado_por en el payload (útil si el cliente lo provee)
+          (payload as any)?.creado_por ?? currentUser?.uid,
         actualizado_por: currentUser?.uid,
       }
 

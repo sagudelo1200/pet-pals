@@ -1,14 +1,7 @@
 import { useState, useCallback, useMemo } from 'react'
 import { useAuth } from '@/context/AuthContext'
-import {
-  crearSiNoExiste,
-  obtenerClaveI18nErrorUbicacion,
-} from '@/logic/ubicaciones'
-import {
-  agregarUbicacion,
-  fijarUbicacionPrincipal,
-  eliminarUbicacion,
-} from '@/logic/usuarios'
+import { GestorUbicaciones } from '@/logic/ubicaciones'
+import { GestorUsuarios } from '@/logic/usuarios'
 import { useTranslation } from 'react-i18next'
 
 export function useDirecciones() {
@@ -40,11 +33,14 @@ export function useDirecciones() {
         const ubicacionNueva = {
           ...datos, // debe incluir coordenadas, direccion_formateada, etc.
           estado: 'pendiente',
+          creado_por: user?.uid,
         }
-        const resUbic = await crearSiNoExiste(ubicacionNueva as any)
+        const resUbic = await GestorUbicaciones.crearSiNoExiste(
+          ubicacionNueva as any
+        )
         if (!resUbic.success || !resUbic.data) {
           const code = String(resUbic.error ?? 'ERROR_CREAR_UBICACION')
-          const key = obtenerClaveI18nErrorUbicacion(code)
+          const key = GestorUbicaciones.obtenerClaveI18nErrorUbicacion(code)
           setError(code)
           setErrorMessage(key ? t(key) : t('ubicaciones:errores.generico'))
           throw new Error(code)
@@ -53,7 +49,7 @@ export function useDirecciones() {
         const nuevaId = resUbic.data.id
 
         // 2. Ligar al usuario con snapshot de coordenadas
-        const resUser = await agregarUbicacion(
+        const resUser = await GestorUsuarios.agregarUbicacion(
           user.uid,
           nuevaId,
           alias,
@@ -62,7 +58,7 @@ export function useDirecciones() {
 
         if (!resUser.success) {
           const code = String(resUser.error ?? 'ERROR_AGREGAR_UBICACION')
-          const key = obtenerClaveI18nErrorUbicacion(code)
+          const key = GestorUbicaciones.obtenerClaveI18nErrorUbicacion(code)
           setError(code)
           setErrorMessage(key ? t(key) : t('ubicaciones:errores.generico'))
           throw new Error(code)
@@ -72,7 +68,7 @@ export function useDirecciones() {
         return nuevaId // Retornar ID para seleccionarlo en UI
       } catch (e: any) {
         const code = typeof e === 'string' ? e : (e?.message ?? String(e))
-        const key = obtenerClaveI18nErrorUbicacion(code)
+        const key = GestorUbicaciones.obtenerClaveI18nErrorUbicacion(code)
         setError(String(code))
         setErrorMessage(key ? t(key) : t('ubicaciones:errores.generico'))
         throw e
@@ -89,13 +85,16 @@ export function useDirecciones() {
       setLoading(true)
       setError(null)
       setErrorMessage(null)
-      const res = await fijarUbicacionPrincipal(user.uid, ubicacionId)
+      const res = await GestorUsuarios.fijarUbicacionPrincipal(
+        user.uid,
+        ubicacionId
+      )
       setLoading(false)
       if (res.success) {
         await recargarPerfil()
       } else {
         const code = String(res.error)
-        const key = obtenerClaveI18nErrorUbicacion(code)
+        const key = GestorUbicaciones.obtenerClaveI18nErrorUbicacion(code)
         setError(code)
         setErrorMessage(key ? t(key) : t('ubicaciones:errores.generico'))
         throw new Error(code)
@@ -110,13 +109,13 @@ export function useDirecciones() {
       setLoading(true)
       setError(null)
       setErrorMessage(null)
-      const res = await eliminarUbicacion(user.uid, ubicacionId)
+      const res = await GestorUsuarios.eliminarUbicacion(user.uid, ubicacionId)
       setLoading(false)
       if (res.success) {
         await recargarPerfil()
       } else {
         const code = String(res.error)
-        const key = obtenerClaveI18nErrorUbicacion(code)
+        const key = GestorUbicaciones.obtenerClaveI18nErrorUbicacion(code)
         setError(code)
         setErrorMessage(key ? t(key) : t('ubicaciones:errores.generico'))
         throw new Error(code)

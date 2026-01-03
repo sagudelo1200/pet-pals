@@ -286,7 +286,7 @@ const ControlPaseo: React.FC = () => {
       <View style={styles.error}>
         <Text style={styles.errorText}>{t('paseos:activo.no_encontrado')}</Text>
         <Button
-          title={t('comun:volver')}
+          title={t('comun:atras')}
           onPress={() => navigation.goBack()}
           variant="secundario"
         />

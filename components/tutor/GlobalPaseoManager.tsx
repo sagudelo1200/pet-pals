@@ -3,9 +3,27 @@ import { Modal, View, StyleSheet, Platform } from 'react-native'
 import { BlurView } from 'expo-blur'
 import { PaseoFinalizadoCard } from '@/components/paseos/PaseoFinalizadoCard'
 import { useMonitorPaseoGlobal } from '@/hooks/paseos/useMonitorPaseoGlobal'
+import { useNavigation } from '@react-navigation/native'
+import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs'
+import type { TutorTabParamList } from '@/navigation/types'
 
 export const GlobalPaseoManager = () => {
   const { showFinishedModal, paseo, handleClose } = useMonitorPaseoGlobal()
+  const navigation = useNavigation<BottomTabNavigationProp<TutorTabParamList>>()
+
+  const onClose = async () => {
+    try {
+      await handleClose()
+    } catch (_e) {
+      // ignore errors from handleClose; still navigate
+    }
+    // Llevar al usuario a la pestaña Inicio (Dashboard)
+    try {
+      navigation.navigate('Inicio')
+    } catch (_e) {
+      // ignore navigation errors in case context differs
+    }
+  }
 
   if (!showFinishedModal || !paseo) return null
 
@@ -18,17 +36,21 @@ export const GlobalPaseoManager = () => {
     >
       <View style={styles.overlay}>
         {Platform.OS === 'ios' ? (
-          <BlurView intensity={20} style={StyleSheet.absoluteFill} tint="dark" />
+          <BlurView
+            intensity={20}
+            style={StyleSheet.absoluteFill}
+            tint="dark"
+          />
         ) : (
           <View style={styles.androidDim} />
         )}
-        
+
         <View style={styles.modalContent}>
           <PaseoFinalizadoCard
             mascotaNombre={paseo.tutor?.nombre || 'Tu mascota'}
             cuidadorNombre={paseo.cuidador?.nombre || 'El cuidador'}
-            onClose={handleClose}
-            onRate={(r) => console.log('Rating:', r)}
+            onClose={onClose}
+            onRate={r => console.log('Rating:', r)}
           />
         </View>
       </View>
@@ -50,5 +72,5 @@ const styles = StyleSheet.create({
   modalContent: {
     width: '90%',
     maxWidth: 400,
-  }
+  },
 })

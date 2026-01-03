@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '@/context/AuthContext'
-import { ServicioPerfilPublico } from '@/services/firebase'
+import { GestorPerfilPublico } from '@/logic/usuarios/perfilPublico'
 import type { PerfilPublico } from '@/models/PerfilPublico'
 
 interface DisponibilidadItem {
@@ -93,7 +93,7 @@ export const useDisponibilidadCercana = (opts?: {
     setError(null)
 
     try {
-      const res = await ServicioPerfilPublico.obtenerCuidadoresDisponibles()
+      const res = await GestorPerfilPublico.obtenerCuidadoresDisponibles()
       if (res.success && res.data) {
         // Excluir el perfil del usuario actual para evitar que un tutor
         // se auto-selecione como cuidador en las sugerencias.

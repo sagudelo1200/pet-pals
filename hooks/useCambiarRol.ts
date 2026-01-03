@@ -1,8 +1,7 @@
 import { useState } from 'react'
 import { useAuth } from '@/context/AuthContext'
 import { useRol } from '@/context/RolContext'
-import { ServicioUsuario } from '@/services/firebase'
-import { GestorPerfilPublico } from '@/logic/usuarios/perfilPublico'
+import { GestorUsuarios } from '@/logic/usuarios'
 import type { RolUsuario } from '@/models/Usuario'
 
 export const useCambiarRol = () => {
@@ -21,47 +20,13 @@ export const useCambiarRol = () => {
     setError(null)
 
     try {
-      const rolesActuales = (profile as any).roles || []
-
-      // Si ya tiene el rol, no hacer nada
-      if (rolesActuales.includes(nuevoRol)) {
-        setCargando(false)
-        return { success: true }
-      }
-
-      // Agregar el nuevo rol
-      const nuevosRoles = [...rolesActuales, nuevoRol]
-
-      // Actualizar usuario
-      const resultadoUsuario = await ServicioUsuario.actualizar(user.uid, {
-        roles: nuevosRoles,
+      const res = await GestorUsuarios.agregarRol(user.uid, nuevoRol, {
+        nombre: (profile as any).nombre || user.displayName || 'Usuario',
+        foto: (profile as any).foto || user.photoURL || '',
       })
 
-      if (!resultadoUsuario.success) {
-        throw new Error(resultadoUsuario.error || 'Error al actualizar rol')
-      }
-
-      // Si el nuevo rol es cuidador, crear perfil público si no existe
-      if (nuevoRol === 'cuidador') {
-        // Intentar obtener por ID directo primero (más eficiente)
-        const perfilExistente = await GestorPerfilPublico.obtenerPorId(user.uid)
-
-        if (!perfilExistente.success) {
-          // Crear perfil público básico con el UID del usuario
-          const nombreUsuario =
-            (profile as any).nombre || user.displayName || 'Usuario'
-          const fotoUsuario = (profile as any).foto || user.photoURL || ''
-
-          await GestorPerfilPublico.inicializarPerfil(user.uid, {
-            nombre: nombreUsuario,
-            foto: fotoUsuario,
-            verificacion: 'pendiente',
-            rating_promedio: 0,
-            total_valoraciones: 0,
-            tarifa_por_hora: 15000, // Tarifa por defecto
-            creado_por: user.uid,
-          } as any)
-        }
+      if (!res.success) {
+        throw new Error(res.error || 'Error al actualizar rol')
       }
 
       // Refrescar perfil

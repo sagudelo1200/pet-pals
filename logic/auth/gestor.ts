@@ -4,6 +4,7 @@ import {
   updateProfile,
   deleteUser,
   signInWithCredential,
+  signOut,
 } from 'firebase/auth'
 import { auth } from '@/firebase.config'
 import { AuthResult, mapFirebaseError } from '@/services/firebase/comun'
@@ -43,9 +44,16 @@ function mapFirebaseAuthError(e: any): string {
  * Gestor de Autenticación (Lógica de Negocio)
  * Orquesta Firebase Auth con Firestore y reglas de negocio.
  */
-export class GestorAuth {
+export const GestorAuth = {
+  /**
+   * Obtiene el usuario autenticado actualmente.
+   */
+  obtenerUsuarioActual() {
+    return ServicioAuth.obtenerUsuarioActual()
+  },
+
   // Registro con email y contraseña + creación de perfil en Firestore
-  static async registrarConCorreo(
+  async registrarConCorreo(
     email: string,
     password: string,
     displayName: string
@@ -117,10 +125,10 @@ export class GestorAuth {
         error: mapFirebaseAuthError(error),
       }
     }
-  }
+  },
 
   // Ingreso con correo y contraseña
-  static async ingresarConCorreo(
+  async ingresarConCorreo(
     email: string,
     password: string
   ): Promise<AuthResult> {
@@ -159,10 +167,10 @@ export class GestorAuth {
         error: mapFirebaseAuthError(error),
       }
     }
-  }
+  },
 
   // Ingreso con Google (Credential) + creación de perfil si no existe
-  static async ingresarConGoogle(credential: any): Promise<AuthResult> {
+  async ingresarConGoogle(credential: any): Promise<AuthResult> {
     try {
       const userCredential = await signInWithCredential(auth, credential)
       const user = userCredential.user
@@ -210,14 +218,14 @@ export class GestorAuth {
         error: mapFirebaseAuthError(error),
       }
     }
-  }
+  },
 
-  static async cerrarSesion(): Promise<AuthResult> {
+  async cerrarSesion(): Promise<AuthResult> {
     try {
       await signOut(auth)
       return { success: true }
     } catch (error: any) {
       return { success: false, error: mapFirebaseAuthError(error) }
     }
-  }
+  },
 }

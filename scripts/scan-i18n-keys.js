@@ -1,214 +1,178 @@
+#!/usr/bin/env node
 const fs = require('fs')
 const path = require('path')
 
-/* -------------------- Configuración -------------------- */
+/**
+ * CONFIG
+ */
+const ROOT = path.resolve(__dirname, '..')
+const LOCALES_DIR = path.join(ROOT, 'services', 'i18n', 'locales', 'es')
+const DEFAULT_NS = 'comun'
 
-const SRC_DIR = path.resolve(__dirname, '../.')
-const IGNORE_DIRS = [
-  'node_modules',
-  'dist',
-  'build',
-  'android',
-  'ios',
-  '.git',
-  '__tests__',
-]
-const LOCALES_DIR = path.resolve(__dirname, '../services/i18n/locales/es')
+/**
+ * LOAD LOCALES (ONLY ES)
+ */
+const locales = {}
+fs.readdirSync(LOCALES_DIR)
+  .filter(f => f.endsWith('.json'))
+  .forEach(f => {
+    const ns = path.basename(f, '.json')
+    locales[ns] = JSON.parse(fs.readFileSync(path.join(LOCALES_DIR, f), 'utf8'))
+  })
 
-const I18N_REGEX =
-  /\bt\s*\(\s*['"`]([a-zA-Z][\w-]*(?::[a-zA-Z][\w-]+)?(?:\.[a-zA-Z][\w-]+)+)['"`]\s*\)/g
+const availableNs = Object.keys(locales)
 
-console.log('📂 Directorio de código fuente:', SRC_DIR)
-console.log('🌐 Directorio de traducciones:', LOCALES_DIR)
-
-/* -------------------- Logger en una sola línea -------------------- */
-
-function liveLog(mensaje) {
-  if (process.stdout.isTTY && typeof process.stdout.clearLine === 'function') {
-    process.stdout.clearLine(0)
-    process.stdout.cursorTo(0)
-    process.stdout.write(mensaje)
-  } else {
-    // Fallback: simple console.log if not TTY or functions missing
-    // console.log(mensaje);
-  }
-}
-
-/* -------------------- Utilidades -------------------- */
-
-function readAllFiles(dir, extensiones) {
-  let resultados = []
-
-  for (const archivo of fs.readdirSync(dir)) {
-    if (IGNORE_DIRS.includes(archivo)) continue
-
-    const rutaCompleta = path.join(dir, archivo)
-    const stat = fs.statSync(rutaCompleta)
-
-    if (stat.isDirectory()) {
-      resultados = resultados.concat(readAllFiles(rutaCompleta, extensiones))
-    } else if (extensiones.some(ext => archivo.endsWith(ext))) {
-      resultados.push(rutaCompleta)
-    }
-  }
-
-  return resultados
-}
-
-function loadJson(ruta) {
-  return JSON.parse(fs.readFileSync(ruta, 'utf8'))
-}
-
-function getValueByPath(obj, pathStr) {
-  return pathStr.split('.').reduce((acc, key) => acc && acc[key], obj)
-}
-
-function countKeys(obj, prefix = '') {
-  let keys = []
-
-  for (const key in obj) {
-    const value = obj[key]
-    const fullKey = prefix ? `${prefix}.${key}` : key
-
-    if (typeof value === 'object' && value !== null) {
-      keys = keys.concat(countKeys(value, fullKey))
+/**
+ * FLATTEN KEYS
+ */
+function flatten(obj, prefix = '', acc = []) {
+  for (const k of Object.keys(obj)) {
+    const next = prefix ? `${prefix}.${k}` : k
+    if (typeof obj[k] === 'object' && obj[k] !== null) {
+      flatten(obj[k], next, acc)
     } else {
-      keys.push(fullKey)
+      acc.push(next)
     }
   }
-
-  return keys
+  return acc
 }
 
-/* -------------------- Proceso principal -------------------- */
+const definedKeys = new Set()
+availableNs.forEach(ns => {
+  flatten(locales[ns]).forEach(k => definedKeys.add(`${ns}:${k}`))
+})
 
-function checkI18nKeys() {
-  console.log('\n🔎 Verificando claves i18n...\n')
-
-  /* ---------- Cargar traducciones ---------- */
-
-  const archivosLocales = readAllFiles(LOCALES_DIR, ['.json'])
-  const locales = {}
-  const allAvailableKeys = new Set()
-
-  for (const archivo of archivosLocales) {
-    const namespace = path.basename(archivo, '.json')
-    liveLog(`📚 Cargando namespace: ${namespace}`)
-    const json = loadJson(archivo)
-    locales[namespace] = json
-
-    countKeys(json).forEach(k => {
-      allAvailableKeys.add(`${namespace}:${k}`)
-    })
+/**
+ * FILE SCAN
+ */
+function listFiles(dir) {
+  const out = []
+  for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
+    const full = path.join(dir, e.name)
+    if (
+      full.includes('node_modules') ||
+      full.includes('.git') ||
+      full.includes(`${path.sep}scripts${path.sep}`)
+    )
+      continue
+    if (e.isDirectory()) out.push(...listFiles(full))
+    else if (/\.(ts|tsx|js|jsx)$/.test(e.name)) out.push(full)
   }
+  return out
+}
 
-  liveLog(`📚 ${archivosLocales.length} namespaces cargados`)
-  console.log('\n')
+/**
+ * REGEX
+ */
+const T_REGEX = /(?:^|[^A-Za-z0-9_])t\(\s*['"`]([^'"`\)]+)['"`]\s*\)/g
+const USE_TRANSLATION_REGEX =
+  /useTranslation\(\s*(?:\[\s*)?['"`]([^'"`\]]+)['"`]/g
 
-  /* ---------- Escanear código ---------- */
+/**
+ * COLLECTIONS
+ */
+const usedStatic = new Set()
+const dynamicPrefixes = new Set()
+const missing = {}
+const dynamic = {}
 
-  const archivosFuente = readAllFiles(SRC_DIR, ['.ts', '.tsx'])
-  console.log(`📄 Archivos de código encontrados: ${archivosFuente.length}\n`)
+for (const file of listFiles(ROOT)) {
+  const content = fs.readFileSync(file, 'utf8')
+  const lines = content.split(/\r?\n/)
 
-  const errores = []
-  const clavesUsadas = new Set()
-  const archivosConI18n = new Set()
+  // 🔍 Detect default namespace(s) for this file
+  let fileNamespaces = []
+  let m
+  while ((m = USE_TRANSLATION_REGEX.exec(content)) !== null) {
+    if (availableNs.includes(m[1])) fileNamespaces.push(m[1])
+  }
+  if (!fileNamespaces.length) fileNamespaces = [DEFAULT_NS]
 
-  for (const archivo of archivosFuente) {
-    liveLog(`🔍 Analizando: ${path.relative(SRC_DIR, archivo)}`)
-
-    const contenido = fs.readFileSync(archivo, 'utf8')
+  lines.forEach((line, index) => {
+    T_REGEX.lastIndex = 0
     let match
-    let archivoTieneI18n = false
 
-    while ((match = I18N_REGEX.exec(contenido)) !== null) {
-      archivoTieneI18n = true
-      const rawKey = match[1]
-      clavesUsadas.add(rawKey)
+    while ((match = T_REGEX.exec(line)) !== null) {
+      const rawKey = match[1].trim()
+      const loc = `${file}:${index + 1}`
 
-      let namespace = 'default'
-      let keyPath = rawKey
-
-      if (rawKey.includes(':')) {
-        ;[namespace, keyPath] = rawKey.split(':')
-      }
-
-      const locale = locales[namespace]
-
-      if (!locale) {
-        errores.push({
-          tipo: 'NAMESPACE_NO_EXISTE',
-          archivo,
-          clave: rawKey,
-          namespace,
-        })
+      // ⚠️ DYNAMIC
+      if (
+        rawKey.includes('${') ||
+        rawKey.includes('+') ||
+        rawKey.includes('?.') ||
+        rawKey.includes('(')
+      ) {
+        const base = rawKey.split('${')[0].replace(/[:.]$/, '')
+        dynamicPrefixes.add(base)
+        if (!dynamic[rawKey]) dynamic[rawKey] = []
+        dynamic[rawKey].push(loc)
         continue
       }
 
-      if (getValueByPath(locale, keyPath) === undefined) {
-        errores.push({
-          tipo: 'CLAVE_NO_EXISTE',
-          archivo,
-          clave: rawKey,
+      // RESOLVE NS
+      let resolvedKeys = []
+
+      if (rawKey.includes(':')) {
+        const [ns, ...rest] = rawKey.split(':')
+        resolvedKeys.push(`${ns}:${rest.join(':')}`)
+      } else if (rawKey.includes('.')) {
+        const [maybeNs, ...rest] = rawKey.split('.')
+        if (availableNs.includes(maybeNs)) {
+          resolvedKeys.push(`${maybeNs}:${rest.join('.')}`)
+        } else {
+          fileNamespaces.forEach(ns => resolvedKeys.push(`${ns}:${rawKey}`))
+        }
+      } else {
+        fileNamespaces.forEach(ns => resolvedKeys.push(`${ns}:${rawKey}`))
+      }
+
+      let matched = false
+      for (const k of resolvedKeys) {
+        usedStatic.add(k)
+        if (definedKeys.has(k)) matched = true
+      }
+
+      if (!matched) {
+        resolvedKeys.forEach(k => {
+          if (!missing[k]) missing[k] = []
+          missing[k].push(loc)
         })
       }
     }
-
-    if (archivoTieneI18n) {
-      archivosConI18n.add(archivo)
-    }
-  }
-
-  if (process.stdout.isTTY && typeof process.stdout.clearLine === 'function') {
-    process.stdout.clearLine(0)
-    process.stdout.cursorTo(0)
-  }
-
-  /* ---------- Estadísticas ---------- */
-
-  const totalUsadas = clavesUsadas.size
-  const totalDisponibles = allAvailableKeys.size
-  const cobertura =
-    totalDisponibles === 0
-      ? 0
-      : ((totalUsadas / totalDisponibles) * 100).toFixed(2)
-
-  console.log('📊 Estadísticas i18n')
-  console.log(`   Namespaces cargados:        ${archivosLocales.length}`)
-  console.log(`   Archivos analizados:        ${archivosFuente.length}`)
-  console.log(`   Archivos con i18n:          ${archivosConI18n.size}`)
-  console.log(`   Claves usadas (únicas):     ${totalUsadas}`)
-  console.log(`   Claves disponibles:         ${totalDisponibles}`)
-  console.log(`   Cobertura aproximada:       ${cobertura}%`)
-  console.log(`   Errores encontrados:        ${errores.length}\n`)
-
-  /* ---------- Reporte ---------- */
-
-  if (errores.length === 0) {
-    console.log('✅ i18n OK — no se encontraron problemas')
-    process.exit(0)
-  }
-
-  console.log('❌ Problemas de i18n detectados:\n')
-
-  for (const err of errores) {
-    if (err.tipo === 'NAMESPACE_NO_EXISTE') {
-      console.log('🟥 Namespace inexistente')
-      console.log(`   Archivo: ${err.archivo}`)
-      console.log(`   Clave:   ${err.clave}`)
-      console.log(`   Namespace: ${err.namespace}\n`)
-    }
-
-    if (err.tipo === 'CLAVE_NO_EXISTE') {
-      console.log('🟨 Clave inexistente')
-      console.log(`   Archivo: ${err.archivo}`)
-      console.log(`   Clave:   ${err.clave}\n`)
-    }
-  }
-
-  process.exit(1)
+  })
 }
 
-/* -------------------- Ejecutar -------------------- */
+/**
+ * UNUSED (EXCLUDING DYNAMIC PREFIXES)
+ */
+const unused = [...definedKeys].filter(k => {
+  if (usedStatic.has(k)) return false
+  return ![...dynamicPrefixes].some(p => k.startsWith(p))
+})
 
-checkI18nKeys()
+/**
+ * REPORT
+ */
+if (Object.keys(missing).length) {
+  console.error('\n❌ Claves faltantes:')
+  for (const k in missing) {
+    console.error(`- ${k}`)
+    missing[k].forEach(l => console.error(`  ${l}`))
+  }
+}
+
+if (Object.keys(dynamic).length) {
+  console.warn('\n⚠️ Claves dinámicas:')
+  for (const k in dynamic) {
+    console.warn(`- ${k}`)
+    dynamic[k].forEach(l => console.warn(`  ${l}`))
+  }
+}
+
+if (unused.length) {
+  console.warn('\n⚠️ Claves definidas pero NO usadas:')
+  unused.forEach(k => console.warn(`- ${k}`))
+}
+
+process.exit(Object.keys(missing).length ? 2 : 0)

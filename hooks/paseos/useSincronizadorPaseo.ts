@@ -9,8 +9,9 @@ import {
 } from 'firebase/firestore'
 import { db } from '@/firebase.config'
 import { Paseo } from '@/models/Paseo'
-import { paseoActivo } from '@/logic/paseos'
+import { GestorPaseos } from '@/logic/paseos'
 import { toDomain } from '@/services/firebase/comun'
+import { ServicioPaseo } from '@/services/firebase'
 import { useSeguimientoPaseo } from './useSeguimientoPaseo'
 
 export interface EventoPaseo {
@@ -23,7 +24,7 @@ export interface EventoPaseo {
 
 /**
  * Hook "Sincronizador".
- * Su responsabilidad es escuchar Firebase y mantener actualizado al Singleton `paseoActivo`.
+ * Su responsabilidad es escuchar Firebase y mantener actualizado al Singleton `GestorPaseos.paseoActivo`.
  * También devuelve los datos crudos para quien lo invoca (legacy support).
  *
  * @param paseoId ID del paseo a sincronizar
@@ -55,17 +56,23 @@ export const useSincronizadorPaseo = (paseoId: string) => {
 
           // ALIMENTAMOS EL SINGLETON
           try {
-            paseoActivo.setPaseoActivo(paseoDoc)
+            GestorPaseos.paseoActivo.setPaseoActivo(paseoDoc)
           } catch (e) {
-            console.warn('paseoActivo: error al setear paseo en singleton', e)
+            console.warn(
+              'GestorPaseos.paseoActivo: error al setear paseo en singleton',
+              e
+            )
           }
         } else {
           setPaseo(null)
           // LIMPIAMOS EL SINGLETON
           try {
-            paseoActivo.limpiarPaseoActivo()
+            GestorPaseos.paseoActivo.limpiarPaseoActivo()
           } catch (e) {
-            console.warn('paseoActivo: error al limpiar paseo singleton', e)
+            console.warn(
+              'GestorPaseos.paseoActivo: error al limpiar paseo singleton',
+              e
+            )
           }
         }
         setLoading(false)
@@ -83,11 +90,14 @@ export const useSincronizadorPaseo = (paseoId: string) => {
     const unsubEventos = onSnapshot(
       qEventos,
       snapshot => {
-        const docs = snapshot.docs.map(d => ({
+        const serverDocs = snapshot.docs.map(d => ({
           id: d.id,
           ...toDomain(d.data()),
         })) as EventoPaseo[]
-        setEventos(docs)
+        // Añadir eventos locales pendientes (optimistic updates) al inicio
+        const pending = ServicioPaseo.obtenerEventosPendientes(paseoId) as any[]
+        const merged = [...pending, ...serverDocs]
+        setEventos(merged)
       },
       err => {
         console.error('[Firebase] Error suscribiendo a eventos:', err)
@@ -98,7 +108,7 @@ export const useSincronizadorPaseo = (paseoId: string) => {
       unsubPaseo()
       unsubEventos()
       // Opcional: limpiar singleton al desmontar si es la única fuente de verdad
-      // paseoActivo.limpiarPaseoActivo()
+      // GestorPaseos.paseoActivo.limpiarPaseoActivo()
       // Cuidado con desmontajes al navegar entre pestañas.
     }
   }, [paseoId])

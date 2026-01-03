@@ -102,20 +102,6 @@ export class ServicioUsuario {
     return ServicioCrudBase.eliminar(this.COLLECTION, id)
   }
 
-  static async obtenerTodos(): Promise<CrudResult<Usuario[]>> {
-    return ServicioCrudBase.obtenerTodos<Usuario>(this.COLLECTION)
-  }
-
-  static async obtenerPorCorreo(email: string): Promise<CrudResult<Usuario[]>> {
-    return ServicioCrudBase.buscar<Usuario>(this.COLLECTION, 'correo', email)
-  }
-
-  static async obtenerPorEstado(
-    estado: string
-  ): Promise<CrudResult<Usuario[]>> {
-    return ServicioCrudBase.buscar<Usuario>(this.COLLECTION, 'estado', estado)
-  }
-
   static async agregarUbicacion(
     _userId: string,
     _ubicacionId: string,

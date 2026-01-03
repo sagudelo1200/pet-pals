@@ -1,20 +1,12 @@
 import { useEffect, useState, useRef } from 'react'
-import {
-  collection,
-  query,
-  where,
-  limit,
-  onSnapshot,
-  orderBy,
-} from 'firebase/firestore'
-import { db } from '@/firebase.config'
+import { onSnapshot } from 'firebase/firestore'
 import { Paseo, ESTADOS_PASEO } from '@/models/Paseo'
-import { paseoActivo, completarPaseo } from '@/logic/paseos'
+import { GestorPaseos } from '@/logic/paseos'
 import { useGestorPaseoActivo } from '@/hooks/paseos/useGestorPaseoActivo'
-import { ServicioAuth } from '@/services/firebase/auth/auth'
+import { GestorAuth } from '@/logic/auth'
 
 export function useMonitorPaseoGlobal() {
-  const user = ServicioAuth.obtenerUsuarioActual()
+  const user = GestorAuth.obtenerUsuarioActual()
   const { paseo } = useGestorPaseoActivo()
   const [showFinishedModal, setShowFinishedModal] = useState(false)
   const lastPaseoId = useRef<string | null>(null)
@@ -26,19 +18,8 @@ export function useMonitorPaseoGlobal() {
       return () => {}
     }
 
-    // Buscar cualquier paseo que esté en curso o recién finalizado
-    const q = query(
-      collection(db, 'paseos'),
-      where('creado_por', '==', user.uid),
-      where('estado', 'in', [
-        ESTADOS_PASEO.CONFIRMADO,
-        ESTADOS_PASEO.EN_CAMINO,
-        ESTADOS_PASEO.EN_PROGRESO,
-        ESTADOS_PASEO.FINALIZADO,
-      ]),
-      orderBy('creado_en', 'desc'),
-      limit(1)
-    )
+    // Buscar cualquier paseo que esté en curso o recién finalizado a través del gestor
+    const q = GestorPaseos.obtenerQueryMonitorPaseoGlobal(user.uid)
 
     const unsubscribe = onSnapshot(
       q,
@@ -46,10 +27,10 @@ export function useMonitorPaseoGlobal() {
         if (!snapshot.empty) {
           const doc = snapshot.docs[0]
           const data = { id: doc.id, ...doc.data() } as Paseo
-          paseoActivo.setPaseoActivo(data)
+          GestorPaseos.paseoActivo.setPaseoActivo(data)
         } else {
-          if (paseoActivo.getPaseoActivo() !== null) {
-            paseoActivo.limpiarPaseoActivo()
+          if (GestorPaseos.paseoActivo.getPaseoActivo() !== null) {
+            GestorPaseos.paseoActivo.limpiarPaseoActivo()
           }
         }
       },
@@ -82,10 +63,10 @@ export function useMonitorPaseoGlobal() {
 
   const handleClose = async () => {
     if (paseo?.id) {
-      await completarPaseo(paseo.id)
+      await GestorPaseos.completarPaseo(paseo.id)
     }
     setShowFinishedModal(false)
-    paseoActivo.limpiarPaseoActivo()
+    GestorPaseos.paseoActivo.limpiarPaseoActivo()
   }
 
   return {

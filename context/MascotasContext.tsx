@@ -7,7 +7,7 @@ import React, {
   ReactNode,
 } from 'react'
 import { useTranslation } from 'react-i18next'
-import { GestorMascotas } from '@/logic/mascotas/gestor'
+import { GestorMascotas } from '@/logic/mascotas'
 import { useAuth } from '@/context/AuthContext'
 import type { Mascota } from '@/models/Mascota'
 

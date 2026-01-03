@@ -22,6 +22,19 @@ export class GestorPerfilPublico {
   }
 
   /**
+   * Obtiene cuidadores que tienen disponibilidad configurada.
+   */
+  static async obtenerCuidadoresDisponibles(): Promise<
+    CrudResult<PerfilPublico[]>
+  > {
+    return ServicioPerfilPublico.buscarPerfiles(
+      [{ campo: 'verificacion', op: '==', valor: 'verificado' }],
+      { campo: 'rating_promedio', dir: 'desc' },
+      21
+    )
+  }
+
+  /**
    * Obtiene el perfil público de un usuario por su ID.
    */
   static async obtenerPorId(id: string): Promise<CrudResult<PerfilPublico>> {

@@ -1,0 +1,1 @@
+export { GestorMascotas } from './gestor'

@@ -117,30 +117,4 @@ export class ServicioPerfilPublico {
       return { success: false, error: mapFirebaseError(e) }
     }
   }
-
-  /** @deprecated Usar buscarPerfiles con filtros desde logic */
-  static async obtenerCuidadoresDisponibles(): Promise<
-    CrudResult<PerfilPublico[]>
-  > {
-    return this.buscarPerfiles(
-      [{ campo: 'verificacion', op: '==', valor: 'verificado' }],
-      { campo: 'rating_promedio', dir: 'desc' },
-      21
-    )
-  }
-
-  /** @deprecated Usar buscarPerfiles con filtros desde logic */
-  static async obtenerPorUsuario(
-    uid: string
-  ): Promise<CrudResult<PerfilPublico>> {
-    const res = await this.buscarPerfiles(
-      [{ campo: 'creado_por', op: '==', valor: uid }],
-      undefined,
-      1
-    )
-    if (res.success && res.data && res.data.length > 0) {
-      return { success: true, data: res.data[0] }
-    }
-    return { success: false, error: 'PERFIL_NO_ENCONTRADO' }
-  }
 }

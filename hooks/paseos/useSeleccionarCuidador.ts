@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/context/AuthContext'
-import { ServicioPerfilPublico } from '@/services/firebase'
+import { GestorPerfilPublico } from '@/logic/usuarios/perfilPublico'
 
 interface CuidadorListItem {
   id: string
@@ -38,8 +38,7 @@ export const useSeleccionarCuidador = (
     setError(null)
 
     try {
-      const resultado =
-        await ServicioPerfilPublico.obtenerCuidadoresDisponibles()
+      const resultado = await GestorPerfilPublico.obtenerCuidadoresDisponibles()
 
       if (resultado.success && resultado.data) {
         let filtrados = resultado.data.filter(perfil => perfil.id !== user?.uid)

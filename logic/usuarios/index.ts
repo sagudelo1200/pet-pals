@@ -1,1 +1,2 @@
-export * from './gestor'
+export { GestorUsuarios } from './gestor'
+export * from './perfilPublico'

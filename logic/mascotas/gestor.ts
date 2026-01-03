@@ -11,8 +11,8 @@ import { CrudResult } from '@/services/firebase/comun'
  * Gestor de Mascotas.
  * Centraliza la lógica de negocio, validaciones de propiedad y reglas de estado.
  */
-export class GestorMascotas {
-  static async crear(data: Partial<Mascota>): Promise<CrudResult<Mascota>> {
+export const GestorMascotas = {
+  async crear(data: Partial<Mascota>): Promise<CrudResult<Mascota>> {
     const current = ServicioAuth.obtenerUsuarioActual()
     const uid = current?.uid
     if (!uid) return { success: false, error: ERR.COMUN.NO_AUTENTICADO }
@@ -27,27 +27,25 @@ export class GestorMascotas {
     }
 
     return ServicioMascota.crear(payload as Mascota)
-  }
+  },
 
-  static async obtenerPorUsuario(
-    userId: string
-  ): Promise<CrudResult<Mascota[]>> {
+  async obtenerPorUsuario(userId: string): Promise<CrudResult<Mascota[]>> {
     return ServicioMascota.obtenerPorUsuario(userId)
-  }
+  },
 
-  static async obtenerPorId(id: string): Promise<CrudResult<Mascota>> {
+  async obtenerPorId(id: string): Promise<CrudResult<Mascota>> {
     return ServicioMascota.obtenerPorId(id)
-  }
+  },
 
-  static async actualizar(
+  async actualizar(
     id: string,
     data: Partial<Mascota>
   ): Promise<CrudResult<Mascota>> {
     // Aquí se podrían añadir validaciones de propiedad antes de actualizar
     return ServicioMascota.actualizar(id, data as any)
-  }
+  },
 
-  static async eliminar(id: string): Promise<CrudResult<boolean>> {
+  async eliminar(id: string): Promise<CrudResult<boolean>> {
     return ServicioMascota.eliminar(id)
-  }
+  },
 }

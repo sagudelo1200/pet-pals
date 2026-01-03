@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react'
+import { Alert } from 'react-native'
+import * as ImagePicker from 'expo-image-picker'
 import { useTranslation } from 'react-i18next'
-import { GestorMascotas } from '@/logic/mascotas/gestor'
+import { GestorMascotas } from '@/logic/mascotas'
 import type { Mascota } from '@/models/Mascota'
 
 export const useEdicionMascota = (
