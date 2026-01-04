@@ -7,7 +7,7 @@ import {
   signOut,
 } from 'firebase/auth'
 import { auth } from '@/firebase.config'
-import { AuthResult, mapFirebaseError } from '@/services/firebase/comun'
+import { AuthResult } from '@/services/firebase/comun'
 import { ERR } from '@/constants/errors'
 import { ServicioUsuario } from '@/services/firebase/firestore/colecciones/usuario'
 import { ServicioAuth } from '@/services/firebase/auth/auth'

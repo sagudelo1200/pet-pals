@@ -21,9 +21,9 @@ export interface EventoPaseo {
 }
 
 export interface SincronizadorHandlers {
-  onPaseo?: (paseo: Paseo | null) => void
-  onEventos?: (eventos: EventoPaseo[]) => void
-  onError?: (err: unknown) => void
+  onPaseo?: (_paseo: Paseo | null) => void
+  onEventos?: (_eventos: EventoPaseo[]) => void
+  onError?: (_err: unknown) => void
 }
 
 /**

@@ -32,7 +32,7 @@ describe('GestorUbicaciones', () => {
 
   test('crearSiNoExiste devuelve existente si busca encuentra', async () => {
     const existing = { id: 'u1', direccion_formateada: 'X' }
-    ;(
+    void (
       ServicioUbicacion.buscarPorProveedorPlaceId as jest.Mock
     ).mockResolvedValue({
       success: true,
@@ -52,13 +52,13 @@ describe('GestorUbicaciones', () => {
   })
 
   test('crearSiNoExiste valida y delega a ServicioUbicacion.crear cuando no existe', async () => {
-    ;(
+    void (
       ServicioUbicacion.buscarPorProveedorPlaceId as jest.Mock
     ).mockResolvedValue({
       success: true,
       data: null,
     })
-    ;(ServicioUbicacion.crear as jest.Mock).mockResolvedValue({
+    void (ServicioUbicacion.crear as jest.Mock).mockResolvedValue({
       success: true,
       data: { id: 'nuevo' },
     })

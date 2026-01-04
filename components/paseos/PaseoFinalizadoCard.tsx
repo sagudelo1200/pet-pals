@@ -15,7 +15,7 @@ interface PaseoFinalizadoCardProps {
   mascotaNombre: string
   cuidadorNombre: string
   onClose: () => void
-  onRate?: (rating: number) => void
+  onRate?: (_rating: number) => void
 }
 
 export const PaseoFinalizadoCard: React.FC<PaseoFinalizadoCardProps> = ({
@@ -70,10 +70,7 @@ export const PaseoFinalizadoCard: React.FC<PaseoFinalizadoCardProps> = ({
               style={[
                 styles.confetti,
                 {
-                  transform: [
-                    { rotate: `${i * 30}deg` },
-                    { translateY: -65 },
-                  ],
+                  transform: [{ rotate: `${i * 30}deg` }, { translateY: -65 }],
                   backgroundColor: [
                     COLOR.PRIMARIO,
                     COLOR.ENFASIS,
