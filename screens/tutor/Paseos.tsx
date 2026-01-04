@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react'
 import { StyleSheet, View, Text, FlatList, Alert } from 'react-native'
 import { useTranslation } from 'react-i18next'
-import { useNavigation } from '@react-navigation/native'
+import { useNavigation, useFocusEffect } from '@react-navigation/native'
 import { COLOR } from '@/constants'
 import Screen from '@/components/ui/Screen'
 import ScreenHeader from '@/components/ui/ScreenHeader'
@@ -106,6 +106,17 @@ const Paseos: React.FC = () => {
 
   const paseosFiltrados = activeTab === 'proximos' ? proximos : historial
 
+  useFocusEffect(
+    React.useCallback(() => {
+      if (cargando) return
+      if (proximos.length > 0) {
+        setActiveTab('proximos')
+      } else if (historial.length > 0) {
+        setActiveTab('historial')
+      }
+    }, [cargando, proximos.length, historial.length])
+  )
+
   const renderEmptyState = () => (
     <View style={styles.emptyState}>
       <PaseadorPerrosSvg width={200} height={160} style={{ opacity: 0.8 }} />
@@ -174,6 +185,10 @@ const Paseos: React.FC = () => {
       <SolicitarPaseoModal
         visible={modalVisible}
         onClose={() => setModalVisible(false)}
+        onConfirm={() => {
+          // Si se confirmó una nueva solicitud, asegurarse de mostrar la pestaña de próximos
+          setActiveTab('proximos')
+        }}
       />
       <DetallePaseoBottomSheet
         visible={detalleVisible}

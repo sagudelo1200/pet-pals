@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { StyleSheet, View, FlatList } from 'react-native'
 import { useTranslation } from 'react-i18next'
-import { useNavigation } from '@react-navigation/native'
+import { useNavigation, useFocusEffect } from '@react-navigation/native'
 import { COLOR } from '@/constants'
 import Screen from '@/components/ui/Screen'
 import ScreenHeader from '@/components/ui/ScreenHeader'
@@ -27,6 +27,17 @@ const Agenda: React.FC = () => {
   const [detallePaseo, setDetallePaseo] = useState<Paseo | null>(null)
 
   const paseosFiltrados = activeTab === 'proximos' ? proximos : historial
+
+  useFocusEffect(
+    React.useCallback(() => {
+      if (cargando) return
+      if ((proximos || []).length > 0) {
+        setActiveTab('proximos')
+      } else if ((historial || []).length > 0) {
+        setActiveTab('historial')
+      }
+    }, [cargando, proximos?.length, historial?.length])
+  )
 
   const handlePressPaseo = (paseoId: string) => {
     const paseo = paseosFiltrados.find(p => p.id === paseoId)

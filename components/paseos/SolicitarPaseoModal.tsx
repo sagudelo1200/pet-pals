@@ -12,6 +12,7 @@ import { ConfirmarPaseoPaso } from './ConfirmarPaseoPaso'
 interface Props {
   visible: boolean
   onClose: () => void
+  onConfirm?: () => void
 }
 
 type Step =
@@ -22,7 +23,7 @@ type Step =
   | 'SELECCIONAR_HORA'
   | 'CONFIRMAR'
 
-export const SolicitarPaseoModal = ({ visible, onClose }: Props) => {
+export const SolicitarPaseoModal = ({ visible, onClose, onConfirm }: Props) => {
   const [step, setStep] = useState<Step>('SELECCIONAR_MASCOTA')
 
   // State for flow data
@@ -114,6 +115,14 @@ export const SolicitarPaseoModal = ({ visible, onClose }: Props) => {
   }
 
   const handleConfirmacionFinal = () => {
+    // Notificar al padre que se confirmó la creación del paseo
+    if (typeof onConfirm === 'function') {
+      try {
+        onConfirm()
+      } catch (e) {
+        // ignorar errores del callback del padre
+      }
+    }
     onClose()
     resetFlow()
   }
