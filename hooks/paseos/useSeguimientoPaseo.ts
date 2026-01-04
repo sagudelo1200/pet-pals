@@ -2,11 +2,11 @@ import { useState, useEffect } from 'react'
 import { useTiempoReal } from '../useTiempoReal'
 import { RUTAS_REALTIME } from '@/services/firebase'
 import { UbicacionRealtime } from '@/models/Ubicacion'
-
-interface Coordenada {
-  latitude: number
-  longitude: number
-}
+import {
+  convertirUbicacionRealtime,
+  convertirRutaRealtime,
+  Coordenada,
+} from '@/services/firebase/comun/realtimeConversores'
 
 /**
  * Hook para seguir la ubicación de un paseo en tiempo real.
@@ -38,24 +38,17 @@ export function useSeguimientoPaseo(idPaseo: string | undefined) {
   // Procesar ubicación actual
   useEffect(() => {
     if (ubicacionRT) {
-      setUbicacionActual({
-        latitude: ubicacionRT.latitud,
-        longitude: ubicacionRT.longitud,
-      })
+      const c = convertirUbicacionRealtime(ubicacionRT)
+      setUbicacionActual(c)
+    } else {
+      setUbicacionActual(null)
     }
   }, [ubicacionRT])
 
   // Procesar ruta completa
   useEffect(() => {
     if (rutaRT) {
-      // Convertir objeto de RTDB a array ordenado y mapear a Coordenada
-      const puntos = Object.values(rutaRT)
-        // Ordenar por timestamp si es necesario, aunque las keys de push ya son cronológicas
-        .map(u => ({
-          latitude: u.latitud,
-          longitude: u.longitud,
-        }))
-
+      const puntos = convertirRutaRealtime(rutaRT)
       setRuta(puntos)
     } else {
       setRuta([])

@@ -3,8 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { useMascotas } from '@/hooks/useMascotas'
 import { GestorPerfilPublico } from '@/logic/usuarios/perfilPublico'
 import { GestorUbicaciones } from '@/logic/ubicaciones'
-import { GestorPaseos } from '@/logic/paseos'
-import { ESTADOS_PASEO } from '@/models/Paseo'
+import { confirmarReservaPaseo } from '@/logic/paseos/confirmador'
 import { useAuth } from '@/context/AuthContext'
 import type { Ubicacion } from '@/models/Ubicacion'
 
@@ -105,46 +104,29 @@ export const useConfirmarPaseo = ({
   const total = totalBase * factorDuracion
 
   const confirmarReserva = useCallback(async () => {
-    if (!fecha || !hora) {
-      setError(t('paseos:flujo.errores.fecha_hora_requerida'))
-      return false
-    }
-
-    if (!direccionId) {
-      setError(t('paseos:flujo.errores.ubicacion_requerida'))
-      return false
-    }
-
     setLoading(true)
     setError(null)
-
     try {
-      // Combinar fecha y hora
-      const fechaInicio = new Date(fecha)
-      const [hours, minutes] = hora.split(':').map(Number)
-      fechaInicio.setHours(hours, minutes, 0, 0)
-
-      const result = await GestorPaseos.crearConMascotas(
-        {
-          tipo_paseo: 'solicitado',
-          estado: ESTADOS_PASEO.PENDIENTE,
-          fecha_hora_inicio: fechaInicio,
-          duracion_estimada: duracion || 60,
-          precio: total,
-          ubicacion_inicio: direccion || undefined,
-          id_cuidador: cuidadorId || undefined,
-          cuidador_nombre_visual: cuidador?.nombre,
-          cuidador_foto_visual: cuidador?.imagen,
-          modalidad: esCompartido ? 'compartido' : 'privado',
-          cupo_maximo_mascotas: esCompartido ? 10 : mascotas.length,
-          tutor_ids: user?.uid ? [user.uid] : [],
-        },
+      const res = await confirmarReservaPaseo({
+        fecha,
+        hora,
+        duracion,
+        total,
+        direccion,
+        direccionId,
+        cuidadorId,
+        esCompartido,
         mascotaIds,
-        direccion || undefined
-      )
+        tutorUid: user?.uid,
+      })
 
-      if (!result.success) {
-        throw new Error(result.error)
+      if (!res.success) {
+        setError(
+          typeof res.error === 'string'
+            ? t(`paseos:flujo.errores.${res.error}`)
+            : String(res.error)
+        )
+        return false
       }
 
       return true
@@ -160,14 +142,12 @@ export const useConfirmarPaseo = ({
     hora,
     duracion,
     total,
-    cuidadorId,
-    mascotaIds,
-    mascotas.length,
-    esCompartido,
-    cuidador,
-    user,
     direccion,
     direccionId,
+    cuidadorId,
+    esCompartido,
+    mascotaIds,
+    user,
     t,
   ])
 
