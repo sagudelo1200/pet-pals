@@ -1,5 +1,8 @@
 /* eslint-env jest */
-import { validarPayload } from '@/logic/ubicaciones/validaciones'
+import {
+  validarPayload,
+  esCoordenadaValida,
+} from '@/logic/ubicaciones/validaciones'
 
 const validPayload: any = {
   proveedor: 'google',
@@ -7,6 +10,29 @@ const validPayload: any = {
   direccion_formateada: 'Calle 1 #2-3',
   coordenadas: { latitude: 4.65, longitude: -74.06 },
 }
+
+describe('esCoordenadaValida', () => {
+  it('debe validar coordenadas correctas {latitude, longitude}', () => {
+    expect(esCoordenadaValida({ latitude: 4, longitude: -74 })).toBe(true)
+  })
+
+  it('debe validar coordenadas correctas {lat, lng}', () => {
+    expect(esCoordenadaValida({ lat: 4, lng: -74 })).toBe(true)
+  })
+
+  it('debe rechazar coordenadas fuera de rango', () => {
+    expect(esCoordenadaValida({ lat: 91, lng: 0 })).toBe(false)
+    expect(esCoordenadaValida({ lat: 0, lng: 181 })).toBe(false)
+  })
+
+  it('debe rechazar valores no numéricos', () => {
+    expect(esCoordenadaValida({ lat: '4' as any, lng: -74 })).toBe(false)
+  })
+
+  it('debe rechazar undefined/null', () => {
+    expect(esCoordenadaValida(undefined)).toBe(false)
+  })
+})
 
 describe('validarPayload - ubicaciones', () => {
   it('debe devolver null para payload válido', () => {

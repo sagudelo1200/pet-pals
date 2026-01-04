@@ -55,38 +55,45 @@ export function fijarPrincipalRef(
     return { ...u, es_principal: false }
   })
 
-  if (!encontrada) throw new Error('UBICACION_NO_ENCONTRADA_EN_USUARIO')
+  // Si no se encontró (ej. ID inválido), no cambiamos nada o manejamos error
+  // Aquí asumimos que si no está, no hay nueva principal válida,
+  // pero mantenemos la lista modificada (todas false) o revertimos.
+  // Para seguridad, si no encontrada, revertimos a la original o dejamos sin principal.
+  if (!encontrada) {
+    return {
+      lista: listaActual,
+      idPrincipal: listaActual.find(u => u.es_principal)?.ubicacion_id || '',
+    }
+  }
 
   return { lista: nuevaLista, idPrincipal: idNuevaPrincipal }
 }
 
 /**
- * Lógica pura para eliminar una ubicación.
- * - Si se borra la principal, reasigna la principal a la más antigua restante (o la primera del array).
+ * Elimina una referencia de la lista.
+ * - Si se borra la principal, asigna la siguiente más antigua como principal.
  */
 export function eliminarUbicacionRef(
   listaActual: UbicacionRef[],
   idAEliminar: string
 ): { lista: UbicacionRef[]; idPrincipal: string | undefined } {
-  const index = listaActual.findIndex(u => u.ubicacion_id === idAEliminar)
-  if (index === -1) return { lista: listaActual, idPrincipal: undefined } // No existe, no changes
-
-  const eraPrincipal = listaActual[index].es_principal
-  const nuevaLista = listaActual.filter(u => u.ubicacion_id !== idAEliminar)
-
-  let idPrincipal: string | undefined
-
-  if (nuevaLista.length === 0) {
-    idPrincipal = undefined
-  } else if (eraPrincipal) {
-    // Reasignar principal a la primera disponible (estrategia simple)
-    // Podría ser "la más reciente" o "la más antigua", aquí usamos index 0
-    nuevaLista[0].es_principal = true
-    idPrincipal = nuevaLista[0].ubicacion_id
-  } else {
-    // Mantiene la actual
-    idPrincipal = nuevaLista.find(u => u.es_principal)?.ubicacion_id
+  const aEliminar = listaActual.find(u => u.ubicacion_id === idAEliminar)
+  if (!aEliminar) {
+    return {
+      lista: listaActual,
+      idPrincipal: listaActual.find(u => u.es_principal)?.ubicacion_id,
+    }
   }
 
+  const nuevaLista = listaActual.filter(u => u.ubicacion_id !== idAEliminar)
+
+  // Si borramos la principal y quedan otras, asignar nueva principal
+  if (aEliminar.es_principal && nuevaLista.length > 0) {
+    // Asignar a la primera de la lista (la más antigua usualmente)
+    nuevaLista[0].es_principal = true
+    return { lista: nuevaLista, idPrincipal: nuevaLista[0].ubicacion_id }
+  }
+
+  const idPrincipal = nuevaLista.find(u => u.es_principal)?.ubicacion_id
   return { lista: nuevaLista, idPrincipal }
 }

@@ -8,7 +8,7 @@ import {
   ViewStyle,
 } from 'react-native'
 import { COLOR } from '@/constants'
-import { formatearEdadMascota } from '@/helpers'
+import { formatearEdadMascota } from '@/logic/mascotas/utilidades'
 import Avatar from './Avatar'
 import Icon from './Icon'
 import Chip from './Chip'

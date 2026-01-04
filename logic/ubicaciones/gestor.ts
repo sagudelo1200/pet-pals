@@ -2,7 +2,7 @@ import { ServicioUbicacion } from '@/services/firebase'
 import { Ubicacion } from '@/models/Ubicacion'
 import { CrudResult } from '@/services/firebase/comun'
 import { validarPayload } from './validaciones'
-import { normalizeComponentsForLATAM } from '@/helpers/ubicacion'
+import { normalizeComponentsForLATAM } from './normalizador'
 
 type CrearPayload = Omit<
   Ubicacion,

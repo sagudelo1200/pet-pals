@@ -39,6 +39,33 @@ export function isPlainObject(value: unknown): value is Record<string, any> {
   )
 }
 
+/**
+ * Convierte un GeoPoint o un objeto con lat/lng a un objeto de coordenadas estándar {latitude, longitude}.
+ */
+export function geoPointToCoords(
+  gp: any
+): { latitude: number; longitude: number } | undefined {
+  if (!gp) return undefined
+  if (gp.latitude !== undefined && gp.longitude !== undefined)
+    return { latitude: gp.latitude, longitude: gp.longitude }
+  if (gp.lat !== undefined && gp.lng !== undefined)
+    return { latitude: gp.lat, longitude: gp.lng }
+  return undefined
+}
+
+/**
+ * Convierte un objeto de coordenadas a un GeoPoint de Firestore.
+ */
+export function coordsToGeoPoint(
+  coords:
+    | { latitude?: number; longitude?: number }
+    | { lat?: number; lng?: number }
+) {
+  const lat = (coords as any).latitude ?? (coords as any).lat
+  const lng = (coords as any).longitude ?? (coords as any).lng
+  return new GeoPoint(lat || 0, lng || 0)
+}
+
 // Conversores genéricos
 export function toDomain<T = any>(input: any): T {
   if (input == null) return input as T

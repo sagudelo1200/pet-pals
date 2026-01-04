@@ -1,5 +1,16 @@
 import { Ubicacion } from '@/models/Ubicacion'
-import { esCoordenadaValida } from '@/helpers/ubicacion'
+
+export function esCoordenadaValida(
+  c?: { lat?: number; lng?: number } | { latitude?: number; longitude?: number }
+) {
+  if (!c) return false
+  const lat = (c as any).latitude ?? (c as any).lat
+  const lng = (c as any).longitude ?? (c as any).lng
+  if (typeof lat !== 'number' || typeof lng !== 'number') return false
+  if (lat < -90 || lat > 90) return false
+  if (lng < -180 || lng > 180) return false
+  return true
+}
 
 export function validarPayload(
   payload: Omit<

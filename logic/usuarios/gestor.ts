@@ -5,7 +5,7 @@ import {
   agregarUbicacionRef,
   fijarPrincipalRef,
   eliminarUbicacionRef,
-} from '@/helpers/logicaUbicacion'
+} from '@/logic/ubicaciones/referencias'
 import { CrudResult } from '@/services/firebase/comun'
 import { GestorPerfilPublico } from './perfilPublico'
 
