@@ -263,6 +263,15 @@ export class GestorPaseoActivo {
             localRes.error
           )
         }
+        try {
+          await ServicioPaseo.registrarEvento(this._paseo.id, 'ACEPTAR', {
+            estado_anterior: 'PENDIENTE',
+            estado_nuevo: 'CONFIRMADO',
+            id_cuidador: ServicioAuth.obtenerUsuarioActual()?.uid,
+          })
+        } catch (e) {
+          console.warn('Error registrando evento ACEPTAR (optimista):', e)
+        }
       }
     }
     return res
@@ -289,6 +298,14 @@ export class GestorPaseoActivo {
             'paseoActivo: Inconsistencia tras iniciarRutaAsync',
             localRes.error
           )
+        }
+        try {
+          await ServicioPaseo.registrarEvento(this._paseo.id, 'INICIAR_RUTA', {
+            estado_anterior: 'CONFIRMADO',
+            estado_nuevo: 'EN_CAMINO',
+          })
+        } catch (e) {
+          console.warn('Error registrando evento INICIAR_RUTA (optimista):', e)
         }
       }
     }
@@ -322,6 +339,15 @@ export class GestorPaseoActivo {
             localRes.error
           )
         }
+        try {
+          await ServicioPaseo.registrarEvento(this._paseo.id, 'INICIAR_PASEO', {
+            estado_anterior: 'EN_CAMINO',
+            estado_nuevo: 'EN_PROGRESO',
+            fecha_inicio_real: fecha,
+          })
+        } catch (e) {
+          console.warn('Error registrando evento INICIAR_PASEO (optimista):', e)
+        }
       }
     }
     return res
@@ -354,6 +380,22 @@ export class GestorPaseoActivo {
             localRes.error
           )
         }
+        try {
+          await ServicioPaseo.registrarEvento(
+            this._paseo.id,
+            'FINALIZAR_PASEO',
+            {
+              estado_anterior: 'EN_PROGRESO',
+              estado_nuevo: 'FINALIZADO',
+              fecha_fin_real: fecha,
+            }
+          )
+        } catch (e) {
+          console.warn(
+            'Error registrando evento FINALIZAR_PASEO (optimista):',
+            e
+          )
+        }
       }
     }
     return res
@@ -379,6 +421,15 @@ export class GestorPaseoActivo {
             'paseoActivo: Inconsistencia tras cancelarPaseoAsync',
             localRes.error
           )
+        }
+        try {
+          await ServicioPaseo.registrarEvento(this._paseo.id, 'CANCELAR', {
+            motivo,
+            estado_anterior: undefined,
+            estado_nuevo: 'CANCELADO',
+          })
+        } catch (e) {
+          console.warn('Error registrando evento CANCELAR (optimista):', e)
         }
       }
     }

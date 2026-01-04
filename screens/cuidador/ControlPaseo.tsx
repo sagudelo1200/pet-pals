@@ -16,7 +16,7 @@ import {
 } from '@react-navigation/native'
 import { useTranslation } from 'react-i18next'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import MapView, { Marker, Polyline } from 'react-native-maps'
+import MapView, { Marker, Polyline, AnimatedRegion } from 'react-native-maps'
 import { Ionicons } from '@expo/vector-icons'
 import * as Haptics from 'expo-haptics'
 import { BlurView } from 'expo-blur'
@@ -73,6 +73,103 @@ const ControlPaseo: React.FC = () => {
   const pulseAnim = useRef(new Animated.Value(1)).current
   const scaleAnim = useRef(new Animated.Value(1)).current
   const glowAnim = useRef(new Animated.Value(0.4)).current
+
+  // Animación suave del marcador en vivo
+  const AnimatedMarker = Animated.createAnimatedComponent(Marker)
+  const initialCoord = ubicacionActual ||
+    (typeof paseo?.ubicacion_inicio === 'object'
+      ? paseo.ubicacion_inicio.coordenadas
+      : null) || { latitude: -34.6037, longitude: -58.3816 }
+  const markerCoordinate = useRef(
+    new AnimatedRegion({
+      latitude: initialCoord.latitude,
+      longitude: initialCoord.longitude,
+      latitudeDelta: 0,
+      longitudeDelta: 0,
+    })
+  ).current
+
+  const lastUpdateRef = useRef<number | null>(null)
+  const prevCoordRef = useRef<any>(initialCoord)
+
+  // Evitar parpadeo: componente memoizado para el icono paw
+  const PawMarker = React.useMemo(
+    () =>
+      React.memo(() => (
+        <View style={styles.liveMarkerWrapper}>
+          <View style={styles.liveMarkerIcon}>
+            <Icon name="paw" size={18} color={COLOR.TEXTO} />
+          </View>
+        </View>
+      )),
+    []
+  )
+
+  // Animar marcador cuando llega nueva ubicación (duración basada en delta)
+  useEffect(() => {
+    if (!ubicacionActual || !markerCoordinate) return
+    const { latitude, longitude } = ubicacionActual
+    const now = Date.now()
+    const last = lastUpdateRef.current
+    const delta = last ? Math.max(0, now - last) : 600
+    const duration = Math.min(Math.max(delta, 300), 1200)
+    lastUpdateRef.current = now
+    prevCoordRef.current = ubicacionActual
+
+    if (typeof (markerCoordinate as any).timing === 'function') {
+      void (markerCoordinate as any)
+        .timing({ latitude, longitude, duration })
+        .start()
+    } else {
+      void (markerCoordinate as any).setValue({ latitude, longitude })
+    }
+  }, [ubicacionActual, markerCoordinate])
+
+  // Densificar ruta y reducir saltos visuales
+  const [displayedRuta, setDisplayedRuta] = useState(ruta)
+  const toRad = (v: number) => (v * Math.PI) / 180
+  const haversine = (a: any, b: any) => {
+    const R = 6371000
+    const dLat = toRad(b.latitude - a.latitude)
+    const dLon = toRad(b.longitude - a.longitude)
+    const lat1 = toRad(a.latitude)
+    const lat2 = toRad(b.latitude)
+    const sinDlat = Math.sin(dLat / 2)
+    const sinDlon = Math.sin(dLon / 2)
+    const q =
+      sinDlat * sinDlat + sinDlon * sinDlon * Math.cos(lat1) * Math.cos(lat2)
+    const c = 2 * Math.atan2(Math.sqrt(q), Math.sqrt(1 - q))
+    return R * c
+  }
+  const interpolateSegment = (a: any, b: any, spacing = 8) => {
+    const d = haversine(a, b)
+    const steps = Math.min(Math.ceil(d / spacing), 20)
+    const out = []
+    for (let i = 1; i <= steps; i++) {
+      const t = i / (steps + 1)
+      out.push({
+        latitude: a.latitude + (b.latitude - a.latitude) * t,
+        longitude: a.longitude + (b.longitude - a.longitude) * t,
+      })
+    }
+    return out
+  }
+  const densifyRoute = (r: any[]) => {
+    if (!r || r.length < 2) return r
+    const out: any[] = [r[0]]
+    for (let i = 1; i < r.length; i++) {
+      const a = r[i - 1]
+      const b = r[i]
+      const inter = interpolateSegment(a, b)
+      out.push(...inter)
+      out.push(b)
+    }
+    return out
+  }
+
+  useEffect(() => {
+    setDisplayedRuta(densifyRoute(ruta))
+  }, [ruta])
 
   const [showSuccess, setShowSuccess] = useState(false)
 
@@ -325,17 +422,19 @@ const ControlPaseo: React.FC = () => {
         }}
       >
         {/* Ruta recorrida */}
-        {ruta.length > 0 && paseo?.estado === ESTADOS_PASEO.EN_PROGRESO && (
-          <Polyline
-            coordinates={ruta}
-            strokeColor={COLOR.PRIMARIO}
-            strokeWidth={4}
-          />
-        )}
+        {displayedRuta.length > 0 &&
+          paseo?.estado === ESTADOS_PASEO.EN_PROGRESO && (
+            <Polyline
+              coordinates={displayedRuta}
+              strokeColor={COLOR.PRIMARIO}
+              strokeWidth={4}
+              geodesic
+            />
+          )}
 
         {ubicacionActual && (
-          <Marker
-            coordinate={ubicacionActual}
+          <AnimatedMarker
+            coordinate={markerCoordinate as any}
             zIndex={999}
             anchor={
               paseo?.estado === ESTADOS_PASEO.EN_PROGRESO
@@ -348,14 +447,8 @@ const ControlPaseo: React.FC = () => {
                 : COLOR.ENFASIS
             }
           >
-            {paseo?.estado === ESTADOS_PASEO.EN_PROGRESO && (
-              <View style={styles.liveMarkerWrapper}>
-                <View style={styles.liveMarkerIcon}>
-                  <Icon name="paw" size={18} color={COLOR.TEXTO} />
-                </View>
-              </View>
-            )}
-          </Marker>
+            {paseo?.estado === ESTADOS_PASEO.EN_PROGRESO && <PawMarker />}
+          </AnimatedMarker>
         )}
       </Mapa>
 
