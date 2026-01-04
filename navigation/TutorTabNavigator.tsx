@@ -7,7 +7,6 @@ import Dashboard from '@/screens/tutor/Dashboard'
 import Mascotas from '@/screens/tutor/Mascotas'
 import Paseos from '@/screens/tutor/Paseos'
 import MiCuenta from '@/screens/comun/MiCuenta'
-import ColorDemo from '@/screens/tutor/ColorDemo'
 import { TutorTabParamList } from './types'
 import { COLOR } from '@/constants'
 import { GlobalPaseoManager } from '@/components/tutor/GlobalPaseoManager'
@@ -88,18 +87,6 @@ export default function TutorTabNavigator(): React.ReactElement {
             headerTitle: 'Paseos',
             tabBarIcon: ({ color, size }) => (
               <Icon name="walking" size={size} color={color} />
-            ),
-          }}
-        />
-        <Tab.Screen
-          name="Colors"
-          component={ColorDemo}
-          options={{
-            tabBarButton: () => null,
-            title: 'Colores',
-            headerTitle: 'Demo de Colores',
-            tabBarIcon: ({ color, size }) => (
-              <Icon name="palette" size={size} color={color} />
             ),
           }}
         />
