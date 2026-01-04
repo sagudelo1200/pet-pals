@@ -89,29 +89,19 @@ export const RolProvider: React.FC<RolProviderProps> = ({ children }) => {
   }
 
   const cambiarRolActivo = async (nuevoRol: RolUsuario) => {
-    // Activación optimista: permitimos activar inmediatamente y luego
-    // verificamos contra el servidor (perfil) que el rol quedó registrado.
-    const previo = rolActivo
+    // Seguridad: no aplicar activación optimista para cambios de rol.
+    // Marcamos el rol como provisional y esperamos confirmación desde
+    // el backend (`recargarPerfil`) antes de persistir y activar.
     if (!roles?.includes(nuevoRol)) {
-      console.warn('Activando rol no listado todavía en roles:', nuevoRol)
+      console.warn(
+        'Intentando activar rol no listado todavía en roles:',
+        nuevoRol
+      )
     }
 
     setActivandoRol(true)
     setRolProvisional(nuevoRol)
 
-    try {
-      await AsyncStorage.setItem(ROL_ACTIVO_KEY, nuevoRol)
-      setRolActivo(nuevoRol)
-    } catch (error) {
-      console.error('Error guardando rol activo:', error)
-      setActivandoRol(false)
-      setRolProvisional(null)
-      return
-    }
-
-    // Forzar recarga del perfil (una sola lectura) y esperar a que `roles`
-    // en `AuthContext` se actualice para confirmar el nuevo rol. Esto evita
-    // múltiples lecturas al backend (solo hicimos la recarga explícita).
     try {
       if (typeof recargarPerfil === 'function') {
         await recargarPerfil()
@@ -131,18 +121,18 @@ export const RolProvider: React.FC<RolProviderProps> = ({ children }) => {
         elapsed += interval
       }
 
-      if (!confirmado) {
-        console.warn('No se confirmó el rol en backend, revirtiendo:', nuevoRol)
+      if (confirmado) {
         try {
-          if (previo) {
-            await AsyncStorage.setItem(ROL_ACTIVO_KEY, previo)
-          } else {
-            await AsyncStorage.removeItem(ROL_ACTIVO_KEY)
-          }
-        } catch (_err) {
-          // ignore
+          await AsyncStorage.setItem(ROL_ACTIVO_KEY, nuevoRol)
+          setRolActivo(nuevoRol)
+        } catch (error) {
+          console.error('Error guardando rol activo tras confirmación:', error)
         }
-        setRolActivo(previo)
+      } else {
+        console.warn(
+          'No se confirmó el rol en backend; no se aplicó el cambio:',
+          nuevoRol
+        )
       }
     } catch (err) {
       console.error('Error verificando rol en backend:', err)
