@@ -30,7 +30,6 @@ jest.mock('@/services/firebase/auth/auth', () => ({
 }))
 
 const { ServicioCrudBase } = require('@/services/firebase/firestore/base')
-const { ServicioAuth } = require('@/services/firebase/auth/auth')
 
 // Require the real implementation of ServicioMascota
 const {
