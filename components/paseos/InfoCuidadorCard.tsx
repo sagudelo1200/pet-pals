@@ -50,7 +50,7 @@ const InfoCuidadorCard: React.FC<Props> = ({
 
       {onChat && (
         <TouchableOpacity style={styles.chatButton} onPress={onChat}>
-          <Icon name="chatbubble-ellipses" size={20} color={COLOR.PRIMARIO} />
+          <Icon name="comment-dots" size={20} color={COLOR.PRIMARIO} />
         </TouchableOpacity>
       )}
     </View>
