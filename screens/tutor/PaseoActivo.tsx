@@ -16,7 +16,7 @@ import { StackScreenProps } from '@react-navigation/stack'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
 import { BlurView } from 'expo-blur'
-import { Mapa, Icon, Avatar, Spacer, Button } from '@/components/ui'
+import { Mapa, Icon, Spacer, Button } from '@/components/ui'
 import InfoCuidadorCard from '@/components/paseos/InfoCuidadorCard'
 import { useSincronizadorPaseo } from '@/hooks/paseos/useSincronizadorPaseo'
 import { AuthStackParamList } from '@/navigation/types'
@@ -27,7 +27,7 @@ type Props = StackScreenProps<AuthStackParamList, 'PaseoActivo'>
 
 export default function PaseoActivo({ route, navigation }: Props) {
   const { paseoId } = route.params
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const insets = useSafeAreaInsets()
   const { paseo, loading, eventos, ruta, ubicacionActual } =
     useSincronizadorPaseo(paseoId)
@@ -37,6 +37,7 @@ export default function PaseoActivo({ route, navigation }: Props) {
   const mapRef = useRef<any>(null)
   const slideAnim = useRef(new Animated.Value(400)).current
   const liveGlowAnim = useRef(new Animated.Value(0)).current
+  const liveLoopRef = useRef<any>(null)
 
   // Animación suave del marcador en vivo
   const AnimatedMarker = Animated.createAnimatedComponent(Marker)
@@ -119,6 +120,15 @@ export default function PaseoActivo({ route, navigation }: Props) {
   )
 
   const [bottomPanelHeight, setBottomPanelHeight] = useState(350)
+  const mapPadding = React.useMemo(
+    () => ({
+      bottom: bottomPanelHeight + 8,
+      top: insets.top + 80,
+      left: 0,
+      right: 0,
+    }),
+    [bottomPanelHeight, insets.top]
+  )
 
   useEffect(() => {
     navigation.setOptions({ headerShown: false })
@@ -150,7 +160,8 @@ export default function PaseoActivo({ route, navigation }: Props) {
         tension: 50,
         friction: 10,
       }).start()
-      Animated.loop(
+
+      const loop = Animated.loop(
         Animated.sequence([
           Animated.timing(liveGlowAnim, {
             toValue: 1,
@@ -163,9 +174,23 @@ export default function PaseoActivo({ route, navigation }: Props) {
             useNativeDriver: true,
           }),
         ])
-      ).start()
+      )
+
+      liveLoopRef.current = loop
+      loop.start()
     }
-  }, [loading])
+
+    return () => {
+      if (liveLoopRef.current) {
+        try {
+          liveLoopRef.current.stop()
+        } catch (_e) {
+          // ignore
+        }
+        liveLoopRef.current = null
+      }
+    }
+  }, [loading, slideAnim, liveGlowAnim])
 
   // Efecto para centrar el mapa al entrar a la pantalla o recuperar el foco
   useFocusEffect(
@@ -283,12 +308,7 @@ export default function PaseoActivo({ route, navigation }: Props) {
         marcador={false} // Desactivar marcador estático por defecto
         style={styles.mapOverride}
         onRegionChangeComplete={handleRegionChange}
-        mapPadding={{
-          bottom: bottomPanelHeight,
-          top: insets.top + 80,
-          left: 0,
-          right: 0,
-        }}
+        mapPadding={mapPadding}
         coordenadas={
           ubicacionActual ||
           ubicacionInicio || { latitude: -34.6037, longitude: -58.3816 }
@@ -428,7 +448,7 @@ export default function PaseoActivo({ route, navigation }: Props) {
                       )}
                     </Text>
                     <Text style={styles.timelineTime}>
-                      {formatTime(ev.creado_en)}
+                      {formatTime(ev.creado_en, i18n?.language)}
                     </Text>
                   </View>
                 </View>
@@ -460,11 +480,14 @@ function estadoIcono(estado: ESTADOS_PASEO) {
   }
 }
 
-function formatTime(date: Date) {
+function formatTime(date: Date, locale?: string) {
   if (!date) return ''
   const d =
     date instanceof Date ? date : (date as any).toDate?.() || new Date(date)
-  return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+  return d.toLocaleTimeString(locale || undefined, {
+    hour: '2-digit',
+    minute: '2-digit',
+  })
 }
 
 const HeaderContent = ({

@@ -158,18 +158,13 @@ const DetallePaseoBottomSheet: React.FC<Props> = ({
       </View>
 
       <Text style={styles.statusTitle}>
-        {t(
-          'paseos:estados.pendiente_titulo_mascota',
-          'Buscando compañero para {{mascota}} 🐾',
-          { mascota: paseo.mascota_nombre_visual || 'tu mascota' }
-        )}
+        {t('paseos:estados.pendiente_titulo_mascota', {
+          mascota: paseo.mascota_nombre_visual || 'tu mascota',
+        })}
       </Text>
 
       <Text style={styles.description}>
-        {t(
-          'paseos:estados.pendiente_desc_premium',
-          'Estamos notificando a los cuidadores cercanos. Esto suele tomar unos minutos.'
-        )}
+        {t('paseos:estados.pendiente_desc_premium')}
       </Text>
 
       <View style={styles.progressContainer}>
@@ -219,44 +214,25 @@ const DetallePaseoBottomSheet: React.FC<Props> = ({
         <View style={styles.header}>
           <Text style={styles.statusTitle}>
             {enCamino
-              ? t(
-                  'paseos:estados.en_camino_titulo',
-                  '¡{{nombre}} va en camino!',
-                  {
-                    nombre: paseo.cuidador_nombre_visual || 'El cuidador',
-                  }
-                )
-              : t(
-                  'paseos:estados.confirmado_titulo',
-                  '{{mascota}} ya tiene paseo 🐾',
-                  {
-                    mascota: paseo.mascota_nombre_visual || 'Tu mascota',
-                  }
-                )}
+              ? t('paseos:estados.en_camino_titulo', {
+                  nombre: paseo.cuidador_nombre_visual || 'El cuidador',
+                })
+              : t('paseos:estados.confirmado_titulo', {
+                  mascota: paseo.mascota_nombre_visual || 'Tu mascota',
+                })}
           </Text>
           <Text style={styles.description}>
             {enCamino
-              ? t(
-                  'paseos:estados.en_camino_desc',
-                  'Llegará pronto para recoger a {{mascota}}.',
-                  {
-                    mascota: paseo.mascota_nombre_visual || 'tu mascota',
-                  }
-                )
-              : t(
-                  'paseos:estados.confirmado_desc',
-                  '{{cuidador}} está preparándose para salir con él.',
-                  {
-                    cuidador: paseo.cuidador_nombre_visual || 'El cuidador',
-                  }
-                )}
+              ? t('paseos:estados.en_camino_desc', {
+                  mascota: paseo.mascota_nombre_visual || 'tu mascota',
+                })
+              : t('paseos:estados.confirmado_desc', {
+                  cuidador: paseo.cuidador_nombre_visual || 'El cuidador',
+                })}
           </Text>
           {!enCamino && (
             <Text style={styles.microcopy}>
-              {t(
-                'paseos:estados.confirmado_micro',
-                'Te avisaremos cuando salgan a caminar.'
-              )}
+              {t('paseos:estados.confirmado_micro')}
             </Text>
           )}
         </View>
@@ -322,17 +298,10 @@ const DetallePaseoBottomSheet: React.FC<Props> = ({
               variant="contorno"
               title={
                 enCamino
-                  ? t(
-                      'comun:acciones.seguir_cuidador',
-                      '📍 Seguir a {{nombre}}',
-                      {
-                        nombre: paseo.cuidador_nombre_visual || 'Cuidador',
-                      }
-                    )
-                  : t(
-                      'comun:acciones.ver_punto_encuentro',
-                      'Ver punto de encuentro'
-                    )
+                  ? t('comun:acciones.seguir_cuidador', {
+                      nombre: paseo.cuidador_nombre_visual || 'Cuidador',
+                    })
+                  : t('comun:acciones.ver_punto_encuentro')
               }
               onPress={() => {
                 onClose()
