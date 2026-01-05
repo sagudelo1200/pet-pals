@@ -65,6 +65,35 @@ const ControlPaseo: React.FC = () => {
     }, [ubicacionActual])
   )
 
+  // Centrar en ubicación de inicio cuando el paseo está confirmado
+  useFocusEffect(
+    useCallback(() => {
+      const ubicacionInicioLocal =
+        typeof paseo?.ubicacion_inicio === 'object'
+          ? paseo.ubicacion_inicio.coordenadas
+          : null
+      if (
+        paseo?.estado === ESTADOS_PASEO.CONFIRMADO &&
+        ubicacionInicioLocal &&
+        mapRef.current
+      ) {
+        try {
+          mapRef.current.animateToRegion(
+            {
+              latitude: ubicacionInicioLocal.latitude,
+              longitude: ubicacionInicioLocal.longitude,
+              latitudeDelta: 0.003,
+              longitudeDelta: 0.003,
+            },
+            700
+          )
+        } catch (_e) {
+          // ignore
+        }
+      }
+    }, [paseo?.estado, paseo?.ubicacion_inicio])
+  )
+
   // Activar publicación de ubicación en tiempo real
   usePublicarUbicacion(paseoId, paseo?.estado)
 
@@ -431,6 +460,16 @@ const ControlPaseo: React.FC = () => {
               geodesic
             />
           )}
+
+        {/* Pin de ubicación de inicio: mostrar cuando el paseo está CONFIRMADO */}
+        {ubicacionInicio && paseo?.estado === ESTADOS_PASEO.CONFIRMADO && (
+          <Marker
+            coordinate={ubicacionInicio}
+            anchor={{ x: 0.5, y: 1 }}
+            pinColor={COLOR.PRIMARIO}
+            identifier="inicio"
+          />
+        )}
 
         {ubicacionActual && (
           <AnimatedMarker

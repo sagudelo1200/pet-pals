@@ -119,7 +119,7 @@ export const SolicitarPaseoModal = ({ visible, onClose, onConfirm }: Props) => {
     if (typeof onConfirm === 'function') {
       try {
         onConfirm()
-      } catch (e) {
+      } catch (_e) {
         // ignorar errores del callback del padre
       }
     }
