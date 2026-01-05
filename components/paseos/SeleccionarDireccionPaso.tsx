@@ -113,7 +113,7 @@ export const SeleccionarDireccionPaso: React.FC<Props> = ({
             coordenadasPreview || { latitude: 4.62, longitude: -74.08 }
           } // Fallback bogota
           style={{ borderRadius: 12 }}
-          zoom={19}
+          zoom={18}
         />
         {!seleccionada && (
           <View style={styles.mapOverlay}>

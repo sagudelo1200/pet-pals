@@ -151,7 +151,7 @@ export const CrearDireccionSheet: React.FC<CrearDireccionSheetProps> = ({
                 interactivo
                 alto={300}
                 pinCentro
-                zoom={19}
+                zoom={18}
                 // Usamos key para que se remonte si cambia la region inicial (reset)
                 key={`map-${initialRegion.latitude}-${initialRegion.longitude}`}
                 coordenadas={{

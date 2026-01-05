@@ -549,7 +549,7 @@ const ColorDemo: React.FC = () => {
           coordenadas={ubicacionSeleccionada}
           alto={300}
           marcador
-          zoom={16}
+          zoom={18}
         />
       </View>
 

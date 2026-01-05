@@ -277,7 +277,7 @@ export default function PaseoActivo({ route, navigation }: Props) {
       <Mapa
         ref={mapRef}
         alto="100%"
-        zoom={12}
+        zoom={18}
         interactivo={true}
         marcador={false} // Desactivar marcador estático por defecto
         style={styles.mapOverride}

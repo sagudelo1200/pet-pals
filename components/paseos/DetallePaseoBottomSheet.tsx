@@ -31,6 +31,21 @@ const DetallePaseoBottomSheet: React.FC<Props> = ({
   const navigation = useNavigation()
   const [cuidador, setCuidador] = useState<PerfilPublico | null>(null)
   const pulseAnim = useRef(new Animated.Value(1)).current
+  const rippleAnim = useRef(new Animated.Value(0)).current
+
+  useEffect(() => {
+    if (paseo?.estado === ESTADOS_PASEO.PENDIENTE) {
+      Animated.loop(
+        Animated.timing(rippleAnim, {
+          toValue: 1,
+          duration: 2000,
+          useNativeDriver: true,
+        })
+      ).start()
+    } else {
+      rippleAnim.setValue(0)
+    }
+  }, [paseo?.estado])
 
   useEffect(() => {
     if (paseo?.estado === ESTADOS_PASEO.EN_CAMINO) {
@@ -71,27 +86,80 @@ const DetallePaseoBottomSheet: React.FC<Props> = ({
 
   const renderPendiente = () => (
     <View style={styles.content}>
-      <View style={styles.iconContainer}>
-        <Icon name="search" size={48} color={COLOR.PRIMARIO} />
-        <View style={styles.loaderContainer}>
-          <ActivityIndicator size="small" color={COLOR.PRIMARIO} />
+      <View style={styles.radarContainer}>
+        <Animated.View
+          style={[
+            styles.radarRipple,
+            {
+              transform: [
+                {
+                  scale: rippleAnim.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [1, 2.5],
+                  }),
+                },
+              ],
+              opacity: rippleAnim.interpolate({
+                inputRange: [0, 1],
+                outputRange: [0.4, 0],
+              }),
+            },
+          ]}
+        />
+        <View style={styles.mascotaAvatarContainer}>
+          <Avatar
+            uri={paseo.mascota_foto_visual}
+            name={paseo.mascota_nombre_visual || 'Mascota'}
+            size={80}
+          />
+          <View style={styles.searchingBadge}>
+            <Icon name="search" size={12} color={COLOR.TEXTO} />
+          </View>
         </View>
       </View>
 
       <Text style={styles.statusTitle}>
-        {t('paseos:estados.pendiente_titulo', 'Buscando cuidador...')}
+        {t(
+          'paseos:estados.pendiente_titulo_mascota',
+          'Buscando compañero para {{mascota}} 🐾',
+          { mascota: paseo.mascota_nombre_visual || 'tu mascota' }
+        )}
       </Text>
 
       <Text style={styles.description}>
         {t(
-          'paseos:estados.pendiente_desc',
-          'Hemos notificado a los cuidadores cercanos. Te avisaremos en cuanto alguien acepte tu solicitud.'
+          'paseos:estados.pendiente_desc_premium',
+          'Estamos notificando a los cuidadores cercanos. Esto suele tomar unos minutos.'
         )}
       </Text>
 
+      <View style={styles.progressContainer}>
+        <View style={styles.progressStep}>
+          <ActivityIndicator size="small" color={COLOR.PRIMARIO} />
+          <Text style={[styles.progressText, styles.progressTextActive]}>
+            Buscando
+          </Text>
+        </View>
+        <View style={styles.progressLine} />
+        <View style={styles.progressStep}>
+          <Icon name="check-circle" size={16} color={COLOR.SUBTEXTO} />
+          <Text style={styles.progressText}>Aceptado</Text>
+        </View>
+        <View style={styles.progressLine} />
+        <View style={styles.progressStep}>
+          <Icon name="clock" size={16} color={COLOR.SUBTEXTO} />
+          <Text style={styles.progressText}>En camino</Text>
+        </View>
+        <View style={styles.progressLine} />
+        <View style={styles.progressStep}>
+          <Icon name="paw" size={16} color={COLOR.SUBTEXTO} />
+          <Text style={styles.progressText}>Paseo</Text>
+        </View>
+      </View>
+
       <View style={styles.actions}>
         <Button
-          variant="contorno"
+          variant="ghost"
           title={t('common:acciones.cancelar_solicitud', 'Cancelar solicitud')}
           onPress={() => {
             // TODO: Implementar cancelación
@@ -285,28 +353,38 @@ const styles = StyleSheet.create({
     paddingVertical: 24,
     paddingHorizontal: 20,
   },
-  iconContainer: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    backgroundColor: `${COLOR.PRIMARIO}08`,
+  radarContainer: {
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 24,
+    marginBottom: 32,
+    marginTop: 16,
+    width: 120,
+    height: 120,
+  },
+  radarRipple: {
+    position: 'absolute',
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: `${COLOR.PRIMARIO}30`,
+    borderWidth: 1,
+    borderColor: `${COLOR.PRIMARIO}50`,
+  },
+  mascotaAvatarContainer: {
     position: 'relative',
   },
-  loaderContainer: {
+  searchingBadge: {
     position: 'absolute',
     bottom: 0,
     right: 0,
-    backgroundColor: COLOR.BLOQUE,
-    borderRadius: 20,
-    padding: 8,
-    elevation: 4,
-    shadowColor: COLOR.SOMBRA,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
+    backgroundColor: COLOR.PRIMARIO,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: COLOR.BLOQUE,
   },
   statusTitle: {
     fontSize: 22,

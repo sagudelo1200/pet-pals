@@ -54,7 +54,7 @@ export const Mapa = forwardRef<MapView, MapaProps>(
       onRegionChangeComplete,
       alto = 200,
       marcador = true,
-      zoom = 15,
+      zoom = 18,
       provider = PROVIDER_GOOGLE, // Google por defecto para consistencia
       style,
       interactivo = false,

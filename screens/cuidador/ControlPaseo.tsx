@@ -438,7 +438,7 @@ const ControlPaseo: React.FC = () => {
         alto="100%"
         interactivo
         marcador={false}
-        zoom={9}
+        zoom={18}
         coordenadas={
           ubicacionActual ||
           ubicacionInicio || { latitude: -34.6037, longitude: -58.3816 }
