@@ -14,7 +14,7 @@ import PaseadorPerrosSvg from '@/assets/imgs/undraw/paseador_perros.svg'
 import { useMascotas } from '@/hooks/useMascotas'
 import { usePaseos } from '@/hooks/paseos/usePaseos'
 import DetallePaseoBottomSheet from '@/components/paseos/DetallePaseoBottomSheet'
-import { Paseo, ESTADOS_PASEO } from '@/models/Paseo'
+import { ESTADOS_PASEO } from '@/models/Paseo'
 import { obtenerExperienciaPaseo } from '@/logic/paseos/routerPaseos'
 
 type TabTipo = 'proximos' | 'historial'
@@ -25,11 +25,18 @@ const Paseos: React.FC = () => {
   const [modalVisible, setModalVisible] = useState(false)
   const [detalleVisible, setDetalleVisible] = useState(false)
   const [detalleTitle, setDetalleTitle] = useState('')
-  const [paseoSeleccionado, setPaseoSeleccionado] = useState<Paseo | null>(null)
+  const [paseoSeleccionadoId, setPaseoSeleccionadoId] = useState<string | null>(
+    null
+  )
   const { mascotas } = useMascotas()
   const navigation = useNavigation()
   const { paseos, cargando, refetch } = usePaseos()
   const lastNavTime = React.useRef(0)
+
+  const paseoSeleccionado = useMemo(
+    () => (paseos || []).find(p => p.id === paseoSeleccionadoId) || null,
+    [paseos, paseoSeleccionadoId]
+  )
 
   const handleNavigateToDetail = (id: string) => {
     const now = Date.now()
@@ -48,8 +55,8 @@ const Paseos: React.FC = () => {
       // @ts-ignore
       navigation.navigate(experiencia.id, { paseoId: id })
     } else if (experiencia.tipo === 'MODAL') {
-      // Mapeo temporal: Todos los modales abren el detalle genérico
-      setPaseoSeleccionado(paseo)
+      // Delegamos la visualización al BottomSheet inteligente
+      setPaseoSeleccionadoId(id)
       setDetalleTitle(
         experiencia.configuracion.titulo || t('paseos:detalle.titulo')
       )

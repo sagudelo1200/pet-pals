@@ -1,9 +1,18 @@
-import React from 'react'
-import { Text, StyleSheet, View, ActivityIndicator } from 'react-native'
+import React, { useEffect, useState, useRef } from 'react'
+import {
+  Text,
+  StyleSheet,
+  View,
+  ActivityIndicator,
+  Animated,
+} from 'react-native'
+import { useNavigation } from '@react-navigation/native'
 import { BottomSheet, Button, Icon, Avatar } from '@/components/ui'
 import { COLOR } from '@/constants'
 import { Paseo, ESTADOS_PASEO } from '@/models/Paseo'
 import { useTranslation } from 'react-i18next'
+import { GestorPerfilPublico } from '@/logic/usuarios/perfilPublico'
+import { PerfilPublico } from '@/models/PerfilPublico'
 
 interface Props {
   visible: boolean
@@ -19,6 +28,44 @@ const DetallePaseoBottomSheet: React.FC<Props> = ({
   paseo,
 }) => {
   const { t } = useTranslation()
+  const navigation = useNavigation()
+  const [cuidador, setCuidador] = useState<PerfilPublico | null>(null)
+  const pulseAnim = useRef(new Animated.Value(1)).current
+
+  useEffect(() => {
+    if (paseo?.estado === ESTADOS_PASEO.EN_CAMINO) {
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(pulseAnim, {
+            toValue: 1.05,
+            duration: 1000,
+            useNativeDriver: true,
+          }),
+          Animated.timing(pulseAnim, {
+            toValue: 1,
+            duration: 1000,
+            useNativeDriver: true,
+          }),
+        ])
+      ).start()
+    } else {
+      pulseAnim.setValue(1)
+    }
+  }, [paseo?.estado])
+
+  useEffect(() => {
+    let mounted = true
+    if (paseo?.id_cuidador) {
+      GestorPerfilPublico.obtenerPorId(paseo.id_cuidador).then(res => {
+        if (mounted && res.success && res.data) {
+          setCuidador(res.data)
+        }
+      })
+    }
+    return () => {
+      mounted = false
+    }
+  }, [paseo?.id_cuidador])
 
   if (!paseo) return null
 
@@ -57,82 +104,168 @@ const DetallePaseoBottomSheet: React.FC<Props> = ({
     </View>
   )
 
-  const renderConfirmado = () => (
-    <View style={styles.content}>
-      <View style={styles.header}>
-        <Text style={styles.statusTitle}>
-          {t('paseos:estados.confirmado_titulo', '¡Paseo confirmado!')}
-        </Text>
-        <Text style={styles.description}>
-          {t(
-            'paseos:estados.confirmado_desc',
-            'Tu cuidador ya ha aceptado la solicitud y se está preparando.'
-          )}
-        </Text>
-      </View>
+  const renderConfirmado = () => {
+    const enCamino = paseo.estado === ESTADOS_PASEO.EN_CAMINO
 
-      <View style={styles.cuidadorCard}>
-        <Avatar
-          uri={paseo.cuidador_foto_visual}
-          name={paseo.cuidador_nombre_visual || 'Cuidador'}
-          size={64}
-        />
-        <View style={styles.cuidadorInfo}>
-          <Text style={styles.cuidadorName}>
-            {paseo.cuidador_nombre_visual ||
-              t('common:cuidador_anonimo', 'Cuidador')}
+    return (
+      <View style={styles.content}>
+        <View style={styles.header}>
+          <Text style={styles.statusTitle}>
+            {enCamino
+              ? t(
+                  'paseos:estados.en_camino_titulo',
+                  '¡{{nombre}} va en camino!',
+                  {
+                    nombre: paseo.cuidador_nombre_visual || 'El cuidador',
+                  }
+                )
+              : t(
+                  'paseos:estados.confirmado_titulo',
+                  '{{mascota}} ya tiene paseo 🐾',
+                  {
+                    mascota: paseo.mascota_nombre_visual || 'Tu mascota',
+                  }
+                )}
           </Text>
-          <View style={styles.ratingContainer}>
-            <Icon name="star" size={16} color={COLOR.ALERTA} />
-            <Text style={styles.ratingText}>4.9</Text>
+          <Text style={styles.description}>
+            {enCamino
+              ? t(
+                  'paseos:estados.en_camino_desc',
+                  'Llegará pronto para recoger a {{mascota}}.',
+                  {
+                    mascota: paseo.mascota_nombre_visual || 'tu mascota',
+                  }
+                )
+              : t(
+                  'paseos:estados.confirmado_desc',
+                  '{{cuidador}} está preparándose para salir con él.',
+                  {
+                    cuidador: paseo.cuidador_nombre_visual || 'El cuidador',
+                  }
+                )}
+          </Text>
+          {!enCamino && (
+            <Text style={styles.microcopy}>
+              {t(
+                'paseos:estados.confirmado_micro',
+                'Te avisaremos cuando salgan a caminar.'
+              )}
+            </Text>
+          )}
+        </View>
+
+        <View style={styles.cuidadorCard}>
+          <Avatar
+            uri={paseo.cuidador_foto_visual}
+            name={paseo.cuidador_nombre_visual || 'Cuidador'}
+            size={64}
+          />
+          <View style={styles.cuidadorInfo}>
+            <Text style={styles.cuidadorName}>
+              {paseo.cuidador_nombre_visual ||
+                t('common:cuidador_anonimo', 'Cuidador')}
+            </Text>
+            <View style={styles.statsRow}>
+              <View style={styles.ratingContainer}>
+                <Icon name="star" size={14} color={COLOR.ALERTA} />
+                <Text style={styles.ratingText}>
+                  {cuidador?.rating_promedio
+                    ? Number(cuidador.rating_promedio).toFixed(1)
+                    : t('common:nuevo', 'Nuevo')}
+                </Text>
+              </View>
+              <Text style={styles.statsText}>
+                • {cuidador?.cantidad_paseos_realizados || 0} paseos
+              </Text>
+            </View>
           </View>
         </View>
-      </View>
 
-      <View style={styles.infoRow}>
-        <View style={styles.infoItem}>
-          <Icon name="calendar" size={20} color={COLOR.PRIMARIO} />
-          <Text style={styles.infoText}>
-            {new Date(paseo.fecha_hora_inicio).toLocaleTimeString([], {
-              hour: '2-digit',
-              minute: '2-digit',
+        <View style={styles.progressContainer}>
+          <View style={styles.progressStep}>
+            <Icon name="check-circle" size={16} color={COLOR.EXITO} />
+            <Text style={styles.progressText}>Solicitud</Text>
+          </View>
+          <View style={styles.progressLineActive} />
+          <View style={styles.progressStep}>
+            <Icon name="check-circle" size={16} color={COLOR.EXITO} />
+            <Text style={styles.progressText}>Aceptado</Text>
+          </View>
+          <View
+            style={enCamino ? styles.progressLineActive : styles.progressLine}
+          />
+          <View style={styles.progressStep}>
+            <Icon
+              name={enCamino ? 'check-circle' : 'clock'}
+              size={16}
+              color={enCamino ? COLOR.EXITO : COLOR.SUBTEXTO}
+            />
+            <Text
+              style={
+                enCamino
+                  ? [styles.progressText, styles.progressTextActive]
+                  : styles.progressText
+              }
+            >
+              En camino
+            </Text>
+          </View>
+          <View style={styles.progressLine} />
+          <View style={styles.progressStep}>
+            <Icon name="paw" size={16} color={COLOR.SUBTEXTO} />
+            <Text style={styles.progressText}>Paseo</Text>
+          </View>
+        </View>
+
+        <View style={styles.actions}>
+          <Button
+            variant="primario"
+            title={t('common:acciones.escribir_a', 'Escribir a {{nombre}}', {
+              nombre: paseo.cuidador_nombre_visual || 'Cuidador',
             })}
-          </Text>
-        </View>
-        <View style={styles.infoItem}>
-          <Icon name="paw" size={20} color={COLOR.PRIMARIO} />
-          <Text style={styles.infoText}>
-            {paseo.mascota_nombre_visual || t('common:mascota', 'Mascota')}
-          </Text>
+            icon="comment-dots"
+            onPress={() => {
+              // TODO: Implementar chat/llamada
+            }}
+            style={styles.actionButton}
+          />
+          <Animated.View style={{ transform: [{ scale: pulseAnim }] }}>
+            <Button
+              variant="contorno"
+              title={
+                enCamino
+                  ? t(
+                      'common:acciones.seguir_cuidador',
+                      '📍 Seguir a {{nombre}}',
+                      {
+                        nombre: paseo.cuidador_nombre_visual || 'Cuidador',
+                      }
+                    )
+                  : t(
+                      'common:acciones.ver_punto_encuentro',
+                      'Ver punto de encuentro'
+                    )
+              }
+              onPress={() => {
+                onClose()
+                // @ts-ignore
+                navigation.navigate('PaseoActivo', { paseoId: paseo.id })
+              }}
+              style={{ borderColor: COLOR.PRIMARIO }}
+              textStyle={{ color: COLOR.PRIMARIO }}
+            />
+          </Animated.View>
         </View>
       </View>
-
-      <View style={styles.actions}>
-        <Button
-          variant="primario"
-          title={t('common:acciones.contactar', 'Contactar')}
-          icon="comment-dots"
-          onPress={() => {
-            // TODO: Implementar chat/llamada
-          }}
-          style={styles.actionButton}
-        />
-        <Button
-          variant="contorno"
-          title={t('common:acciones.ver_perfil', 'Ver perfil')}
-          onPress={() => {
-            // TODO: Navegar a perfil
-          }}
-        />
-      </View>
-    </View>
-  )
+    )
+  }
 
   const renderContent = () => {
     switch (paseo.estado) {
       case ESTADOS_PASEO.PENDIENTE:
         return renderPendiente()
       case ESTADOS_PASEO.CONFIRMADO:
+      case ESTADOS_PASEO.EN_CAMINO:
         return renderConfirmado()
       default:
         return <Text style={styles.title}>{title || ''}</Text>
@@ -188,7 +321,7 @@ const styles = StyleSheet.create({
     color: COLOR.SUBTEXTO,
     textAlign: 'center',
     lineHeight: 24,
-    marginBottom: 32,
+    marginBottom: 12,
     paddingHorizontal: 10,
   },
   actions: {
@@ -252,30 +385,56 @@ const styles = StyleSheet.create({
     color: COLOR.ALERTA,
     marginLeft: 4,
   },
-  infoRow: {
+  microcopy: {
+    fontSize: 14,
+    color: COLOR.PRIMARIO,
+    fontWeight: '600',
+    marginTop: 8,
+    textAlign: 'center',
+  },
+  statsRow: {
     flexDirection: 'row',
+    alignItems: 'center',
+  },
+  statsText: {
+    fontSize: 13,
+    color: COLOR.SUBTEXTO,
+    marginLeft: 8,
+  },
+  progressContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
     justifyContent: 'space-between',
     width: '100%',
     marginBottom: 32,
-    gap: 12,
+    paddingHorizontal: 10,
   },
-  infoItem: {
-    flex: 1,
-    flexDirection: 'row',
+  progressStep: {
     alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: COLOR.BLOQUE,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: COLOR.BORDE,
+    gap: 4,
   },
-  infoText: {
-    marginLeft: 8,
-    fontSize: 14,
-    fontWeight: '600',
-    color: COLOR.TEXTO,
+  progressText: {
+    fontSize: 12,
+    color: COLOR.SUBTEXTO,
+    fontWeight: '500',
+  },
+  progressTextActive: {
+    color: COLOR.PRIMARIO,
+    fontWeight: '700',
+  },
+  progressLine: {
+    flex: 1,
+    height: 2,
+    backgroundColor: COLOR.BORDE,
+    marginHorizontal: 8,
+    marginBottom: 14,
+  },
+  progressLineActive: {
+    flex: 1,
+    height: 2,
+    backgroundColor: COLOR.EXITO,
+    marginHorizontal: 8,
+    marginBottom: 14,
   },
   actionButton: {
     marginBottom: 0,

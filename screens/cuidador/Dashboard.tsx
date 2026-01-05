@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react'
+import React, { useCallback, useState, useMemo } from 'react'
 import {
   StyleSheet,
   View,
@@ -32,7 +32,7 @@ const Dashboard: React.FC = () => {
   const { proximos, cargando, refetch } = useAgendaCuidador()
   const [detalleVisible, setDetalleVisible] = useState(false)
   const [detalleTitle, setDetalleTitle] = useState('')
-  const [detallePaseo, setDetallePaseo] = useState<Paseo | null>(null)
+  const [detallePaseoId, setDetallePaseoId] = useState<string | null>(null)
 
   // Recargar estadísticas al enfocar la pantalla
   useFocusEffect(
@@ -47,6 +47,11 @@ const Dashboard: React.FC = () => {
 
   // Filtrar próximos paseos del cuidador (hoy y futuros)
   const proximosPaseos = (proximos || []).slice(0, 3)
+
+  const detallePaseo = useMemo(
+    () => (proximos || []).find(p => p.id === detallePaseoId) || null,
+    [proximos, detallePaseoId]
+  )
 
   const renderEmptyState = () => (
     <View style={styles.emptyState}>
@@ -154,7 +159,7 @@ const Dashboard: React.FC = () => {
                         experiencia.configuracion.titulo ||
                           t('paseos:detalle.titulo')
                       )
-                      setDetallePaseo(paseo)
+                      setDetallePaseoId(paseo.id)
                       setDetalleVisible(true)
                     }
                   }}
@@ -167,7 +172,7 @@ const Dashboard: React.FC = () => {
         visible={detalleVisible}
         onClose={() => {
           setDetalleVisible(false)
-          setDetallePaseo(null)
+          setDetallePaseoId(null)
         }}
         title={detalleTitle}
         paseo={detallePaseo}
