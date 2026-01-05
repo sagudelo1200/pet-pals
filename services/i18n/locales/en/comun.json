@@ -38,5 +38,16 @@
   "en_desarrollo": "This section is under development. Stay tuned for updates!",
   "aceptar": "Accept",
   "idioma": "Language",
-  "idioma_subtitulo": "Choose app language"
+  "idioma_subtitulo": "Choose app language",
+  "acciones": {
+    "cancelar_solicitud": "Cancel request",
+    "escribir_a": "Message {{nombre}}",
+    "seguir_cuidador": "📍 Follow {{nombre}}",
+    "ver_punto_encuentro": "View meeting point"
+  },
+  "cuidador_anonimo": "Caregiver",
+  "nuevo": "New",
+  "cuidador": "Caregiver",
+  "duracion": "Duration",
+  "precio": "Price"
 }

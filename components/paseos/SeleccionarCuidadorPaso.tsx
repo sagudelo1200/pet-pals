@@ -477,7 +477,7 @@ export const SeleccionarCuidadorPaso = ({
 
           <View style={styles.modalFooter}>
             <Button
-              title={t('comun:cerrar', 'Cerrar')}
+              title={t('comun:cerrar')}
               variant="bloque"
               onPress={() => setShowDisponibilidad(false)}
             />

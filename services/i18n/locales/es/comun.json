@@ -38,5 +38,16 @@
   "en_desarrollo": "Esta sección está en desarrollo. ¡Mantente atento a las actualizaciones!",
   "aceptar": "Aceptar",
   "idioma": "Idioma",
-  "idioma_subtitulo": "Seleccionar idioma de la app"
+  "idioma_subtitulo": "Seleccionar idioma de la app",
+  "acciones": {
+    "cancelar_solicitud": "Cancelar solicitud",
+    "escribir_a": "Escribir a {{nombre}}",
+    "seguir_cuidador": "📍 Seguir a {{nombre}}",
+    "ver_punto_encuentro": "Ver punto de encuentro"
+  },
+  "cuidador_anonimo": "Cuidador",
+  "nuevo": "Nuevo",
+  "cuidador": "Cuidador",
+  "duracion": "Duración",
+  "precio": "Precio"
 }

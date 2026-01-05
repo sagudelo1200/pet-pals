@@ -27,7 +27,16 @@
     "FINALIZADO": "Finalizado",
     "COMPLETADO": "Completado",
     "CANCELADO": "Cancelado",
-    "ERROR": "Error"
+    "ERROR": "Error",
+    "pendiente_titulo_mascota": "Buscando compañero para {{mascota}} 🐾",
+    "pendiente_desc_premium": "Estamos notificando a los cuidadores cercanos. Esto suele tomar unos minutos.",
+    "en_camino_titulo": "¡{{nombre}} va en camino!",
+    "confirmado_titulo": "{{mascota}} ya tiene paseo 🐾",
+    "en_camino_desc": "Llegará pronto para recoger a {{mascota}}.",
+    "confirmado_desc": "{{cuidador}} está preparándose para salir con él.",
+    "confirmado_micro": "Te avisaremos cuando salga por tu mascota.",
+    "cancelado_titulo": "Paseo cancelado",
+    "completado_titulo": "Paseo completado"
   },
   "eventos": {
     "ACEPTAR": "Aceptar paseo",

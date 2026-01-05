@@ -27,7 +27,16 @@
     "FINALIZADO": "Finished",
     "COMPLETADO": "Completed",
     "CANCELADO": "Cancelled",
-    "ERROR": "Error"
+    "ERROR": "Error",
+    "pendiente_titulo_mascota": "Looking for a companion for {{mascota}} 🐾",
+    "pendiente_desc_premium": "We are notifying nearby caregivers. This usually takes a few minutes.",
+    "en_camino_titulo": "{{nombre}} is on the way!",
+    "confirmado_titulo": "{{mascota}} has a walk scheduled 🐾",
+    "en_camino_desc": "They will arrive soon to pick up {{mascota}}.",
+    "confirmado_desc": "{{cuidador}} is preparing to head out with them.",
+    "confirmado_micro": "We'll let you know when they start the walk.",
+    "cancelado_titulo": "Walk Cancelled",
+    "completado_titulo": "Walk Completed"
   },
   "eventos": {
     "ACEPTAR": "Accept walk",

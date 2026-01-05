@@ -160,7 +160,7 @@ const DetallePaseoBottomSheet: React.FC<Props> = ({
       <View style={styles.actions}>
         <Button
           variant="ghost"
-          title={t('common:acciones.cancelar_solicitud', 'Cancelar solicitud')}
+          title={t('comun:acciones.cancelar_solicitud')}
           onPress={() => {
             // TODO: Implementar cancelación
             onClose()
@@ -230,8 +230,7 @@ const DetallePaseoBottomSheet: React.FC<Props> = ({
           />
           <View style={styles.cuidadorInfo}>
             <Text style={styles.cuidadorName}>
-              {paseo.cuidador_nombre_visual ||
-                t('common:cuidador_anonimo', 'Cuidador')}
+              {paseo.cuidador_nombre_visual || t('comun:cuidador_anonimo')}
             </Text>
             <View style={styles.statsRow}>
               <View style={styles.ratingContainer}>
@@ -239,7 +238,7 @@ const DetallePaseoBottomSheet: React.FC<Props> = ({
                 <Text style={styles.ratingText}>
                   {cuidador?.rating_promedio
                     ? Number(cuidador.rating_promedio).toFixed(1)
-                    : t('common:nuevo', 'Nuevo')}
+                    : t('comun:nuevo')}
                 </Text>
               </View>
               <Text style={styles.statsText}>
@@ -288,7 +287,7 @@ const DetallePaseoBottomSheet: React.FC<Props> = ({
         <View style={styles.actions}>
           <Button
             variant="primario"
-            title={t('common:acciones.escribir_a', 'Escribir a {{nombre}}', {
+            title={t('comun:acciones.escribir_a', {
               nombre: paseo.cuidador_nombre_visual || 'Cuidador',
             })}
             icon="comment-dots"
@@ -303,14 +302,14 @@ const DetallePaseoBottomSheet: React.FC<Props> = ({
               title={
                 enCamino
                   ? t(
-                      'common:acciones.seguir_cuidador',
+                      'comun:acciones.seguir_cuidador',
                       '📍 Seguir a {{nombre}}',
                       {
                         nombre: paseo.cuidador_nombre_visual || 'Cuidador',
                       }
                     )
                   : t(
-                      'common:acciones.ver_punto_encuentro',
+                      'comun:acciones.ver_punto_encuentro',
                       'Ver punto de encuentro'
                     )
               }
@@ -328,6 +327,94 @@ const DetallePaseoBottomSheet: React.FC<Props> = ({
     )
   }
 
+  const renderHistorico = () => {
+    const esCancelado = paseo.estado === ESTADOS_PASEO.CANCELADO
+    const fecha = new Date(paseo.fecha_hora_inicio)
+
+    return (
+      <View style={styles.content}>
+        <View style={styles.header}>
+          <View
+            style={[
+              styles.iconBadge,
+              esCancelado ? styles.iconBadgeError : styles.iconBadgeSuccess,
+            ]}
+          >
+            <Icon
+              name={esCancelado ? 'x' : 'check'}
+              size={32}
+              color={esCancelado ? COLOR.ERROR : COLOR.EXITO}
+            />
+          </View>
+          <Text style={styles.statusTitle}>
+            {esCancelado
+              ? t('paseos:estados.cancelado_titulo')
+              : t('paseos:estados.completado_titulo')}
+          </Text>
+          <Text style={styles.description}>
+            {fecha.toLocaleDateString(undefined, {
+              weekday: 'long',
+              day: 'numeric',
+              month: 'long',
+            })}{' '}
+            •{' '}
+            {fecha.toLocaleTimeString([], {
+              hour: '2-digit',
+              minute: '2-digit',
+            })}
+          </Text>
+        </View>
+
+        <View style={styles.receiptCard}>
+          {paseo.cuidador_nombre_visual && (
+            <View style={styles.receiptRow}>
+              <View style={styles.receiptLabelContainer}>
+                <Icon name="user" size={16} color={COLOR.SUBTEXTO} />
+                <Text style={styles.receiptLabel}>{t('comun:cuidador')}</Text>
+              </View>
+              <Text style={styles.receiptValue}>
+                {paseo.cuidador_nombre_visual}
+              </Text>
+            </View>
+          )}
+
+          <View style={styles.receiptDivider} />
+
+          <View style={styles.receiptRow}>
+            <View style={styles.receiptLabelContainer}>
+              <Icon name="clock" size={16} color={COLOR.SUBTEXTO} />
+              <Text style={styles.receiptLabel}>{t('comun:duracion')}</Text>
+            </View>
+            <Text style={styles.receiptValue}>
+              {paseo.duracion_real || paseo.duracion_estimada} min
+            </Text>
+          </View>
+
+          <View style={styles.receiptDivider} />
+
+          <View style={styles.receiptRow}>
+            <View style={styles.receiptLabelContainer}>
+              <Icon name="dollar-sign" size={16} color={COLOR.SUBTEXTO} />
+              <Text style={styles.receiptLabel}>{t('comun:precio')}</Text>
+            </View>
+            <Text style={[styles.receiptValue, styles.receiptTotal]}>
+              ${paseo.precio}
+            </Text>
+          </View>
+        </View>
+
+        <View style={styles.actions}>
+          <Button
+            variant="contorno"
+            title={t('comun:cerrar')}
+            onPress={onClose}
+            style={styles.actionButton}
+          />
+        </View>
+      </View>
+    )
+  }
+
   const renderContent = () => {
     switch (paseo.estado) {
       case ESTADOS_PASEO.PENDIENTE:
@@ -335,6 +422,10 @@ const DetallePaseoBottomSheet: React.FC<Props> = ({
       case ESTADOS_PASEO.CONFIRMADO:
       case ESTADOS_PASEO.EN_CAMINO:
         return renderConfirmado()
+      case ESTADOS_PASEO.COMPLETADO:
+      case ESTADOS_PASEO.FINALIZADO:
+      case ESTADOS_PASEO.CANCELADO:
+        return renderHistorico()
       default:
         return <Text style={styles.title}>{title || ''}</Text>
     }
@@ -370,9 +461,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: `${COLOR.PRIMARIO}50`,
   },
-  mascotaAvatarContainer: {
-    position: 'relative',
-  },
+  mascotaAvatarContainer: { position: 'relative' },
   searchingBadge: {
     position: 'absolute',
     bottom: 0,
@@ -402,23 +491,15 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     paddingHorizontal: 10,
   },
-  actions: {
-    width: '100%',
-    gap: 12,
-  },
-  cancelButton: {
-    borderColor: `${COLOR.ERROR}50`,
-  },
+  actions: { width: '100%', gap: 12 },
+  cancelButton: { borderColor: `${COLOR.ERROR}50` },
   title: {
     fontSize: 20,
     fontWeight: '700',
     color: COLOR.TEXTO,
     marginBottom: 8,
   },
-  header: {
-    alignItems: 'center',
-    marginBottom: 32,
-  },
+  header: { alignItems: 'center', marginBottom: 32 },
   cuidadorCard: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -428,20 +509,14 @@ const styles = StyleSheet.create({
     width: '100%',
     marginBottom: 24,
     shadowColor: COLOR.SOMBRA,
-    shadowOffset: {
-      width: 0,
-      height: 8,
-    },
+    shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.2,
     shadowRadius: 16,
     elevation: 3,
     borderWidth: 1,
     borderColor: COLOR.BORDE,
   },
-  cuidadorInfo: {
-    marginLeft: 16,
-    flex: 1,
-  },
+  cuidadorInfo: { marginLeft: 16, flex: 1 },
   cuidadorName: {
     fontSize: 18,
     fontWeight: '700',
@@ -470,15 +545,8 @@ const styles = StyleSheet.create({
     marginTop: 8,
     textAlign: 'center',
   },
-  statsRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  statsText: {
-    fontSize: 13,
-    color: COLOR.SUBTEXTO,
-    marginLeft: 8,
-  },
+  statsRow: { flexDirection: 'row', alignItems: 'center' },
+  statsText: { fontSize: 13, color: COLOR.SUBTEXTO, marginLeft: 8 },
   progressContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -487,19 +555,9 @@ const styles = StyleSheet.create({
     marginBottom: 32,
     paddingHorizontal: 10,
   },
-  progressStep: {
-    alignItems: 'center',
-    gap: 4,
-  },
-  progressText: {
-    fontSize: 12,
-    color: COLOR.SUBTEXTO,
-    fontWeight: '500',
-  },
-  progressTextActive: {
-    color: COLOR.PRIMARIO,
-    fontWeight: '700',
-  },
+  progressStep: { alignItems: 'center', gap: 4 },
+  progressText: { fontSize: 12, color: COLOR.SUBTEXTO, fontWeight: '500' },
+  progressTextActive: { color: COLOR.PRIMARIO, fontWeight: '700' },
   progressLine: {
     flex: 1,
     height: 2,
@@ -514,9 +572,76 @@ const styles = StyleSheet.create({
     marginHorizontal: 8,
     marginBottom: 14,
   },
-  actionButton: {
-    marginBottom: 0,
+  actionButton: { marginBottom: 0 },
+  iconBadge: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 16,
+    borderWidth: 4,
   },
+  iconBadgeSuccess: {
+    backgroundColor: `${COLOR.EXITO}15`,
+    borderColor: `${COLOR.EXITO}30`,
+  },
+  iconBadgeError: {
+    backgroundColor: `${COLOR.ERROR}15`,
+    borderColor: `${COLOR.ERROR}30`,
+  },
+  receiptCard: {
+    width: '100%',
+    backgroundColor: COLOR.BLOQUE,
+    borderRadius: 24,
+    padding: 24,
+    marginBottom: 32,
+    borderWidth: 1,
+    borderColor: COLOR.BORDE,
+    shadowColor: COLOR.SOMBRA,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 2,
+  },
+  receiptRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 4,
+  },
+  receiptLabelContainer: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  receiptLabel: { fontSize: 14, color: COLOR.SUBTEXTO, fontWeight: '500' },
+  receiptValue: { fontSize: 16, color: COLOR.TEXTO, fontWeight: '600' },
+  receiptTotal: { fontSize: 20, fontWeight: '800', color: COLOR.PRIMARIO },
+  receiptDivider: {
+    height: 1,
+    backgroundColor: COLOR.BORDE,
+    marginVertical: 16,
+    borderStyle: 'dashed',
+    borderWidth: 1,
+    borderColor: COLOR.BORDE,
+  },
+  statsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    alignItems: 'center',
+    width: '100%',
+    marginBottom: 32,
+    paddingHorizontal: 20,
+    backgroundColor: COLOR.BLOQUE,
+    paddingVertical: 16,
+    borderRadius: 16,
+  },
+  statItem: { alignItems: 'center', gap: 4 },
+  statValue: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: COLOR.TEXTO,
+    marginTop: 4,
+  },
+  statLabel: { fontSize: 12, color: COLOR.SUBTEXTO, fontWeight: '500' },
+  statDivider: { width: 1, height: 40, backgroundColor: COLOR.BORDE },
 })
 
 export default DetallePaseoBottomSheet
