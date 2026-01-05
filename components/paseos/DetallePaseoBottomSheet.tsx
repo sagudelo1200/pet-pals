@@ -121,6 +121,34 @@ const DetallePaseoBottomSheet: React.FC<Props> = ({
     }
   }, [paseo?.id_cuidador])
 
+  // Si el paseo pasa a EN_PROGRESO mientras el BottomSheet está abierto,
+  // cerrar el sheet y navegar a la pantalla `PaseoActivo` para seguimiento.
+  const prevEstadoRef = React.useRef<string | null>(null)
+  useEffect(() => {
+    const prev = prevEstadoRef.current
+    const current = paseo?.estado
+    if (
+      visible &&
+      paseo?.id &&
+      current === ESTADOS_PASEO.EN_PROGRESO &&
+      prev !== ESTADOS_PASEO.EN_PROGRESO
+    ) {
+      // Cerrar el BottomSheet y navegar al seguimiento activo
+      try {
+        onClose()
+      } catch (_e) {
+        // ignore
+      }
+      // Dejamos una pequeña pausa para permitir animación de cierre
+      setTimeout(() => {
+        // @ts-ignore
+        navigation.navigate('PaseoActivo', { paseoId: paseo.id })
+      }, 250)
+    }
+
+    prevEstadoRef.current = current || null
+  }, [paseo?.estado, visible, paseo?.id, navigation, onClose])
+
   if (!paseo) return null
 
   const renderPendiente = () => (
