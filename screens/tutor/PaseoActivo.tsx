@@ -17,6 +17,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
 import { BlurView } from 'expo-blur'
 import { Mapa, Icon, Avatar, Spacer, Button } from '@/components/ui'
+import InfoCuidadorCard from '@/components/paseos/InfoCuidadorCard'
 import { useSincronizadorPaseo } from '@/hooks/paseos/useSincronizadorPaseo'
 import { AuthStackParamList } from '@/navigation/types'
 import { COLOR } from '@/constants'
@@ -369,24 +370,14 @@ export default function PaseoActivo({ route, navigation }: Props) {
 
         <View style={styles.sheetContent}>
           {/* Tarjeta de Identidad síncrona con el cuidador */}
-          <View style={styles.personCard}>
-            <Avatar uri={paseo.cuidador_foto_visual} size={48} />
-            <View style={styles.personInfo}>
-              <Text style={styles.personInfoLabel}>
-                {t('paseos:detalle.cuidador')}
-              </Text>
-              <Text style={styles.personName}>
-                {paseo.cuidador_nombre_visual}
-              </Text>
-            </View>
-            <TouchableOpacity style={styles.chatButton}>
-              <Ionicons
-                name="chatbubble-ellipses"
-                size={22}
-                color={COLOR.PRIMARIO}
-              />
-            </TouchableOpacity>
-          </View>
+          <InfoCuidadorCard
+            uri={paseo.cuidador_foto_visual}
+            name={paseo.cuidador_nombre_visual}
+            size={48}
+            onChat={() => {
+              // TODO: implementar chat
+            }}
+          />
 
           <Spacer size={20} />
 

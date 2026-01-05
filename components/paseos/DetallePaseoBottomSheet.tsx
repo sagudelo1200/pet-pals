@@ -1,3 +1,4 @@
+import InfoCuidadorCard from '@/components/paseos/InfoCuidadorCard'
 import React, { useEffect, useState, useRef } from 'react'
 import {
   Text,
@@ -260,31 +261,13 @@ const DetallePaseoBottomSheet: React.FC<Props> = ({
           )}
         </View>
 
-        <View style={styles.cuidadorCard}>
-          <Avatar
-            uri={paseo.cuidador_foto_visual}
-            name={paseo.cuidador_nombre_visual || 'Cuidador'}
-            size={64}
-          />
-          <View style={styles.cuidadorInfo}>
-            <Text style={styles.cuidadorName}>
-              {paseo.cuidador_nombre_visual || t('comun:cuidador_anonimo')}
-            </Text>
-            <View style={styles.statsRow}>
-              <View style={styles.ratingContainer}>
-                <Icon name="star" size={14} color={COLOR.ALERTA} />
-                <Text style={styles.ratingText}>
-                  {cuidador?.rating_promedio
-                    ? Number(cuidador.rating_promedio).toFixed(1)
-                    : t('comun:nuevo')}
-                </Text>
-              </View>
-              <Text style={styles.statsText}>
-                • {cuidador?.cantidad_paseos_realizados || 0} paseos
-              </Text>
-            </View>
-          </View>
-        </View>
+        <InfoCuidadorCard
+          uri={paseo.cuidador_foto_visual}
+          name={paseo.cuidador_nombre_visual}
+          size={64}
+          rating={cuidador?.rating_promedio ?? null}
+          count={cuidador?.cantidad_paseos_realizados ?? 0}
+        />
 
         <View style={styles.progressContainer}>
           <View style={styles.progressStep}>
