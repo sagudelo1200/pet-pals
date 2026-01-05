@@ -1,7 +1,7 @@
-import React, { useState, useMemo } from 'react'
+import React, { useState, useMemo, useEffect } from 'react'
 import { StyleSheet, View, Text, FlatList, Alert } from 'react-native'
 import { useTranslation } from 'react-i18next'
-import { useNavigation, useFocusEffect } from '@react-navigation/native'
+import { useNavigation, useIsFocused } from '@react-navigation/native'
 import { COLOR } from '@/constants'
 import Screen from '@/components/ui/Screen'
 import ScreenHeader from '@/components/ui/ScreenHeader'
@@ -112,17 +112,19 @@ const Paseos: React.FC = () => {
   )
 
   const paseosFiltrados = activeTab === 'proximos' ? proximos : historial
+  const isFocused = useIsFocused()
 
-  useFocusEffect(
-    React.useCallback(() => {
-      if (cargando) return
+  // Optimización UX: Si el usuario sale de la pantalla, preparamos la pestaña correcta
+  // para que al volver vea lo más relevante sin "saltos" visuales.
+  useEffect(() => {
+    if (!isFocused) {
       if (proximos.length > 0) {
         setActiveTab('proximos')
       } else if (historial.length > 0) {
         setActiveTab('historial')
       }
-    }, [cargando, proximos.length, historial.length])
-  )
+    }
+  }, [isFocused, proximos.length, historial.length])
 
   const renderEmptyState = () => (
     <View style={styles.emptyState}>

@@ -178,7 +178,8 @@
       "llegada": "Llegó a destino",
       "iniciar_ruta": "Inició el viaje de recogida",
       "iniciar_paseo": "Inició el paseo oficial",
-      "finalizar_paseo": "Finalizó el paseo"
+      "finalizar_paseo": "Finalizó el paseo",
+      "completar": "Paseo completado"
     },
     "en_vivo": "EN VIVO",
     "cancelado_titulo": "Paseo Cancelado",

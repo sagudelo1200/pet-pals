@@ -178,7 +178,8 @@
       "llegada": "Arrived at destination",
       "iniciar_ruta": "Started pickup route",
       "iniciar_paseo": "Started official walk",
-      "finalizar_paseo": "Finished the walk"
+      "finalizar_paseo": "Finished the walk",
+      "completar": "Walk completed"
     },
     "en_vivo": "LIVE",
     "cancelado_titulo": "Walk Cancelled",
