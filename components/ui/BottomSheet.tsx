@@ -105,11 +105,11 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
     >
       <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
         <View style={styles.container}>
-          <Animated.View 
+          <Animated.View
             style={[
-              styles.backdrop, 
+              styles.backdrop,
               { opacity: opacityAnim },
-              !showBackdrop && { backgroundColor: 'transparent' }
+              !showBackdrop && { backgroundColor: 'transparent' },
             ]}
             pointerEvents={showBackdrop ? 'auto' : 'none'}
           >

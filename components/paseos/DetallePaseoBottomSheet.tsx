@@ -32,24 +32,42 @@ const DetallePaseoBottomSheet: React.FC<Props> = ({
   const [cuidador, setCuidador] = useState<PerfilPublico | null>(null)
   const pulseAnim = useRef(new Animated.Value(1)).current
   const rippleAnim = useRef(new Animated.Value(0)).current
+  const rippleLoopRef = useRef<Animated.CompositeAnimation | null>(null)
+  const pulseLoopRef = useRef<Animated.CompositeAnimation | null>(null)
 
   useEffect(() => {
-    if (paseo?.estado === ESTADOS_PASEO.PENDIENTE) {
-      Animated.loop(
+    // detener cualquier loop previo antes de (re)iniciar
+    rippleLoopRef.current?.stop()
+    rippleLoopRef.current = null
+
+    if (visible && paseo?.estado === ESTADOS_PASEO.PENDIENTE) {
+      rippleAnim.setValue(0)
+      const loop = Animated.loop(
         Animated.timing(rippleAnim, {
           toValue: 1,
           duration: 2000,
           useNativeDriver: true,
         })
-      ).start()
+      )
+      rippleLoopRef.current = loop
+      loop.start()
     } else {
       rippleAnim.setValue(0)
     }
-  }, [paseo?.estado])
+
+    return () => {
+      rippleLoopRef.current?.stop()
+      rippleLoopRef.current = null
+    }
+  }, [paseo?.estado, visible, rippleAnim])
 
   useEffect(() => {
-    if (paseo?.estado === ESTADOS_PASEO.EN_CAMINO) {
-      Animated.loop(
+    pulseLoopRef.current?.stop()
+    pulseLoopRef.current = null
+
+    if (visible && paseo?.estado === ESTADOS_PASEO.EN_CAMINO) {
+      pulseAnim.setValue(1)
+      const loop = Animated.loop(
         Animated.sequence([
           Animated.timing(pulseAnim, {
             toValue: 1.05,
@@ -62,11 +80,31 @@ const DetallePaseoBottomSheet: React.FC<Props> = ({
             useNativeDriver: true,
           }),
         ])
-      ).start()
+      )
+      pulseLoopRef.current = loop
+      loop.start()
     } else {
       pulseAnim.setValue(1)
     }
-  }, [paseo?.estado])
+
+    return () => {
+      pulseLoopRef.current?.stop()
+      pulseLoopRef.current = null
+    }
+  }, [paseo?.estado, visible, pulseAnim])
+
+  // Si el BottomSheet se oculta, detener y resetear animaciones para evitar estados congelados
+  useEffect(() => {
+    if (!visible) {
+      rippleLoopRef.current?.stop()
+      rippleLoopRef.current = null
+      rippleAnim.setValue(0)
+
+      pulseLoopRef.current?.stop()
+      pulseLoopRef.current = null
+      pulseAnim.setValue(1)
+    }
+  }, [visible, rippleAnim, pulseAnim])
 
   useEffect(() => {
     let mounted = true
