@@ -22,7 +22,6 @@ import {
 } from '@/components/ui'
 import { obtenerExperienciaPaseo } from '@/logic/paseos/routerPaseos'
 import DetallePaseoBottomSheet from '@/components/paseos/DetallePaseoBottomSheet'
-import { Paseo } from '@/models/Paseo'
 
 const Dashboard: React.FC = () => {
   const { t } = useTranslation()

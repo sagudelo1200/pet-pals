@@ -68,7 +68,7 @@ const DetalleMascota: React.FC = () => {
       onClose: () => {
         if (cambiosRealizados) {
           // Navegar explícitamente al Tab de Tutor -> Mascotas
-          ;(navigation as any).navigate('TutorApp', {
+          void (navigation as any).navigate('TutorApp', {
             screen: 'Mascotas',
             params: { refresh: Date.now() },
           })
@@ -76,7 +76,9 @@ const DetalleMascota: React.FC = () => {
           if (navigation.canGoBack()) {
             navigation.goBack()
           } else {
-            ;(navigation as any).navigate('TutorApp', { screen: 'Mascotas' })
+            void (navigation as any).navigate('TutorApp', {
+              screen: 'Mascotas',
+            })
           }
         }
       },
