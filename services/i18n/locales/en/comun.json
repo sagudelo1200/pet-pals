@@ -49,5 +49,8 @@
   "nuevo": "New",
   "cuidador": "Caregiver",
   "duracion": "Duration",
-  "precio": "Price"
+  "precio": "Price",
+  "tabs": {
+    "mi_cuenta": "My Account"
+  }
 }

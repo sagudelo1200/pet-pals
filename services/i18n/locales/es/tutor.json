@@ -1,4 +1,10 @@
 {
+  "tabs": {
+    "inicio": "Inicio",
+    "mascotas": "Mascotas",
+    "paseos": "Paseos",
+    "mi_cuenta": "Mi cuenta"
+  },
   "dashboard": {
     "titulo": "Hola, Tutor",
     "subtitulo": "Resumen de tu actividad",

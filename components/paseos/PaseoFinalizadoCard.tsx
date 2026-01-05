@@ -83,9 +83,7 @@ export const PaseoFinalizadoCard: React.FC<PaseoFinalizadoCardProps> = ({
           ))}
         </View>
 
-        <Text style={styles.title}>
-          {t('paseos:finalizado.titulo', '¡Paseo Completado!')}
-        </Text>
+        <Text style={styles.title}>{t('paseos:finalizado.titulo')}</Text>
         <Text style={styles.subtitle}>
           {t('paseos:finalizado.mensaje', {
             nombre: mascotaNombre,
@@ -123,14 +121,16 @@ export const PaseoFinalizadoCard: React.FC<PaseoFinalizadoCardProps> = ({
             ))}
           </View>
           <Text style={styles.ratingHint}>
-            {rating === 5 ? '¡Excelente servicio!' : 'Toca para calificar'}
+            {rating === 5
+              ? t('paseos:finalizado.excelente')
+              : t('paseos:finalizado.toca_calificar')}
           </Text>
         </View>
 
         <Spacer size={32} />
 
         <Button
-          title={t('comun:finalizar', 'Finalizar')}
+          title={t('comun:finalizar')}
           onPress={onClose}
           variant="primario"
           style={styles.button}

@@ -49,7 +49,11 @@
     "CANCELAR": "Cancelar paseo"
   },
   "ui": {
-    "confirmCancel": "¿Estás seguro de cancelar este paseo?"
+    "confirmCancel": "¿Estás seguro de cancelar este paseo?",
+    "iniciar": {
+      "titulo": "Paseo",
+      "mensaje": "Iniciar solicitud de paseo para {{nombre}}"
+    }
   },
   "tarjeta": {
     "cuidador": "Cuidador:",

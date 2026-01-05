@@ -1,4 +1,10 @@
 {
+  "tabs": {
+    "inicio": "Home",
+    "mascotas": "Pets",
+    "paseos": "Walks",
+    "mi_cuenta": "My Account"
+  },
   "dashboard": {
     "titulo": "Hello, Owner",
     "subtitulo": "Summary of your activity",

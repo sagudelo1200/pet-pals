@@ -49,5 +49,8 @@
   "nuevo": "Nuevo",
   "cuidador": "Cuidador",
   "duracion": "Duración",
-  "precio": "Precio"
+  "precio": "Precio",
+  "tabs": {
+    "mi_cuenta": "Mi cuenta"
+  }
 }

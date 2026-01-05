@@ -109,7 +109,7 @@ export default function CuidadorTabNavigator(): ReactElement {
         name="MiCuenta"
         component={MiCuenta}
         options={{
-          title: t('cuidador:tabs.mi_cuenta'),
+          title: t('comun:tabs.mi_cuenta'),
           tabBarIcon: ({ color, size }) => (
             <Icon name="user" size={size} color={color} />
           ),

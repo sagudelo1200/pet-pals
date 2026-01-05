@@ -49,7 +49,11 @@
     "CANCELAR": "Cancel walk"
   },
   "ui": {
-    "confirmCancel": "Are you sure you want to cancel this walk?"
+    "confirmCancel": "Are you sure you want to cancel this walk?",
+    "iniciar": {
+      "titulo": "Walk",
+      "mensaje": "Start walk request for {{nombre}}"
+    }
   },
   "tarjeta": {
     "cuidador": "Caregiver:",

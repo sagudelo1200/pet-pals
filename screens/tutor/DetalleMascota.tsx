@@ -68,7 +68,7 @@ const DetalleMascota: React.FC = () => {
       onClose: () => {
         if (cambiosRealizados) {
           // Navegar explícitamente al Tab de Tutor -> Mascotas
-          (navigation as any).navigate('TutorApp', {
+          ;(navigation as any).navigate('TutorApp', {
             screen: 'Mascotas',
             params: { refresh: Date.now() },
           })
@@ -76,7 +76,7 @@ const DetalleMascota: React.FC = () => {
           if (navigation.canGoBack()) {
             navigation.goBack()
           } else {
-            (navigation as any).navigate('TutorApp', { screen: 'Mascotas' })
+            ;(navigation as any).navigate('TutorApp', { screen: 'Mascotas' })
           }
         }
       },
@@ -110,7 +110,10 @@ const DetalleMascota: React.FC = () => {
 
   const handlePaseo = () => {
     if (mascota) {
-      Alert.alert('Paseo', 'Iniciar solicitud de paseo para ' + mascota.nombre)
+      Alert.alert(
+        t('paseos:ui.iniciar.titulo'),
+        t('paseos:ui.iniciar.mensaje', { nombre: mascota.nombre })
+      )
     }
   }
 
@@ -196,7 +199,7 @@ const DetalleMascota: React.FC = () => {
                       style={{ flex: 1, marginRight: 8 }}
                     />
                     <Button
-                      title={saving ? 'Guardando...' : t('comun:guardar')}
+                      title={saving ? t('comun:guardando') : t('comun:guardar')}
                       onPress={guardarCambios}
                       variant="primario"
                       disabled={saving}

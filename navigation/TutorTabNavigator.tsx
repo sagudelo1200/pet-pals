@@ -1,4 +1,5 @@
 import React from 'react'
+import { useTranslation } from 'react-i18next'
 import { Platform } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
@@ -16,6 +17,7 @@ const Tab = createBottomTabNavigator<TutorTabParamList>()
 // Tab Navigator para el rol Tutor
 export default function TutorTabNavigator(): React.ReactElement {
   const insets = useSafeAreaInsets()
+  const { t } = useTranslation()
 
   return (
     <>
@@ -61,8 +63,8 @@ export default function TutorTabNavigator(): React.ReactElement {
           name="Inicio"
           component={Dashboard}
           options={{
-            title: 'Inicio',
-            headerTitle: 'Pet Pals',
+            title: t('tutor:tabs.inicio'),
+            headerTitle: t('tutor:tabs.inicio'),
             tabBarIcon: ({ color, size }) => (
               <Icon name="home" size={size} color={color} />
             ),
@@ -72,8 +74,8 @@ export default function TutorTabNavigator(): React.ReactElement {
           name="Mascotas"
           component={Mascotas}
           options={{
-            title: 'Mascotas',
-            headerTitle: 'Mascotas',
+            title: t('tutor:tabs.mascotas'),
+            headerTitle: t('tutor:tabs.mascotas'),
             tabBarIcon: ({ color, size }) => (
               <Icon name="paw" size={size} color={color} />
             ),
@@ -83,8 +85,8 @@ export default function TutorTabNavigator(): React.ReactElement {
           name="Paseos"
           component={Paseos}
           options={{
-            title: 'Paseos',
-            headerTitle: 'Paseos',
+            title: t('tutor:tabs.paseos'),
+            headerTitle: t('tutor:tabs.paseos'),
             tabBarIcon: ({ color, size }) => (
               <Icon name="walking" size={size} color={color} />
             ),
@@ -94,8 +96,8 @@ export default function TutorTabNavigator(): React.ReactElement {
           name="MiCuenta"
           component={MiCuenta}
           options={{
-            title: 'Mi Cuenta',
-            headerTitle: 'Mi Cuenta',
+            title: t('comun:tabs.mi_cuenta'),
+            headerTitle: t('comun:tabs.mi_cuenta'),
             tabBarIcon: ({ color, size }) => (
               <Icon name="user" size={size} color={color} />
             ),
