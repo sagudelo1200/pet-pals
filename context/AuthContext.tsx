@@ -15,7 +15,6 @@ import {
 } from '@/services/firebase'
 import { GestorAuth } from '@/logic/auth'
 import { RolUsuario, Usuario } from '@/models/Usuario'
-import { useSincronizacionPerfil } from '@/hooks/useSincronizacionPerfil'
 
 /** Contexto de autenticación (provee user, roles y helpers). */
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -44,8 +43,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [roles, setRoles] = useState<RolUsuario[] | undefined>(undefined)
   const [profile, setProfile] = useState<Usuario | null | undefined>(undefined)
 
-  // Hook de sincronización automática de perfil público (Lazy Migration)
-  useSincronizacionPerfil(profile)
+  // La sincronización de `perfil_publico` ahora la maneja Cloud Functions;
+  // evitamos la lógica client-side duplicada.
 
   // Escuchar cambios de autenticación al montar el provider
   useEffect(() => {

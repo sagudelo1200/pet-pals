@@ -24,19 +24,8 @@
     "paths": {
       "@/*": ["./*"]
     },
-    "types": [
-      "react",
-      "react-native",
-      "jest"
-    ]
+    "types": ["react", "react-native", "jest"]
   },
-  "include": [
-    "**/*.ts",
-    "**/*.tsx"
-  ],
-  "exclude": [
-    "node_modules",
-    "babel.config.js",
-    "jest.config.ts"
-  ]
+  "include": ["**/*.ts", "**/*.tsx"],
+  "exclude": ["node_modules", "babel.config.js", "jest.config.ts", "functions"]
 }
