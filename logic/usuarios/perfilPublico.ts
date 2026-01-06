@@ -1,4 +1,4 @@
-import { ServicioPerfilPublico } from '@/services/firebase/firestore/colecciones/perfil-publico'
+import { ServicioPerfilPublico } from '@/services/firebase/firestore/colecciones/perfiles_publicos'
 import { PerfilPublico } from '@/models/PerfilPublico'
 import { CrudResult } from '@/services/firebase/comun'
 import { ERR } from '@/constants'

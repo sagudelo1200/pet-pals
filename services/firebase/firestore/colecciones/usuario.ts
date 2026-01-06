@@ -13,7 +13,7 @@ import {
 
 export class ServicioUsuario {
   private static readonly COLLECTION = 'usuarios'
-  private static readonly PUBLIC_COLLECTION = 'perfil_publico'
+  private static readonly PUBLIC_COLLECTION = 'perfiles_publicos'
 
   static async crear(
     data: Omit<

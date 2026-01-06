@@ -25,6 +25,17 @@ const AuthNavigator: React.FC = () => {
   const retriedRef = React.useRef(false)
   const navigatedTargetRef = React.useRef<string | null>(null)
   const navigation = useNavigation<any>()
+  const [minDelayPassed, setMinDelayPassed] = useState(false)
+  const initialDelayRef = React.useRef(true)
+
+  // Forzar pantalla de carga mínima al inicio (3s)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setMinDelayPassed(true)
+      initialDelayRef.current = false
+    }, 3000)
+    return () => clearTimeout(timer)
+  }, [])
 
   const getRootNavigation = () => {
     return navigation && typeof navigation.getParent === 'function'
@@ -119,7 +130,13 @@ const AuthNavigator: React.FC = () => {
     // La navegación se hará automáticamente por el useEffect
   }
 
-  if (cargando || cargandoRol || user) {
+  const shouldShowLoading =
+    cargando ||
+    cargandoRol ||
+    user ||
+    (!minDelayPassed && initialDelayRef.current)
+
+  if (shouldShowLoading) {
     return (
       <>
         <LoadingScreen messageType="mascota" spinnerColor="#22A47C" />

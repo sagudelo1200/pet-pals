@@ -146,7 +146,7 @@ service cloud.firestore {
     }
 
     // PERFIL PUBLICO
-    match /perfil_publico/{docId} {
+    match /perfiles_publicos/{docId} {
       // Permitir lectura a cualquier usuario autenticado o si el perfil es verificado (público)
       allow read: if autenticado() || resource.data.verificacion == 'verificado';
 

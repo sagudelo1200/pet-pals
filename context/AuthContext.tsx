@@ -43,7 +43,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [roles, setRoles] = useState<RolUsuario[] | undefined>(undefined)
   const [profile, setProfile] = useState<Usuario | null | undefined>(undefined)
 
-  // La sincronización de `perfil_publico` ahora la maneja Cloud Functions;
+  // La sincronización de `perfiles_publicos` ahora la maneja Cloud Functions;
   // evitamos la lógica client-side duplicada.
 
   // Escuchar cambios de autenticación al montar el provider

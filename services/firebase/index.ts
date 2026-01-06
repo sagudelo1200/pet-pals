@@ -15,7 +15,7 @@ export {
   ServicioPaseo,
   ServicioPaseo as default,
 } from './firestore/colecciones/paseo'
-export { ServicioPerfilPublico } from './firestore/colecciones/perfil-publico'
+export { ServicioPerfilPublico } from './firestore/colecciones/perfiles_publicos'
 export { ServicioUbicacion } from './firestore/colecciones/ubicacion'
 export { ServicioPaseoMascota } from './firestore/colecciones/paseo-mascota'
 

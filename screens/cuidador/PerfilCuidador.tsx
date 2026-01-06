@@ -57,7 +57,7 @@ const PerfilCuidador: React.FC = () => {
     if (!user) return
     setLoading(true)
     const res = await ServicioCrudBase.obtenerPorId<PerfilPublico>(
-      'perfil_publico',
+      'perfiles_publicos',
       user.uid
     )
 
@@ -113,7 +113,7 @@ const PerfilCuidador: React.FC = () => {
     }
 
     const res = await ServicioCrudBase.actualizar(
-      'perfil_publico',
+      'perfiles_publicos',
       user.uid,
       updateData
     )

@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { StyleSheet, View, Platform, Alert, ScrollView } from 'react-native'
 import { theme, Text } from 'galio-framework'
 import { useNavigation } from '@react-navigation/native'
@@ -18,15 +18,73 @@ import {
 } from '@/components/ui'
 import Screen from '@/components/ui/Screen'
 import ScreenHeader from '@/components/ui/ScreenHeader'
+import type { Mascota } from '@/models/Mascota'
+import { useMascotas } from '@/hooks/useMascotas'
 
 type DashboardNavigationProp = BottomTabNavigationProp<TutorTabParamList>
 
 const Dashboard: React.FC = () => {
-  const navigation = useNavigation<DashboardNavigationProp>()
+  const _navigation = useNavigation<DashboardNavigationProp>()
   const { t } = useTranslation()
 
-  const handleMascotasPress = () => {
-    navigation.navigate('Mascotas')
+  const [creandoMascota, setCreandoMascota] = useState(false)
+
+  const { crear } = useMascotas()
+
+  const crearMascotaSemilla = async () => {
+    setCreandoMascota(true)
+    const mascotaData: Omit<
+      Mascota,
+      'id' | 'creado_en' | 'actualizado_en' | 'creado_por' | 'actualizado_por'
+    > = {
+      nombre: 'Cocoa',
+      foto: 'https://cdn.pixabay.com/photo/2023/02/20/23/11/dog-7803251_1280.jpg',
+      especie: 'perro',
+      raza: 'Border Collie',
+      fecha_nacimiento: new Date('2019-07-19'),
+      genero: 'macho',
+      tamano: 'mediano',
+      peso: 18,
+      esterilizado: true,
+      vacunas: [
+        { nombre: 'Rabia', fecha: new Date('2019-08-22') },
+        { nombre: 'Moquillo', fecha: new Date('2019-08-22') },
+        { nombre: 'Parvovirus', fecha: new Date('2019-08-22') },
+      ],
+      condiciones_salud: [
+        'sin condiciones crónicas conocidas',
+        'visión normal',
+        'audición normal',
+      ],
+      historial_medico:
+        'Controles veterinarios al día. Sin antecedentes de cirugías mayores ni enfermedades hereditarias detectadas.',
+      nivel_energia: 'alto',
+      condiciones_comportamiento: [
+        'muy atento al entorno',
+        'alta capacidad de concentración',
+        'responde bien a estímulos visuales',
+      ],
+      preferencias_paseo: [
+        'paseos largos',
+        'espacios abiertos',
+        'juegos de búsqueda o pelota',
+      ],
+      descripcion:
+        'Perro de mirada alerta e inteligente, con pelaje marrón y blanco bien cuidado. Se percibe equilibrado, activo y con fuerte instinto de observación.',
+      activo: true,
+    }
+
+    try {
+      await crear(mascotaData)
+      Alert.alert('✅ Mascota creada', 'Max ha sido creada exitosamente.', [
+        { text: 'OK' },
+      ])
+    } catch (error) {
+      console.error('Error creando mascota via context:', error)
+      Alert.alert('Error', 'Ocurrió un error inesperado')
+    } finally {
+      setCreandoMascota(false)
+    }
   }
 
   const handleAlert = () => {
@@ -81,9 +139,14 @@ const Dashboard: React.FC = () => {
             />
             <Spacer horizontal size={8} />
             <Chip
-              label={t('tutor:dashboard.agregar_mascota')}
+              label={
+                creandoMascota
+                  ? 'Creando...'
+                  : t('tutor:dashboard.agregar_mascota')
+              }
               leftIconName="paw"
-              onPress={handleMascotasPress}
+              onPress={crearMascotaSemilla}
+              disabled={creandoMascota}
             />
             <Spacer horizontal size={8} />
             <Chip

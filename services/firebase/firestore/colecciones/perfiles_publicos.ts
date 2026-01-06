@@ -24,7 +24,7 @@ import {
  * Solo realiza operaciones CRUD básicas.
  */
 export class ServicioPerfilPublico {
-  private static readonly COLLECTION = 'perfil_publico'
+  private static readonly COLLECTION = 'perfiles_publicos'
 
   static async crear(
     data: Partial<PerfilPublico>
