@@ -1,21 +1,38 @@
 import { onDocumentUpdated } from 'firebase-functions/v2/firestore'
 import * as admin from 'firebase-admin'
-import { construirActualizacion } from '../comun/camposPublicos'
+import {
+  construirActualizacion,
+  extraerAntesYDespuesDesdeEvento,
+} from '../comun/camposPublicos'
 
 if (!admin.apps || admin.apps.length === 0) {
   admin.initializeApp()
 }
 
+/**
+ * Trigger: actualiza el `perfil_publico` cuando cambia `usuarios/{uid}`.
+ */
 export const actualizarPerfilPublico = onDocumentUpdated(
   'usuarios/{uid}',
-  async (event: any) => {
+  async (event: unknown) => {
     try {
-      const uid = event.params?.uid
+      const params = (event as { params?: { uid?: string } }).params
+      const uid = params?.uid
       if (!uid) return
 
-      const nuevo = (event.data as any)?.data?.() || {}
+      const { antes, despues } = extraerAntesYDespuesDesdeEvento(event)
 
-      const actualizar = construirActualizacion(nuevo, uid)
+      // Solo continuar si cambió algún campo público relevante
+      const relevante = ['nombre', 'foto', 'verificado']
+      const cambios: Record<string, unknown> = {}
+      for (const k of relevante) {
+        const b = (antes as any)[k]
+        const a = (despues as any)[k]
+        if (a !== undefined && a !== b) cambios[k] = a
+      }
+      if (Object.keys(cambios).length === 0) return
+
+      const actualizar = construirActualizacion(cambios, uid)
       if (!actualizar) return
 
       const perfilRef = admin.firestore().doc(`perfiles_publicos/${uid}`)

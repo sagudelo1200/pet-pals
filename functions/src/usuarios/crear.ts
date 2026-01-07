@@ -1,18 +1,27 @@
 import { onDocumentCreated } from 'firebase-functions/v2/firestore'
 import * as admin from 'firebase-admin'
-import { construirDatosPerfil } from '../comun/camposPublicos'
+import {
+  construirDatosPerfil,
+  extraerDatosUsuarioDesdeEvento,
+} from '../comun/camposPublicos'
 
 if (!admin.apps || admin.apps.length === 0) {
   admin.initializeApp()
 }
 
+/**
+ * Trigger: crea un `perfil_publico` cuando se
+ * crea un documento en `usuarios/{uid}`.
+ */
 export const crearPerfilPublico = onDocumentCreated(
   'usuarios/{uid}',
-  async (event: any) => {
+  async (event: unknown) => {
     try {
-      const uid = event.params?.uid
-      const usuarioData = (event.data as any)?.data?.() || {}
+      const params = (event as { params?: { uid?: string } }).params
+      const uid = params?.uid
       if (!uid) return
+
+      const usuarioData = extraerDatosUsuarioDesdeEvento(event)
 
       const perfilRef = admin.firestore().doc(`perfiles_publicos/${uid}`)
       const perfilSnap = await perfilRef.get()

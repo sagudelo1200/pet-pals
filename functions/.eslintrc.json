@@ -1,0 +1,9 @@
+{
+  "extends": ["../.eslintrc.json"],
+  "parser": "@typescript-eslint/parser",
+  "env": {
+    "node": true,
+    "es2020": true
+  },
+  "rules": {}
+}

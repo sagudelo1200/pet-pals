@@ -158,7 +158,7 @@ const MiCuenta = () => {
                   </View>
                   <View style={styles.actionInfo}>
                     <Text style={styles.actionTitle}>
-                      {t('perfil:perfile_publico')}
+                      {t('perfil:perfil_publico')}
                     </Text>
                     <Text style={styles.actionDesc}>
                       {t('perfil:gestiona_info_visible')}
