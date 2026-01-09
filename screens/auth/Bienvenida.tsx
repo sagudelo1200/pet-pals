@@ -8,7 +8,7 @@ import type { AuthFlowParamList } from '@/navigation/types'
 import type { StackNavigationProp } from '@react-navigation/stack'
 import { useTranslation } from 'react-i18next'
 import { LinearGradient } from 'expo-linear-gradient'
-import PaseoTranquilo from '@/assets/imgs/undraw/paseo_tranquilo.svg'
+import Foto from '@/assets/imgs/undraw/dia_en_el_parque.svg'
 
 type Nav = StackNavigationProp<AuthFlowParamList>
 
@@ -109,13 +109,21 @@ const Bienvenida: FC = () => {
         end={[0.9, 0.95]}
       />
 
+      {/* Círculo decorativo para armonizar con otras pantallas de auth */}
+      <View style={styles.decorativeCircle} />
+
+      {/* Huella decorativa */}
+      <View style={styles.pawPrint}>
+        <Text style={styles.pawEmoji}>🐾</Text>
+      </View>
+
       <Animated.View
         style={[
           styles.illustrationWrap,
           { opacity: logoOpacity, transform: [{ scale: logoScale }] },
         ]}
       >
-        <PaseoTranquilo
+        <Foto
           width={Math.min(620, Dimensions.get('window').width - 48)}
           height={320}
         />
@@ -132,11 +140,11 @@ const Bienvenida: FC = () => {
         ]}
       >
         <View style={styles.card}>
-          <Text h3 style={styles.welcomeTitle}>
-            {t('auth:bienvenida.titulo')}
-          </Text>
-          <Text style={styles.welcomeSubtitle}>
+          <Text style={styles.emotionalMessage}>
             {t('auth:bienvenida.subtitulo')}
+          </Text>
+          <Text h4 style={styles.welcomeTitle}>
+            {t('auth:bienvenida.titulo')}
           </Text>
           <Text style={styles.welcomeDescription}>
             {t('auth:bienvenida.descripcion')}
@@ -186,7 +194,7 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    paddingHorizontal: 32,
+    paddingHorizontal: 24,
     justifyContent: 'flex-start',
     alignItems: 'center',
   },
@@ -209,8 +217,8 @@ const styles = StyleSheet.create({
   },
   card: {
     backgroundColor: `${COLOR.BLOQUE}E8`,
-    padding: 24,
-    borderRadius: 22,
+    padding: 20,
+    borderRadius: 18,
     alignSelf: 'stretch',
     marginHorizontal: 16,
     maxWidth: 420,
@@ -223,9 +231,18 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: `${COLOR.TEXTO}22`,
   },
+  emotionalMessage: {
+    fontSize: 14,
+    color: COLOR.ENFASIS,
+    textAlign: 'center',
+    marginBottom: 8,
+    fontWeight: '600',
+    letterSpacing: 0.6,
+    textTransform: 'uppercase',
+  },
   welcomeTitle: {
-    fontSize: 32,
-    fontWeight: '800',
+    fontSize: 28,
+    fontWeight: '700',
     color: COLOR.TEXTO,
     textAlign: 'center',
     marginBottom: 8,
@@ -233,7 +250,7 @@ const styles = StyleSheet.create({
   welcomeSubtitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: COLOR.PRIMARIO,
+    color: COLOR.ENFASIS,
     textAlign: 'center',
     marginBottom: 8,
   },
@@ -246,13 +263,32 @@ const styles = StyleSheet.create({
   },
   primaryButton: {
     marginBottom: 18,
-    height: 64,
-    borderRadius: 18,
+    height: 52,
+    borderRadius: 26,
   },
   secondaryButton: {
     marginTop: 8,
-    height: 56,
-    borderRadius: 18,
+    height: 52,
+    borderRadius: 26,
+  },
+  decorativeCircle: {
+    position: 'absolute',
+    top: -80,
+    right: -80,
+    width: 220,
+    height: 220,
+    borderRadius: 110,
+    backgroundColor: `${COLOR.PRIMARIO}10`,
+  },
+  pawPrint: {
+    position: 'absolute',
+    bottom: Dimensions.get('window').height * 0.15,
+    left: 30,
+    opacity: 0.06,
+    transform: [{ rotate: '-20deg' }],
+  },
+  pawEmoji: {
+    fontSize: 40,
   },
 })
 
