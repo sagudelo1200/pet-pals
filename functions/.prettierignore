@@ -1,0 +1,2 @@
+# Ignore functions sources for workspace Prettier
+src/**

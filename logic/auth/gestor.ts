@@ -11,8 +11,8 @@ import { AuthResult } from '@/services/firebase/comun'
 import { ERR } from '@/constants/errors'
 import { ServicioUsuario } from '@/services/firebase/firestore/colecciones/usuario'
 import { ServicioAuth } from '@/services/firebase/auth/auth'
+import { ServicioPerfilPublico } from '@/services/firebase/firestore/colecciones/perfiles_publicos'
 
-// Mapeo de errores de Firebase Auth a códigos de dominio
 function mapFirebaseAuthError(e: any): string {
   const code = e?.code as string | undefined
   switch (code) {
@@ -40,19 +40,11 @@ function mapFirebaseAuthError(e: any): string {
   }
 }
 
-/**
- * Gestor de Autenticación (Lógica de Negocio)
- * Orquesta Firebase Auth con Firestore y reglas de negocio.
- */
 export const GestorAuth = {
-  /**
-   * Obtiene el usuario autenticado actualmente.
-   */
   obtenerUsuarioActual() {
     return ServicioAuth.obtenerUsuarioActual()
   },
 
-  // Registro con email y contraseña + creación de perfil en Firestore
   async registrarConCorreo(
     email: string,
     password: string,
@@ -65,14 +57,10 @@ export const GestorAuth = {
         password
       )
 
-      // Actualizar el perfil con el nombre
       if (userCredential.user && displayName) {
-        await updateProfile(userCredential.user, {
-          displayName: displayName,
-        })
+        await updateProfile(userCredential.user, { displayName })
       }
 
-      // Crear documento de usuario en Firestore inmediatamente.
       try {
         const uid = userCredential.user.uid
         const res = await ServicioUsuario.crearConUid(uid, {
@@ -85,7 +73,6 @@ export const GestorAuth = {
         } as any)
 
         if (!res.success) {
-          // Rollback: eliminar usuario de Auth si falla Firestore
           try {
             await deleteUser(userCredential.user)
           } catch (delErr) {
@@ -96,6 +83,36 @@ export const GestorAuth = {
             error: res.error || ERR.COMUN.ERROR_DESCONOCIDO,
           }
         }
+
+        try {
+          await ServicioPerfilPublico.guardarConId(uid, {
+            nombre: displayName ?? null,
+            foto: null,
+            verificacion: 'pendiente',
+          })
+        } catch (e) {
+          console.error(
+            'Error creando perfil público inicial tras registro:',
+            e
+          )
+          try {
+            await ServicioUsuario.eliminar(uid)
+          } catch (delErr) {
+            console.error(
+              'Rollback: error eliminando doc usuario tras fallo perfil:',
+              delErr
+            )
+          }
+          try {
+            await deleteUser(userCredential.user)
+          } catch (authDelErr) {
+            console.error(
+              'Rollback: error eliminando usuario en Auth tras fallo perfil:',
+              authDelErr
+            )
+          }
+          return { success: false, error: ERR.COMUN.ERROR_DESCONOCIDO }
+        }
       } catch (e) {
         try {
           await deleteUser(userCredential.user)
@@ -103,10 +120,7 @@ export const GestorAuth = {
           console.error('Rollback: error eliminando usuario en Auth', delErr)
         }
         console.error('Error creando doc usuario tras registro:', e)
-        return {
-          success: false,
-          error: ERR.COMUN.ERROR_DESCONOCIDO,
-        }
+        return { success: false, error: ERR.COMUN.ERROR_DESCONOCIDO }
       }
 
       return {
@@ -120,36 +134,26 @@ export const GestorAuth = {
       }
     } catch (error: any) {
       console.error('Error en registro:', error)
-      return {
-        success: false,
-        error: mapFirebaseAuthError(error),
-      }
+      return { success: false, error: mapFirebaseAuthError(error) }
     }
   },
 
-  // Ingreso con correo y contraseña
   async ingresarConCorreo(
     email: string,
     password: string
   ): Promise<AuthResult> {
     try {
-      // Simular tiempo de respuesta mínimo para seguridad (opcional, movido de service)
       const startTime = Date.now()
-
       const userCredential = await signInWithEmailAndPassword(
         auth,
         email,
         password
       )
-
       const endTime = Date.now()
-      const elapsedTime = endTime - startTime
-      const minResponseTime = 1000 // Reducido de 3000 para mejor UX, pero mantenido por seguridad
-      if (elapsedTime < minResponseTime) {
-        await new Promise(resolve =>
-          setTimeout(resolve, minResponseTime - elapsedTime)
-        )
-      }
+      const elapsed = endTime - startTime
+      const minResponseTime = 1000
+      if (elapsed < minResponseTime)
+        await new Promise(r => setTimeout(r, minResponseTime - elapsed))
 
       return {
         success: true,
@@ -162,23 +166,16 @@ export const GestorAuth = {
       }
     } catch (error: any) {
       console.error('Error en ingreso:', error)
-      return {
-        success: false,
-        error: mapFirebaseAuthError(error),
-      }
+      return { success: false, error: mapFirebaseAuthError(error) }
     }
   },
 
-  // Ingreso con Google (Credential) + creación de perfil si no existe
   async ingresarConGoogle(credential: any): Promise<AuthResult> {
     try {
       const userCredential = await signInWithCredential(auth, credential)
       const user = userCredential.user
 
-      // Verificar si existe en Firestore
       const docUser = await ServicioUsuario.obtenerPorId(user.uid)
-
-      // Si no existe, crearlo (Orquestación de negocio)
       if (!docUser.success || !docUser.data) {
         const nuevoUsuario = {
           nombre: user.displayName || 'Usuario',
@@ -199,6 +196,36 @@ export const GestorAuth = {
             'Error creando usuario Firestore tras Google Auth:',
             resCreacion.error
           )
+        } else {
+          try {
+            await ServicioPerfilPublico.guardarConId(user.uid, {
+              nombre: nuevoUsuario.nombre ?? null,
+              foto: nuevoUsuario.foto ?? null,
+              verificacion: 'pendiente',
+            })
+          } catch (e) {
+            console.error(
+              'Error creando perfil público inicial tras Google Auth:',
+              e
+            )
+            try {
+              await ServicioUsuario.eliminar(user.uid)
+            } catch (delErr) {
+              console.error(
+                'Rollback: error eliminando doc usuario tras fallo perfil (Google):',
+                delErr
+              )
+            }
+            try {
+              await deleteUser(user)
+            } catch (authDelErr) {
+              console.error(
+                'Rollback: error eliminando usuario en Auth tras fallo perfil (Google):',
+                authDelErr
+              )
+            }
+            return { success: false, error: ERR.COMUN.ERROR_DESCONOCIDO }
+          }
         }
       }
 
@@ -213,10 +240,7 @@ export const GestorAuth = {
       }
     } catch (error: any) {
       console.error('Error en ingreso Google:', error)
-      return {
-        success: false,
-        error: mapFirebaseAuthError(error),
-      }
+      return { success: false, error: mapFirebaseAuthError(error) }
     }
   },
 

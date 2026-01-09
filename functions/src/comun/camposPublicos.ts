@@ -1,200 +1,173 @@
-import * as admin from 'firebase-admin'
+import * as admin from "firebase-admin";
 
 type UsuarioData = {
   nombre?: string | null
   foto?: string | null
-  verificado?: boolean | null
-}
-
-type PerfilPublico = {
-  id: string
-  nombre: string | null
-  foto: string | null
-  verificacion: 'verificado' | 'pendiente'
-  rating_promedio: number
-  cantidad_paseos_realizados: number
-  creado_en: admin.firestore.FieldValue
-  actualizado_en: admin.firestore.FieldValue
-  creado_por: string
-  actualizado_por: string
+  verificacion?: boolean | null
 }
 
 /**
- * Construye el objeto base para el `perfil_publico` de un usuario.
- * @param {string} uid UID del usuario
- * @param {UsuarioData} usuarioData Datos del documento de usuario
- * @return {PerfilPublico} Objeto listo para persistir en
- * `perfiles_publicos/{uid}`
+ * Small helper: if `v` is an object, return it as a record.
+ * Otherwise returns `undefined`.
  */
-export function construirDatosPerfil(
-  uid: string,
-  usuarioData: UsuarioData
-): PerfilPublico {
-  // Obtener serverTimestamp de forma segura: algunos entornos (emulador)
-  // pueden no exponer `FieldValue` exactamente igual; usamos un fallback
-  // a `Timestamp.now()` o `new Date()` si es necesario.
-  const FieldValue = (admin.firestore as any)?.FieldValue
-  const TimestampObj = (admin.firestore as any)?.Timestamp
-  const ts =
-    FieldValue && typeof FieldValue.serverTimestamp === 'function'
-      ? FieldValue.serverTimestamp()
-      : TimestampObj && typeof TimestampObj.now === 'function'
-        ? TimestampObj.now()
-        : new Date()
-
-  return {
-    id: uid,
-    nombre: usuarioData?.nombre ?? null,
-    foto: usuarioData?.foto ?? null,
-    verificacion: usuarioData?.verificado ? 'verificado' : 'pendiente',
-    rating_promedio: 0,
-    cantidad_paseos_realizados: 0,
-    creado_en: ts,
-    actualizado_en: ts,
-    creado_por: uid,
-    actualizado_por: uid,
-  }
+function asRecord(v: unknown): Record<string, unknown> | undefined {
+  return v && typeof v === "object" ? (v as Record<string, unknown>) : undefined;
 }
 
 /**
- * Construye el objeto de actualización para el `perfil_publico`.
- * Devuelve `null` si no hay campos a actualizar.
- * @param {Partial<UsuarioData>} nuevo Datos nuevos del documento de usuario
- * @param {string} uid UID del usuario
- * @return {Record<string, unknown> | null} Objeto con los campos a actualizar
- * o `null`
+ * Parse a Firestore 'Value' node or plain JS value into
+ * a primitive or object.
  */
-export function construirActualizacion(
-  nuevo: Partial<UsuarioData>,
-  uid: string
-): Record<string, unknown> | null {
-  const actualizar: Record<string, unknown> = {}
-
-  if ('nombre' in nuevo) {
-    actualizar.nombre = nuevo.nombre ?? null
+function parseFirestoreValue(v: unknown): unknown {
+  if (v == null) return null;
+  if (typeof v !== "object") return v;
+  const obj = v as Record<string, unknown>;
+  if ("stringValue" in obj) return obj.stringValue as string;
+  if ("booleanValue" in obj) return obj.booleanValue as boolean;
+  if ("integerValue" in obj) return Number(obj.integerValue as unknown);
+  if ("doubleValue" in obj) return Number(obj.doubleValue as unknown);
+  if ("nullValue" in obj) return null;
+  const mapVal = asRecord(obj.mapValue)?.fields;
+  if (mapVal && typeof mapVal === "object") {
+    const out: Record<string, unknown> = {};
+    for (const k of Object.keys(mapVal)) {
+      out[k] = parseFirestoreValue((mapVal as Record<string, unknown>)[k]);
+    }
+    return out;
   }
-
-  if ('foto' in nuevo) {
-    actualizar.foto = nuevo.foto ?? null
-  }
-
-  if ('verificado' in nuevo) {
-    actualizar.verificacion = nuevo.verificado ? 'verificado' : 'pendiente'
-  }
-
-  if (Object.keys(actualizar).length === 0) {
-    return null
-  }
-  const FieldValue = (admin.firestore as any)?.FieldValue
-  const TimestampObj = (admin.firestore as any)?.Timestamp
-  const ts =
-    FieldValue && typeof FieldValue.serverTimestamp === 'function'
-      ? FieldValue.serverTimestamp()
-      : TimestampObj && typeof TimestampObj.now === 'function'
-        ? TimestampObj.now()
-        : new Date()
-  actualizar.actualizado_en = ts
-  actualizar.actualizado_por = uid
-  return actualizar
+  const arr = asRecord(obj.arrayValue)?.values as unknown[] | undefined;
+  if (Array.isArray(arr)) return arr.map(parseFirestoreValue);
+  return undefined;
 }
 
 /**
- * Extrae un objeto plano con campos desde un evento de Firestore.
- * Soporta DocumentSnapshot-like (`data.data()`) y CloudEvent proto (`data.value.fields`).
+ * Extract plain fields from a Firestore event payload.
+ * Supports DocumentSnapshot-like (`data.data()`) and CloudEvent proto.
+ * @param event Incoming trigger event
+ * @return Plain object with extracted fields
  */
 export function extraerDatosUsuarioDesdeEvento(
   event: unknown
 ): Record<string, unknown> {
-  const evt = event as any
-  const data = evt?.data
-  if (!data) return {}
+  const evt = event as unknown as Record<string, unknown>;
+  const data = asRecord(evt)?.data ?? evt;
+  if (!data) return {};
 
-  if (typeof data.data === 'function') {
+  const maybeSnapshot = asRecord(data)?.data;
+  if (typeof maybeSnapshot === "function") {
     try {
-      return (data.data() as Record<string, unknown>) ?? {}
-    } catch (e) {
-      return {}
+      const res = (maybeSnapshot as () => unknown)();
+      return (res as Record<string, unknown>) ?? {};
+    } catch {
+      return {};
     }
   }
 
-  const value = data.value ?? data
-  const fields = value.fields ?? value
-  if (!fields || typeof fields !== 'object') return {}
+  const value = (asRecord(data)?.value ?? data) as unknown;
+  const fields = asRecord(value)?.fields ?? value;
+  if (!fields || typeof fields !== "object") return {};
 
-  const parseValue = (fv: any): any => {
-    if (fv == null) return null
-    if (fv.stringValue !== undefined) return fv.stringValue
-    if (fv.booleanValue !== undefined) return fv.booleanValue
-    if (fv.integerValue !== undefined) return Number(fv.integerValue)
-    if (fv.doubleValue !== undefined) return Number(fv.doubleValue)
-    if (fv.nullValue !== undefined) return null
-    if (fv.mapValue && fv.mapValue.fields) {
-      const o: Record<string, any> = {}
-      for (const k of Object.keys(fv.mapValue.fields))
-        o[k] = parseValue(fv.mapValue.fields[k])
-      return o
-    }
-    if (fv.arrayValue && Array.isArray(fv.arrayValue.values)) {
-      return fv.arrayValue.values.map(parseValue)
-    }
-    return undefined
+  const out: Record<string, unknown> = {};
+  const fieldsObj = asRecord(fields) ?? {};
+  for (const k of Object.keys(fieldsObj)) {
+    out[k] = parseFirestoreValue((fieldsObj as Record<string, unknown>)[k]);
   }
-
-  const out: Record<string, unknown> = {}
-  for (const k of Object.keys(fields)) {
-    out[k] = parseValue(fields[k])
-  }
-  return out
+  return out;
 }
 
 /**
- * Extrae `antes` y `despues` desde un evento de actualización de Firestore.
- * Devuelve objetos planos para ambos (pueden estar vacíos si no existen).
+ * Extract `before` and `after` plain objects from an update event.
+ * @param event Trigger event
+ * @return Object with before/after fields
  */
 export function extraerAntesYDespuesDesdeEvento(event: unknown): {
   antes: Record<string, unknown>
   despues: Record<string, unknown>
 } {
-  const evt = event as any
-  const data = evt?.data
-  if (!data) return { antes: {}, despues: {} }
+  const evt = event as unknown as Record<string, unknown>;
+  const data = asRecord(evt)?.data ?? evt;
+  if (!data) return {antes: {}, despues: {}};
 
-  const tryExtract = (obj: any) => {
-    if (!obj) return {}
-    if (typeof obj.data === 'function') {
+  const resolve = (obj: unknown): Record<string, unknown> => {
+    if (!obj) return {};
+    const maybeSnapshot = asRecord(obj)?.data;
+    if (typeof maybeSnapshot === "function") {
       try {
-        return obj.data() as Record<string, unknown>
-      } catch (e) {
-        return {}
+        return (maybeSnapshot as () => unknown)() as Record<string, unknown>;
+      } catch {
+        return {};
       }
     }
-    const value = obj.value ?? obj
-    const fields = value.fields ?? value
-    if (!fields || typeof fields !== 'object') return {}
-    const out: Record<string, unknown> = {}
-    const parseValue = (fv: any): any => {
-      if (fv == null) return null
-      if (fv.stringValue !== undefined) return fv.stringValue
-      if (fv.booleanValue !== undefined) return fv.booleanValue
-      if (fv.integerValue !== undefined) return Number(fv.integerValue)
-      if (fv.doubleValue !== undefined) return Number(fv.doubleValue)
-      if (fv.nullValue !== undefined) return null
-      if (fv.mapValue && fv.mapValue.fields) {
-        const o: Record<string, any> = {}
-        for (const k of Object.keys(fv.mapValue.fields))
-          o[k] = parseValue(fv.mapValue.fields[k])
-        return o
-      }
-      if (fv.arrayValue && Array.isArray(fv.arrayValue.values)) {
-        return fv.arrayValue.values.map(parseValue)
-      }
-      return undefined
+    const value = (asRecord(obj)?.value ?? obj) as unknown;
+    const fields = asRecord(value)?.fields ?? value;
+    if (!fields || typeof fields !== "object") return {};
+    const out: Record<string, unknown> = {};
+    const fieldsObj = asRecord(fields) ?? {};
+    for (const k of Object.keys(fieldsObj)) {
+      out[k] = parseFirestoreValue((fieldsObj as Record<string, unknown>)[k]);
     }
-    for (const k of Object.keys(fields)) out[k] = parseValue(fields[k])
-    return out
-  }
+    return out;
+  };
 
-  const antes = tryExtract(data.before ?? data.oldValue ?? data.old)
-  const despues = tryExtract(data.after ?? data.value ?? data.new)
-  return { antes, despues }
+  const antes = resolve(
+    (asRecord(data)?.before ??
+      asRecord(data)?.oldValue ??
+      asRecord(data)?.old) as unknown
+  );
+  const despues = resolve(
+    (asRecord(data)?.after ??
+      asRecord(data)?.value ??
+      asRecord(data)?.new) as unknown
+  );
+  return {antes, despues};
+}
+
+/**
+ * Construye el objeto de actualización para el `perfil_publico`.
+ * Devuelve `null` si no hay campos a actualizar.
+ * @param nuevo Partial changes
+ * @param uid User ID
+ * @return Update object or null
+ */
+export function construirActualizacion(
+  nuevo: Partial<UsuarioData>,
+  uid: string
+): Record<string, unknown> | null {
+  const actualizar: Record<string, unknown> = {};
+  if (Object.prototype.hasOwnProperty.call(nuevo, "nombre")) {
+    actualizar.nombre = nuevo.nombre ?? null;
+  }
+  if (Object.prototype.hasOwnProperty.call(nuevo, "foto")) {
+    actualizar.foto = nuevo.foto ?? null;
+  }
+  if (Object.prototype.hasOwnProperty.call(nuevo, "verificacion")) {
+    actualizar.verificacion = nuevo.verificacion ?? "pendiente";
+  }
+  if (Object.keys(actualizar).length === 0) return null;
+
+  const af = admin.firestore as unknown as Record<string, unknown>;
+  const FieldValue = af?.FieldValue;
+  const TimestampObj = af?.Timestamp;
+  let ts: unknown;
+  if (
+    FieldValue &&
+    typeof (FieldValue as { serverTimestamp?: unknown }).serverTimestamp ===
+      "function"
+  ) {
+    const serverTimestampFn = (
+      FieldValue as { serverTimestamp?: () => unknown }
+    ).serverTimestamp;
+    ts = serverTimestampFn ? serverTimestampFn() : undefined;
+  } else if (
+    TimestampObj &&
+    typeof (TimestampObj as { now?: unknown }).now === "function"
+  ) {
+    const nowFn = (TimestampObj as { now?: () => unknown }).now;
+    ts = nowFn ? nowFn() : undefined;
+  } else {
+    ts = new Date();
+  }
+  actualizar.actualizado_en = ts;
+  actualizar.actualizado_por = uid;
+  return actualizar;
 }

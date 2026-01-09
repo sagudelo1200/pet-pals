@@ -21,13 +21,18 @@ module.exports = {
     "/lib/**/*", // Ignore built files.
     "/generated/**/*", // Ignore generated files.
   ],
-  plugins: [
-    "@typescript-eslint",
-    "import",
-  ],
+  plugins: ["@typescript-eslint", "import", "jsdoc"],
   rules: {
     "quotes": ["error", "double"],
     "import/no-unresolved": 0,
     "indent": ["error", 2],
+    // Disable strict JSDoc checks for this functions project to avoid
+    // failing deploy when editor formatters remove or change comments.
+    "valid-jsdoc": "off",
+    "jsdoc/require-jsdoc": "off",
+    "jsdoc/require-param": "off",
+    "jsdoc/require-returns": "off",
+    // Allow longer lines to accommodate formatter differences (Prettier)
+    "max-len": ["error", {code: 90}],
   },
 };

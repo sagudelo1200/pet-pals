@@ -27,16 +27,10 @@ export interface PerfilPublico extends BaseModel {
     hora_fin: string
   }
 
-  /** Información de disponibilidad (texto libre - Deprecado o para notas extra) */
-  disponibilidad?: string
-
   /** Tipos de mascotas aceptadas */
   mascotas_aceptadas?: string[]
   /** Número máximo de mascotas que acepta simultáneamente */
   max_mascotas?: number
-
-  /** IDs de valoraciones recibidas */
-  valoraciones?: string[]
   /** Calificación promedio calculada a partir de valoraciones */
   rating_promedio?: number
   /** Cantidad total de paseos realizados */
