@@ -28,6 +28,16 @@ export const GestorUbicaciones = {
         return 'ubicaciones:errores.direccion_formato_requerido'
       case 'COMPONENTES_TOO_LARGE':
         return 'ubicaciones:errores.componentes_demasiado_grandes'
+      case 'PERMISO_UBICACION_DENEGADO':
+        return 'ubicaciones:errores.permiso_denegado'
+      case 'GPS_DESACTIVADO':
+        return 'ubicaciones:errores.gps_desactivado'
+      case 'TIMEOUT_UBICACION':
+        return 'ubicaciones:errores.timeout'
+      case 'ERROR_UBICACION_DISPOSITIVO':
+        return 'ubicaciones:errores.error_dispositivo'
+      case 'DIRECCION_NO_ENCONTRADA':
+        return 'ubicaciones:errores.direccion_no_encontrada'
       default:
         return null
     }

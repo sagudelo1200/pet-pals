@@ -29,6 +29,7 @@ export default {
     },
     android: {
       package: 'com.petpals.app',
+      googleServicesFile: './google-services.json',
       adaptiveIcon: {
         foregroundImage: './assets/splash.png',
         backgroundColor: '#1B5E20',
@@ -41,6 +42,11 @@ export default {
           apiKey: process.env.GOOGLE_MAPS_API_KEY,
         },
       },
+      permissions: [
+        'ACCESS_FINE_LOCATION',
+        'ACCESS_COARSE_LOCATION',
+        'FOREGROUND_SERVICE',
+      ],
     },
     userInterfaceStyle: 'dark', // Forzar modo oscuro para evitar fondos blancos del sistema
     androidNavigationBar: {

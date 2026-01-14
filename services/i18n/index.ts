@@ -10,6 +10,7 @@ import esCargando from './locales/es/cargando.json'
 import esPerfil from './locales/es/perfil.json'
 import esCuidador from './locales/es/cuidador.json'
 import esTutor from './locales/es/tutor.json'
+import esUbicaciones from './locales/es/ubicaciones.json'
 
 // English resources
 import enComun from './locales/en/comun.json'
@@ -20,6 +21,8 @@ import enCargando from './locales/en/cargando.json'
 import enPerfil from './locales/en/perfil.json'
 import enCuidador from './locales/en/cuidador.json'
 import enTutor from './locales/en/tutor.json'
+import enUbicaciones from './locales/en/ubicaciones.json'
+
 import { ERR, type ErrorCode } from '@/constants/errors'
 
 // Detección opcional del idioma del dispositivo sin forzar dependencia inmediata
@@ -48,6 +51,7 @@ if (!i18n.isInitialized) {
         perfil: esPerfil as any,
         cuidador: esCuidador as any,
         tutor: esTutor as any,
+        ubicaciones: esUbicaciones as any,
       },
       en: {
         comun: enComun,
@@ -58,6 +62,7 @@ if (!i18n.isInitialized) {
         perfil: enPerfil as any,
         cuidador: enCuidador as any,
         tutor: enTutor as any,
+        ubicaciones: enUbicaciones as any,
       },
     },
     ns: [

@@ -13,3 +13,5 @@ yarn.lock
 OAuth.secrets.json
 credentials.json
 android/*
+
+google-services.json

@@ -1,7 +1,9 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import * as Location from 'expo-location'
 import { GestorSeguimiento } from '@/logic/paseos/seguimiento'
 import { ESTADOS_PASEO } from '@/models/Paseo'
+import { GestorUbicacionFisica, GestorUbicaciones } from '@/logic/ubicaciones'
+import { useTranslation } from 'react-i18next'
 
 /**
  * Hook para que el cuidador publique su ubicación en tiempo real durante un paseo.
@@ -12,8 +14,11 @@ import { ESTADOS_PASEO } from '@/models/Paseo'
 export function usePublicarUbicacion(
   idPaseo: string | undefined,
   estadoPaseo: ESTADOS_PASEO | undefined
-): void {
+): { error: string | null; errorMessage: string | null } {
   const subscription = useRef<Location.LocationSubscription | null>(null)
+  const [error, setError] = useState<string | null>(null)
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
+  const { t } = useTranslation()
 
   useEffect(() => {
     // Solo trackeamos si el paseo está en un estado activo
@@ -35,11 +40,11 @@ export function usePublicarUbicacion(
 
   const iniciarTracking = async () => {
     try {
-      const { status } = await Location.requestForegroundPermissionsAsync()
-      if (status !== 'granted') {
-        console.warn('[GPS] Permisos de ubicación denegados')
-        return
-      }
+      setError(null)
+      setErrorMessage(null)
+
+      // Usamos el gestor para verificar integridad (GPS ON + Permisos)
+      await GestorUbicacionFisica.verificarIntegridad()
 
       // Detener suscripción previa si existe
       if (subscription.current) {
@@ -63,8 +68,12 @@ export function usePublicarUbicacion(
           }
         }
       )
-    } catch (error) {
-      console.error('[GPS] Error al iniciar tracking:', error)
+    } catch (err: any) {
+      const code = err.message
+      const key = GestorUbicaciones.obtenerClaveI18nErrorUbicacion(code)
+      setError(code)
+      setErrorMessage(key ? t(key) : t('ubicaciones:errores.generico'))
+      console.error('[GPS] Error al iniciar tracking:', code)
     }
   }
 
@@ -74,4 +83,6 @@ export function usePublicarUbicacion(
       subscription.current = null
     }
   }
+
+  return { error, errorMessage }
 }

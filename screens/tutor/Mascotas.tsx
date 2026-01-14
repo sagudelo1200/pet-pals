@@ -21,6 +21,7 @@ import {
 import { useMascotas } from '@/hooks/useMascotas'
 import { CrearMascotaFlow } from './CrearMascotaFlow'
 import type { Mascota } from '@/models/Mascota'
+import PerroSoloSvg from '@/assets/imgs/undraw/perro_solo.svg'
 
 export default function Mascotas({ navigation }: any) {
   const { t } = useTranslation()
@@ -164,6 +165,9 @@ export default function Mascotas({ navigation }: any) {
       />
       {mascotas.length === 0 ? (
         <EmptyState
+          image={
+            <PerroSoloSvg width={180} height={180} style={{ opacity: 0.9 }} />
+          }
           title={t('mascotas:vacio.titulo')}
           description={t('mascotas:vacio.subtitulo')}
           actionLabel={t('mascotas:vacio.boton')}

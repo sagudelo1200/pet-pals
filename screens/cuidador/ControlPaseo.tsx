@@ -25,6 +25,7 @@ import { ESTADOS_PASEO } from '@/models/Paseo'
 import { useControlPaseo } from '@/hooks/cuidador/useControlPaseo'
 import { usePublicarUbicacion } from '@/hooks/cuidador/usePublicarUbicacion'
 import { Button, Mapa, Icon } from '@/components/ui'
+import { AlertaUbicacion } from '@/components/cuidador/AlertaUbicacion'
 import type { AuthStackParamList } from '@/navigation/types'
 
 type ControlPaseoRouteProp = RouteProp<AuthStackParamList, 'ControlPaseo'>
@@ -95,7 +96,10 @@ const ControlPaseo: React.FC = () => {
   )
 
   // Activar publicación de ubicación en tiempo real
-  usePublicarUbicacion(paseoId, paseo?.estado)
+  const { errorMessage: gpsError } = usePublicarUbicacion(
+    paseoId,
+    paseo?.estado
+  )
 
   // Animaciones
   const slideAnim = useRef(new Animated.Value(300)).current
@@ -515,6 +519,21 @@ const ControlPaseo: React.FC = () => {
           </View>
         )}
       </View>
+
+      {/* Alerta de GPS si hay error */}
+      {gpsError && (
+        <View
+          style={{
+            position: 'absolute',
+            top: insets.top + 80,
+            left: 0,
+            right: 0,
+            zIndex: 100,
+          }}
+        >
+          <AlertaUbicacion mensaje={gpsError} />
+        </View>
+      )}
 
       {/* Panel inferior con animación */}
       <Animated.View
