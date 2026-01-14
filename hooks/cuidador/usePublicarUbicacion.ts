@@ -34,8 +34,14 @@ export function usePublicarUbicacion(
         await Location.stopLocationUpdatesAsync(LOCATION_TASK_NAME)
       }
     } catch (err: any) {
-      if (err.message?.includes('Task not found')) {
-        console.debug('[GPS] La tarea de fondo ya estaba detenida.')
+      const msg = err.message || String(err)
+      if (
+        msg.includes('Task not found') ||
+        msg.includes('TaskNotFoundException')
+      ) {
+        console.debug(
+          '[GPS] La tarea de fondo ya estaba detenida o no existía.'
+        )
       } else {
         console.warn('[GPS] Error deteniendo tracking de fondo:', err)
       }
