@@ -149,6 +149,8 @@
     "titulo": "Resumen del paseo",
     "rating": "¿Cómo fue?"
   },
+  "modalidad_privado": "Privado",
+  "modalidad_compartido": "Compartido",
   "detalle": {
     "titulo": "Detalle del Paseo",
     "estado": "Estado",

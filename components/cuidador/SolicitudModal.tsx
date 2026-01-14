@@ -2,11 +2,16 @@ import React, { useState, useEffect } from 'react'
 import { View, Text, StyleSheet, Alert, ScrollView } from 'react-native'
 import { useNavigation } from '@react-navigation/native'
 import {
+  Avatar,
+  Badge,
   BottomSheet,
   Button,
-  Card,
+  Chip,
+  Divider,
+  Icon,
   MascotaHorizontal,
   Skeleton,
+  Spacer,
 } from '@/components/ui'
 import { COLOR } from '@/constants'
 import { Paseo } from '@/models/Paseo'
@@ -14,6 +19,8 @@ import { useTranslation } from 'react-i18next'
 import { GestorPaseos } from '@/logic/paseos'
 import { GestorMascotas } from '@/logic/mascotas'
 import { useGestorPaseoActivo } from '@/hooks/paseos/useGestorPaseoActivo'
+import { ServicioUsuario } from '@/services/firebase'
+import { Usuario } from '@/models/Usuario'
 
 interface Props {
   visible: boolean
@@ -28,6 +35,8 @@ const SolicitudModal: React.FC<Props> = ({ visible, paseo, onClose }) => {
   const [loading, setLoading] = useState(false)
   const [mascotas, setMascotas] = useState<any[]>([])
   const [loadingMascotas, setLoadingMascotas] = useState(false)
+  const [tutor, setTutor] = useState<Usuario | null>(null)
+  const [loadingTutor, setLoadingTutor] = useState(false)
 
   useEffect(() => {
     let mounted = true
@@ -40,16 +49,24 @@ const SolicitudModal: React.FC<Props> = ({ visible, paseo, onClose }) => {
           const fotos = paseo.mascotas_fotos_visual || []
           const items = fotos.map((f, i) => ({ id: `f-${i}`, foto: f }))
           if (mounted) setMascotas(items)
-          return
-        }
-
-        if (ids.length > 0) {
+        } else if (ids.length > 0) {
           const results: any[] = []
           for (const id of ids.slice(0, 8)) {
             const res = await GestorMascotas.obtenerPorId(id)
             if (res.success && res.data) results.push(res.data)
           }
           if (mounted) setMascotas(results)
+        }
+
+        // Cargar Tutor
+        const tutorId = (paseo as any).tutor_ids?.[0] || (paseo as any).id_tutor
+        if (tutorId && mounted) {
+          setLoadingTutor(true)
+          const resTutor = await ServicioUsuario.obtenerPorId(tutorId)
+          if (resTutor.success && mounted) {
+            setTutor(resTutor.data as Usuario)
+          }
+          setLoadingTutor(false)
         }
       } catch (_e) {
         // ignore
@@ -131,15 +148,39 @@ const SolicitudModal: React.FC<Props> = ({ visible, paseo, onClose }) => {
     }
   }
 
+  const fechaFormat = paseo.fecha_hora_inicio
+    ? new Intl.DateTimeFormat('es-ES', {
+        weekday: 'short',
+        day: 'numeric',
+        month: 'short',
+        hour: '2-digit',
+        minute: '2-digit',
+      }).format(
+        paseo.fecha_hora_inicio instanceof Date
+          ? paseo.fecha_hora_inicio
+          : (paseo.fecha_hora_inicio as any).toDate?.() ||
+              new Date(paseo.fecha_hora_inicio)
+      )
+    : ''
+
+  const esPrivado = paseo.modalidad === 'privado'
+
   return (
     <BottomSheet visible={visible} onClose={onClose}>
-      <ScrollView contentContainerStyle={{ paddingBottom: 24 }}>
-        <Card style={styles.card}>
-          <View style={styles.headerSimple}>
-            <Text style={styles.titlePremium} numberOfLines={1}>
-              {precioStr}
-            </Text>
-            <Text style={styles.subtitlePremium} numberOfLines={1}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 40 }}
+      >
+        <View style={styles.headerContainer}>
+          <Text style={styles.headerPrice}>{precioStr}</Text>
+          <View style={styles.direccionContainer}>
+            <Icon
+              name="map-marker-alt"
+              size={14}
+              color={COLOR.PRIMARIO}
+              style={{ marginRight: 6 }}
+            />
+            <Text style={styles.headerDireccion} numberOfLines={2}>
               {paseo.ubicacion_inicio_txt ||
                 (typeof paseo.ubicacion_inicio === 'object'
                   ? (paseo.ubicacion_inicio as any).alias ||
@@ -147,132 +188,203 @@ const SolicitudModal: React.FC<Props> = ({ visible, paseo, onClose }) => {
                   : paseo.ubicacion_inicio) ||
                 ''}
             </Text>
+          </View>
 
-            <View style={styles.metaRowPremium}>
-              <View style={styles.metaItemPremium}>
-                <Text style={styles.metaLabel}>
-                  {t('paseos:campos.duracion')}
-                </Text>
-                <Text style={styles.metaValue}>
-                  {paseo.duracion_estimada} min
-                </Text>
-              </View>
-              <View style={styles.metaItemPremium}>
-                <Text style={styles.metaLabel}>
-                  {t('paseos:campos.precio')}
-                </Text>
-                <Text style={styles.metaValue}>{precioStr}</Text>
+          <View style={styles.badgeRow}>
+            <Chip
+              label={fechaFormat}
+              leftIconName="calendar-alt"
+              style={styles.chip}
+            />
+            <Chip
+              label={`${paseo.duracion_estimada} min`}
+              leftIconName="clock"
+              style={styles.chip}
+            />
+          </View>
+        </View>
+
+        <View style={styles.body}>
+          {/* Sección Tutor */}
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>
+              {t('cuidador:solicitudes.solicitado_por')}
+            </Text>
+            <Badge
+              label={t(
+                esPrivado
+                  ? 'paseos:modalidad_privado'
+                  : 'paseos:modalidad_compartido',
+                esPrivado ? 'Privado' : 'Compartido'
+              )}
+              variant={esPrivado ? 'info' : 'exito'}
+            />
+          </View>
+
+          {loadingTutor ? (
+            <View style={styles.tutorRow}>
+              <Skeleton circle width={44} height={44} />
+              <View style={{ marginLeft: 12, flex: 1 }}>
+                <Skeleton width="60%" height={14} />
+                <Skeleton width="40%" height={10} style={{ marginTop: 6 }} />
               </View>
             </View>
-          </View>
+          ) : (
+            <View style={styles.tutorRow}>
+              <Avatar uri={tutor?.foto} size={48} />
+              <View style={{ marginLeft: 12 }}>
+                <Text style={styles.tutorName}>{tutor?.nombre || 'Tutor'}</Text>
+                <Text style={styles.tutorMeta}>
+                  {t('cuidador:solicitudes.cliente_nuevo')}
+                </Text>
+              </View>
+            </View>
+          )}
 
-          <View style={{ marginTop: 12, minHeight: 120 }}>
-            <Text style={styles.sectionTitle}>
-              {t('paseos:pasos.seleccionar_mascota.titulo')}
+          <Divider style={{ marginVertical: 16 }} />
+
+          {/* Sección Mascotas */}
+          <Text style={styles.sectionTitle}>
+            {t('paseos:pasos.seleccionar_mascota.titulo')}
+          </Text>
+
+          {loadingMascotas ? (
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.mascotasList}
+            >
+              {[1, 2].map(i => (
+                <View key={i} style={styles.mascotaItemHorizontal}>
+                  <Skeleton circle width={64} height={64} />
+                  <Skeleton width={72} height={12} style={{ marginTop: 8 }} />
+                </View>
+              ))}
+            </ScrollView>
+          ) : mascotasAMostrar.length > 0 ? (
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.mascotasList}
+            >
+              {mascotasAMostrar.map(mascota => (
+                <MascotaHorizontal key={mascota.id} mascota={mascota} />
+              ))}
+            </ScrollView>
+          ) : (
+            <Text style={styles.emptyText}>
+              {t('cuidador:solicitudes.sin_mascotas')}
             </Text>
+          )}
 
-            {loadingMascotas ? (
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={styles.mascotasList}
-              >
-                {[1, 2, 3].map(i => (
-                  <View key={i} style={styles.mascotaItemHorizontal}>
-                    <Skeleton
-                      width={64}
-                      height={64}
-                      style={styles.mascotaPlaceholder}
-                    />
-                    <Skeleton width={72} height={12} style={{ marginTop: 8 }} />
-                    <Skeleton width={56} height={10} style={{ marginTop: 6 }} />
-                  </View>
-                ))}
-              </ScrollView>
-            ) : mascotasAMostrar.length > 0 ? (
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={styles.mascotasList}
-              >
-                {mascotasAMostrar.map(mascota => (
-                  <MascotaHorizontal key={mascota.id} mascota={mascota} />
-                ))}
-              </ScrollView>
-            ) : (
-              <Text style={{ color: COLOR.SUBTEXTO }}>
-                {t('cuidador:solicitudes.sin_mascotas')}
-              </Text>
-            )}
-          </View>
+          <Spacer size={24} />
 
-          <View style={styles.actionsPremium}>
+          {/* Acciones */}
+          <View style={styles.footerActions}>
+            <Button
+              title={t('cuidador:solicitudes.ahora_no')}
+              variant="bloque"
+              onPress={handleRechazar}
+              style={{ flex: 0.8 }}
+            />
             <Button
               title={t('cuidador:solicitudes.aceptar')}
               onPress={handleAceptar}
               loading={loading}
-              style={{ flex: 1, marginRight: 8 }}
               variant="primario"
-            />
-            <Button
-              title={t('cuidador:solicitudes.ahora_no')}
-              variant="secundario"
-              onPress={handleRechazar}
-              style={{ flex: 1 }}
+              icon="check"
+              style={{ flex: 1.2, marginLeft: 12 }}
             />
           </View>
-        </Card>
+        </View>
       </ScrollView>
     </BottomSheet>
   )
 }
 
 const styles = StyleSheet.create({
-  card: { padding: 16 },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    marginBottom: 8,
+  headerContainer: {
+    padding: 24,
+    backgroundColor: COLOR.SECUNDARIO,
+    alignItems: 'center',
+    borderBottomWidth: 1,
+    borderBottomColor: COLOR.BORDE,
+  },
+  headerPrice: {
+    fontSize: 28,
+    fontWeight: '900',
     color: COLOR.TEXTO,
+    marginBottom: 8,
   },
-  mascotasList: { paddingVertical: 8, paddingLeft: 4 },
-  mascotaItemHorizontal: { alignItems: 'center', marginRight: 20, width: 80 },
-  mascotaPlaceholder: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    backgroundColor: COLOR.SECUNDARIO,
-    justifyContent: 'center',
+  direccionContainer: {
+    flexDirection: 'row',
     alignItems: 'center',
+    marginBottom: 16,
+    paddingHorizontal: 20,
   },
-  actionsPremium: { flexDirection: 'row', marginTop: 18 },
-  headerSimple: {
+  headerDireccion: {
+    fontSize: 14,
+    color: COLOR.SUBTEXTO,
+    textAlign: 'center',
+  },
+  badgeRow: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  chip: {
+    backgroundColor: 'rgba(255,255,255,0.05)',
+  },
+  body: {
+    padding: 20,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 12,
-    backgroundColor: COLOR.SECUNDARIO,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: COLOR.BORDE,
     marginBottom: 12,
   },
-  titlePremium: {
-    fontSize: 20,
-    fontWeight: '800',
-    color: COLOR.TEXTO,
-    marginBottom: 4,
+  sectionTitle: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: COLOR.SUBTEXTO,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
-  subtitlePremium: { fontSize: 13, color: COLOR.SUBTEXTO, marginBottom: 8 },
-  metaRowPremium: { flexDirection: 'row', gap: 12 },
-  metaItemPremium: {
-    backgroundColor: 'rgba(255,255,255,0.03)',
-    paddingHorizontal: 8,
-    paddingVertical: 6,
-    borderRadius: 8,
+  tutorRow: {
+    flexDirection: 'row',
     alignItems: 'center',
-    marginRight: 8,
+    backgroundColor: COLOR.BLOQUE,
+    padding: 12,
+    borderRadius: 16,
   },
-  metaLabel: { fontSize: 12, color: COLOR.SUBTEXTO },
-  metaValue: { fontSize: 14, fontWeight: '700', color: COLOR.TEXTO },
+  tutorName: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: COLOR.TEXTO,
+  },
+  tutorMeta: {
+    fontSize: 12,
+    color: COLOR.PRIMARIO,
+    fontWeight: '600',
+  },
+  mascotasList: {
+    paddingVertical: 10,
+  },
+  mascotaItemHorizontal: {
+    alignItems: 'center',
+    marginRight: 16,
+  },
+  emptyText: {
+    color: COLOR.SUBTEXTO,
+    fontStyle: 'italic',
+    textAlign: 'center',
+    marginTop: 10,
+  },
+  footerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingTop: 10,
+  },
 })
 
 export default SolicitudModal

@@ -149,6 +149,8 @@
     "titulo": "Walk summary",
     "rating": "How was it?"
   },
+  "modalidad_privado": "Private",
+  "modalidad_compartido": "Shared",
   "detalle": {
     "titulo": "Walk detail",
     "estado": "Status",
