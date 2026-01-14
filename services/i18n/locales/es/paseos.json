@@ -213,7 +213,9 @@
     "gran_trabajo": "¡Gran trabajo!",
     "exito_mensaje": "El paseo con {{mascota}} ha sido completado con éxito.",
     "tiempo_total": "TIEMPO TOTAL",
-    "finalizar_volver": "Finalizar y Volver"
+    "finalizar_volver": "Finalizar y Volver",
+    "notificacion_titulo": "Paseo en curso",
+    "notificacion_cuerpo": "Pet Pals está registrando el recorrido."
   },
   "finalizado": {
     "titulo": "¡Paseo Completado!",

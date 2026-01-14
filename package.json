@@ -47,6 +47,7 @@
     "expo-location": "~19.0.8",
     "expo-modules-core": "^3.0.29",
     "expo-splash-screen": "~31.0.13",
+    "expo-task-manager": "^14.0.9",
     "expo-web-browser": "~15.0.10",
     "firebase": "^12.6.0",
     "galio-framework": "^0.9.4",

@@ -10,6 +10,8 @@ import { StatusBar } from 'react-native'
 import './services/i18n'
 
 import { MascotasProvider } from './context/MascotasContext'
+// Registro de tareas de segundo plano para ubicación
+import '@/logic/paseos/backgroundTask'
 
 // Componente principal - Solo configuración global
 export default function App(): React.ReactElement {
@@ -32,7 +34,11 @@ export default function App(): React.ReactElement {
         <RolProvider>
           <MascotasProvider>
             <GalioProvider>
-              <StatusBar barStyle="light-content" backgroundColor={COLOR.BLOQUE} translucent={false} />
+              <StatusBar
+                barStyle="light-content"
+                backgroundColor={COLOR.BLOQUE}
+                translucent={false}
+              />
               <NavigationContainer theme={navTheme}>
                 <RootNavigator />
               </NavigationContainer>

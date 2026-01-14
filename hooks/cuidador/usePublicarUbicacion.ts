@@ -1,10 +1,13 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { AppState, AppStateStatus } from 'react-native'
 import * as Location from 'expo-location'
+import AsyncStorage from '@react-native-async-storage/async-storage'
 import { GestorSeguimiento } from '@/logic/paseos/seguimiento'
 import { ESTADOS_PASEO } from '@/models/Paseo'
 import { GestorUbicacionFisica, GestorUbicaciones } from '@/logic/ubicaciones'
+import { LOCATION_TASK_NAME } from '@/logic/paseos/backgroundTask'
 import { useTranslation } from 'react-i18next'
+import { COLOR } from '@/constants'
 
 /**
  * Hook para que el cuidador publique su ubicación en tiempo real durante un paseo.
@@ -18,41 +21,97 @@ export function usePublicarUbicacion(
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const { t } = useTranslation()
 
-  const detenerTracking = useCallback(() => {
+  const detenerTracking = useCallback(async () => {
     if (subscription.current) {
       subscription.current.remove()
       subscription.current = null
+    }
+    // Detener tarea de fondo
+    try {
+      const isRegistered =
+        await Location.hasStartedLocationUpdatesAsync(LOCATION_TASK_NAME)
+      if (isRegistered) {
+        await Location.stopLocationUpdatesAsync(LOCATION_TASK_NAME)
+      }
+      await AsyncStorage.removeItem('@task_active_ride')
+    } catch (err) {
+      console.warn('[GPS] Error deteniendo tracking de fondo:', err)
     }
   }, [])
 
   const iniciarTracking = useCallback(async () => {
     try {
-      // Si ya hay suscripción activa, no reiniciamos a menos que sea necesario
-      if (subscription.current) return
+      // 1. Evitar duplicidad si ya está activo
+      const isRunningBg =
+        await Location.hasStartedLocationUpdatesAsync(LOCATION_TASK_NAME)
+      if (isRunningBg && subscription.current) return
 
       setError(null)
       setErrorMessage(null)
 
-      // 1. Verificar integridad (GPS ON + Permisos)
+      // 2. Integridad de Hardware/Sistema (GPS ON + Permisos Foreground)
       await GestorUbicacionFisica.verificarIntegridad()
 
-      // 2. Iniciar seguimiento
-      subscription.current = await Location.watchPositionAsync(
-        {
-          accuracy: Location.Accuracy.High,
-          timeInterval: 5000,
-          distanceInterval: 10,
-        },
-        location => {
-          if (idPaseo && estadoPaseo) {
-            GestorSeguimiento.publicarUbicacion(
-              idPaseo,
-              estadoPaseo,
-              location.coords
-            )
+      // 3. Persistir contexto para la tarea de fondo inmediatamente
+      if (idPaseo && estadoPaseo) {
+        await AsyncStorage.setItem(
+          '@task_active_ride',
+          JSON.stringify({ idPaseo, estadoPaseo })
+        )
+      }
+
+      // 4. Intento de inicio seguimiento Foreground (UI reactiva)
+      if (!subscription.current) {
+        subscription.current = await Location.watchPositionAsync(
+          {
+            accuracy: Location.Accuracy.High,
+            timeInterval: 5000,
+            distanceInterval: 10,
+          },
+          location => {
+            if (idPaseo && estadoPaseo) {
+              GestorSeguimiento.publicarUbicacion(
+                idPaseo,
+                estadoPaseo,
+                location.coords
+              ).catch(e =>
+                console.debug('[GPS] Error publicación foreground:', e)
+              )
+            }
           }
+        )
+      }
+
+      // 5. Gestión Seguimiento Background (Resiliencia)
+      const { status: bgStatus } =
+        await Location.getBackgroundPermissionsAsync()
+
+      if (bgStatus === 'granted') {
+        const isAlreadyTaskRunning =
+          await Location.hasStartedLocationUpdatesAsync(LOCATION_TASK_NAME)
+        if (!isAlreadyTaskRunning) {
+          await Location.startLocationUpdatesAsync(LOCATION_TASK_NAME, {
+            accuracy: Location.Accuracy.High,
+            timeInterval: 10000,
+            distanceInterval: 20,
+            foregroundService: {
+              notificationTitle: t('paseos:control.notificacion_titulo'),
+              notificationBody: t('paseos:control.notificacion_cuerpo'),
+              notificationColor: COLOR.PRIMARIO,
+            },
+            pausesUpdatesAutomatically: false,
+          })
         }
-      )
+      } else {
+        // Si no hay permisos de fondo, intentamos pedirlos una vez más
+        const { status: newBgStatus } =
+          await Location.requestBackgroundPermissionsAsync()
+        if (newBgStatus !== 'granted') {
+          console.warn(
+            '[GPS] Seguimiento en segundo plano deshabilitado (sin permisos)'
+          )
+        }
+      }
     } catch (err: any) {
       const code = err.message
       const key = GestorUbicaciones.obtenerClaveI18nErrorUbicacion(code)

@@ -25,6 +25,13 @@ export default {
       bundleIdentifier: 'com.petpals.app',
       infoPlist: {
         CFBundleAllowMixedLocalizations: true,
+        UIBackgroundModes: ['location', 'fetch'],
+        NSLocationAlwaysAndWhenInUseUsageDescription:
+          'Pet Pals necesita acceder a tu ubicación siempre para que los tutores puedan ver el recorrido de su mascota en tiempo real, incluso con la app cerrada.',
+        NSLocationAlwaysUsageDescription:
+          'Pet Pals necesita acceder a tu ubicación siempre para que los tutores puedan ver el recorrido de su mascota en tiempo real, incluso con la app cerrada.',
+        NSLocationWhenInUseUsageDescription:
+          'Pet Pals necesita acceder a tu ubicación mientras usas la app para registrar el inicio y progreso de los paseos.',
       },
     },
     android: {
@@ -45,7 +52,9 @@ export default {
       permissions: [
         'ACCESS_FINE_LOCATION',
         'ACCESS_COARSE_LOCATION',
+        'ACCESS_BACKGROUND_LOCATION',
         'FOREGROUND_SERVICE',
+        'FOREGROUND_SERVICE_LOCATION',
       ],
     },
     userInterfaceStyle: 'dark', // Forzar modo oscuro para evitar fondos blancos del sistema
@@ -62,6 +71,14 @@ export default {
     },
     plugins: [
       'expo-web-browser',
+      [
+        'expo-location',
+        {
+          locationAlwaysAndWhenInUsePermission:
+            'Permite que Pet Pals acceda a tu ubicación siempre para seguimiento en tiempo real de los paseos.',
+          isAndroidBackgroundLocationEnabled: true,
+        },
+      ],
       [
         'expo-build-properties',
         {
