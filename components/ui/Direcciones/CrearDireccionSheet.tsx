@@ -16,6 +16,8 @@ import Button from '../Button'
 import Spacer from '../Spacer'
 import { Mapa } from '../Mapa'
 import { useTranslation } from 'react-i18next'
+import { useUbicacionDispositivo } from '@/hooks'
+import { BannerUbicacion } from '@/components/comun/BannerUbicacion'
 
 interface CrearDireccionSheetProps {
   visible: boolean
@@ -57,6 +59,12 @@ export const CrearDireccionSheet: React.FC<CrearDireccionSheetProps> = ({
   const [guardando, setGuardando] = useState(false)
   const [usuarioMovioMapa, setUsuarioMovioMapa] = useState(false)
 
+  const {
+    errorMessage: gpsError,
+    obtenerPosicion,
+    loading: localizando,
+  } = useUbicacionDispositivo()
+
   // Reset al abrir
   useEffect(() => {
     if (visible) {
@@ -84,6 +92,20 @@ export const CrearDireccionSheet: React.FC<CrearDireccionSheetProps> = ({
       longitudeDelta: 0.001,
     })
     setStep('MAPA_CONFIRMACION')
+  }
+
+  const handleUsarUbicacionActual = async () => {
+    const pos = await obtenerPosicion()
+    if (pos) {
+      handleSelectPlace({
+        coordenadas: {
+          latitude: pos.coords.latitude,
+          longitude: pos.coords.longitude,
+        },
+        direccion_formateada: t('tutor:solicitud.direccion.ubicacion_actual'),
+        place_id: `current-${Date.now()}`,
+      })
+    }
   }
 
   const handleSave = async () => {
@@ -116,7 +138,39 @@ export const CrearDireccionSheet: React.FC<CrearDireccionSheetProps> = ({
             <Text h5 bold color={COLOR.TEXTO} style={{ marginBottom: 16 }}>
               {t('tutor:solicitud.direccion.nueva_titulo')}
             </Text>
+
+            {gpsError && (
+              <BannerUbicacion
+                mensaje={gpsError}
+                style={{ marginBottom: 16 }}
+              />
+            )}
+
             <AutocompletarDireccion onSelect={handleSelectPlace} />
+
+            <Spacer size={16} />
+
+            <TouchableOpacity
+              onPress={handleUsarUbicacionActual}
+              disabled={localizando}
+              style={styles.locationButton}
+            >
+              <Icon
+                name="location-arrow"
+                size={16}
+                color={localizando ? COLOR.INACTIVO : COLOR.PRIMARIO}
+              />
+              <Spacer horizontal size={10} />
+              <Text
+                size={14}
+                color={localizando ? COLOR.INACTIVO : COLOR.TEXTO}
+              >
+                {localizando
+                  ? t('comun:cargando')
+                  : t('tutor:solicitud.direccion.usar_actual')}
+              </Text>
+            </TouchableOpacity>
+
             <Spacer size={20} />
             <View style={styles.infoBox}>
               <Icon name="info-circle" size={20} color={COLOR.INFO} />
@@ -327,5 +381,10 @@ const styles = StyleSheet.create({
   input: {
     color: COLOR.TEXTO,
     fontSize: 16,
+  },
+  locationButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
   },
 })

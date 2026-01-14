@@ -25,7 +25,7 @@ import { ESTADOS_PASEO } from '@/models/Paseo'
 import { useControlPaseo } from '@/hooks/cuidador/useControlPaseo'
 import { usePublicarUbicacion } from '@/hooks/cuidador/usePublicarUbicacion'
 import { Button, Mapa, Icon } from '@/components/ui'
-import { AlertaUbicacion } from '@/components/cuidador/AlertaUbicacion'
+import { BannerUbicacion } from '@/components/comun/BannerUbicacion'
 import type { AuthStackParamList } from '@/navigation/types'
 
 type ControlPaseoRouteProp = RouteProp<AuthStackParamList, 'ControlPaseo'>
@@ -531,7 +531,10 @@ const ControlPaseo: React.FC = () => {
             zIndex: 100,
           }}
         >
-          <AlertaUbicacion mensaje={gpsError} />
+          <BannerUbicacion
+            mensaje={gpsError}
+            style={{ marginHorizontal: 16 }}
+          />
         </View>
       )}
 

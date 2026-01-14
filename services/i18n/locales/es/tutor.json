@@ -41,6 +41,8 @@
       "alias_placeholder": "Casa",
       "referencia_label": "REFERENCIA (Opcional)",
       "referencia_placeholder": "Ej. Portón negro, apto 201",
+      "usar_actual": "Usar mi ubicación actual",
+      "ubicacion_actual": "📍 Mi ubicación actual",
       "tipo_default": "Ubicación",
       "ver_en_mapa": "Ver en mapa",
       "nueva_btn": "Nueva",
