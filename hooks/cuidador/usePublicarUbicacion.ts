@@ -33,9 +33,14 @@ export function usePublicarUbicacion(
       if (isRegistered) {
         await Location.stopLocationUpdatesAsync(LOCATION_TASK_NAME)
       }
-      await AsyncStorage.removeItem('@task_active_ride')
-    } catch (err) {
-      console.warn('[GPS] Error deteniendo tracking de fondo:', err)
+    } catch (err: any) {
+      if (err.message?.includes('Task not found')) {
+        console.debug('[GPS] La tarea de fondo ya estaba detenida.')
+      } else {
+        console.warn('[GPS] Error deteniendo tracking de fondo:', err)
+      }
+    } finally {
+      await AsyncStorage.removeItem('@task_active_ride').catch(() => {})
     }
   }, [])
 
