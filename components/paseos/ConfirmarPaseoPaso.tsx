@@ -33,16 +33,23 @@ export const ConfirmarPaseoPaso = ({
   onBack,
 }: Props) => {
   const { t } = useTranslation()
-  const { mascotas, cuidador, direccion, total, loading, error, confirmarReserva } =
-    useConfirmarPaseo({
-      mascotaIds,
-      direccionId,
-      cuidadorId,
-      fecha,
-      hora,
-      duracion,
-      esCompartido,
-    })
+  const {
+    mascotas,
+    cuidador,
+    direccion,
+    total,
+    loading,
+    error,
+    confirmarReserva,
+  } = useConfirmarPaseo({
+    mascotaIds,
+    direccionId,
+    cuidadorId,
+    fecha,
+    hora,
+    duracion,
+    esCompartido,
+  })
 
   const COMPARTIDO_DISCOUNT = 0.15 // 15% descuento para paseos compartidos
   const subtotal = total
@@ -72,12 +79,43 @@ export const ConfirmarPaseoPaso = ({
   }
 
   return (
-    <View style={styles.container}>
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={{ paddingBottom: 24 }}
+      showsVerticalScrollIndicator={false}
+    >
       <Text style={styles.title}>{t('paseos:pasos.confirmar.titulo')}</Text>
 
       <Card style={styles.card} elevated>
-        {/* Sección Mascotas */}
-        <View style={styles.section}>
+        {/* Compact Horizontal Layout for critical info */}
+        <View style={styles.compactRow}>
+          <View style={[styles.section, { flex: 1, marginBottom: 0 }]}>
+            <Text style={styles.label}>
+              {t('paseos:pasos.confirmar.resumen_fecha')}
+            </Text>
+            <View style={styles.row}>
+              <Icon name="calendar-alt" size={13} color={COLOR.PRIMARIO} />
+              <Text style={[styles.value, { marginLeft: 6 }]}>
+                {formatDate(fecha)}
+              </Text>
+            </View>
+          </View>
+
+          <View style={[styles.section, { flex: 0.8, marginBottom: 0 }]}>
+            <Text style={styles.label}>{t('paseos:campos.duracion')}</Text>
+            <View style={styles.row}>
+              <Icon name="clock" size={13} color={COLOR.PRIMARIO} />
+              <Text style={[styles.value, { marginLeft: 6 }]}>
+                {hora} ({duracion || 60} min)
+              </Text>
+            </View>
+          </View>
+        </View>
+
+        <View style={styles.divider} />
+
+        {/* Mascotas */}
+        <View style={[styles.section, { marginBottom: 4 }]}>
           <Text style={styles.label}>
             {t('paseos:pasos.confirmar.resumen_mascotas')}
           </Text>
@@ -89,7 +127,7 @@ export const ConfirmarPaseoPaso = ({
           >
             {mascotas.map((pet: any) => (
               <View key={pet.id} style={styles.petItem}>
-                <PetAvatar uri={pet.foto} size="medium" />
+                <PetAvatar uri={pet.foto} size="small" />
                 <Text style={styles.petName}>{pet.nombre}</Text>
               </View>
             ))}
@@ -98,42 +136,25 @@ export const ConfirmarPaseoPaso = ({
 
         <View style={styles.divider} />
 
-        {/* Sección Fecha y Hora */}
-        <View style={styles.section}>
-          <Text style={styles.label}>
-            {t('paseos:pasos.confirmar.resumen_fecha')}
-          </Text>
-          <View style={styles.row}>
-            <View style={{ width: 20, alignItems: 'center', marginRight: 8 }}>
-              <Icon name="calendar" size={16} color={COLOR.PRIMARIO} />
-            </View>
-            <Text style={styles.value}>
-              {formatDate(fecha)} - {hora} ({duracion || 60} min)
-            </Text>
-          </View>
-        </View>
-
-        <View style={styles.divider} />
-
-        {/* Sección Ubicación */}
-        <View style={styles.section}>
+        {/* Ubicación */}
+        <View style={[styles.section, { marginBottom: 4 }]}>
           <Text style={styles.label}>
             {t('paseos:pasos.confirmar.resumen_ubicacion')}
           </Text>
           <View style={styles.row}>
-            <View style={{ width: 20, alignItems: 'center', marginRight: 8 }}>
-              <Icon name="map-marker" size={16} color={COLOR.ERROR} />
-            </View>
-            <Text style={styles.value} numberOfLines={1}>
-              {direccion?.alias || direccion?.direccion_formateada || t('comun:cargando')}
+            <Icon name="map-marker-alt" size={13} color={COLOR.ERROR} />
+            <Text style={[styles.value, { marginLeft: 6 }]} numberOfLines={1}>
+              {direccion?.alias ||
+                direccion?.direccion_formateada ||
+                t('comun:cargando')}
             </Text>
           </View>
         </View>
 
         <View style={styles.divider} />
 
-        {/* Sección Cuidador */}
-        <View style={styles.section}>
+        {/* Cuidador */}
+        <View style={[styles.section, { marginBottom: 4 }]}>
           <Text style={styles.label}>
             {t('paseos:pasos.confirmar.resumen_cuidador')}
           </Text>
@@ -155,12 +176,10 @@ export const ConfirmarPaseoPaso = ({
                       backgroundColor: 'rgba(42, 134, 168, 0.2)',
                       justifyContent: 'center',
                       alignItems: 'center',
-                      borderWidth: 1,
-                      borderColor: COLOR.INFO,
                     },
                   ]}
                 >
-                  <Icon name="bullhorn" size={12} color={COLOR.INFO} />
+                  <Icon name="bullhorn" size={10} color={COLOR.INFO} />
                 </View>
                 <Text style={styles.value}>
                   {t('paseos:pasos.confirmar.solicitud_abierta_nombre')}
@@ -172,42 +191,38 @@ export const ConfirmarPaseoPaso = ({
 
         <View style={styles.divider} />
 
-        {/* Paseo Compartido Option - Always visible savings banner */}
-        <View style={styles.section}>
-          <View style={styles.savingsBanner}>
-            <Icon
-              name={esCompartido ? 'check-circle' : 'star'}
-              size={14}
-              color={COLOR.EXITO}
-            />
-            <Text style={styles.savingsText}>
+        {/* Paseo Compartido Compact */}
+        <View style={[styles.section, { marginBottom: 4 }]}>
+          <View style={styles.savingsBannerCompact}>
+            <Icon name="check-circle" size={14} color={COLOR.EXITO} />
+            <Text style={styles.savingsTextCompact}>
               {t('paseos:pasos.confirmar.ahorro_mensaje', {
                 descuento: Math.round(COMPARTIDO_DISCOUNT * 100),
               })}
             </Text>
           </View>
-          <View style={{ marginTop: 8 }}>
+          <View style={{ marginTop: 4 }}>
             <Switch
               value={esCompartido}
               onValueChange={onCompartidoChange}
               label={t('paseos:pasos.confirmar.paseo_compartido_label')}
-              description={t('paseos:pasos.confirmar.paseo_compartido_desc')}
+              style={{ paddingVertical: 4 }}
             />
           </View>
         </View>
 
         <View style={styles.divider} />
 
-        {/* Price Breakdown */}
-        <View style={styles.priceSection}>
-          <View style={styles.priceRow}>
+        {/* Price Breakdown Compact */}
+        <View style={styles.priceSectionCompact}>
+          <View style={styles.priceRowCompact}>
             <Text style={styles.priceLabel}>
               {t('paseos:pasos.confirmar.costo_servicio')}
             </Text>
             <Text style={styles.priceValue}>${subtotal.toLocaleString()}</Text>
           </View>
           {esCompartido && (
-            <View style={styles.priceRow}>
+            <View style={styles.priceRowCompact}>
               <Text style={[styles.priceLabel, styles.discountText]}>
                 {t('paseos:pasos.confirmar.descuento_compartido')}
               </Text>
@@ -218,8 +233,8 @@ export const ConfirmarPaseoPaso = ({
           )}
         </View>
 
-        {/* Total Price */}
-        <View style={styles.totalRow}>
+        {/* Total Price Compact */}
+        <View style={styles.totalRowCompact}>
           <Text style={styles.totalLabel}>
             {t('paseos:pasos.confirmar.total')}
           </Text>
@@ -242,10 +257,10 @@ export const ConfirmarPaseoPaso = ({
           variant="primario"
           onPress={handleConfirmar}
           loading={loading}
-          style={{ flex: 1 }}
+          style={{ flex: 1.2 }}
         />
       </View>
-    </View>
+    </ScrollView>
   )
 }
 
@@ -301,6 +316,11 @@ const styles = StyleSheet.create({
     color: COLOR.TEXTO,
     marginTop: 3,
   },
+  compactRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 12,
+  },
   avatarMini: {
     width: 20,
     height: 20,
@@ -310,15 +330,14 @@ const styles = StyleSheet.create({
   divider: {
     height: 1,
     backgroundColor: COLOR.BORDE,
-    marginVertical: 8,
+    marginVertical: 4,
   },
-  totalRow: {
+  totalRowCompact: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop: 6,
-    paddingTop: 8,
-    borderTopWidth: 2,
+    paddingTop: 6,
+    borderTopWidth: 1,
     borderTopColor: COLOR.BORDE,
   },
   totalLabel: {
@@ -331,37 +350,34 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: COLOR.PRIMARIO,
   },
-  savingsBanner: {
+  savingsBannerCompact: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(76, 175, 80, 0.15)',
-    padding: 10,
-    borderRadius: 8,
-    marginTop: 6,
+    backgroundColor: 'rgba(76, 175, 80, 0.1)',
+    padding: 6,
+    borderRadius: 6,
     gap: 6,
-    borderWidth: 1,
-    borderColor: 'rgba(76, 175, 80, 0.3)',
   },
-  savingsText: {
-    fontSize: 12,
+  savingsTextCompact: {
+    fontSize: 11,
     color: COLOR.EXITO,
     fontWeight: '700',
     flex: 1,
   },
-  priceSection: {
-    marginBottom: 6,
-  },
-  priceRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+  priceSectionCompact: {
     marginBottom: 4,
   },
+  priceRowCompact: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 2,
+  },
   priceLabel: {
-    fontSize: 13,
+    fontSize: 12,
     color: COLOR.SUBTEXTO,
   },
   priceValue: {
-    fontSize: 13,
+    fontSize: 12,
     color: COLOR.TEXTO,
     fontWeight: '500',
   },
@@ -371,6 +387,6 @@ const styles = StyleSheet.create({
   actions: {
     flexDirection: 'row',
     gap: 12,
-    marginTop: 16,
+    marginTop: 12,
   },
 })

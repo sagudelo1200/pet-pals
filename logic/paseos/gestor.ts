@@ -442,6 +442,23 @@ export class GestorPaseoActivo {
 export const paseoActivo = new GestorPaseoActivo()
 
 // ---------- Helpers de denormalización ----------
+const MAX_DENORMALIZED_PHOTO_SIZE = 120 * 1024 // 120KB (suficiente para URLs y mini-thumbnails)
+
+function sanitizarFotoDenormalizada(
+  foto: string | null | undefined
+): string | null {
+  if (!foto) return null
+  // Si la foto es un base64 muy grande (> 120KB), la omitimos en la denormalización
+  // para evitar exceder el límite de 1MB de Firestore en el documento principal.
+  if (foto.startsWith('data:') && foto.length > MAX_DENORMALIZED_PHOTO_SIZE) {
+    console.warn(
+      `[Paseos] Foto base64 demasiado grande (${Math.round(foto.length / 1024)}KB). Omitiendo denormalización.`
+    )
+    return null
+  }
+  return foto
+}
+
 function prepararDataPaseoMascota(
   paseoId: string,
   mascota: any,
@@ -567,12 +584,13 @@ export async function crearConMascotas(
     for (let i = 0; i < limit; i++) {
       const d = mascotasData[i]
       if (i === 0) primerNombre = d.nombre
-      if (d.foto_url || d.foto) fotos.push(d.foto_url || d.foto)
+      const foto = sanitizarFotoDenormalizada(d.foto_url || d.foto)
+      if (foto) fotos.push(foto)
     }
 
     visualData = {
       mascota_nombre_visual: primerNombre,
-      mascota_foto_visual: fotos[0],
+      mascota_foto_visual: fotos[0] || null,
       mascotas_fotos_visual: fotos,
     }
   }
@@ -621,7 +639,9 @@ export async function aceptarSolicitud(paseoId: string) {
     return { success: false, error: 'PASEO_TOMADO_POR_OTRO' }
 
   const cuidador_nombre_visual = current.displayName || 'Cuidador'
-  const cuidador_foto_visual = current.photoURL || null
+  const cuidador_foto_visual = sanitizarFotoDenormalizada(
+    current.photoURL || null
+  )
 
   const res = await ServicioPaseo.commitEstadoTransaccional(
     paseoId,
