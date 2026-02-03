@@ -6,6 +6,7 @@ import { BottomTabNavigationProp } from '@react-navigation/bottom-tabs'
 import { TutorTabParamList } from '@/navigation/types'
 import { useTranslation } from 'react-i18next'
 import { COLOR } from '@/constants'
+import { useAuth } from '@/context/AuthContext'
 import {
   Card,
   Button,
@@ -26,6 +27,7 @@ type DashboardNavigationProp = BottomTabNavigationProp<TutorTabParamList>
 const Dashboard: React.FC = () => {
   const _navigation = useNavigation<DashboardNavigationProp>()
   const { t } = useTranslation()
+  const { profile } = useAuth()
 
   const [creandoMascota, setCreandoMascota] = useState(false)
 
@@ -94,7 +96,9 @@ const Dashboard: React.FC = () => {
   return (
     <Screen style={styles.container} includeTopInset>
       <ScreenHeader
-        title={t('tutor:dashboard.titulo')}
+        title={t('tutor:dashboard.titulo', {
+          nombre: profile?.nombre ?? 'Tutor',
+        })}
         subtitle={t('tutor:dashboard.subtitulo')}
         showBack={false}
       />

@@ -6,7 +6,7 @@
     "mi_cuenta": "My Account"
   },
   "dashboard": {
-    "titulo": "Hello, Owner",
+    "titulo": "Hello, {{nombre}}",
     "subtitulo": "Summary of your activity",
     "proximo_paseo": "Next walk",
     "acciones_rapidas": "Quick actions",

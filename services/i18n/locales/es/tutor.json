@@ -6,7 +6,7 @@
     "mi_cuenta": "Mi cuenta"
   },
   "dashboard": {
-    "titulo": "Hola, Tutor",
+    "titulo": "Hola, {{nombre}}",
     "subtitulo": "Resumen de tu actividad",
     "proximo_paseo": "Próximo paseo",
     "acciones_rapidas": "Acciones rápidas",
