@@ -5,7 +5,6 @@ import { BottomSheet } from '@/components/ui'
 import { SeleccionarMascotaPaso } from './SeleccionarMascotaPaso'
 import { SeleccionarDireccionPaso } from './SeleccionarDireccionPaso'
 import { SeleccionarFechaPaso } from './SeleccionarFechaPaso'
-import { SeleccionarHoraPaso } from './SeleccionarHoraPaso'
 import { SeleccionarCuidadorPaso } from './SeleccionarCuidadorPaso'
 import { ConfirmarPaseoPaso } from './ConfirmarPaseoPaso'
 
@@ -17,10 +16,9 @@ interface Props {
 
 type Step =
   | 'SELECCIONAR_MASCOTA'
-  | 'SELECCIONAR_DIRECCION' // New Step
+  | 'SELECCIONAR_DIRECCION'
   | 'SELECCIONAR_FECHA'
   | 'SELECCIONAR_CUIDADOR'
-  | 'SELECCIONAR_HORA'
   | 'CONFIRMAR'
 
 export const SolicitarPaseoModal = ({ visible, onClose, onConfirm }: Props) => {
@@ -29,7 +27,7 @@ export const SolicitarPaseoModal = ({ visible, onClose, onConfirm }: Props) => {
   // State for flow data
   const [datosSolicitud, setDatosSolicitud] = useState({
     mascotaIds: [] as string[],
-    direccionId: null as string | null, // New field
+    direccionId: null as string | null,
     fecha: null as Date | null,
     hora: null as string | null,
     duracion: null as number | null,
@@ -69,18 +67,22 @@ export const SolicitarPaseoModal = ({ visible, onClose, onConfirm }: Props) => {
 
   // ... existing handlers ...
 
-  const handleDateSelected = (fecha: Date, duracion: number) => {
+  const handleDateSelected = (fecha: Date, hora: string, duracion: number) => {
     setDatosSolicitud(prev => {
-      const fechaPrev = prev.fecha
-      const fechaChanged = !fechaPrev || fechaPrev.getTime() !== fecha.getTime()
+      const changed =
+        !prev.fecha ||
+        prev.fecha.getTime() !== fecha.getTime() ||
+        prev.hora !== hora ||
+        prev.duracion !== duracion
 
       return {
         ...prev,
         fecha,
+        hora,
         duracion,
-        // Si la fecha cambió, limpiar la selección de cuidador y su horario
-        cuidadorId: fechaChanged ? null : prev.cuidadorId,
-        horarioCuidador: fechaChanged ? null : prev.horarioCuidador,
+        // Si cambió fecha/hora/duración, limpiar la selección de cuidador
+        cuidadorId: changed ? null : prev.cuidadorId,
+        horarioCuidador: changed ? null : prev.horarioCuidador,
       }
     })
 
@@ -102,14 +104,6 @@ export const SolicitarPaseoModal = ({ visible, onClose, onConfirm }: Props) => {
       cuidadorId,
       horarioCuidador: horario || null,
       esSolicitudAbierta: esAbierta,
-    }))
-    setStep('SELECCIONAR_HORA')
-  }
-
-  const handleTimeSelected = (hora: string) => {
-    setDatosSolicitud(prev => ({
-      ...prev,
-      hora,
     }))
     setStep('CONFIRMAR')
   }
@@ -142,11 +136,8 @@ export const SolicitarPaseoModal = ({ visible, onClose, onConfirm }: Props) => {
       case 'SELECCIONAR_CUIDADOR':
         setStep('SELECCIONAR_FECHA')
         break
-      case 'SELECCIONAR_HORA':
-        setStep('SELECCIONAR_CUIDADOR')
-        break
       case 'CONFIRMAR':
-        setStep('SELECCIONAR_HORA')
+        setStep('SELECCIONAR_CUIDADOR')
         break
     }
   }
@@ -173,6 +164,7 @@ export const SolicitarPaseoModal = ({ visible, onClose, onConfirm }: Props) => {
         return (
           <SeleccionarFechaPaso
             fechaInicial={datosSolicitud.fecha}
+            horaInicial={datosSolicitud.hora}
             duracionInicial={datosSolicitud.duracion}
             onNext={handleDateSelected}
             onBack={() => handleBack()}
@@ -184,21 +176,17 @@ export const SolicitarPaseoModal = ({ visible, onClose, onConfirm }: Props) => {
             cuidadorInicialId={datosSolicitud.cuidadorId}
             horarioInicial={datosSolicitud.horarioCuidador || undefined}
             fecha={datosSolicitud.fecha!}
+            hora={datosSolicitud.hora}
+            duracion={datosSolicitud.duracion}
             onNext={handleWalkerSelected}
             onBack={() => handleBack()}
             onChangeFechaSuggested={f =>
-              handleDateSelected(f, datosSolicitud.duracion || 60)
+              handleDateSelected(
+                f,
+                datosSolicitud.hora || '08:00',
+                datosSolicitud.duracion || 60
+              )
             }
-          />
-        )
-      case 'SELECCIONAR_HORA':
-        return (
-          <SeleccionarHoraPaso
-            horaInicial={datosSolicitud.hora}
-            horaMinima={datosSolicitud.horarioCuidador?.hora_inicio}
-            horaMaxima={datosSolicitud.horarioCuidador?.hora_fin}
-            onNext={handleTimeSelected}
-            onBack={() => handleBack()}
           />
         )
       case 'CONFIRMAR':
@@ -229,7 +217,6 @@ export const SolicitarPaseoModal = ({ visible, onClose, onConfirm }: Props) => {
     'SELECCIONAR_DIRECCION',
     'SELECCIONAR_FECHA',
     'SELECCIONAR_CUIDADOR',
-    'SELECCIONAR_HORA',
     'CONFIRMAR',
   ]
   // ...

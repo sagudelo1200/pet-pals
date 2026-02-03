@@ -2,18 +2,20 @@ import React from 'react'
 import { StyleSheet, View, Text } from 'react-native'
 import { useTranslation } from 'react-i18next'
 import { COLOR } from '@/constants'
-import { Button, DurationPicker } from '@/components/ui'
+import { Button, DurationPicker, TimePicker } from '@/components/ui'
 import DatePicker from '@/components/ui/DatePicker'
 
 interface Props {
   fechaInicial?: Date | null
+  horaInicial?: string | null
   duracionInicial?: number | null
-  onNext: (_fecha: Date, _duracion: number) => void
+  onNext: (_fecha: Date, _hora: string, _duracion: number) => void
   onBack: () => void
 }
 
 export const SeleccionarFechaPaso = ({
   fechaInicial,
+  horaInicial,
   duracionInicial,
   onNext,
   onBack,
@@ -22,13 +24,14 @@ export const SeleccionarFechaPaso = ({
   const [fecha, setFecha] = React.useState<Date | undefined>(
     fechaInicial || undefined
   )
+  const [hora, setHora] = React.useState<string | null>(horaInicial || null)
   const [duracion, setDuracion] = React.useState<number | null>(
     duracionInicial || null
   )
 
   const handleContinuar = () => {
-    if (fecha && duracion) {
-      onNext(fecha, duracion)
+    if (fecha && hora && duracion) {
+      onNext(fecha, hora, duracion)
     }
   }
 
@@ -47,12 +50,25 @@ export const SeleccionarFechaPaso = ({
           placeholder={t('paseos:selecciona_fecha')}
           minimumDate={new Date()}
         />
-        <DurationPicker
-          label={t('paseos:duracion_paseo')}
-          value={duracion}
-          onValueChange={setDuracion}
-          placeholder={t('paseos:selecciona_duracion')}
-        />
+
+        <View style={{ flexDirection: 'row', gap: 12 }}>
+          <View style={{ flex: 1 }}>
+            <TimePicker
+              label={t('paseos:hora_inicio')}
+              value={hora}
+              onValueChange={setHora}
+              placeholder={t('paseos:selecciona_hora')}
+            />
+          </View>
+          <View style={{ flex: 1 }}>
+            <DurationPicker
+              label={t('paseos:duracion_paseo')}
+              value={duracion}
+              onValueChange={setDuracion}
+              placeholder={t('paseos:selecciona_duracion')}
+            />
+          </View>
+        </View>
       </View>
 
       <View style={styles.actions}>
@@ -66,7 +82,7 @@ export const SeleccionarFechaPaso = ({
           title={t('comun:continuar')}
           variant="primario"
           onPress={handleContinuar}
-          disabled={!fecha || !duracion}
+          disabled={!fecha || !hora || !duracion}
           style={{ flex: 1 }}
         />
       </View>

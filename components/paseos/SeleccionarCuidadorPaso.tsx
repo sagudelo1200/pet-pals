@@ -23,6 +23,8 @@ interface Props {
   cuidadorInicialId?: string | null
   horarioInicial?: { hora_inicio: string; hora_fin: string }
   fecha?: Date | null
+  hora?: string | null
+  duracion?: number | null
   esSolicitudAbiertaInicial?: boolean
   onNext: (
     // eslint-disable-next-line no-unused-vars
@@ -41,6 +43,8 @@ export const SeleccionarCuidadorPaso = ({
   cuidadorInicialId,
   horarioInicial: _horarioInicial,
   fecha,
+  hora,
+  duracion,
   onNext,
   onBack,
   onChangeFechaSuggested,
@@ -56,8 +60,7 @@ export const SeleccionarCuidadorPaso = ({
     error,
     cuidadorSeleccionado,
     seleccionarCuidador,
-    recargar,
-  } = useSeleccionarCuidador(initialId, fecha)
+  } = useSeleccionarCuidador(initialId, fecha, hora, duracion)
 
   const [showDisponibilidad, setShowDisponibilidad] = React.useState(false)
   const {

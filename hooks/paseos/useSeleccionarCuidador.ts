@@ -19,7 +19,9 @@ interface CuidadorListItem {
 
 export const useSeleccionarCuidador = (
   cuidadorInicialId: string | null = null,
-  fecha?: Date | null
+  fecha?: Date | null,
+  hora?: string | null,
+  duracionMinutos?: number | null
 ) => {
   const { user } = useAuth()
   const [cuidadores, setCuidadores] = useState<CuidadorListItem[]>([])
@@ -31,7 +33,7 @@ export const useSeleccionarCuidador = (
 
   useEffect(() => {
     cargarCuidadores()
-  }, [fecha])
+  }, [fecha, hora, duracionMinutos])
 
   const cargarCuidadores = async () => {
     setCargando(true)
@@ -49,6 +51,7 @@ export const useSeleccionarCuidador = (
 
           const parseDias = (diasRaw: any): number[] => {
             if (!diasRaw) return []
+            // ... (rest of parseDias logic)
             if (Array.isArray(diasRaw)) {
               const out: number[] = []
               for (const v of diasRaw) {
@@ -83,7 +86,32 @@ export const useSeleccionarCuidador = (
             if (!perfil.horario_laboral) return false
 
             const dias = parseDias(perfil.horario_laboral.dias)
-            return dias.includes(diaSemana)
+            const diaOk = dias.includes(diaSemana)
+            if (!diaOk) return false
+
+            // Filtrar por HORA si se especificó
+            if (hora && duracionMinutos) {
+              const [h, m] = hora.split(':').map(Number)
+              const inicioSolicitud = h * 60 + m
+              const finSolicitud = inicioSolicitud + duracionMinutos
+
+              const [hIniCuid, mIniCuid] = perfil.horario_laboral.hora_inicio
+                .split(':')
+                .map(Number)
+              const [hFinCuid, mFinCuid] = perfil.horario_laboral.hora_fin
+                .split(':')
+                .map(Number)
+
+              const inicioCuidador = hIniCuid * 60 + mIniCuid
+              const finCuidador = hFinCuid * 60 + mFinCuid
+
+              // El cuidador debe cubrir TODO el rango de la solicitud
+              return (
+                inicioCuidador <= inicioSolicitud && finCuidador >= finSolicitud
+              )
+            }
+
+            return true
           })
         }
 
