@@ -394,7 +394,7 @@ export const CrearDireccionSheet: React.FC<CrearDireccionSheetProps> = ({
     <BottomSheet
       visible={visible}
       onClose={onClose}
-      height={step === 'BUSQUEDA' ? 500 : 700}
+      height={step === 'BUSQUEDA' ? 500 : undefined}
     >
       {renderContent()}
     </BottomSheet>

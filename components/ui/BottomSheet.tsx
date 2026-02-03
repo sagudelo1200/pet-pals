@@ -7,8 +7,8 @@ import {
   Animated,
   Dimensions,
   Platform,
-  Keyboard,
-  KeyboardEvent,
+  KeyboardAvoidingView,
+  ViewStyle,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { COLOR } from '@/constants'
@@ -32,7 +32,6 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
 }) => {
   const slideAnim = useRef(new Animated.Value(SCREEN_HEIGHT)).current
   const opacityAnim = useRef(new Animated.Value(0)).current
-  const [keyboardHeight, setKeyboardHeight] = useState(0)
   const [showModal, setShowModal] = useState(visible)
 
   useEffect(() => {
@@ -66,34 +65,18 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
       ]).start(() => {
         setShowModal(false)
       })
-      // Reset keyboard height when modal closes
-      setKeyboardHeight(0)
     }
   }, [visible])
 
-  useEffect(() => {
-    const handleKeyboardShow = (e: KeyboardEvent) => {
-      setKeyboardHeight(e.endCoordinates.height)
-    }
+  const dynamicSheetStyle: ViewStyle = {
+    transform: [{ translateY: slideAnim as any }],
+  }
 
-    const handleKeyboardHide = () => {
-      setKeyboardHeight(0)
-    }
-
-    // Use 'will' events on iOS for smoother animation, 'did' events on Android
-    const showEvent =
-      Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow'
-    const hideEvent =
-      Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide'
-
-    const showListener = Keyboard.addListener(showEvent, handleKeyboardShow)
-    const hideListener = Keyboard.addListener(hideEvent, handleKeyboardHide)
-
-    return () => {
-      showListener.remove()
-      hideListener.remove()
-    }
-  }, [])
+  if (height && height !== 'auto') {
+    dynamicSheetStyle.height = height as any
+  } else {
+    dynamicSheetStyle.maxHeight = '90%'
+  }
 
   return (
     <Modal
@@ -103,50 +86,43 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
       onRequestClose={onClose}
       statusBarTranslucent
     >
-      <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
-        <View style={styles.container}>
-          <Animated.View
-            style={[
-              styles.backdrop,
-              { opacity: opacityAnim },
-              !showBackdrop && { backgroundColor: 'transparent' },
-            ]}
-            pointerEvents={showBackdrop ? 'auto' : 'none'}
-          >
-            <Pressable style={styles.backdropPress} onPress={onClose} />
-          </Animated.View>
+      <View style={styles.container}>
+        <Animated.View
+          style={[
+            styles.backdrop,
+            { opacity: opacityAnim },
+            !showBackdrop && { backgroundColor: 'transparent' },
+          ]}
+          pointerEvents={showBackdrop ? 'auto' : 'none'}
+        >
+          <Pressable style={styles.backdropPress} onPress={onClose} />
+        </Animated.View>
 
-          <Animated.View
-            style={[
-              styles.sheet,
-              {
-                transform: [{ translateY: slideAnim }],
-                paddingBottom:
-                  (Platform.OS === 'ios' && keyboardHeight > 0
-                    ? keyboardHeight
-                    : 0) + (Platform.OS === 'android' ? 12 : 20),
-                ...(typeof height === 'number'
-                  ? { height }
-                  : { maxHeight: '90%' }),
-              },
-            ]}
-          >
-            <View style={styles.handle} />
-            <View style={styles.content}>{children}</View>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={{ width: '100%', justifyContent: 'flex-end' }}
+          keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 45}
+        >
+          <Animated.View style={[styles.sheet, dynamicSheetStyle]}>
+            <SafeAreaView edges={['bottom']} style={styles.safeArea}>
+              <View style={styles.handle} />
+              <View style={styles.content}>{children}</View>
+              <View style={{ height: Platform.OS === 'ios' ? 45 : 63 }} />
+            </SafeAreaView>
           </Animated.View>
-        </View>
-      </SafeAreaView>
+        </KeyboardAvoidingView>
+      </View>
     </Modal>
   )
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-  },
   container: {
     flex: 1,
     justifyContent: 'flex-end',
+  },
+  safeArea: {
+    width: '100%',
   },
   backdrop: {
     ...StyleSheet.absoluteFillObject,
