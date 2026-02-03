@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { COLOR } from '@/constants'
 import { Button, DurationPicker, TimePicker } from '@/components/ui'
 import DatePicker from '@/components/ui/DatePicker'
+import { LogicMatching } from '@/logic/paseos/matching'
 
 interface Props {
   fechaInicial?: Date | null
@@ -35,6 +36,25 @@ export const SeleccionarFechaPaso = ({
     }
   }
 
+  const { minDate, maxDate } = React.useMemo(() => {
+    const min = new Date()
+    const max = new Date()
+    max.setDate(max.getDate() + LogicMatching.MAX_DIAS_ANTICIPACION)
+
+    // Si ya pasó la hora máxima de servicio (22:30), hoy ya no es válido.
+    // Usamos un margen pequeño para que no se vea "disponible" algo que no se puede agendar.
+    const [hMax, mMax] =
+      LogicMatching.HORA_MAXIMA_SERVICIO.split(':').map(Number)
+    const limiteHoy = new Date()
+    limiteHoy.setHours(hMax, mMax, 0, 0)
+
+    if (new Date() > limiteHoy) {
+      min.setDate(min.getDate() + 1)
+    }
+
+    return { minDate: min, maxDate: max }
+  }, [])
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>{t('paseos:cuando_sera_paseo')}</Text>
@@ -48,7 +68,8 @@ export const SeleccionarFechaPaso = ({
           value={fecha}
           onValueChange={setFecha}
           placeholder={t('paseos:selecciona_fecha')}
-          minimumDate={new Date()}
+          minimumDate={minDate}
+          maximumDate={maxDate}
         />
 
         <View style={{ flexDirection: 'row', gap: 12 }}>

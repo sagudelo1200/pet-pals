@@ -17,6 +17,9 @@ export class LogicMatching {
   /** Límites globales de operación del servicio */
   static readonly HORA_MINIMA_SERVICIO = '05:30' // 5:30 AM
   static readonly HORA_MAXIMA_SERVICIO = '22:30' // 10:30 PM
+  static readonly MAX_DIAS_ANTICIPACION = 60 // Máximo 2 meses de anticipación
+  /** Buffer mínimo (en minutos) entre el "ahora" y el inicio de una solicitud para hoy */
+  static readonly SOLICITUD_BUFFER_MINUTOS = 15
 
   /**
    * Determina si un cuidador está disponible para una solicitud específica.
@@ -27,27 +30,41 @@ export class LogicMatching {
   ): boolean {
     const { fecha, hora, duracion } = params
 
-    // 0. Validar límites de servicio sistémicos
+    // 0. Validar si la fecha es hoy y la hora ya pasó (considerando margen de 12 min)
+    const ahora = new Date()
+    const esHoy =
+      fecha.getDate() === ahora.getDate() &&
+      fecha.getMonth() === ahora.getMonth() &&
+      fecha.getFullYear() === ahora.getFullYear()
+
     const solicitudInicio = this.timeToMinutes(hora)
     const solicitudFin = solicitudInicio + duracion
+    const MARGEN = 12 // minutos de flexibilidad para matching con el cuidador
+    const BUFFER = this.SOLICITUD_BUFFER_MINUTOS // minutos mínimos desde ahora para nuevas solicitudes hoy
 
+    if (esHoy) {
+      const minutosAhora = ahora.getHours() * 60 + ahora.getMinutes()
+      // Requerimos que la solicitud inicie al menos `BUFFER` minutos en el futuro
+      if (solicitudInicio < minutosAhora + BUFFER) return false
+    }
+
+    // 1. Validar límites de servicio sistémicos (05:30 - 22:30)
     if (solicitudInicio < this.timeToMinutes(this.HORA_MINIMA_SERVICIO))
       return false
     if (solicitudFin > this.timeToMinutes(this.HORA_MAXIMA_SERVICIO))
       return false
 
-    // 1. Validar que tenga horario configurado
+    // 2. Validar que tenga horario configurado
     if (!perfil.horario_laboral) return false
 
-    // 2. Validar día de la semana
+    // 3. Validar día de la semana
     const diaSemana = fecha.getDay() // 0 = Domingo
     const diasConfigurados = this.normalizarDias(perfil.horario_laboral.dias)
 
     if (!diasConfigurados.includes(diaSemana)) return false
 
-    // 3. Validar rango horario con margen de cortesía (12 min)
+    // 4. Validar rango horario del cuidador con margen de cortesía (12 min)
     try {
-      const MARGEN = 12 // minutos de flexibilidad
       const cuidadorInicio = this.timeToMinutes(
         perfil.horario_laboral.hora_inicio
       )
