@@ -18,6 +18,7 @@ import { Mapa } from '../Mapa'
 import { useTranslation } from 'react-i18next'
 import { useUbicacionDispositivo } from '@/hooks'
 import { BannerUbicacion } from '@/components/comun/BannerUbicacion'
+import { mapasService } from '@/services/maps'
 
 interface CrearDireccionSheetProps {
   visible: boolean
@@ -58,6 +59,8 @@ export const CrearDireccionSheet: React.FC<CrearDireccionSheetProps> = ({
   const [referencia, setReferencia] = useState('')
   const [guardando, setGuardando] = useState(false)
   const [usuarioMovioMapa, setUsuarioMovioMapa] = useState(false)
+  const [direccionMostrada, setDireccionMostrada] = useState('')
+  const [buscandoDireccion, setBuscandoDireccion] = useState(false)
 
   const {
     errorMessage: gpsError,
@@ -76,11 +79,14 @@ export const CrearDireccionSheet: React.FC<CrearDireccionSheetProps> = ({
       setReferencia('')
       setGuardando(false)
       setUsuarioMovioMapa(false)
+      setDireccionMostrada('')
+      setBuscandoDireccion(false)
     }
   }, [visible])
 
   const handleSelectPlace = (detalles: any) => {
     setSeleccion(detalles)
+    setDireccionMostrada(detalles.direccion_formateada || detalles.direccion)
     // Coordenadas base
     const { latitude, longitude } = detalles.coordenadas
 
@@ -97,12 +103,24 @@ export const CrearDireccionSheet: React.FC<CrearDireccionSheetProps> = ({
   const handleUsarUbicacionActual = async () => {
     const pos = await obtenerPosicion()
     if (pos) {
+      const { latitude, longitude } = pos.coords
+      let direccion_formateada = t('tutor:solicitud.direccion.ubicacion_actual')
+
+      try {
+        const resultado = await mapasService.geocodificarInversa({
+          latitude,
+          longitude,
+        })
+        if (resultado?.direccion_formateada) {
+          direccion_formateada = resultado.direccion_formateada
+        }
+      } catch (error) {
+        console.warn('Error en geocodificación inversa:', error)
+      }
+
       handleSelectPlace({
-        coordenadas: {
-          latitude: pos.coords.latitude,
-          longitude: pos.coords.longitude,
-        },
-        direccion_formateada: t('tutor:solicitud.direccion.ubicacion_actual'),
+        coordenadas: { latitude, longitude },
+        direccion_formateada,
         place_id: `current-${Date.now()}`,
       })
     }
@@ -115,8 +133,7 @@ export const CrearDireccionSheet: React.FC<CrearDireccionSheetProps> = ({
       await onGuardar({
         proveedor: 'google', // Default for now since AutocompletarDireccion uses Google
         proveedor_place_id: seleccion.place_id || seleccion.placeId,
-        direccion_formateada:
-          seleccion.direccion_formateada || seleccion.direccion,
+        direccion_formateada: direccionMostrada,
         coordenadas: coordenadasFinales,
         alias: alias || t('tutor:solicitud.direccion.alias_placeholder'),
         referencia,
@@ -203,6 +220,10 @@ export const CrearDireccionSheet: React.FC<CrearDireccionSheetProps> = ({
             {initialRegion && (
               <Mapa
                 interactivo
+                scrollEnabled
+                zoomEnabled
+                rotateEnabled={false} // Evitar que el mapa gire al hacer zoom
+                pitchEnabled={false} // Evitar inclinación accidental
                 alto={300}
                 pinCentro
                 zoom={18}
@@ -212,12 +233,41 @@ export const CrearDireccionSheet: React.FC<CrearDireccionSheetProps> = ({
                   latitude: initialRegion.latitude,
                   longitude: initialRegion.longitude,
                 }} // Prop para centrar inicial via key
-                onRegionChangeComplete={r => {
+                onRegionChangeComplete={async r => {
+                  // Pequeño umbral para evitar peticiones por movimientos microscópicos (drift)
+                  const latDiff = Math.abs(
+                    r.latitude - (coordenadasFinales?.latitude || 0)
+                  )
+                  const lngDiff = Math.abs(
+                    r.longitude - (coordenadasFinales?.longitude || 0)
+                  )
+
+                  if (latDiff < 0.00001 && lngDiff < 0.00001) return
+
                   setCoordenadasFinales({
                     latitude: r.latitude,
                     longitude: r.longitude,
                   })
                   setUsuarioMovioMapa(true)
+                  setBuscandoDireccion(true)
+                  try {
+                    const res = await mapasService.geocodificarInversa({
+                      latitude: r.latitude,
+                      longitude: r.longitude,
+                    })
+                    if (res?.direccion_formateada) {
+                      setDireccionMostrada(res.direccion_formateada)
+                    } else if (res === null) {
+                      // Si no hay resultados, mostramos al menos que es una posición personalizada
+                      setDireccionMostrada(
+                        t('tutor:solicitud.direccion.pin_personalizado')
+                      )
+                    }
+                  } catch (e) {
+                    console.error('Error actualizando dirección:', e)
+                  } finally {
+                    setBuscandoDireccion(false)
+                  }
                 }}
                 style={{ marginBottom: 16 }}
               />
@@ -239,9 +289,13 @@ export const CrearDireccionSheet: React.FC<CrearDireccionSheetProps> = ({
                     : t('tutor:solicitud.direccion.ubicacion_original')}
                 </Text>
                 <Text bold size={14} color={COLOR.TEXTO} numberOfLines={2}>
-                  {usuarioMovioMapa
-                    ? t('tutor:solicitud.direccion.pin_personalizado')
-                    : seleccion?.direccion_formateada || seleccion?.direccion}
+                  {buscandoDireccion
+                    ? t('comun:cargando')
+                    : direccionMostrada ||
+                      (usuarioMovioMapa
+                        ? t('tutor:solicitud.direccion.pin_personalizado')
+                        : seleccion?.direccion_formateada ||
+                          seleccion?.direccion)}
                 </Text>
                 {usuarioMovioMapa && (
                   <Text

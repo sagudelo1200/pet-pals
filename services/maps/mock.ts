@@ -1,8 +1,15 @@
-import { DetalleUbicacion, IProveedorMapas, SugerenciaAutocomplete } from '@/services/maps/types'
+import {
+  DetalleUbicacion,
+  IProveedorMapas,
+  SugerenciaAutocomplete,
+} from '@/services/maps/types'
 
 // Datos falsos para pruebas (Bogotá)
-const MOCK_PLACES: Record<string, { details: DetalleUbicacion; suggestion: SugerenciaAutocomplete }> = {
-  'mock_virrey': {
+const MOCK_PLACES: Record<
+  string,
+  { details: DetalleUbicacion; suggestion: SugerenciaAutocomplete }
+> = {
+  mock_virrey: {
     suggestion: {
       place_id: 'mock_virrey',
       titulo: 'Parque El Virrey',
@@ -22,7 +29,7 @@ const MOCK_PLACES: Record<string, { details: DetalleUbicacion; suggestion: Suger
       },
     },
   },
-  'mock_93': {
+  mock_93: {
     suggestion: {
       place_id: 'mock_93',
       titulo: 'Parque de la 93',
@@ -42,7 +49,7 @@ const MOCK_PLACES: Record<string, { details: DetalleUbicacion; suggestion: Suger
       },
     },
   },
-  'mock_simon': {
+  mock_simon: {
     suggestion: {
       place_id: 'mock_simon',
       titulo: 'Parque Simón Bolívar',
@@ -87,6 +94,25 @@ export class MockMapasProvider implements IProveedorMapas {
       throw new Error('Lugar no encontrado en Mock')
     }
     return place.details
+  }
+
+  async geocodificarInversa(coords: {
+    latitude: number
+    longitude: number
+  }): Promise<DetalleUbicacion | null> {
+    console.log('[MockMapasProvider] Geocodificación inversa:', coords)
+    await new Promise(resolve => setTimeout(resolve, 500))
+
+    // Retorna un resultado genérico mock
+    return {
+      place_id: 'mock_current_loc',
+      direccion_formateada: 'Dirección Mock (Geocodificación Inversa)',
+      coordenadas: coords,
+      componentes: {
+        ciudad: 'Bogotá',
+        pais: 'Colombia',
+      },
+    }
   }
 }
 

@@ -1,4 +1,4 @@
-import React, { forwardRef, useState } from 'react'
+import React, { forwardRef } from 'react'
 import { StyleSheet, View, ViewStyle } from 'react-native'
 import MapView, {
   Marker,
@@ -7,6 +7,7 @@ import MapView, {
   PROVIDER_GOOGLE,
 } from 'react-native-maps'
 import { COLOR } from '@/constants'
+import Icon from './Icon'
 
 interface MapaProps {
   /** Coordenadas iniciales o estáticas */
@@ -36,8 +37,17 @@ interface MapaProps {
   /** Habilita gestos (scroll, zoom) */
   interactivo?: boolean
 
+  /** Control granular de gestos (si interactivo es true) */
+  scrollEnabled?: boolean
+  zoomEnabled?: boolean
+  rotateEnabled?: boolean
+  pitchEnabled?: boolean
+
   /** Muestra un pin fijo en el centro de la vista (para selección tipo Uber) */
   pinCentro?: boolean
+
+  /** Opcional: Icono personalizado para el pin central (URI o require) */
+  pinCustomIcon?: any
 
   /** Componentes adicionales para renderizar dentro del mapa (Markers, Polylines, etc.) */
   children?: React.ReactNode
@@ -58,18 +68,18 @@ export const Mapa = forwardRef<MapView, MapaProps>(
       provider = PROVIDER_GOOGLE, // Google por defecto para consistencia
       style,
       interactivo = false,
+      scrollEnabled,
+      zoomEnabled,
+      rotateEnabled,
+      pitchEnabled,
       pinCentro = false,
+      pinCustomIcon,
       children,
       mapPadding,
     },
     ref
   ) => {
     const delta = 0.0922 * Math.pow(2, 15 - zoom)
-
-    // Estado para trackear el centro del mapa cuando usamos pinCentro
-    const [centerCoords, setCenterCoords] = useState(
-      coordenadas || { latitude: 0, longitude: 0 }
-    )
 
     // Calcular región inicial si no se provee una controlada
     const initialRegion = coordenadas
@@ -80,16 +90,6 @@ export const Mapa = forwardRef<MapView, MapaProps>(
           longitudeDelta: delta * 0.421,
         }
       : undefined
-
-    const handleRegionChange = (newRegion: Region) => {
-      // Actualizar las coordenadas del marcador central en tiempo real
-      if (pinCentro) {
-        setCenterCoords({
-          latitude: newRegion.latitude,
-          longitude: newRegion.longitude,
-        })
-      }
-    }
 
     const handleRegionChangeComplete = (newRegion: Region) => {
       // Llamar al callback del usuario cuando termine el movimiento
@@ -106,14 +106,13 @@ export const Mapa = forwardRef<MapView, MapaProps>(
           style={styles.map}
           initialRegion={initialRegion}
           region={region}
-          onRegionChange={handleRegionChange}
           onRegionChangeComplete={handleRegionChangeComplete}
-          scrollEnabled={interactivo}
-          zoomEnabled={interactivo}
-          zoomControlEnabled={interactivo}
-          zoomTapEnabled={interactivo}
-          pitchEnabled={interactivo}
-          rotateEnabled={interactivo}
+          scrollEnabled={scrollEnabled ?? interactivo}
+          zoomEnabled={zoomEnabled ?? interactivo}
+          zoomControlEnabled={zoomEnabled ?? interactivo}
+          zoomTapEnabled={zoomEnabled ?? interactivo}
+          pitchEnabled={pitchEnabled ?? interactivo}
+          rotateEnabled={rotateEnabled ?? interactivo}
           showsUserLocation={false}
           showsMyLocationButton={false}
           mapPadding={mapPadding}
@@ -122,12 +121,22 @@ export const Mapa = forwardRef<MapView, MapaProps>(
           {marcador && !pinCentro && coordenadas && (
             <Marker coordinate={coordenadas} pinColor={COLOR.ENFASIS} />
           )}
-          {/* Marcador central nativo (sigue al centro del mapa) */}
-          {pinCentro && (
-            <Marker coordinate={centerCoords} pinColor={COLOR.ENFASIS} />
-          )}
           {children}
         </MapView>
+
+        {/* Pin central visual (tipo Uber/Rappi) - Overlay fuera de MapView */}
+        {pinCentro && (
+          <View style={styles.markerFixed} pointerEvents="none">
+            <Icon
+              name="map-marker-alt"
+              size={36}
+              color={COLOR.ENFASIS}
+              style={styles.markerIcon}
+            />
+            {/* Pequeña sombra en la punta del pin */}
+            <View style={styles.markerShadow} />
+          </View>
+        )}
       </View>
     )
   }
@@ -141,9 +150,34 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: COLOR.BORDE,
     position: 'relative',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   map: {
     width: '100%',
     height: '100%',
+  },
+  markerFixed: {
+    position: 'absolute',
+    left: '50%',
+    top: '50%',
+    marginLeft: -27, // Ajuste para centrar el IconView (size 36 * 1.5 / 2 = 27)
+    marginTop: -54, // Ajuste para que la punta esté en el centro (size 36 * 1.5 = 54)
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 10,
+  },
+  markerIcon: {
+    // Sombra para darle profundidad
+    textShadowColor: 'rgba(0, 0, 0, 0.25)',
+    textShadowOffset: { width: 0, height: 3 },
+    textShadowRadius: 4,
+  },
+  markerShadow: {
+    width: 6,
+    height: 3,
+    backgroundColor: 'rgba(0, 0, 0, 0.2)',
+    borderRadius: 3,
+    marginTop: -4,
   },
 })

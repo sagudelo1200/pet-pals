@@ -47,12 +47,13 @@ export function useDirecciones() {
 
         const nuevaId = resUbic.data.id
 
-        // 2. Ligar al usuario con snapshot de coordenadas
+        // 2. Ligar al usuario con snapshot de coordenadas y dirección formateada
         const resUser = await GestorUsuarios.agregarUbicacion(
           user.uid,
           nuevaId,
           alias,
-          datos.coordenadas // Snapshot crucial para el mapa
+          datos.coordenadas, // Snapshot crucial para el mapa
+          datos.direccion_formateada
         )
 
         if (!resUser.success) {

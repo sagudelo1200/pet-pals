@@ -131,6 +131,68 @@ export class GoogleMapasProvider implements IProveedorMapas {
       throw error
     }
   }
+
+  async geocodificarInversa(coords: {
+    latitude: number
+    longitude: number
+  }): Promise<DetalleUbicacion | null> {
+    if (!GOOGLE_API_KEY) {
+      throw new Error('Google Maps API Key not configured')
+    }
+
+    try {
+      // Usar la API de Geocoding tradicional (sigue siendo la estándar para Reverse Geocoding)
+      const url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${coords.latitude},${coords.longitude}&key=${GOOGLE_API_KEY}&language=es`
+
+      // Nota: Geocoding API no requiere el FieldMask ni los mismos headers específicos de Places (New)
+      // pero para consistencia y seguridad con keys restringidas pasamos los mismos headers de Android
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: this.getHeaders(),
+      })
+
+      const data = await response.json()
+
+      if (data.status !== 'OK' || !data.results || data.results.length === 0) {
+        // Logueamos siempre el error para diagnosticar problemas de configuración de API
+        if (data.status !== 'ZERO_RESULTS') {
+          console.error('❌ Google Geocoding Error:', {
+            status: data.status,
+            error_message: data.error_message, // La API de Geocoding devuelve el detalle aquí
+          })
+        }
+        return null
+      }
+
+      const result = data.results[0]
+      const componentes: any = {}
+
+      result.address_components.forEach((c: any) => {
+        const types = c.types || []
+        if (types.includes('route')) componentes.calle = c.long_name
+        if (types.includes('street_number')) componentes.numero = c.long_name
+        if (types.includes('neighborhood') || types.includes('sublocality'))
+          componentes.barrio = c.long_name
+        if (types.includes('locality')) componentes.ciudad = c.long_name
+        if (types.includes('administrative_area_level_1'))
+          componentes.departamento = c.long_name
+        if (types.includes('country')) componentes.pais = c.long_name
+      })
+
+      return {
+        place_id: result.place_id,
+        direccion_formateada: result.formatted_address,
+        coordenadas: {
+          latitude: result.geometry.location.lat,
+          longitude: result.geometry.location.lng,
+        },
+        componentes,
+      }
+    } catch (error) {
+      console.error('Error en geocodificación inversa:', error)
+      throw error
+    }
+  }
 }
 
 export const googleMapas = new GoogleMapasProvider()

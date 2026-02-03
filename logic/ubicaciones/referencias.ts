@@ -10,7 +10,8 @@ export function agregarUbicacionRef(
   listaActual: UbicacionRef[] = [],
   nuevaUbicacionId: string,
   alias?: string,
-  coordenadas?: { latitude: number; longitude: number }
+  coordenadas?: { latitude: number; longitude: number },
+  direccion_formateada?: string
 ): { lista: UbicacionRef[]; idPrincipal: string | undefined } {
   const nuevaRef: UbicacionRef = {
     ubicacion_id: nuevaUbicacionId,
@@ -18,6 +19,7 @@ export function agregarUbicacionRef(
     alias: alias || 'Casa',
     desde: new Date(),
     coordenadas,
+    direccion_formateada,
   }
 
   // Evitar duplicados por ID

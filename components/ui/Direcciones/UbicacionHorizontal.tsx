@@ -65,9 +65,10 @@ export const UbicacionHorizontal: React.FC<Props> = ({
           numberOfLines={1}
           style={{ textAlign: 'center' }}
         >
-          {ubicacion.ubicacion_id
-            ? ubicacion.ubicacion_id.slice(0, 15) + '...'
-            : t('tutor:solicitud.direccion.ver_en_mapa')}
+          {ubicacion.direccion_formateada ||
+            (ubicacion.ubicacion_id
+              ? ubicacion.ubicacion_id.slice(0, 15) + '...'
+              : t('tutor:solicitud.direccion.ver_en_mapa'))}
         </Text>
       </View>
 

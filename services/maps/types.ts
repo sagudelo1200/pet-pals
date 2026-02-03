@@ -34,4 +34,5 @@ export interface DetalleUbicacion {
 export interface IProveedorMapas {
   buscarSitios(_query: string): Promise<SugerenciaAutocomplete[]>
   obtenerDetalles(_placeId: string): Promise<DetalleUbicacion>
+  geocodificarInversa(_coords: Coordenadas): Promise<DetalleUbicacion | null>
 }

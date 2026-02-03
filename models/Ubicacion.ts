@@ -74,6 +74,7 @@ export interface Ubicacion extends BaseModel {
 export interface UbicacionRef {
   ubicacion_id: string
   alias?: string
+  direccion_formateada?: string
   es_principal?: boolean
   desde?: Date
   hasta?: Date
