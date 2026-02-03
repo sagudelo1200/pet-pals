@@ -21,6 +21,7 @@ import { TimePicker } from '@/components/ui'
 import { useAuth } from '@/context/AuthContext'
 import { ServicioCrudBase } from '@/services/firebase'
 import { PerfilPublico } from '@/models/PerfilPublico'
+import { LogicMatching } from '@/logic/paseos/matching'
 
 const PerfilCuidador: React.FC = () => {
   const { t } = useTranslation()
@@ -94,6 +95,15 @@ const PerfilCuidador: React.FC = () => {
       Alert.alert(
         t('comun:error'),
         'La hora de inicio debe ser anterior a la hora de fin'
+      )
+      return
+    }
+
+    // Validar contra límites globales de la plataforma
+    if (!LogicMatching.esHorarioLaboralValido(horaInicio, horaFin)) {
+      Alert.alert(
+        t('comun:error'),
+        `El horario debe estar dentro del rango permitido por la plataforma (${LogicMatching.HORA_MINIMA_SERVICIO} - ${LogicMatching.HORA_MAXIMA_SERVICIO})`
       )
       return
     }
