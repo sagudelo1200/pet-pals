@@ -236,7 +236,7 @@ export const SeleccionarCuidadorPaso = ({
       <Button
         title={t('comun:reintentar')}
         variant="bloque"
-        onPress={recargar}
+        onPress={recargarDisponibilidad}
         style={{ marginTop: 16 }}
       />
     </View>

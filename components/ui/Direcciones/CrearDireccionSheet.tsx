@@ -19,19 +19,19 @@ import { useTranslation } from 'react-i18next'
 import { useUbicacionDispositivo } from '@/hooks'
 import { BannerUbicacion } from '@/components/comun/BannerUbicacion'
 import { mapasService } from '@/services/maps'
+import { GestorUbicaciones } from '@/logic/ubicaciones'
+import type { Ubicacion } from '@/models/Ubicacion'
+import type { DetalleUbicacion } from '@/services/maps/types'
 
 interface CrearDireccionSheetProps {
   visible: boolean
   onClose: () => void
-  onGuardar: (_datos: {
-    proveedor: 'google' | 'mapbox'
-    proveedor_place_id: string
-    direccion_formateada: string
-    coordenadas: { latitude: number; longitude: number }
-    alias: string
-    referencia?: string
-    metadata?: Record<string, any>
-  }) => Promise<void>
+  onGuardar: (
+    _datos: Omit<
+      Ubicacion,
+      'id' | 'creado_en' | 'actualizado_en' | 'creado_por' | 'actualizado_por'
+    > & { alias?: string; referencia?: string }
+  ) => Promise<void>
 }
 
 type Step = 'BUSQUEDA' | 'MAPA_CONFIRMACION' | 'DETALLES'
@@ -44,7 +44,7 @@ export const CrearDireccionSheet: React.FC<CrearDireccionSheetProps> = ({
   const { t } = useTranslation()
   const [step, setStep] = useState<Step>('BUSQUEDA')
 
-  const [seleccion, setSeleccion] = useState<any>(null)
+  const [seleccion, setSeleccion] = useState<DetalleUbicacion | null>(null)
   // Region inicial solo para enfocar el mapa al principio
   const [initialRegion, setInitialRegion] = useState<Region | undefined>(
     undefined
@@ -57,7 +57,11 @@ export const CrearDireccionSheet: React.FC<CrearDireccionSheetProps> = ({
 
   const [alias, setAlias] = useState('')
   const [referencia, setReferencia] = useState('')
+  // Simplified: only alias + referencia kept. Additional granular fields removed.
   const [guardando, setGuardando] = useState(false)
+  const [localErrorMessage, setLocalErrorMessage] = useState<string | null>(
+    null
+  )
   const [usuarioMovioMapa, setUsuarioMovioMapa] = useState(false)
   const [direccionMostrada, setDireccionMostrada] = useState('')
   const [buscandoDireccion, setBuscandoDireccion] = useState(false)
@@ -84,9 +88,9 @@ export const CrearDireccionSheet: React.FC<CrearDireccionSheetProps> = ({
     }
   }, [visible])
 
-  const handleSelectPlace = (detalles: any) => {
+  const handleSelectPlace = (detalles: DetalleUbicacion) => {
     setSeleccion(detalles)
-    setDireccionMostrada(detalles.direccion_formateada || detalles.direccion)
+    setDireccionMostrada(detalles.direccion_formateada || '')
     // Coordenadas base
     const { latitude, longitude } = detalles.coordenadas
 
@@ -122,26 +126,33 @@ export const CrearDireccionSheet: React.FC<CrearDireccionSheetProps> = ({
         coordenadas: { latitude, longitude },
         direccion_formateada,
         place_id: `current-${Date.now()}`,
-      })
+      } as DetalleUbicacion)
     }
   }
 
   const handleSave = async () => {
     if (!seleccion || !coordenadasFinales) return
     setGuardando(true)
+    setLocalErrorMessage(null)
     try {
-      await onGuardar({
-        proveedor: 'google', // Default for now since AutocompletarDireccion uses Google
-        proveedor_place_id: seleccion.place_id || seleccion.placeId,
+      const payload: any = {
+        proveedor: 'google',
+        proveedor_place_id:
+          (seleccion as any).place_id || (seleccion as any).placeId,
         direccion_formateada: direccionMostrada,
         coordenadas: coordenadasFinales,
-        alias: alias || t('tutor:solicitud.direccion.alias_placeholder'),
-        referencia,
-        metadata: {}, // Empty metadata for consistency
-      })
+        alias: alias || undefined,
+        instrucciones: referencia || undefined,
+      }
+
+      await onGuardar(payload)
       onClose()
     } catch (e) {
       console.error(e)
+      // Intentamos mapear el error hacia una clave i18n si viene del gestor
+      const code = typeof e === 'string' ? e : (e?.message ?? String(e))
+      const key = GestorUbicaciones.obtenerClaveI18nErrorUbicacion(code)
+      setLocalErrorMessage(key ? t(key) : t('ubicaciones:errores.generico'))
     } finally {
       setGuardando(false)
     }
@@ -294,8 +305,7 @@ export const CrearDireccionSheet: React.FC<CrearDireccionSheetProps> = ({
                     : direccionMostrada ||
                       (usuarioMovioMapa
                         ? t('tutor:solicitud.direccion.pin_personalizado')
-                        : seleccion?.direccion_formateada ||
-                          seleccion?.direccion)}
+                        : seleccion?.direccion_formateada || '')}
                 </Text>
                 {usuarioMovioMapa && (
                   <Text
@@ -352,8 +362,7 @@ export const CrearDireccionSheet: React.FC<CrearDireccionSheetProps> = ({
               />
             </View>
 
-            <Spacer size={16} />
-
+            <Spacer size={12} />
             <Text
               size={12}
               bold
@@ -374,6 +383,12 @@ export const CrearDireccionSheet: React.FC<CrearDireccionSheetProps> = ({
               />
             </View>
 
+            {localErrorMessage && (
+              <Text style={{ color: COLOR.ERROR, marginTop: 10 }}>
+                {localErrorMessage}
+              </Text>
+            )}
+
             <Spacer size={30} />
 
             <Button
@@ -382,7 +397,7 @@ export const CrearDireccionSheet: React.FC<CrearDireccionSheetProps> = ({
               }
               variant="primario"
               onPress={handleSave}
-              disabled={guardando}
+              disabled={guardando || !coordenadasFinales}
               fullWidth
             />
           </View>
@@ -436,6 +451,8 @@ const styles = StyleSheet.create({
     color: COLOR.TEXTO,
     fontSize: 16,
   },
+  inputText: { flex: 1, fontSize: 15, color: COLOR.TEXTO },
+  placeholderText: { color: COLOR.SUBTEXTO },
   locationButton: {
     flexDirection: 'row',
     alignItems: 'center',
