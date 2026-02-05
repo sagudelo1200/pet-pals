@@ -12,6 +12,8 @@ interface Props {
   visible: boolean
   onClose: () => void
   onConfirm?: () => void
+  mascotasInicialesIds?: string[]
+  reemplazarMascotasIniciales?: boolean
 }
 
 type Step =
@@ -21,7 +23,13 @@ type Step =
   | 'SELECCIONAR_CUIDADOR'
   | 'CONFIRMAR'
 
-export const SolicitarPaseoModal = ({ visible, onClose, onConfirm }: Props) => {
+export const SolicitarPaseoModal = ({
+  visible,
+  onClose,
+  onConfirm,
+  mascotasInicialesIds,
+  reemplazarMascotasIniciales,
+}: Props) => {
   const [step, setStep] = useState<Step>('SELECCIONAR_MASCOTA')
 
   // State for flow data
@@ -54,6 +62,22 @@ export const SolicitarPaseoModal = ({ visible, onClose, onConfirm }: Props) => {
   }
 
   // ... useEffect reset ...
+  // If parent passes initial mascota ids, apply them when modal opens
+  React.useEffect(() => {
+    // Apply initial mascotas when modal opens.
+    // If `reemplazarMascotasIniciales` is true, always replace; otherwise only apply when no prior selection.
+    if (visible && mascotasInicialesIds && mascotasInicialesIds.length > 0) {
+      if (
+        reemplazarMascotasIniciales ||
+        datosSolicitud.mascotaIds.length === 0
+      ) {
+        setDatosSolicitud(prev => ({
+          ...prev,
+          mascotaIds: mascotasInicialesIds,
+        }))
+      }
+    }
+  }, [visible, mascotasInicialesIds, reemplazarMascotasIniciales])
 
   const handlePetSelected = (mascotaIds: string[]) => {
     setDatosSolicitud(prev => ({ ...prev, mascotaIds }))

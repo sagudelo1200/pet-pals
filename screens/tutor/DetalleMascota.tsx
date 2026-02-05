@@ -111,12 +111,28 @@ const DetalleMascota: React.FC = () => {
   }
 
   const handlePaseo = () => {
-    if (mascota) {
-      Alert.alert(
-        t('paseos:ui.iniciar.titulo'),
-        t('paseos:ui.iniciar.mensaje', { nombre: mascota.nombre })
-      )
-    }
+    if (!mascota) return
+
+    const now = Date.now()
+    if (now - lastNavTime.current < 1000) return
+    lastNavTime.current = now
+
+    // Navegar con pequeño retardo para evitar conflictos con gestos/animaciones
+    setTimeout(() => {
+      try {
+        // Navegar al Tab Paseos y abrir modal con forzado de mascota inicial
+        void (navigation as any).navigate('TutorApp', {
+          screen: 'Paseos',
+          params: {
+            abrirSolicitar: true,
+            mascotaId: mascota.id,
+            forzarMascotaInicial: true,
+          },
+        })
+      } catch (e) {
+        console.warn('Error navegando a Paseos:', e)
+      }
+    }, 30)
   }
 
   return (

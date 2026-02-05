@@ -30,7 +30,13 @@ export type AuthFlowParamList = {
 export type TutorTabParamList = {
   Inicio: undefined
   Mascotas: { refresh?: number } | undefined
-  Paseos: undefined
+  Paseos:
+    | {
+        abrirSolicitar?: boolean
+        mascotaId?: string
+        forzarMascotaInicial?: boolean
+      }
+    | undefined
   MiCuenta: undefined
   Colors: undefined
 }

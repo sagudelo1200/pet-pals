@@ -1,7 +1,13 @@
 import React, { useState, useMemo, useEffect } from 'react'
 import { StyleSheet, View, Text, FlatList, Alert } from 'react-native'
 import { useTranslation } from 'react-i18next'
-import { useNavigation, useIsFocused } from '@react-navigation/native'
+import {
+  useNavigation,
+  useIsFocused,
+  useRoute,
+  RouteProp,
+} from '@react-navigation/native'
+import type { TutorTabParamList } from '@/navigation/types'
 import { COLOR } from '@/constants'
 import Screen from '@/components/ui/Screen'
 import ScreenHeader from '@/components/ui/ScreenHeader'
@@ -23,6 +29,11 @@ const Paseos: React.FC = () => {
   const { t } = useTranslation()
   const [activeTab, setActiveTab] = useState<TabTipo>('proximos')
   const [modalVisible, setModalVisible] = useState(false)
+  const [mascotasInicialesIds, setMascotasInicialesIds] = useState<
+    string[] | undefined
+  >(undefined)
+  const [forzarMascotaInicial, setForzarMascotaInicial] =
+    useState<boolean>(false)
   const [detalleVisible, setDetalleVisible] = useState(false)
   const [detalleTitle, setDetalleTitle] = useState('')
   const [paseoSeleccionadoId, setPaseoSeleccionadoId] = useState<string | null>(
@@ -30,6 +41,7 @@ const Paseos: React.FC = () => {
   )
   const { mascotas } = useMascotas()
   const navigation = useNavigation()
+  const route = useRoute<RouteProp<TutorTabParamList, 'Paseos'>>()
   const { paseos, cargando, refetch } = usePaseos()
   const lastNavTime = React.useRef(0)
 
@@ -84,6 +96,29 @@ const Paseos: React.FC = () => {
     }
     setModalVisible(true)
   }
+
+  // Open modal if navigation params request it (e.g., from DetalleMascota)
+  React.useEffect(() => {
+    const params = route.params as any
+    if (params?.abrirSolicitar) {
+      const mascotaId = params.mascotaId
+      setMascotasInicialesIds(mascotaId ? [mascotaId] : undefined)
+      setForzarMascotaInicial(!!params.forzarMascotaInicial)
+      setModalVisible(true)
+      // Ensure the 'forzar' flag only applies once: clear it in the next tick
+      setTimeout(() => setForzarMascotaInicial(false), 0)
+      try {
+        // @ts-ignore
+        navigation.setParams?.({
+          abrirSolicitar: false,
+          mascotaId: undefined,
+          forzarMascotaInicial: false,
+        })
+      } catch (_e) {
+        // ignore if not supported
+      }
+    }
+  }, [route.params])
 
   // Filtrado de datos
   const proximos = useMemo(
@@ -198,6 +233,8 @@ const Paseos: React.FC = () => {
           // Si se confirmó una nueva solicitud, asegurarse de mostrar la pestaña de próximos
           setActiveTab('proximos')
         }}
+        mascotasInicialesIds={mascotasInicialesIds}
+        reemplazarMascotasIniciales={forzarMascotaInicial}
       />
       <DetallePaseoBottomSheet
         visible={detalleVisible}
