@@ -211,7 +211,7 @@ service cloud.firestore {
         && solo_campos_permitidos([
       'id','proveedor','proveedor_place_id','direccion_formateada','coordenadas',
       'componentes','componentes_raw','componentes_source','viewport','alias','instrucciones',
-      'metadata','estado','creado_por','creado_en','actualizado_en','actualizado_por'
+      'metadata','estado','h3_index','creado_por','creado_en','actualizado_en','actualizado_por'
       ]);
 
       // Solo admin puede borrar
@@ -339,6 +339,30 @@ service cloud.firestore {
 
       // Solo admin puede modificar o borrar eventos
       allow update, delete: if es_admin();
+    }
+
+    // ÍNDICE DE COBERTURA GEOESPACIAL H3
+    // /indice_cobertura/{celdaH3}/cuidadores/{uid}
+    match /indice_cobertura/{celdaH3}/cuidadores/{uid} {
+      // Cualquier usuario autenticado puede consultar cuidadores en una celda
+      allow read: if autenticado();
+      // Solo el propio cuidador o admin puede escribir su entrada
+      allow write: if autenticado() && (uid == request.auth.uid || es_admin());
+    }
+
+    // INTELIGENCIA TERRITORIAL H3
+    // /h3_zonas/{celdaH3}
+    match /h3_zonas/{celdaH3} {
+      // Lectura pública para usuarios autenticados (future: panel admin)
+      allow read: if autenticado();
+      // Escritura restringida a usuarios autenticados (la app escribe desde el cliente)
+      // Los campos de estado son calculados internamente, no aceptamos datos arbitrarios
+      allow write: if autenticado()
+        && request.resource.data.keys().hasOnly([
+      'indice_celda','cuidadores_count','demanda_total','paseos_activos',
+      'paseos_total','estado','ratio_cobertura',
+      'ultima_demanda_en','ultima_actividad_en','actualizado_en'
+      ]);
     }
   }
 }

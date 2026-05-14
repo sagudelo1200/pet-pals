@@ -1,4 +1,5 @@
 // Polyfills (antes de cualquier otro import)
+import './polyfills/hermesTextDecoder' // utf-16le para h3-js WASM en Hermes
 import 'intl-pluralrules'
 import 'react-native-gesture-handler'
 

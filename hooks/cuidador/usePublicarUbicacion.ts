@@ -76,8 +76,8 @@ export function usePublicarUbicacion(
         subscription.current = await Location.watchPositionAsync(
           {
             accuracy: Location.Accuracy.High,
-            timeInterval: 5000,
-            distanceInterval: 10,
+            timeInterval: 3000,
+            distanceInterval: 6,
           },
           location => {
             if (idPaseo && estadoPaseo) {

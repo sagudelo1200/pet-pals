@@ -48,3 +48,10 @@ export type CuidadorTabParamList = {
   Agenda: undefined
   MiCuenta: undefined
 }
+
+// Tabs para el rol de Admin
+export type AdminTabParamList = {
+  AdminHome: undefined
+  TerritorioVivo: undefined
+  MiCuenta: undefined
+}

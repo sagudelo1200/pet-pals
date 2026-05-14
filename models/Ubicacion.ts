@@ -29,6 +29,12 @@ export interface Ubicacion extends BaseModel {
   }
 
   /**
+   * Índice H3 calculado a partir de `coordenadas` en resolución 8.
+   * Se almacena para evitar recalcular y permitir queries geoespaciales.
+   */
+  h3_index?: string
+
+  /**
    * Componentes parseados (opcional). NO son la fuente de verdad — sólo ayudan a mostrar/filtrar.
    * En LATAM es común que muchos campos falten (sin numeración, barrios informales, "frente a...").
    */

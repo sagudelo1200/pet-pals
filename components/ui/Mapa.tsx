@@ -73,7 +73,7 @@ export const Mapa = forwardRef<MapView, MapaProps>(
       rotateEnabled,
       pitchEnabled,
       pinCentro = false,
-      pinCustomIcon,
+      pinCustomIcon: _pinCustomIcon,
       children,
       mapPadding,
     },

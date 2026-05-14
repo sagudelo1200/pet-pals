@@ -49,7 +49,7 @@ TaskManager.defineTask(LOCATION_TASK_NAME, async ({ data, error }) => {
         estadoPaseo,
         location.coords
       )
-    } catch (publishErr) {
+    } catch (_publishErr) {
       // Fallo de red o Firebase: se ignora silenciosamente para reintentar en el siguiente tick
       console.debug(
         '[BackgroundTask] Error de publicación (red/firebase), se intentará de nuevo.'

@@ -18,6 +18,8 @@ import {
   type Query,
 } from 'firebase/firestore'
 import { db } from '@/firebase.config'
+import { coordsAH3 } from '@/services/geo'
+import { ServicioZonasH3 } from '@/services/firebase/firestore/colecciones/h3_zonas'
 
 // ---------- Types del gestor de paseo activo ----------
 export type CodigoErrorPaseo =
@@ -328,6 +330,15 @@ export class GestorPaseoActivo {
     )
 
     if (res.success) {
+      // Marcar zona como en operación activa
+      const celdaInicio = extraerCeldaH3DePaseo(this._paseo.original)
+      if (celdaInicio) {
+        ServicioZonasH3.actualizarZona(celdaInicio, {
+          paseos_activos: 1,
+          marcar_actividad: true,
+        }).catch(e => console.warn('[h3] iniciarPaseoAsync:', e))
+      }
+
       if (this.puede(EVENTOS.INICIAR_PASEO)) {
         const fecha = new Date()
         const localRes = this.aplicarTransicion(EVENTOS.INICIAR_PASEO, {
@@ -369,6 +380,16 @@ export class GestorPaseoActivo {
     )
 
     if (res.success) {
+      // Paseo terminado: decrementar activos, sumar al total histórico y bajar demanda
+      const celdaFin = extraerCeldaH3DePaseo(this._paseo.original)
+      if (celdaFin) {
+        ServicioZonasH3.actualizarZona(celdaFin, {
+          paseos_activos: -1,
+          paseos_total: 1,
+          demanda_total: -1,
+        }).catch(e => console.warn('[h3] finalizarPaseoAsync:', e))
+      }
+
       if (this.puede(EVENTOS.FINALIZAR_PASEO)) {
         const fecha = new Date()
         const localRes = this.aplicarTransicion(EVENTOS.FINALIZAR_PASEO, {
@@ -414,6 +435,14 @@ export class GestorPaseoActivo {
     } as any)
 
     if (res.success) {
+      // Revertir la demanda registrada al crear el paseo
+      const celdaCancelado = extraerCeldaH3DePaseo(this._paseo.original)
+      if (celdaCancelado) {
+        ServicioZonasH3.actualizarZona(celdaCancelado, {
+          demanda_total: -1,
+        }).catch(e => console.warn('[h3] cancelarPaseoAsync:', e))
+      }
+
       if (this.puede(EVENTOS.CANCELAR)) {
         const localRes = this.aplicarTransicion(EVENTOS.CANCELAR, { motivo })
         if (localRes.ok === false) {
@@ -440,6 +469,18 @@ export class GestorPaseoActivo {
 }
 
 export const paseoActivo = new GestorPaseoActivo()
+
+// Extrae la celda H3 de la ubicación de inicio de un paseo activo
+function extraerCeldaH3DePaseo(
+  original: Partial<Paseo> | null | undefined
+): string | null {
+  if (!original) return null
+  const inicio = original.ubicacion_inicio
+  if (!inicio || typeof inicio === 'string') return null
+  const coords = (inicio as any)?.coordenadas
+  if (!coords?.latitude || !coords?.longitude) return null
+  return coordsAH3(coords.latitude, coords.longitude)
+}
 
 // ---------- Helpers de denormalización ----------
 const MAX_DENORMALIZED_PHOTO_SIZE = 120 * 1024 // 120KB (suficiente para URLs y mini-thumbnails)
@@ -615,6 +656,16 @@ export async function crearConMascotas(
       payloadMascotas
     )
     if (!addRes.success) return { success: false, error: (addRes as any).error }
+  }
+
+  // Registrar demanda en la zona H3 de inicio (fire-and-forget)
+  const lat = (locObj as any)?.coordenadas?.latitude
+  const lng = (locObj as any)?.coordenadas?.longitude
+  if (lat && lng) {
+    ServicioZonasH3.actualizarZona(coordsAH3(lat, lng), {
+      demanda_total: 1,
+      marcar_demanda: true,
+    }).catch(e => console.warn('[h3] crearConMascotas:', e))
   }
 
   return paseoRes as any

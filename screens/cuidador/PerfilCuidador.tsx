@@ -19,14 +19,15 @@ import TextInput from '@/components/ui/TextInput'
 import ImagePicker from '@/components/ui/ImagePicker'
 import { TimePicker } from '@/components/ui'
 import { useAuth } from '@/context/AuthContext'
-import { ServicioCrudBase } from '@/services/firebase'
 import { PerfilPublico } from '@/models/PerfilPublico'
+import { GestorPerfilPublico } from '@/logic/usuarios/perfilPublico'
+import { coordsAH3 } from '@/services/geo'
 import { LogicMatching } from '@/logic/paseos/matching'
 
 const PerfilCuidador: React.FC = () => {
   const { t } = useTranslation()
   const navigation = useNavigation()
-  const { user } = useAuth()
+  const { user, profile } = useAuth()
 
   const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
@@ -57,10 +58,7 @@ const PerfilCuidador: React.FC = () => {
   const cargarPerfil = async () => {
     if (!user) return
     setLoading(true)
-    const res = await ServicioCrudBase.obtenerPorId<PerfilPublico>(
-      'perfiles_publicos',
-      user.uid
-    )
+    const res = await GestorPerfilPublico.obtenerPorId(user.uid)
 
     if (res.success && res.data) {
       const data = res.data
@@ -110,6 +108,20 @@ const PerfilCuidador: React.FC = () => {
 
     setSaving(true)
 
+    // Calcular h3_home desde la dirección principal del usuario
+    let h3Origen: string | null = null
+    if (profile?.id_ubicacion_principal && profile?.ubicaciones) {
+      const ubPrincipal = profile.ubicaciones.find(
+        u => u.ubicacion_id === profile.id_ubicacion_principal
+      )
+      if (ubPrincipal?.coordenadas) {
+        h3Origen = coordsAH3(
+          ubPrincipal.coordenadas.latitude,
+          ubPrincipal.coordenadas.longitude
+        )
+      }
+    }
+
     const updateData: Partial<PerfilPublico> = {
       foto,
       biografia,
@@ -122,10 +134,10 @@ const PerfilCuidador: React.FC = () => {
       },
     }
 
-    const res = await ServicioCrudBase.actualizar(
-      'perfiles_publicos',
+    const res = await GestorPerfilPublico.actualizarCoberturaYPerfil(
       user.uid,
-      updateData
+      updateData,
+      h3Origen
     )
 
     setSaving(false)

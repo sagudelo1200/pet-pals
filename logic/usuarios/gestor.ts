@@ -13,6 +13,7 @@ import { GestorPerfilPublico } from './perfilPublico'
 // Devuelven códigos (no mensajes) para que la capa que llama pueda mapear a i18n.
 export const CODIGOS_ERROR_USUARIO = {
   NO_ENCONTRADO: 'USUARIO_NO_ENCONTRADO',
+  ADMIN_EXCLUSIVO: 'ADMIN_EXCLUSIVO',
 } as const
 
 export const GestorUsuarios = {
@@ -42,6 +43,14 @@ export const GestorUsuarios = {
       // Si ya tiene el rol, no hacer nada
       if (rolesActuales.includes(nuevoRol)) {
         return { success: true }
+      }
+
+      // Exclusividad: admin no puede combinarse con otros roles
+      if (nuevoRol === 'admin' && rolesActuales.length > 0) {
+        return { success: false, error: 'ADMIN_EXCLUSIVO' }
+      }
+      if (rolesActuales.includes('admin') && nuevoRol !== 'admin') {
+        return { success: false, error: 'ADMIN_EXCLUSIVO' }
       }
 
       // Agregar el nuevo rol

@@ -22,6 +22,7 @@ import { useSincronizadorPaseo } from '@/hooks/paseos/useSincronizadorPaseo'
 import { AuthStackParamList } from '@/navigation/types'
 import { COLOR } from '@/constants'
 import { ESTADOS_PASEO } from '@/models/Paseo'
+import { densificarRuta } from '@/services/geo'
 
 type Props = StackScreenProps<AuthStackParamList, 'PaseoActivo'>
 
@@ -38,6 +39,11 @@ export default function PaseoActivo({ route, navigation }: Props) {
   const slideAnim = useRef(new Animated.Value(400)).current
   const liveGlowAnim = useRef(new Animated.Value(0)).current
   const liveLoopRef = useRef<any>(null)
+  // Preservar el zoom que el usuario configuró manualmente
+  const userDeltaRef = useRef<{
+    latitudeDelta: number
+    longitudeDelta: number
+  } | null>(null)
 
   // Animación suave del marcador en vivo
   const AnimatedMarker = Animated.createAnimatedComponent(Marker)
@@ -59,51 +65,8 @@ export default function PaseoActivo({ route, navigation }: Props) {
   // Densificar ruta para polyline y reducir saltos visuales
   const [displayedRuta, setDisplayedRuta] = useState(ruta)
 
-  // Helpers: distancia Haversine (metros) y densificado lineal
-  const toRad = (v: number) => (v * Math.PI) / 180
-  const haversine = (a: any, b: any) => {
-    const R = 6371000
-    const dLat = toRad(b.latitude - a.latitude)
-    const dLon = toRad(b.longitude - a.longitude)
-    const lat1 = toRad(a.latitude)
-    const lat2 = toRad(b.latitude)
-    const sinDlat = Math.sin(dLat / 2)
-    const sinDlon = Math.sin(dLon / 2)
-    const q =
-      sinDlat * sinDlat + sinDlon * sinDlon * Math.cos(lat1) * Math.cos(lat2)
-    const c = 2 * Math.atan2(Math.sqrt(q), Math.sqrt(1 - q))
-    return R * c
-  }
-
-  const interpolateSegment = (a: any, b: any, spacing = 8) => {
-    const d = haversine(a, b)
-    const steps = Math.min(Math.ceil(d / spacing), 20)
-    const out = []
-    for (let i = 1; i <= steps; i++) {
-      const t = i / (steps + 1)
-      out.push({
-        latitude: a.latitude + (b.latitude - a.latitude) * t,
-        longitude: a.longitude + (b.longitude - a.longitude) * t,
-      })
-    }
-    return out
-  }
-
-  const densifyRoute = (r: any[]) => {
-    if (!r || r.length < 2) return r
-    const out: any[] = [r[0]]
-    for (let i = 1; i < r.length; i++) {
-      const a = r[i - 1]
-      const b = r[i]
-      const inter = interpolateSegment(a, b)
-      out.push(...inter)
-      out.push(b)
-    }
-    return out
-  }
-
   useEffect(() => {
-    setDisplayedRuta(densifyRoute(ruta))
+    setDisplayedRuta(densificarRuta(ruta))
   }, [ruta])
 
   // Evitar parpadeo: componente memoizado para el icono paw
@@ -193,31 +156,39 @@ export default function PaseoActivo({ route, navigation }: Props) {
   }, [loading, slideAnim, liveGlowAnim])
 
   // Efecto para centrar el mapa al entrar a la pantalla o recuperar el foco
+  // ⚠️ Dependencia [] intencional: no re-centrar en cada actualización GPS
   useFocusEffect(
     useCallback(() => {
       if (ubicacionActual && mapRef.current) {
+        const delta = userDeltaRef.current ?? {
+          latitudeDelta: 0.005,
+          longitudeDelta: 0.005,
+        }
         mapRef.current.animateToRegion(
           {
             latitude: ubicacionActual.latitude,
             longitude: ubicacionActual.longitude,
-            latitudeDelta: 0.005,
-            longitudeDelta: 0.005,
+            ...delta,
           },
           1000
         )
       }
-    }, [ubicacionActual])
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [])
   )
 
   // Efecto para centrar el mapa cuando llega la primera ubicación real (fallback)
   useEffect(() => {
     if (ubicacionActual && mapRef.current) {
+      const delta = userDeltaRef.current ?? {
+        latitudeDelta: 0.005,
+        longitudeDelta: 0.005,
+      }
       mapRef.current.animateToRegion(
         {
           latitude: ubicacionActual.latitude,
           longitude: ubicacionActual.longitude,
-          latitudeDelta: 0.005,
-          longitudeDelta: 0.005,
+          ...delta,
         },
         1000
       )
@@ -245,8 +216,12 @@ export default function PaseoActivo({ route, navigation }: Props) {
   }, [ubicacionActual, markerCoordinate])
 
   // eslint-disable-next-line
-  const handleRegionChange = useCallback((_region: Region) => {
-    // Lógica opcional: si el usuario mueve mucho el mapa, mostrar botón "Recentrar"
+  const handleRegionChange = useCallback((region: Region) => {
+    // Guardar el zoom actual del usuario para preservarlo en futuros re-centrados
+    userDeltaRef.current = {
+      latitudeDelta: region.latitudeDelta,
+      longitudeDelta: region.longitudeDelta,
+    }
   }, [])
 
   if (loading)

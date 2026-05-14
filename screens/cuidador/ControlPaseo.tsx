@@ -27,6 +27,7 @@ import { usePublicarUbicacion } from '@/hooks/cuidador/usePublicarUbicacion'
 import { Button, Mapa, Icon } from '@/components/ui'
 import { BannerUbicacion } from '@/components/comun/BannerUbicacion'
 import type { AuthStackParamList } from '@/navigation/types'
+import { densificarRuta } from '@/services/geo'
 
 type ControlPaseoRouteProp = RouteProp<AuthStackParamList, 'ControlPaseo'>
 
@@ -160,48 +161,9 @@ const ControlPaseo: React.FC = () => {
 
   // Densificar ruta y reducir saltos visuales
   const [displayedRuta, setDisplayedRuta] = useState(ruta)
-  const toRad = (v: number) => (v * Math.PI) / 180
-  const haversine = (a: any, b: any) => {
-    const R = 6371000
-    const dLat = toRad(b.latitude - a.latitude)
-    const dLon = toRad(b.longitude - a.longitude)
-    const lat1 = toRad(a.latitude)
-    const lat2 = toRad(b.latitude)
-    const sinDlat = Math.sin(dLat / 2)
-    const sinDlon = Math.sin(dLon / 2)
-    const q =
-      sinDlat * sinDlat + sinDlon * sinDlon * Math.cos(lat1) * Math.cos(lat2)
-    const c = 2 * Math.atan2(Math.sqrt(q), Math.sqrt(1 - q))
-    return R * c
-  }
-  const interpolateSegment = (a: any, b: any, spacing = 8) => {
-    const d = haversine(a, b)
-    const steps = Math.min(Math.ceil(d / spacing), 20)
-    const out = []
-    for (let i = 1; i <= steps; i++) {
-      const t = i / (steps + 1)
-      out.push({
-        latitude: a.latitude + (b.latitude - a.latitude) * t,
-        longitude: a.longitude + (b.longitude - a.longitude) * t,
-      })
-    }
-    return out
-  }
-  const densifyRoute = (r: any[]) => {
-    if (!r || r.length < 2) return r
-    const out: any[] = [r[0]]
-    for (let i = 1; i < r.length; i++) {
-      const a = r[i - 1]
-      const b = r[i]
-      const inter = interpolateSegment(a, b)
-      out.push(...inter)
-      out.push(b)
-    }
-    return out
-  }
 
   useEffect(() => {
-    setDisplayedRuta(densifyRoute(ruta))
+    setDisplayedRuta(densificarRuta(ruta))
   }, [ruta])
 
   const [showSuccess, setShowSuccess] = useState(false)

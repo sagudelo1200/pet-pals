@@ -14,8 +14,12 @@ export interface PerfilPublico extends BaseModel {
   /** Texto libre sobre experiencia o formación */
   experiencia?: string
 
-  /** Zonas o barrios donde ofrece servicio */
-  zonas_servicio?: string[]
+  /**
+   * Celda H3 de origen del cuidador (resolución 8, ≈460m de radio).
+   * Se usa como origen para el índice de cobertura `/indice_cobertura/{celda}/cuidadores/{uid}`.
+   * Reemplaza el campo `zonas_servicio` que nunca fue poblado ni consultado.
+   */
+  h3_home?: string
 
   /** Configuración de disponibilidad estructurada */
   horario_laboral?: {

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useAuth } from '@/context/AuthContext'
 import { GestorPerfilPublico } from '@/logic/usuarios/perfilPublico'
 import { LogicMatching } from '@/logic/paseos/matching'
+import { coordsAH3, distanciaKmEntreH3 } from '@/services/geo'
 
 interface CuidadorListItem {
   id: string
@@ -22,7 +23,8 @@ export const useSeleccionarCuidador = (
   cuidadorInicialId: string | null = null,
   fecha?: Date | null,
   hora?: string | null,
-  duracionMinutos?: number | null
+  duracionMinutos?: number | null,
+  coordenadasTutor?: { latitude: number; longitude: number } | null
 ) => {
   const { user } = useAuth()
   const [cuidadores, setCuidadores] = useState<CuidadorListItem[]>([])
@@ -34,48 +36,77 @@ export const useSeleccionarCuidador = (
 
   useEffect(() => {
     cargarCuidadores()
-  }, [fecha, hora, duracionMinutos])
+  }, [fecha, hora, duracionMinutos, coordenadasTutor])
 
   const cargarCuidadores = async () => {
     setCargando(true)
     setError(null)
 
     try {
-      const resultado = await GestorPerfilPublico.obtenerCuidadoresDisponibles()
+      // Búsqueda geoespacial O(1) si tenemos coordenadas del tutor;
+      // fallback a búsqueda global verificados cuando no hay ubicación.
+      let fuente: any[] = []
+      let indiceCeldaTutor: string | null = null
 
-      if (resultado.success && resultado.data) {
-        let filtrados = resultado.data.filter(perfil => perfil.id !== user?.uid)
-
-        // Aplicar MATCHING si tenemos los parámetros necesarios
-        if (fecha && hora && duracionMinutos) {
-          filtrados = LogicMatching.filtrarDisponibles(filtrados, {
-            fecha,
-            hora,
-            duracion: duracionMinutos,
-          })
-        } else if (fecha) {
-          // Si solo hay fecha, al menos filtrar por día de la semana
-          // (Podemos usar LogicMatching para esto también pasando duración 0)
-          filtrados = filtrados.filter(p =>
-            LogicMatching.esCuidadorDisponible(p, {
-              fecha,
-              hora: p.horario_laboral?.hora_inicio || '00:00',
-              duracion: 0,
-            })
-          )
+      if (coordenadasTutor) {
+        indiceCeldaTutor = coordsAH3(
+          coordenadasTutor.latitude,
+          coordenadasTutor.longitude
+        )
+        const resultado =
+          await GestorPerfilPublico.obtenerCuidadoresPorH3(indiceCeldaTutor)
+        if (resultado.success && resultado.data) {
+          fuente = resultado.data
         }
+      } else {
+        const resultado =
+          await GestorPerfilPublico.obtenerCuidadoresDisponibles()
+        if (resultado.success && resultado.data) {
+          fuente = resultado.data
+        }
+      }
 
-        // Mapear PerfilPublico a CuidadorListItem
-        const cuidadoresMapeados: CuidadorListItem[] = filtrados.map(perfil => {
+      let filtrados = fuente.filter((p: any) => (p.id ?? p.uid) !== user?.uid)
+
+      // Aplicar MATCHING si tenemos los parámetros necesarios
+      if (fecha && hora && duracionMinutos) {
+        filtrados = LogicMatching.filtrarDisponibles(filtrados as any, {
+          fecha,
+          hora,
+          duracion: duracionMinutos,
+        })
+      } else if (fecha) {
+        filtrados = filtrados.filter((p: any) =>
+          LogicMatching.esCuidadorDisponible(p as any, {
+            fecha,
+            hora: p.horario_laboral?.hora_inicio || '00:00',
+            duracion: 0,
+          })
+        )
+      }
+
+      // Mapear a CuidadorListItem calculando distancia real desde H3
+      const cuidadoresMapeados: CuidadorListItem[] = filtrados.map(
+        (perfil: any) => {
+          const id = perfil.id ?? perfil.uid
           const ratingNum = Number(perfil.rating_promedio)
           const cal = !isNaN(ratingNum) ? ratingNum : 0
 
+          let distanciaTexto = '—'
+          if (indiceCeldaTutor && perfil.h3_home) {
+            const km = distanciaKmEntreH3(perfil.h3_home, indiceCeldaTutor)
+            distanciaTexto = `${km.toFixed(1)} km`
+          } else if (indiceCeldaTutor && perfil.h3_origen) {
+            const km = distanciaKmEntreH3(perfil.h3_origen, indiceCeldaTutor)
+            distanciaTexto = `${km.toFixed(1)} km`
+          }
+
           return {
-            id: perfil.id,
+            id,
             nombre: perfil.nombre,
             imagen: perfil.foto || 'https://via.placeholder.com/69',
             calificacion: cal,
-            distancia: '2.5 km', // TODO: Calcular distancia real
+            distancia: distanciaTexto,
             tarifa: perfil.tarifa_por_hora
               ? `$${perfil.tarifa_por_hora.toLocaleString()}/hr`
               : 'A consultar',
@@ -83,12 +114,10 @@ export const useSeleccionarCuidador = (
               perfil.verificacion === 'verificado' ? ['verificado'] : [],
             horario_laboral: perfil.horario_laboral,
           }
-        })
+        }
+      )
 
-        setCuidadores(cuidadoresMapeados)
-      } else {
-        setError(resultado.error || 'Error al cargar cuidadores')
-      }
+      setCuidadores(cuidadoresMapeados)
     } catch (err) {
       setError('Error inesperado al cargar cuidadores')
       console.error('Error cargando cuidadores:', err)

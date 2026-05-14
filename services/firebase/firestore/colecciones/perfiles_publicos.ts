@@ -16,6 +16,7 @@ import {
   limit,
   getDocs,
   doc,
+  getDoc,
   setDoc,
 } from 'firebase/firestore'
 
@@ -42,14 +43,12 @@ export class ServicioPerfilPublico {
     try {
       const docRef = doc(db, this.COLLECTION, uid)
 
-      let systemFields: any
-      // Si es creación (no tiene creado_en), usar campos de creación
-      if (!(data as any).creado_en) {
-        systemFields = camposSistemaCrear(uid)
-      } else {
-        // Si ya existe, solo actualizar campos de actualización
-        systemFields = camposSistemaActualizar(uid)
-      }
+      // Verificar existencia real en Firestore para elegir campos de sistema correctos.
+      // NO usar `data.creado_en` como indicador: el caller raramente incluye ese campo.
+      const snapshot = await getDoc(docRef)
+      const systemFields = snapshot.exists()
+        ? camposSistemaActualizar(uid) // update: preserva creado_en / creado_por vía merge
+        : camposSistemaCrear(uid) // create: escribe todos los campos de sistema
 
       const dataTransformed = toDb(data)
       const finalData = {
