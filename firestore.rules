@@ -364,5 +364,14 @@ service cloud.firestore {
       'ultima_demanda_en','ultima_actividad_en','actualizado_en'
       ]);
     }
+
+    // EXCEPCIONES DE DISPONIBILIDAD SEMANAL
+    // /excepciones_disponibilidad/{uid}/semanas/{isoWeek}
+    match /excepciones_disponibilidad/{uid}/semanas/{semana} {
+      // Cualquier usuario autenticado puede leer (matching de tutores al seleccionar cuidador)
+      allow read: if autenticado();
+      // Solo el propio cuidador puede escribir o eliminar sus excepciones
+      allow write: if autenticado() && es_mismo_uid(uid);
+    }
   }
 }

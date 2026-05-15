@@ -13,7 +13,7 @@ export const COLORES_ESTADO: Record<
 }
 
 // ─── Constructor del HTML de Leaflet ─────────────────────────────────────────
-export function construirHTML(zonas: ZonaH3[]): string {
+export function construirHTML(zonas: ZonaH3[], topInset: number = 0): string {
   const zonasJSON = JSON.stringify(
     zonas.map(z => ({
       id: z.indice_celda,
@@ -41,6 +41,7 @@ export function construirHTML(zonas: ZonaH3[]): string {
     * { box-sizing: border-box; margin: 0; padding: 0; }
     html, body { height: 100%; background: #0A0F0E; }
     #map { height: 100%; width: 100%; }
+    .leaflet-top { margin-top: ${topInset}px; }
 
     /* Leyenda */
     .leyenda {
@@ -144,12 +145,46 @@ export function construirHTML(zonas: ZonaH3[]): string {
     });
     new LocateControl().addTo(map);
 
-    L.tileLayer(
+    // ── Tiles + botón tema claro/oscuro ───────────────────────
+    var isDark = true;
+    var tileLayer = L.tileLayer(
       'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png',
-      {
-        maxZoom: 19,
-      }
+      { maxZoom: 19 }
     ).addTo(map);
+
+    var ThemeControl = L.Control.extend({
+      options: { position: 'topleft' },
+      onAdd: function () {
+        var btn = L.DomUtil.create('div', 'leaflet-bar leaflet-control');
+        btn.innerHTML = '&#x2600;&#xFE0F;';
+        btn.title = 'Cambiar tema';
+        btn.style.cssText = [
+          'background:#121918','color:#EBF4F2','cursor:pointer',
+          'width:36px','height:36px','display:flex',
+          'align-items:center','justify-content:center',
+          'font-size:16px','line-height:1',
+          'border:2px solid #1F2D2A','border-radius:4px',
+          'user-select:none',
+        ].join(';');
+        L.DomEvent.on(btn, 'click', function () {
+          isDark = !isDark;
+          map.removeLayer(tileLayer);
+          tileLayer = L.tileLayer(
+            isDark
+              ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png'
+              : 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png',
+            { maxZoom: 19 }
+          ).addTo(map);
+          btn.innerHTML     = isDark ? '&#x2600;&#xFE0F;' : '&#x1F319;';
+          btn.style.background  = isDark ? '#121918' : '#f8f8f8';
+          btn.style.borderColor = isDark ? '#1F2D2A' : '#ccc';
+          btn.style.color       = isDark ? '#EBF4F2' : '#333';
+        });
+        L.DomEvent.disableClickPropagation(btn);
+        return btn;
+      },
+    });
+    new ThemeControl().addTo(map);
 
     // ── Leyenda ───────────────────────────────────────────────
     var leyenda = L.control({ position: 'bottomleft' });
@@ -176,6 +211,13 @@ export function construirHTML(zonas: ZonaH3[]): string {
 
     ZONAS.forEach(function(zona) {
       try {
+        // Ocultar celdas "sin_actividad" con todos los indicadores en 0
+        if (zona.estado === 'sin_actividad'
+            && zona.cuidadores === 0
+            && zona.demanda   === 0
+            && zona.activos   === 0
+            && zona.total     === 0) return;
+
         var boundary = h3.cellToBoundary(zona.id);
         var latlngs  = boundary.map(function(p) { return [p[0], p[1]]; });
         var c = COLORES[zona.estado] || COLORES['sin_actividad'];

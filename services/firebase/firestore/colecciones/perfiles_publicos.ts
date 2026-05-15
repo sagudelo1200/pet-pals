@@ -18,6 +18,7 @@ import {
   doc,
   getDoc,
   setDoc,
+  updateDoc,
 } from 'firebase/firestore'
 
 /**
@@ -57,7 +58,11 @@ export class ServicioPerfilPublico {
         ...systemFields,
       }
 
-      await setDoc(docRef, finalData, { merge: true })
+      if (snapshot.exists()) {
+        await updateDoc(docRef, finalData)
+      } else {
+        await setDoc(docRef, finalData)
+      }
 
       return {
         success: true,

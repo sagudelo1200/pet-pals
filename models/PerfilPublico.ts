@@ -3,6 +3,12 @@ import { BaseModel } from './BaseModel'
 /** Estado de verificación del perfil público */
 export type EstadoVerificacion = 'pendiente' | 'verificado' | 'rechazado'
 
+/** Franja horaria con hora de inicio y fin en formato HH:mm */
+export interface FranjaHoraria {
+  inicio: string // "08:00"
+  fin: string // "18:00"
+}
+
 /** Perfil público que muestra la información visible para otros usuarios */
 export interface PerfilPublico extends BaseModel {
   /** Nombre mostrado */
@@ -21,15 +27,18 @@ export interface PerfilPublico extends BaseModel {
    */
   h3_home?: string
 
-  /** Configuración de disponibilidad estructurada */
-  horario_laboral?: {
-    /** Días de la semana activos (0=Domingo, 1=Lunes, etc.) */
-    dias: number[]
-    /** Hora de inicio formato HH:mm (ej: "08:00") */
-    hora_inicio: string
-    /** Hora de fin formato HH:mm (ej: "18:00") */
-    hora_fin: string
-  }
+  /**
+   * Horario semanal recurrente del cuidador.
+   * Clave: número de día como string ("0"=Dom, "1"=Lun, ..., "6"=Sáb).
+   * Valor: franja horaria activa ese día. Si la clave no está presente, el día es inactivo.
+   */
+  horario_semanal?: Record<string, FranjaHoraria>
+
+  /**
+   * Celdas H3 de cobertura definidas manualmente por el cuidador (resolución 8).
+   * Si está presente, reemplaza el gridDisk(h3_home, 2) automático en el índice.
+   */
+  celdas_cobertura?: string[]
 
   /** Tipos de mascotas aceptadas */
   mascotas_aceptadas?: string[]

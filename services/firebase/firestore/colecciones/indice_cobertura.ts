@@ -24,11 +24,10 @@ export interface EntradaCuidadorCobertura {
   rating_promedio: number
   tarifa_por_hora: number
   verificacion: string
-  horario_laboral?: {
-    dias: number[]
-    hora_inicio: string
-    hora_fin: string
-  }
+  /**
+   * Horario semanal recurrente. Clave: "0"–"6" (0=Dom, 1=Lun…). Solo días presentes = activos.
+   */
+  horario_semanal?: Record<string, { inicio: string; fin: string }>
   /** Celda H3 de origen del walker (su dirección principal) */
   h3_origen: string
   actualizado_en?: unknown
@@ -103,6 +102,61 @@ export class ServicioIndiceCobertura {
       )
     ).catch(e =>
       console.warn('[ServicioIndiceCobertura] Error decrementando zonas:', e)
+    )
+  }
+
+  /**
+   * Actualiza la cobertura manual de un walker usando un conjunto de celdas explícito.
+   * Elimina las celdas que ya no están en la selección y escribe todas las nuevas.
+   */
+  static async escribirCeldasManuales(
+    uid: string,
+    h3Origen: string,
+    celdasNuevas: string[],
+    celdasAnteriores: string[],
+    datos: Omit<
+      EntradaCuidadorCobertura,
+      'uid' | 'h3_origen' | 'actualizado_en'
+    >
+  ): Promise<void> {
+    const batch = writeBatch(db)
+    const entrada: EntradaCuidadorCobertura = {
+      ...datos,
+      uid,
+      h3_origen: h3Origen,
+      actualizado_en: serverTimestamp(),
+    }
+
+    const setNuevas = new Set(celdasNuevas)
+
+    // Eliminar celdas que ya no forman parte de la cobertura
+    for (const celda of celdasAnteriores) {
+      if (!setNuevas.has(celda)) {
+        batch.delete(doc(db, COLECCION_BASE, celda, SUBCOLECCION, uid))
+      }
+    }
+
+    // Escribir todas las celdas nuevas
+    for (const celda of celdasNuevas) {
+      batch.set(doc(db, COLECCION_BASE, celda, SUBCOLECCION, uid), entrada)
+    }
+
+    await batch.commit()
+
+    // Sincronizar contadores en h3_zonas (territorio vivo) — fire-and-forget
+    const setAnteriores = new Set(celdasAnteriores)
+    const agregadas = celdasNuevas.filter(c => !setAnteriores.has(c))
+    const eliminadas = celdasAnteriores.filter(c => !setNuevas.has(c))
+
+    Promise.all([
+      ...agregadas.map(celda =>
+        ServicioZonasH3.actualizarZona(celda, { cuidadores_count: 1 })
+      ),
+      ...eliminadas.map(celda =>
+        ServicioZonasH3.actualizarZona(celda, { cuidadores_count: -1 })
+      ),
+    ]).catch(e =>
+      console.warn('[ServicioIndiceCobertura] Error sincronizando h3_zonas:', e)
     )
   }
 

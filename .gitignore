@@ -15,3 +15,4 @@ credentials.json
 android/*
 
 google-services.json
+firebaseCredentials.json

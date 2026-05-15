@@ -7,6 +7,7 @@ import {
 import { PerfilPublico } from '@/models/PerfilPublico'
 import { CrudResult } from '@/services/firebase/comun'
 import { ERR } from '@/constants'
+import { celdasDeCobertura } from '@/services/geo'
 
 /**
  * Gestor de Perfiles Públicos (Cuidadores).
@@ -127,8 +128,8 @@ export class GestorPerfilPublico {
               (datos as any).verificacion ??
               perfil?.verificacion ??
               'pendiente',
-            horario_laboral:
-              (datos as any).horario_laboral ?? perfil?.horario_laboral,
+            horario_semanal:
+              (datos as any).horario_semanal ?? perfil?.horario_semanal,
           }
         )
       }
@@ -139,6 +140,58 @@ export class GestorPerfilPublico {
       : datos
 
     return ServicioPerfilPublico.guardarConId(uid, datosConH3)
+  }
+
+  /**
+   * Actualiza las celdas de cobertura seleccionadas manualmente por el cuidador.
+   * Migra el índice H3 eliminando celdas anteriores y escribiendo las nuevas.
+   */
+  static async actualizarCeldasCobertura(
+    uid: string,
+    celdasNuevas: string[]
+  ): Promise<CrudResult<PerfilPublico>> {
+    if (!uid) return { success: false, error: ERR.COMUN.NO_AUTENTICADO }
+
+    const perfilRes = await ServicioCrudBase.obtenerPorId<PerfilPublico>(
+      'perfiles_publicos',
+      uid
+    )
+    if (!perfilRes.success || !perfilRes.data) {
+      return { success: false, error: 'Perfil no encontrado' }
+    }
+
+    const perfil = perfilRes.data
+    const h3Origen = perfil.h3_home
+    if (!h3Origen) {
+      return {
+        success: false,
+        error: 'El cuidador no tiene ubicación configurada',
+      }
+    }
+
+    // Celdas anteriores: las manuales si existen, si no el gridDisk automático
+    const celdasAnteriores = perfil.celdas_cobertura?.length
+      ? perfil.celdas_cobertura
+      : celdasDeCobertura(h3Origen)
+
+    await ServicioIndiceCobertura.escribirCeldasManuales(
+      uid,
+      h3Origen,
+      celdasNuevas,
+      celdasAnteriores,
+      {
+        nombre: perfil.nombre,
+        foto: perfil.foto,
+        rating_promedio: perfil.rating_promedio ?? 0,
+        tarifa_por_hora: perfil.tarifa_por_hora ?? 0,
+        verificacion: perfil.verificacion,
+        horario_semanal: perfil.horario_semanal,
+      }
+    )
+
+    return ServicioPerfilPublico.guardarConId(uid, {
+      celdas_cobertura: celdasNuevas,
+    })
   }
 
   /**

@@ -45,9 +45,9 @@ const Switch: React.FC<SwitchProps> = ({
           value={_value}
           onValueChange={onValueChange}
           disabled={disabled}
-          trackColor={{ false: COLOR.INACTIVO, true: COLOR.PRIMARIO }}
-          thumbColor={COLOR.BASE}
-          ios_backgroundColor={COLOR.INACTIVO}
+          trackColor={{ false: COLOR.SUBTEXTO, true: COLOR.PRIMARIO }}
+          thumbColor={'#FFFFFF'}
+          ios_backgroundColor={COLOR.SUBTEXTO}
         />
       </View>
     </View>

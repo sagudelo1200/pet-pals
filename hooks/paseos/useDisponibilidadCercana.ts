@@ -30,27 +30,23 @@ export const useDisponibilidadCercana = (opts?: {
         const fecha = new Date(hoy)
         fecha.setDate(hoy.getDate() + offset)
 
-        const candidatos = perfiles.filter(p => {
-          // Si el cuidador no tiene horario configurado, no está disponible.
-          if (!p.horario_laboral) return false
+        const diaKey = fecha.getDay().toString()
 
-          // Usamos la lógica centralizada de matching.
-          // Para esta vista general, verificamos si está disponible ese día
-          // usando su propia hora de inicio configurada como referencia.
+        const candidatos = perfiles.filter(p => {
+          const franja = p.horario_semanal?.[diaKey]
+          if (!franja) return false
           return LogicMatching.esCuidadorDisponible(p, {
             fecha,
-            hora: p.horario_laboral.hora_inicio,
+            hora: franja.inicio,
             duracion: 0,
           })
         })
 
         if (candidatos.length > 0) {
-          const horariosEjemplo = candidatos
-            .slice(0, 3)
-            .map(
-              p =>
-                `${p.horario_laboral!.hora_inicio}–${p.horario_laboral!.hora_fin}`
-            )
+          const horariosEjemplo = candidatos.slice(0, 3).map(p => {
+            const franja = p.horario_semanal![diaKey]!
+            return `${franja.inicio}–${franja.fin}`
+          })
 
           resultados.push({ fecha, count: candidatos.length, horariosEjemplo })
         }

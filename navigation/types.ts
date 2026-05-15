@@ -14,6 +14,8 @@ export type AuthStackParamList = {
   }
 
   PerfilCuidador: undefined
+  ExcepcionSemanal: { isoSemana: string }
+  CoberturaCuidador: undefined
   PaseoActivo: { paseoId: string }
   PaseoFinalizado: { paseoId: string }
   ControlPaseo: { paseoId: string }

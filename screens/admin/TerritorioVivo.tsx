@@ -17,7 +17,10 @@ const TerritorioVivo: React.FC = () => {
   const { zonas, cargando, error } = useZonasH3()
   const insets = useSafeAreaInsets()
 
-  const htmlSource = useMemo(() => construirHTML(zonas), [zonas])
+  const htmlSource = useMemo(
+    () => construirHTML(zonas, insets.top),
+    [zonas, insets.top]
+  )
 
   if (cargando) {
     return (

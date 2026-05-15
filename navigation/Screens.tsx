@@ -9,6 +9,8 @@ import PaseoActivo from '@/screens/tutor/PaseoActivo'
 import PaseoFinalizado from '@/screens/tutor/PaseoFinalizado'
 import ControlPaseo from '@/screens/cuidador/ControlPaseo'
 import PerfilCuidador from '@/screens/cuidador/PerfilCuidador'
+import ExcepcionSemanal from '@/screens/cuidador/ExcepcionSemanal'
+import CoberturaCuidador from '@/screens/cuidador/CoberturaCuidador'
 import { AuthStackParamList } from './types'
 
 // Stack principal con autenticación
@@ -32,6 +34,16 @@ export default function RootNavigator(): React.ReactElement {
         }}
       />
       <Stack.Screen name="PerfilCuidador" component={PerfilCuidador} />
+      <Stack.Screen
+        name="ExcepcionSemanal"
+        component={ExcepcionSemanal}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="CoberturaCuidador"
+        component={CoberturaCuidador}
+        options={{ headerShown: false }}
+      />
       <Stack.Screen
         name="PaseoActivo"
         component={PaseoActivo}

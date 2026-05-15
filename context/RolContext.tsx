@@ -89,16 +89,6 @@ export const RolProvider: React.FC<RolProviderProps> = ({ children }) => {
   }
 
   const cambiarRolActivo = async (nuevoRol: RolUsuario) => {
-    // Seguridad: no aplicar activación optimista para cambios de rol.
-    // Marcamos el rol como provisional y esperamos confirmación desde
-    // el backend (`recargarPerfil`) antes de persistir y activar.
-    if (!roles?.includes(nuevoRol)) {
-      console.warn(
-        'Intentando activar rol no listado todavía en roles:',
-        nuevoRol
-      )
-    }
-
     setActivandoRol(true)
     setRolProvisional(nuevoRol)
 

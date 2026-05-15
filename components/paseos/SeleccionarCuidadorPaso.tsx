@@ -74,8 +74,7 @@ export const SeleccionarCuidadorPaso = ({
       // Horario amplio por defecto para solicitud abierta
       onNext(null, { hora_inicio: '05:00', hora_fin: '23:00' })
     } else if (cuidadorSeleccionado) {
-      const walker = cuidadores.find(c => c.id === cuidadorSeleccionado)
-      onNext(cuidadorSeleccionado, walker?.horario_laboral)
+      onNext(cuidadorSeleccionado)
     }
   }
 

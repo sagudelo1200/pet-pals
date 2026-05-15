@@ -26,7 +26,7 @@ const ROL_CONFIG = {
     descripcion: 'Ofrece servicios de paseo',
   },
   admin: {
-    icon: 'shield' as const,
+    icon: 'ghost' as const,
     color: COLOR.INFO,
     titulo: 'Administrador',
     descripcion: 'Gestiona la plataforma',

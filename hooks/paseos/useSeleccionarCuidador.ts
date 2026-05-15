@@ -12,11 +12,6 @@ interface CuidadorListItem {
   distancia: string
   tarifa: string
   insignias: string[]
-  horario_laboral?: {
-    dias: number[]
-    hora_inicio: string
-    hora_fin: string
-  }
 }
 
 export const useSeleccionarCuidador = (
@@ -76,13 +71,16 @@ export const useSeleccionarCuidador = (
           duracion: duracionMinutos,
         })
       } else if (fecha) {
-        filtrados = filtrados.filter((p: any) =>
-          LogicMatching.esCuidadorDisponible(p as any, {
+        filtrados = filtrados.filter((p: any) => {
+          const diaKey = fecha.getDay().toString()
+          const franja = p.horario_semanal?.[diaKey]
+          if (!franja) return false
+          return LogicMatching.esCuidadorDisponible(p as any, {
             fecha,
-            hora: p.horario_laboral?.hora_inicio || '00:00',
+            hora: franja.inicio,
             duracion: 0,
           })
-        )
+        })
       }
 
       // Mapear a CuidadorListItem calculando distancia real desde H3
@@ -112,7 +110,6 @@ export const useSeleccionarCuidador = (
               : 'A consultar',
             insignias:
               perfil.verificacion === 'verificado' ? ['verificado'] : [],
-            horario_laboral: perfil.horario_laboral,
           }
         }
       )
