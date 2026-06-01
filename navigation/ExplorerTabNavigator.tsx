@@ -2,16 +2,21 @@ import React from 'react'
 import { Platform } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
-import AdminDashboard from '@/screens/admin/AdminDashboard'
-import TerritorioVivo from '@/screens/admin/TerritorioVivo'
-import MiCuenta from '@/screens/comun/MiCuenta'
+import { ExplorerTabParamList } from './types'
 import { Icon } from '@/components/ui'
 import { COLOR } from '@/constants'
-import type { AdminTabParamList } from './types'
+import { useTranslation } from 'react-i18next'
 
-const Tab = createBottomTabNavigator<AdminTabParamList>()
+// Pantallas del explorador
+import InicioExplorador from '@/screens/explorador/InicioExplorador'
+import MapaTerritorial from '@/screens/explorador/MapaTerritorial'
+import HistorialExploraciones from '@/screens/explorador/HistorialExploraciones'
+import MiCuenta from '@/screens/comun/MiCuenta'
 
-const AdminTabNavigator: React.FC = () => {
+const Tab = createBottomTabNavigator<ExplorerTabParamList>()
+
+const ExplorerTabNavigator = () => {
+  const { t } = useTranslation()
   const insets = useSafeAreaInsets()
 
   return (
@@ -45,22 +50,32 @@ const AdminTabNavigator: React.FC = () => {
       }}
     >
       <Tab.Screen
-        name="AdminHome"
-        component={AdminDashboard}
+        name="InicioExplorador"
+        component={InicioExplorador}
         options={{
-          tabBarLabel: 'Dashboard',
+          tabBarLabel: t('explorador:inicio'),
           tabBarIcon: ({ color, size }) => (
-            <Icon name="cog" color={color} size={size} />
+            <Icon name="map-marked-alt" color={color} size={size} />
           ),
         }}
       />
       <Tab.Screen
-        name="TerritorioVivo"
-        component={TerritorioVivo}
+        name="MapaTerritorial"
+        component={MapaTerritorial}
         options={{
-          tabBarLabel: 'Territorio',
+          tabBarLabel: t('explorador:mapa'),
           tabBarIcon: ({ color, size }) => (
-            <Icon name="map" color={color} size={size} />
+            <Icon name="globe" color={color} size={size} />
+          ),
+        }}
+      />
+      <Tab.Screen
+        name="HistorialExploraciones"
+        component={HistorialExploraciones}
+        options={{
+          tabBarLabel: t('explorador:historial'),
+          tabBarIcon: ({ color, size }) => (
+            <Icon name="list" color={color} size={size} />
           ),
         }}
       />
@@ -68,9 +83,9 @@ const AdminTabNavigator: React.FC = () => {
         name="MiCuenta"
         component={MiCuenta}
         options={{
-          tabBarLabel: 'Mi Cuenta',
+          tabBarLabel: t('comun:tabs.mi_cuenta'),
           tabBarIcon: ({ color, size }) => (
-            <Icon name="user" color={color} size={size} />
+            <Icon name="user-circle" color={color} size={size} />
           ),
         }}
       />
@@ -78,4 +93,4 @@ const AdminTabNavigator: React.FC = () => {
   )
 }
 
-export default AdminTabNavigator
+export default ExplorerTabNavigator

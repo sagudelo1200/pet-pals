@@ -25,6 +25,12 @@ const ROL_CONFIG = {
     titulo: 'Cuidador',
     descripcion: 'Ofrece servicios de paseo',
   },
+  explorador: {
+    icon: 'map-marked-alt' as const,
+    color: COLOR.ENFASIS,
+    titulo: 'Explorador',
+    descripcion: 'Captura inteligencia territorial',
+  },
   admin: {
     icon: 'ghost' as const,
     color: COLOR.INFO,

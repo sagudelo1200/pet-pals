@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react'
+import React, { useRef, useEffect, useState } from 'react'
 import {
   StyleSheet,
   View,
@@ -17,6 +17,7 @@ import { Button, Icon, Card, BottomSheet, EmptyState } from '@/components/ui'
 import Skeleton from '@/components/ui/Skeleton'
 import { useSeleccionarCuidador } from '@/hooks/paseos/useSeleccionarCuidador'
 import { useDisponibilidadCercana } from '@/hooks/paseos/useDisponibilidadCercana'
+import { MatchingDebugOverlay } from '@/components/dev/MatchingDebugOverlay'
 import PerroTristeSvg from '@/assets/imgs/undraw/perro_triste_come_periodico.svg'
 
 interface Props {
@@ -25,6 +26,7 @@ interface Props {
   fecha?: Date | null
   hora?: string | null
   duracion?: number | null
+  coordenadas?: { latitude: number; longitude: number } // ← Coordenadas de la dirección seleccionada
   esSolicitudAbiertaInicial?: boolean
   onNext: (
     // eslint-disable-next-line no-unused-vars
@@ -45,6 +47,7 @@ export const SeleccionarCuidadorPaso = ({
   fecha,
   hora,
   duracion,
+  coordenadas,
   onNext,
   onBack,
   onChangeFechaSuggested,
@@ -60,9 +63,13 @@ export const SeleccionarCuidadorPaso = ({
     error,
     cuidadorSeleccionado,
     seleccionarCuidador,
-  } = useSeleccionarCuidador(initialId, fecha, hora, duracion)
+    debugMatching,
+  } = useSeleccionarCuidador(initialId, fecha, hora, duracion, coordenadas)
 
   const [showDisponibilidad, setShowDisponibilidad] = React.useState(false)
+  const [showDebugMatching, setShowDebugMatching] = useState(
+    process.env.NODE_ENV === 'development' // Auto-show en desarrollo
+  )
   const {
     loading: loadingDisponibilidad,
     fechas: fechasDisponibles,
@@ -486,6 +493,14 @@ export const SeleccionarCuidadorPaso = ({
           </View>
         </ModalAnimatedView>
       </BottomSheet>
+
+      {/* Debug Overlay - Visible siempre en desarrollo */}
+      <MatchingDebugOverlay
+        isVisible={showDebugMatching}
+        debugMatching={debugMatching}
+        onClose={() => setShowDebugMatching(false)}
+        cargando={cargando}
+      />
     </View>
   )
 }

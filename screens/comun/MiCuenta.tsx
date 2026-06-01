@@ -1,15 +1,7 @@
 import React, { useCallback } from 'react'
-import {
-  Alert,
-  Platform,
-  Text,
-  View,
-  StyleSheet,
-  ScrollView,
-} from 'react-native'
+import { Alert, Platform, Text, View, StyleSheet } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Button, Card, Icon, Avatar } from '@/components/ui'
-import LanguageSwitcher from '@/components/ui/LanguageSwitcher'
 import Screen from '@/components/ui/Screen'
 import { tErrorMaybe } from '@/services/i18n'
 import { useAuth } from '@/context/AuthContext'
@@ -26,7 +18,7 @@ const MiCuenta = () => {
   const { cerrarSesion, cargando: cargandoAuth, user, profile } = useAuth()
   const { rolActivo, cambiarRolActivo, tieneMultiplesRoles, rolesDisponibles } =
     useRol()
-  const { cambiarRol, cargando: cargandoRol, esCuidador } = useCambiarRol()
+  const { cambiarRol, cargando: cargandoRol } = useCambiarRol()
   const { t } = useTranslation()
   const correo = user?.email ?? (profile as any)?.correo ?? '—'
   const nombre = user?.displayName ?? (profile as any)?.nombre ?? '—'
@@ -49,7 +41,9 @@ const MiCuenta = () => {
     }
   }, [cerrarSesion, navigation, t])
 
-  const handleActivarRol = async (rol: 'tutor' | 'cuidador') => {
+  const handleActivarRol = async (
+    rol: 'tutor' | 'cuidador' | 'explorador' | 'admin'
+  ) => {
     const resultado = await cambiarRol(rol)
 
     if (resultado.success) {
@@ -66,12 +60,19 @@ const MiCuenta = () => {
               // Cambiar al nuevo rol activo
               void cambiarRolActivo(rol)
               // Navegar manteniendo la vista en MiCuenta
-              navigation.navigate(
-                rol === 'tutor' ? 'TutorApp' : 'CuidadorApp',
-                {
-                  screen: 'MiCuenta',
-                }
-              )
+              const targetApp =
+                rol === 'tutor'
+                  ? 'TutorApp'
+                  : rol === 'cuidador'
+                    ? 'CuidadorApp'
+                    : rol === 'explorador'
+                      ? 'ExplorerApp'
+                      : rol === 'admin'
+                        ? 'AdminApp'
+                        : 'TutorApp'
+              navigation.navigate(targetApp as any, {
+                screen: 'MiCuenta',
+              })
 
               // Si es cuidador nuevo, sugerir editar perfil
               if (rol === 'cuidador') {
@@ -91,10 +92,22 @@ const MiCuenta = () => {
     }
   }
 
-  const handleCambiarRolActivo = async (rol: 'tutor' | 'cuidador') => {
+  const handleCambiarRolActivo = async (
+    rol: 'tutor' | 'cuidador' | 'explorador' | 'admin'
+  ) => {
     await cambiarRolActivo(rol)
     // Navegar manteniendo la vista en MiCuenta
-    navigation.navigate(rol === 'tutor' ? 'TutorApp' : 'CuidadorApp', {
+    const targetApp =
+      rol === 'tutor'
+        ? 'TutorApp'
+        : rol === 'cuidador'
+          ? 'CuidadorApp'
+          : rol === 'explorador'
+            ? 'ExplorerApp'
+            : rol === 'admin'
+              ? 'AdminApp'
+              : 'TutorApp'
+    navigation.navigate(targetApp as any, {
       screen: 'MiCuenta',
     })
   }
@@ -104,13 +117,13 @@ const MiCuenta = () => {
       style={[styles.container, { paddingBottom: TAB_BAR_HEIGHT }]}
       includeTopInset={false}
     >
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        {/* Header Premium con Gradiente */}
+      <View style={styles.scrollContent}>
+        {/* Header Grande con Gradiente */}
         <LinearGradient
           colors={[COLOR.PRIMARIO, COLOR.ENFASIS]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
-          style={[styles.headerGradient, { paddingTop: insets.top + 20 }]}
+          style={[styles.headerGradient, { paddingTop: insets.top + 12 }]}
         >
           <View style={styles.profileHeader}>
             <Avatar
@@ -125,7 +138,15 @@ const MiCuenta = () => {
             <Text style={styles.emailText}>{correo}</Text>
             <View style={styles.roleBadge}>
               <Icon
-                name={rolActivo === 'cuidador' ? 'user-md' : 'user'}
+                name={
+                  rolActivo === 'cuidador'
+                    ? 'walking'
+                    : rolActivo === 'explorador'
+                      ? 'map-marked-alt'
+                      : rolActivo === 'admin'
+                        ? 'shield-alt'
+                        : 'paw'
+                }
                 size={14}
                 color="#FFF"
                 containerStyle={{ marginRight: 6 }}
@@ -133,44 +154,28 @@ const MiCuenta = () => {
               <Text style={styles.roleText}>
                 {rolActivo === 'cuidador'
                   ? t('perfil:cuidador')
-                  : t('perfil:tutor')}
+                  : rolActivo === 'explorador'
+                    ? 'Explorador'
+                    : rolActivo === 'admin'
+                      ? 'Admin'
+                      : t('perfil:tutor')}
               </Text>
             </View>
           </View>
         </LinearGradient>
 
         <View style={styles.content}>
-          {/* Sección de Acciones Principales */}
-          <View style={styles.actionsContainer}>
-            {rolActivo === 'cuidador' && (
-              <Card
-                style={styles.actionCard}
-                onPress={() => navigation.navigate('PerfilCuidador')}
-              >
-                <View style={styles.actionRow}>
-                  <View
-                    style={[
-                      styles.iconBox,
-                      { backgroundColor: COLOR.INACTIVO },
-                    ]}
-                  >
-                    <Icon name="id-card" size={20} color={COLOR.PRIMARIO} />
-                  </View>
-                  <View style={styles.actionInfo}>
-                    <Text style={styles.actionTitle}>
-                      {t('perfil:perfil_publico')}
-                    </Text>
-                    <Text style={styles.actionDesc}>
-                      {t('perfil:gestiona_info_visible')}
-                    </Text>
-                  </View>
-                  <Icon name="chevron-right" size={16} color={COLOR.SUBTEXTO} />
-                </View>
-              </Card>
-            )}
-
-            {/* TODO: Agregar más opciones como "Mis Mascotas" para tutor, etc. */}
-          </View>
+          {/* Acción rápida para cuidador */}
+          {rolActivo === 'cuidador' && (
+            <Button
+              title={t('perfil:perfil_publico')}
+              icon="id-card"
+              variant="secundario"
+              size="sm"
+              style={styles.quickAction}
+              onPress={() => navigation.navigate('PerfilCuidador')}
+            />
+          )}
 
           {/* Sección de Roles */}
           <View style={styles.section}>
@@ -178,7 +183,8 @@ const MiCuenta = () => {
               {t('perfil:gestionar_roles')}
             </Text>
 
-            {tieneMultiplesRoles ? (
+            {/* Selector de roles existentes (si tienes múltiples) */}
+            {tieneMultiplesRoles && (
               <View style={styles.rolesContainer}>
                 {rolesDisponibles.map(rol => (
                   <Card
@@ -193,8 +199,16 @@ const MiCuenta = () => {
                   >
                     <View style={styles.roleCardContent}>
                       <Icon
-                        name={rol === 'cuidador' ? 'walking' : 'paw'}
-                        size={24}
+                        name={
+                          rol === 'cuidador'
+                            ? 'walking'
+                            : rol === 'explorador'
+                              ? 'map-marked-alt'
+                              : rol === 'admin'
+                                ? 'shield-alt'
+                                : 'paw'
+                        }
+                        size={20}
                         color={
                           rolActivo === rol ? COLOR.PRIMARIO : COLOR.SUBTEXTO
                         }
@@ -207,7 +221,11 @@ const MiCuenta = () => {
                       >
                         {rol === 'cuidador'
                           ? t('perfil:modo_cuidador')
-                          : t('perfil:modo_tutor')}
+                          : rol === 'explorador'
+                            ? t('perfil:modo_explorador')
+                            : rol === 'admin'
+                              ? 'Modo Admin'
+                              : t('perfil:modo_tutor')}
                       </Text>
                       {rolActivo === rol && (
                         <View style={styles.activeIndicator}>
@@ -218,46 +236,44 @@ const MiCuenta = () => {
                   </Card>
                 ))}
               </View>
-            ) : (
-              <Card style={styles.promoCard}>
-                <View style={styles.promoContent}>
-                  <Icon
-                    name={esCuidador ? 'paw' : 'walking'}
-                    size={32}
-                    color={COLOR.PRIMARIO}
-                  />
-                  <View style={{ flex: 1, marginLeft: 16 }}>
-                    <Text style={styles.promoTitle}>
-                      {esCuidador
-                        ? t('perfil:tienes_mascota')
-                        : t('perfil:quieres_ser_cuidador')}
-                    </Text>
-                    <Text style={styles.promoDesc}>
-                      {esCuidador
-                        ? t('perfil:activa_tutor_desc')
-                        : t('perfil:gana_dinero_desc')}
-                    </Text>
-                  </View>
-                </View>
+            )}
+
+            {/* Opciones para activar roles nuevos */}
+            <View style={styles.rolesPromoContainer}>
+              {!rolesDisponibles.includes('tutor') && (
                 <Button
-                  title={
-                    esCuidador
-                      ? t('perfil:activar_modo_tutor')
-                      : t('perfil:convertirme_cuidador')
-                  }
+                  title={t('perfil:activar_modo_tutor')}
+                  icon="paw"
                   variant="contorno"
                   size="sm"
-                  style={{ marginTop: 16 }}
-                  onPress={() =>
-                    handleActivarRol(esCuidador ? 'tutor' : 'cuidador')
-                  }
+                  onPress={() => handleActivarRol('tutor')}
                   loading={cargandoRol}
                 />
-              </Card>
-            )}
+              )}
+
+              {!rolesDisponibles.includes('cuidador') && (
+                <Button
+                  title={t('perfil:convertirme_cuidador')}
+                  icon="walking"
+                  variant="contorno"
+                  size="sm"
+                  onPress={() => handleActivarRol('cuidador')}
+                  loading={cargandoRol}
+                />
+              )}
+
+              {!rolesDisponibles.includes('explorador') && (
+                <Button
+                  title={t('perfil:activar_modo_explorador')}
+                  icon="map-marked-alt"
+                  variant="contorno"
+                  size="sm"
+                  onPress={() => handleActivarRol('explorador')}
+                  loading={cargandoRol}
+                />
+              )}
+            </View>
           </View>
-          {/* Selector de Idioma */}
-          <LanguageSwitcher />
 
           {/* Botón Cerrar Sesión */}
           <Button
@@ -269,12 +285,8 @@ const MiCuenta = () => {
             loading={cargandoAuth}
             icon="sign-out-alt"
           />
-
-          <Text style={styles.versionText}>
-            {t('perfil:version', { version: '1.0.0' })}
-          </Text>
         </View>
-      </ScrollView>
+      </View>
     </Screen>
   )
 }
@@ -285,10 +297,11 @@ const styles = StyleSheet.create({
     backgroundColor: COLOR.BASE,
   },
   scrollContent: {
-    flexGrow: 1,
+    flex: 1,
   },
   headerGradient: {
     paddingBottom: 40,
+    paddingHorizontal: 16,
     borderBottomLeftRadius: 30,
     borderBottomRightRadius: 30,
     alignItems: 'center',
@@ -326,66 +339,34 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   content: {
-    paddingHorizontal: 20,
-    marginTop: -20, // Overlap con el header
-  },
-  actionsContainer: {
-    marginBottom: 24,
-  },
-  actionCard: {
-    padding: 16,
-    marginBottom: 12,
-    borderRadius: 16,
-    backgroundColor: COLOR.BLOQUE,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.05,
-    shadowRadius: 12,
-    elevation: 4,
-  },
-  actionRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  iconBox: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 16,
-  },
-  actionInfo: {
     flex: 1,
+    paddingHorizontal: 16,
+    paddingTop: 12,
   },
-  actionTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: COLOR.TEXTO,
-    marginBottom: 2,
-  },
-  actionDesc: {
-    fontSize: 13,
-    color: COLOR.SUBTEXTO,
+  quickAction: {
+    marginBottom: 12,
   },
   section: {
-    marginBottom: 32,
+    marginBottom: 16,
   },
   sectionTitle: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '700',
     color: COLOR.TEXTO,
-    marginBottom: 16,
-    marginLeft: 4,
+    marginBottom: 10,
   },
   rolesContainer: {
     flexDirection: 'row',
-    gap: 12,
+    gap: 8,
+    marginBottom: 10,
+  },
+  rolesPromoContainer: {
+    gap: 8,
   },
   roleCard: {
     flex: 1,
-    padding: 16,
-    borderRadius: 16,
+    padding: 12,
+    borderRadius: 12,
     backgroundColor: COLOR.BLOQUE,
     borderWidth: 1,
     borderColor: 'transparent',
@@ -399,8 +380,8 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
   roleCardTitle: {
-    marginTop: 12,
-    fontSize: 14,
+    marginTop: 8,
+    fontSize: 12,
     fontWeight: '600',
     color: COLOR.SUBTEXTO,
   },
@@ -409,46 +390,20 @@ const styles = StyleSheet.create({
   },
   activeIndicator: {
     position: 'absolute',
-    top: -8,
-    right: -8,
+    top: -6,
+    right: -6,
     backgroundColor: COLOR.PRIMARIO,
-    width: 20,
-    height: 20,
-    borderRadius: 10,
+    width: 18,
+    height: 18,
+    borderRadius: 9,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  promoCard: {
-    padding: 20,
-    borderRadius: 16,
-    backgroundColor: COLOR.BLOQUE,
-  },
-  promoContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  promoTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: COLOR.TEXTO,
-    marginBottom: 4,
-  },
-  promoDesc: {
-    fontSize: 14,
-    color: COLOR.SUBTEXTO,
-    lineHeight: 20,
-  },
   logoutButton: {
-    marginBottom: 20,
+    marginTop: 'auto',
+    marginBottom: 8,
     borderWidth: 1,
     borderColor: COLOR.ERROR,
-    flexDirection: 'row',
-  },
-  versionText: {
-    textAlign: 'center',
-    color: COLOR.SUBTEXTO,
-    fontSize: 12,
-    opacity: 0.6,
   },
 })
 

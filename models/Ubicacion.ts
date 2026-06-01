@@ -89,6 +89,8 @@ export interface UbicacionRef {
     latitude: number
     longitude: number
   }
+  /** Índice H3 de la ubicación (resolución 8) para matching geoespacial */
+  h3_index?: string
 }
 
 /**

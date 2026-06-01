@@ -39,7 +39,7 @@ export default function CuidadorTabNavigator(): ReactElement {
             Platform.OS === 'ios'
               ? Math.max(insets.bottom, 20)
               : Math.max(insets.bottom + 5, 15),
-          paddingTop: 8,
+          paddingTop: 5,
           height:
             Platform.OS === 'ios'
               ? Math.max(insets.bottom + 65, 85)
@@ -48,16 +48,10 @@ export default function CuidadorTabNavigator(): ReactElement {
           bottom: 0,
           left: 0,
           right: 0,
-          shadowColor: '#000',
-          shadowOffset: { width: 0, height: -2 },
-          shadowOpacity: 0.1,
-          shadowRadius: 8,
-          elevation: 8,
         },
         tabBarLabelStyle: {
-          fontSize: 11,
-          fontWeight: '600',
-          letterSpacing: 0.2,
+          fontSize: 12,
+          fontWeight: '500',
         },
       }}
     >

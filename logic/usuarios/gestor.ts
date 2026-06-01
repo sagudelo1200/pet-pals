@@ -45,11 +45,15 @@ export const GestorUsuarios = {
         return { success: true }
       }
 
-      // Exclusividad: admin no puede combinarse con otros roles
-      if (nuevoRol === 'admin' && rolesActuales.length > 0) {
+      // Exclusividad: admin no puede combinarse con roles operativos (tutor/cuidador)
+      // pero SÍ puede combinarse con explorador (rol de observación territorial)
+      const rolesOperativos: RolUsuario[] = ['tutor', 'cuidador']
+      const esRolOperativo = (rol: RolUsuario) => rolesOperativos.includes(rol)
+
+      if (nuevoRol === 'admin' && rolesActuales.some(esRolOperativo)) {
         return { success: false, error: 'ADMIN_EXCLUSIVO' }
       }
-      if (rolesActuales.includes('admin') && nuevoRol !== 'admin') {
+      if (rolesActuales.includes('admin') && esRolOperativo(nuevoRol)) {
         return { success: false, error: 'ADMIN_EXCLUSIVO' }
       }
 
@@ -114,7 +118,8 @@ export const GestorUsuarios = {
     ubicacionId: string,
     alias?: string,
     coordenadas?: { latitude: number; longitude: number },
-    direccion_formateada?: string
+    direccion_formateada?: string,
+    h3_index?: string
   ): Promise<CrudResult<Usuario>> {
     try {
       const userRes = await ServicioUsuario.obtenerPorId(userId)
@@ -127,7 +132,8 @@ export const GestorUsuarios = {
         ubicacionId,
         alias,
         coordenadas,
-        direccion_formateada
+        direccion_formateada,
+        h3_index
       )
 
       return ServicioUsuario.actualizar(userId, {

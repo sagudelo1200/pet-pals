@@ -2,7 +2,7 @@ import { BaseModel } from './BaseModel'
 import { UbicacionRef } from './Ubicacion'
 
 /** Roles posibles del usuario en la plataforma */
-export type RolUsuario = 'admin' | 'tutor' | 'cuidador'
+export type RolUsuario = 'admin' | 'tutor' | 'cuidador' | 'explorador'
 
 /** Estado operativo del usuario */
 export type EstadoUsuario = 'activo' | 'inactivo' | 'baneado'

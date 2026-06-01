@@ -11,6 +11,7 @@ import esPerfil from './locales/es/perfil.json'
 import esCuidador from './locales/es/cuidador.json'
 import esTutor from './locales/es/tutor.json'
 import esUbicaciones from './locales/es/ubicaciones.json'
+import esExplorador from './locales/es/explorador.json'
 
 // English resources
 import enComun from './locales/en/comun.json'
@@ -22,6 +23,7 @@ import enPerfil from './locales/en/perfil.json'
 import enCuidador from './locales/en/cuidador.json'
 import enTutor from './locales/en/tutor.json'
 import enUbicaciones from './locales/en/ubicaciones.json'
+import enExplorador from './locales/en/explorador.json'
 
 import { ERR, type ErrorCode } from '@/constants/errors'
 
@@ -52,6 +54,7 @@ if (!i18n.isInitialized) {
         cuidador: esCuidador as any,
         tutor: esTutor as any,
         ubicaciones: esUbicaciones as any,
+        explorador: esExplorador as any,
       },
       en: {
         comun: enComun,
@@ -63,6 +66,7 @@ if (!i18n.isInitialized) {
         cuidador: enCuidador as any,
         tutor: enTutor as any,
         ubicaciones: enUbicaciones as any,
+        explorador: enExplorador as any,
       },
     },
     ns: [
@@ -74,6 +78,7 @@ if (!i18n.isInitialized) {
       'perfil',
       'cuidador',
       'tutor',
+      'explorador',
     ],
     defaultNS: 'comun',
     fallbackLng: 'es',

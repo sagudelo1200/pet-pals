@@ -36,6 +36,7 @@ export const SolicitarPaseoModal = ({
   const [datosSolicitud, setDatosSolicitud] = useState({
     mascotaIds: [] as string[],
     direccionId: null as string | null,
+    coordenadas: null as { latitude: number; longitude: number } | null,
     fecha: null as Date | null,
     hora: null as string | null,
     duracion: null as number | null,
@@ -51,6 +52,7 @@ export const SolicitarPaseoModal = ({
     setDatosSolicitud({
       mascotaIds: [],
       direccionId: null,
+      coordenadas: null,
       fecha: null,
       hora: null,
       duracion: null,
@@ -84,8 +86,13 @@ export const SolicitarPaseoModal = ({
     setStep('SELECCIONAR_DIRECCION') // Go to Address
   }
 
-  const handleAddressSelected = (direccionId: string, _direccionObj?: any) => {
-    setDatosSolicitud(prev => ({ ...prev, direccionId }))
+  const handleAddressSelected = (direccionId: string, direccionObj?: any) => {
+    setDatosSolicitud(prev => ({
+      ...prev,
+      direccionId,
+      // Guardar coordenadas de la dirección seleccionada para búsqueda de cuidadores
+      coordenadas: direccionObj?.coordenadas || null,
+    }))
     setStep('SELECCIONAR_FECHA')
   }
 
@@ -202,6 +209,7 @@ export const SolicitarPaseoModal = ({
             fecha={datosSolicitud.fecha!}
             hora={datosSolicitud.hora}
             duracion={datosSolicitud.duracion}
+            coordenadas={datosSolicitud.coordenadas || undefined}
             onNext={handleWalkerSelected}
             onBack={() => handleBack()}
             onChangeFechaSuggested={f =>

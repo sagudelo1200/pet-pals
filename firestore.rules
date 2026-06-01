@@ -373,5 +373,44 @@ service cloud.firestore {
       // Solo el propio cuidador puede escribir o eliminar sus excepciones
       allow write: if autenticado() && es_mismo_uid(uid);
     }
+
+    // EXPLORACIONES TERRITORIALES
+    // /exploraciones/{id}
+    match /exploraciones/{id} {
+      // Lectura: solo el explorador que creó la captura puede leerla
+      allow read: if autenticado() && resource.data.id_explorador == request.auth.uid;
+
+      // Crear: solo usuarios con rol explorador
+      allow create: if autenticado()
+        && tiene_rol_actual('explorador')
+        && es_creador()
+        && tiene_campos_sistema_basicos()
+        && campos_sistema_validos_crear()
+        && request.resource.data.id_explorador == request.auth.uid
+        && request.resource.data.h3_index is string
+        && request.resource.data.h3_index.size() > 0
+        && request.resource.data.tipo_punto in ['parque','calle','comercio','conjunto','nodo_social','otro']
+        && request.resource.data.mascotas_visibles is int
+        && request.resource.data.mascotas_visibles >= 0;
+
+      // Actualizar: solo el explorador creador puede actualizar su propia captura
+      allow update: if autenticado()
+        && resource.data.id_explorador == request.auth.uid
+        && campos_sistema_validos_actualizar();
+
+      // Eliminar: solo el explorador creador o admin
+      allow delete: if autenticado() && (resource.data.id_explorador == request.auth.uid || es_admin());
+    }
+
+    // RESUMEN TERRITORIAL AGREGADO
+    // /territorio_resumen/{h3_index}
+    match /territorio_resumen/{h3Index} {
+      // Lectura: cualquier usuario autenticado puede leer datos territoriales agregados
+      allow read: if autenticado();
+
+      // Escritura: solo Cloud Functions (backend) debe crear/actualizar estos datos
+      // Los clientes no deben escribir directamente
+      allow write: if false;
+    }
   }
 }

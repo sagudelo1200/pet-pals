@@ -2,7 +2,11 @@ import { useState, useEffect } from 'react'
 import { useAuth } from '@/context/AuthContext'
 import { GestorPerfilPublico } from '@/logic/usuarios/perfilPublico'
 import { LogicMatching } from '@/logic/paseos/matching'
-import { coordsAH3, distanciaKmEntreH3 } from '@/services/geo'
+import {
+  coordsAH3,
+  distanciaKmEntreH3,
+  celdasDeCobertura,
+} from '@/services/geo/h3Utils'
 
 interface CuidadorListItem {
   id: string
@@ -12,6 +16,27 @@ interface CuidadorListItem {
   distancia: string
   tarifa: string
   insignias: string[]
+}
+
+interface DebugMatchingData {
+  h3TutorZona: string | null
+  h3CeldasCercanas: string[]
+  candidatosRaw: any[]
+  candidatosConDetalle: Array<{
+    id: string
+    nombre: string
+    h3_home: string | null
+    enZonaH3: boolean
+    horario: {
+      pasa: boolean
+      razon?: string
+    }
+    disponibilidad: {
+      pasa: boolean
+      razon?: string
+    }
+    final: boolean
+  }>
 }
 
 export const useSeleccionarCuidador = (
@@ -28,6 +53,12 @@ export const useSeleccionarCuidador = (
   const [cuidadorSeleccionado, setCuidadorSeleccionado] = useState<
     string | null
   >(cuidadorInicialId)
+  const [debugMatching, setDebugMatching] = useState<DebugMatchingData>({
+    h3TutorZona: null,
+    h3CeldasCercanas: [],
+    candidatosRaw: [],
+    candidatosConDetalle: [],
+  })
 
   useEffect(() => {
     cargarCuidadores()
@@ -42,12 +73,18 @@ export const useSeleccionarCuidador = (
       // fallback a búsqueda global verificados cuando no hay ubicación.
       let fuente: any[] = []
       let indiceCeldaTutor: string | null = null
+      let h3CeldasCercanas: string[] = []
 
       if (coordenadasTutor) {
         indiceCeldaTutor = coordsAH3(
           coordenadasTutor.latitude,
           coordenadasTutor.longitude
         )
+        // Obtener celdas cercanas para debug
+        h3CeldasCercanas = celdasDeCobertura(indiceCeldaTutor, 2) ?? [
+          indiceCeldaTutor,
+        ]
+
         const resultado =
           await GestorPerfilPublico.obtenerCuidadoresPorH3(indiceCeldaTutor)
         if (resultado.success && resultado.data) {
@@ -61,7 +98,71 @@ export const useSeleccionarCuidador = (
         }
       }
 
+      // Guardar candidatos raw para debug
+      const candidatosRaw = [...fuente]
+
       let filtrados = fuente.filter((p: any) => (p.id ?? p.uid) !== user?.uid)
+
+      // Construir array de detalle para debug
+      const candidatosConDetalle = candidatosRaw.map((perfil: any) => {
+        const id = perfil.id ?? perfil.uid
+        const h3Perfil = perfil.h3_home ?? perfil.h3_origen
+
+        // Check 1: ¿Está en la zona H3?
+        const enZonaH3 =
+          indiceCeldaTutor && h3Perfil
+            ? h3CeldasCercanas.includes(h3Perfil) ||
+              h3Perfil === indiceCeldaTutor
+            : false
+
+        // Check 2: Horario
+        let horarioCheck = { pasa: false, razon: 'Sin fecha' }
+        if (fecha) {
+          const diaKey = fecha.getDay().toString()
+          const franja = perfil.horario_semanal?.[diaKey]
+          if (!franja) {
+            horarioCheck = { pasa: false, razon: 'No trabaja este día' }
+          } else {
+            horarioCheck = {
+              pasa: true,
+              razon: `${franja.inicio} - ${franja.fin}`,
+            }
+          }
+        }
+
+        // Check 3: Disponibilidad (matching)
+        let disponibilidadCheck = { pasa: false, razon: 'Sin parámetros' }
+        if (fecha && hora && duracionMinutos) {
+          const estaDisponible = LogicMatching.esCuidadorDisponible(
+            perfil as any,
+            { fecha, hora, duracion: duracionMinutos }
+          )
+          if (estaDisponible) {
+            disponibilidadCheck = {
+              pasa: true,
+              razon: `Disponible ${duracionMinutos}min`,
+            }
+          } else {
+            disponibilidadCheck = {
+              pasa: false,
+              razon: 'Conflicto de reserva o sin tiempo',
+            }
+          }
+        }
+
+        // Check 4: ¿Pasa el filtro final?
+        const pasaFiltroFinal = filtrados.some(f => (f.id ?? f.uid) === id)
+
+        return {
+          id,
+          nombre: perfil.nombre,
+          h3_home: h3Perfil,
+          enZonaH3,
+          horario: horarioCheck,
+          disponibilidad: disponibilidadCheck,
+          final: pasaFiltroFinal,
+        }
+      })
 
       // Aplicar MATCHING si tenemos los parámetros necesarios
       if (fecha && hora && duracionMinutos) {
@@ -91,12 +192,13 @@ export const useSeleccionarCuidador = (
           const cal = !isNaN(ratingNum) ? ratingNum : 0
 
           let distanciaTexto = '—'
-          if (indiceCeldaTutor && perfil.h3_home) {
-            const km = distanciaKmEntreH3(perfil.h3_home, indiceCeldaTutor)
-            distanciaTexto = `${km.toFixed(1)} km`
-          } else if (indiceCeldaTutor && perfil.h3_origen) {
-            const km = distanciaKmEntreH3(perfil.h3_origen, indiceCeldaTutor)
-            distanciaTexto = `${km.toFixed(1)} km`
+          if (indiceCeldaTutor) {
+            // Priorizar h3_home (más preciso), luego h3_origen
+            const h3 = perfil.h3_home ?? perfil.h3_origen
+            if (h3) {
+              const km = distanciaKmEntreH3(h3, indiceCeldaTutor)
+              distanciaTexto = `${km.toFixed(1)} km`
+            }
           }
 
           return {
@@ -115,6 +217,12 @@ export const useSeleccionarCuidador = (
       )
 
       setCuidadores(cuidadoresMapeados)
+      setDebugMatching({
+        h3TutorZona: indiceCeldaTutor,
+        h3CeldasCercanas,
+        candidatosRaw,
+        candidatosConDetalle,
+      })
     } catch (err) {
       setError('Error inesperado al cargar cuidadores')
       console.error('Error cargando cuidadores:', err)
@@ -134,5 +242,6 @@ export const useSeleccionarCuidador = (
     cuidadorSeleccionado,
     seleccionarCuidador,
     recargar: cargarCuidadores,
+    debugMatching, // ← Expone datos para overlay de debug
   }
 }

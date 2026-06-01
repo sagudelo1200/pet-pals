@@ -3,6 +3,7 @@ import { createStackNavigator } from '@react-navigation/stack'
 import TutorTabNavigator from '@/navigation/TutorTabNavigator'
 import CuidadorTabNavigator from '@/navigation/CuidadorTabNavigator'
 import AdminTabNavigator from '@/navigation/AdminTabNavigator'
+import ExplorerTabNavigator from '@/navigation/ExplorerTabNavigator'
 import AuthNavigator from './AuthNavigator'
 import DetalleMascota from '@/screens/tutor/DetalleMascota'
 import PaseoActivo from '@/screens/tutor/PaseoActivo'
@@ -24,6 +25,7 @@ export default function RootNavigator(): React.ReactElement {
       <Stack.Screen name="TutorApp" component={TutorTabNavigator} />
       <Stack.Screen name="CuidadorApp" component={CuidadorTabNavigator} />
       <Stack.Screen name="AdminApp" component={AdminTabNavigator} />
+      <Stack.Screen name="ExplorerApp" component={ExplorerTabNavigator} />
       <Stack.Screen
         name="DetalleMascota"
         component={DetalleMascota}

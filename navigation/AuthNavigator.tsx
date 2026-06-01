@@ -81,7 +81,9 @@ const AuthNavigator: React.FC = () => {
             ? 'AdminApp'
             : rolParaNavegar === 'cuidador'
               ? 'CuidadorApp'
-              : 'TutorApp'
+              : rolParaNavegar === 'explorador'
+                ? 'ExplorerApp'
+                : 'TutorApp'
         // Evitar reinicios redundantes: sólo resetear si el target cambió
         if (navigatedTargetRef.current !== target) {
           navegarA(target)

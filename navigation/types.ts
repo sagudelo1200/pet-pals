@@ -8,6 +8,7 @@ export type AuthStackParamList = {
   TutorApp: undefined
   CuidadorApp: undefined
   AdminApp: undefined
+  ExplorerApp: undefined
   DetalleMascota: {
     mascotaId: string
     mascota?: Mascota
@@ -55,5 +56,13 @@ export type CuidadorTabParamList = {
 export type AdminTabParamList = {
   AdminHome: undefined
   TerritorioVivo: undefined
+  MiCuenta: undefined
+}
+
+// Tabs para el rol de Explorador
+export type ExplorerTabParamList = {
+  InicioExplorador: undefined
+  MapaTerritorial: undefined
+  HistorialExploraciones: undefined
   MiCuenta: undefined
 }

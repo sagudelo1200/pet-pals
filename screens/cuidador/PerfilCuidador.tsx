@@ -161,7 +161,11 @@ const PerfilCuidador: React.FC = () => {
       const ubPrincipal = profile.ubicaciones.find(
         u => u.ubicacion_id === profile.id_ubicacion_principal
       )
-      if (ubPrincipal?.coordenadas) {
+      // Usar h3_index de la referencia (guardado cuando se creó la ubicación)
+      if (ubPrincipal?.h3_index) {
+        h3Origen = ubPrincipal.h3_index
+      } else if (ubPrincipal?.coordenadas) {
+        // Fallback: recalcular si no está disponible (migración de datos)
         h3Origen = coordsAH3(
           ubPrincipal.coordenadas.latitude,
           ubPrincipal.coordenadas.longitude
