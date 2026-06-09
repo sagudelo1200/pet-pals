@@ -17,7 +17,15 @@ const MascotaHorizontal: React.FC<Props> = ({
   onPress,
   testID,
 }) => {
-  const uri = (mascota as any).foto || (mascota as any).foto_url
+  // Priorizar el campo definido en el modelo `Mascota` ('foto').
+  // Si encontramos `foto_url` lo usamos como fallback pero lo advertimos,
+  // para evitar "adivinar" estructuras sin revisar la fuente de datos.
+  const uri = (mascota as any).foto ?? (mascota as any).foto_url ?? null
+  if (!(mascota as any).foto && (mascota as any).foto_url) {
+    console.warn(
+      'MascotaHorizontal: usando campo `foto_url` como fallback. Considere migrar al campo `foto` en el modelo Mascota.'
+    )
+  }
 
   const content = (
     <View style={[styles.container, style]} testID={testID}>

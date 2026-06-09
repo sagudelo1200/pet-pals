@@ -24,16 +24,20 @@ import { COLOR } from '@/constants'
 import { ESTADOS_PASEO } from '@/models/Paseo'
 import { useControlPaseo } from '@/hooks/cuidador/useControlPaseo'
 import { usePublicarUbicacion } from '@/hooks/cuidador/usePublicarUbicacion'
+import { useCodigosRecogidaPorTutor } from '@/hooks/paseos/useCodigosRecogidaPorTutor'
 import { Button, Mapa, Icon } from '@/components/ui'
 import { BannerUbicacion } from '@/components/comun/BannerUbicacion'
+import { ModalIngresarCodigo } from '@/components/paseos/ModalIngresarCodigo'
 import type { AuthStackParamList } from '@/navigation/types'
 import { densificarRuta } from '@/services/geo'
+import { GestorPaseos } from '@/logic/paseos'
 
 type ControlPaseoRouteProp = RouteProp<AuthStackParamList, 'ControlPaseo'>
 
 const ESTADOS_FLUJO = [
   ESTADOS_PASEO.CONFIRMADO,
   ESTADOS_PASEO.EN_CAMINO,
+  ESTADOS_PASEO.EN_PUNTO_RECOGIDA,
   ESTADOS_PASEO.EN_PROGRESO,
   ESTADOS_PASEO.FINALIZADO,
 ]
@@ -47,6 +51,14 @@ const ControlPaseo: React.FC = () => {
 
   const { paseo, loading, procesando, cambiarEstado, ruta, ubicacionActual } =
     useControlPaseo(paseoId)
+
+  // Códigos de recogida por tutor
+  const { mascotasPorTutor, validadosPorTutor, intentosFallidosPorTutor } =
+    useCodigosRecogidaPorTutor(paseoId)
+
+  // Estados para modal de validación de código
+  const [mostrarModalCodigo, setMostrarModalCodigo] = useState(false)
+  const [validandoCodigo, setValidandoCodigo] = useState(false)
 
   // Referencia al mapa para centrado
   const mapRef = useRef<MapView>(null)
@@ -263,7 +275,12 @@ const ControlPaseo: React.FC = () => {
   ): {
     label: string
     icon: string
-    evento: 'INICIAR_RUTA' | 'INICIAR_PASEO' | 'FINALIZAR_PASEO' | null
+    evento:
+      | 'INICIAR_RUTA'
+      | 'INICIAR_PASEO'
+      | 'FINALIZAR_PASEO'
+      | 'LLEGAR_PUNTO_RECOGIDA'
+      | null
     color: string
   } | null => {
     const estadoColor =
@@ -280,9 +297,16 @@ const ControlPaseo: React.FC = () => {
         }
       case ESTADOS_PASEO.EN_CAMINO:
         return {
-          label: t('paseos:control.iniciar_paseo'),
-          icon: '🐕',
-          evento: 'INICIAR_PASEO',
+          label: t('paseos:control.he_llegado'),
+          icon: '📍',
+          evento: 'LLEGAR_PUNTO_RECOGIDA',
+          color: estadoColor.primario,
+        }
+      case ESTADOS_PASEO.EN_PUNTO_RECOGIDA:
+        return {
+          label: t('paseos:control.verificar_codigo'),
+          icon: '🔐',
+          evento: null,
           color: estadoColor.primario,
         }
       case ESTADOS_PASEO.EN_PROGRESO:
@@ -335,14 +359,89 @@ const ControlPaseo: React.FC = () => {
       }
     }
 
+    // FASE 6: Si está en EN_PUNTO_RECOGIDA, mostrar modal de validación de código
+    // (El cuidador ha llegado al punto y el tutor está listo para entregar el código)
+    if (paseo.estado === ESTADOS_PASEO.EN_PUNTO_RECOGIDA) {
+      setMostrarModalCodigo(true)
+      return
+    }
+
+    // CONFIRMADO: cambiar directamente a EN_CAMINO (cuidador se va a buscar)
+    if (paseo.estado === ESTADOS_PASEO.CONFIRMADO) {
+      if (config.evento) {
+        await cambiarEstado(config.evento) // INICIAR_RUTA → EN_CAMINO
+      }
+      return
+    }
+
+    // Otros estados: cambiar directamente
     if (config.evento) {
       await cambiarEstado(config.evento)
-      // Si acabamos de finalizar, activamos la pantalla de éxito
       if (config.evento === 'FINALIZAR_PASEO') {
         setShowSuccess(true)
       }
     } else if (paseo.estado === ESTADOS_PASEO.FINALIZADO) {
       setShowSuccess(true)
+    }
+  }
+
+  /**
+   * FASE 6: Valida el código ingresado por tutor y cambia a EN_PROGRESO cuando todos validados
+   */
+  const handleValidarCodigo = async (
+    tutorId: string,
+    codigoIngresado: string
+  ) => {
+    if (!paseo) {
+      throw new Error('Paseo no encontrado')
+    }
+
+    setValidandoCodigo(true)
+    try {
+      const res = await GestorPaseos.validarCodigoRecogida(
+        paseoId,
+        tutorId,
+        codigoIngresado
+      )
+
+      if (res.success) {
+        // ✅ Código válido para este tutor
+        if ('validado' in res && res.validado) {
+          // Verificar si TODOS los tutores han validado
+          const tutoresEnPaseo = mascotasPorTutor.map(t => t.tutorId)
+          const allValidated = tutoresEnPaseo.every(
+            tId => validadosPorTutor[tId] === true
+          )
+
+          if (allValidated) {
+            // ✅ Todos validados, cerrar modal y cambiar a EN_PROGRESO
+            setMostrarModalCodigo(false)
+            await cambiarEstado('INICIAR_PASEO')
+          }
+        }
+      } else {
+        // ❌ Código inválido: lanzar error con los intentos actualizados
+        const error = 'error' in res ? res.error : 'Error desconocido'
+        const intentosFallidos =
+          'intentosFallidos' in res ? res.intentosFallidos : undefined
+        const intentosRestantes =
+          intentosFallidos !== undefined ? Math.max(0, 3 - intentosFallidos) : 2
+
+        if (
+          error === 'CODIGO_RECOGIDA_BLOQUEADO' ||
+          error?.includes('BLOQUEADO') ||
+          intentosRestantes === 0
+        ) {
+          throw new Error(t('paseos:validacion_codigo.intentos_agotados'))
+        } else {
+          // Lanzar error con contador actualizado
+          throw new Error(
+            `Código incorrecto. ${intentosRestantes} intento${intentosRestantes !== 1 ? 's' : ''} restante${intentosRestantes !== 1 ? 's' : ''}`
+          )
+        }
+      }
+    } finally {
+      setValidandoCodigo(false)
     }
   }
 
@@ -652,6 +751,16 @@ const ControlPaseo: React.FC = () => {
           </Animated.View>
         )}
       </Animated.View>
+
+      {/* FASE 6: Modal de validación de código por tutor (EN_PUNTO_RECOGIDA -> EN_PROGRESO) */}
+      <ModalIngresarCodigo
+        visible={mostrarModalCodigo}
+        mascotasPorTutor={mascotasPorTutor}
+        intentosFallidosPorTutor={intentosFallidosPorTutor}
+        onVerificar={handleValidarCodigo}
+        onCerrar={() => setMostrarModalCodigo(false)}
+        isLoading={validandoCodigo}
+      />
     </View>
   )
 }

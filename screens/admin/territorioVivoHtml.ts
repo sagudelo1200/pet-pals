@@ -13,7 +13,11 @@ export const COLORES_ESTADO: Record<
 }
 
 // ─── Constructor del HTML de Leaflet ─────────────────────────────────────────
-export function construirHTML(zonas: ZonaH3[], topInset: number = 0): string {
+export function construirHTML(
+  zonas: ZonaH3[],
+  topInset: number = 0,
+  bottomInset: number = 0
+): string {
   const zonasJSON = JSON.stringify(
     zonas.map(z => ({
       id: z.indice_celda,
@@ -35,13 +39,14 @@ export function construirHTML(zonas: ZonaH3[], topInset: number = 0): string {
     content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
   <link rel="stylesheet"
     href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"><\/script>
-  <script src="https://unpkg.com/h3-js@4.1.0/dist/h3-js.umd.js"><\/script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/h3-js@4.1.0/dist/h3-js.umd.js"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     html, body { height: 100%; background: #0A0F0E; }
     #map { height: 100%; width: 100%; }
     .leaflet-top { margin-top: ${topInset}px; }
+    .leaflet-bottom { margin-bottom: ${bottomInset}px; }
 
     /* Leyenda */
     .leyenda {
@@ -75,7 +80,7 @@ export function construirHTML(zonas: ZonaH3[], topInset: number = 0): string {
       color: #2DB391;
     }
     .popup-fila { font-size: 12px; margin-bottom: 3px; }
-  <\/style>
+  </style>
 </head>
 <body>
   <div id="map"></div>
@@ -252,7 +257,7 @@ export function construirHTML(zonas: ZonaH3[], topInset: number = 0): string {
     if (bounds.length > 0) {
       try { map.fitBounds(bounds, { padding: [30, 30] }); } catch(e) {}
     }
-  <\/script>
+  </script>
 </body>
 </html>`
 }

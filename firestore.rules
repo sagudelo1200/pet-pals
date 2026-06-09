@@ -127,7 +127,9 @@ service cloud.firestore {
       return (
       (estadoActual == 'PENDIENTE' && estadoNuevo == 'CONFIRMADO') ||
       (estadoActual == 'CONFIRMADO' && estadoNuevo == 'EN_CAMINO') ||
+      (estadoActual == 'EN_CAMINO' && estadoNuevo == 'EN_PUNTO_RECOGIDA') ||
       (estadoActual == 'EN_CAMINO' && estadoNuevo == 'EN_PROGRESO') ||
+      (estadoActual == 'EN_PUNTO_RECOGIDA' && estadoNuevo == 'EN_PROGRESO') ||
       (estadoActual == 'EN_PROGRESO' && estadoNuevo == 'FINALIZADO') ||
       (estadoActual == 'FINALIZADO' && estadoNuevo == 'COMPLETADO')
       );

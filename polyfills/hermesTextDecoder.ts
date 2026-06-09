@@ -48,4 +48,4 @@ class HermesCompatTextDecoder {
   }
 }
 
-;(globalThis as any).TextDecoder = HermesCompatTextDecoder
+(globalThis as any).TextDecoder = HermesCompatTextDecoder

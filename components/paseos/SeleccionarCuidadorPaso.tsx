@@ -10,6 +10,7 @@ import {
   Animated,
   Easing,
   Platform,
+  Alert,
 } from 'react-native'
 import { useTranslation } from 'react-i18next'
 import { COLOR } from '@/constants'
@@ -18,6 +19,9 @@ import Skeleton from '@/components/ui/Skeleton'
 import { useSeleccionarCuidador } from '@/hooks/paseos/useSeleccionarCuidador'
 import { useDisponibilidadCercana } from '@/hooks/paseos/useDisponibilidadCercana'
 import { MatchingDebugOverlay } from '@/components/dev/MatchingDebugOverlay'
+import { ModalPerfilCuidador } from '@/components/cuidador'
+import { GestorPerfilPublico } from '@/logic/usuarios/perfilPublico'
+import type { PerfilPublico } from '@/models/PerfilPublico'
 import PerroTristeSvg from '@/assets/imgs/undraw/perro_triste_come_periodico.svg'
 
 interface Props {
@@ -70,6 +74,10 @@ export const SeleccionarCuidadorPaso = ({
   const [showDebugMatching, setShowDebugMatching] = useState(
     process.env.NODE_ENV === 'development' // Auto-show en desarrollo
   )
+  const [mostrarPerfilModal, setMostrarPerfilModal] = useState(false)
+  const [perfilSeleccionado, setPerfilSeleccionado] =
+    useState<PerfilPublico | null>(null)
+  const [cargandoPerfil, setCargandoPerfil] = useState(false)
   const {
     loading: loadingDisponibilidad,
     fechas: fechasDisponibles,
@@ -87,6 +95,35 @@ export const SeleccionarCuidadorPaso = ({
 
   const handleSelectOpenRequest = () => {
     seleccionarCuidador('SOLICITUD_ABIERTA')
+  }
+
+  const handleVerPerfil = async (cuidadorId: string) => {
+    setCargandoPerfil(true)
+    try {
+      const resultado = await GestorPerfilPublico.obtenerPorId(cuidadorId)
+      if (resultado.success && resultado.data) {
+        setPerfilSeleccionado(resultado.data)
+        setMostrarPerfilModal(true)
+      } else {
+        Alert.alert(
+          t('comun:error'),
+          t('paseos:pasos.seleccionar_cuidador.error_cargar_perfil')
+        )
+      }
+    } catch (err) {
+      console.error('Error cargando perfil:', err)
+      Alert.alert(
+        t('comun:error'),
+        t('paseos:pasos.seleccionar_cuidador.error_cargar_perfil')
+      )
+    } finally {
+      setCargandoPerfil(false)
+    }
+  }
+
+  const handleCerrarPerfil = () => {
+    setMostrarPerfilModal(false)
+    setPerfilSeleccionado(null)
   }
 
   // Animacion para el modal (fade + slide)
@@ -223,8 +260,24 @@ export const SeleccionarCuidadorPaso = ({
             )}
           </View>
 
-          <View style={{ alignItems: 'flex-end' }}>
-            <View style={[styles.radio, { marginTop: 8 }]}>
+          <View style={{ alignItems: 'flex-end', gap: 8 }}>
+            <TouchableOpacity
+              style={styles.infoButton}
+              onPress={e => {
+                e.stopPropagation()
+                handleVerPerfil(item.id)
+              }}
+              disabled={cargandoPerfil}
+              accessibilityLabel={t(
+                'paseos:pasos.seleccionar_cuidador.ver_perfil_cuidador'
+              )}
+              accessibilityHint={t(
+                'paseos:pasos.seleccionar_cuidador.ver_perfil_hint'
+              )}
+            >
+              <Icon name="info-circle" size={20} color={COLOR.PRIMARIO} />
+            </TouchableOpacity>
+            <View style={[styles.radio, { marginTop: 4 }]}>
               {isSelected && <View style={styles.radioSelected} />}
             </View>
           </View>
@@ -501,6 +554,13 @@ export const SeleccionarCuidadorPaso = ({
         onClose={() => setShowDebugMatching(false)}
         cargando={cargando}
       />
+
+      {/* Modal de Perfil del Cuidador */}
+      <ModalPerfilCuidador
+        visible={mostrarPerfilModal}
+        perfil={perfilSeleccionado}
+        onCerrar={handleCerrarPerfil}
+      />
     </View>
   )
 }
@@ -623,6 +683,14 @@ const styles = StyleSheet.create({
     height: 10,
     borderRadius: 5,
     backgroundColor: COLOR.PRIMARIO,
+  },
+  infoButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: COLOR.PRIMARIO + '15',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   centerContent: {
     flex: 1,

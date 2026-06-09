@@ -56,11 +56,13 @@ export class ServicioPaseoMascota {
 
   /**
    * Agrega una mascota y aumenta el contador del paseo de forma transaccional.
+   * Opcionalmente, actualiza campos adicionales del paseo (útil para agregar códigos de nuevos tutores).
    */
   static async commitMascotaTransaccional(
     paseoId: string,
     mascotaId: string,
-    data: any
+    data: any,
+    paseoUpdates?: Record<string, any>
   ): Promise<{ success: true } | { success: false; error: string }> {
     const uid = ServicioAuth.obtenerUsuarioActual()?.uid
     if (!uid) return { success: false, error: ERR.COMUN.NO_AUTENTICADO }
@@ -80,8 +82,10 @@ export class ServicioPaseoMascota {
         })
 
         const camposSistemaActualizacion = camposSistemaActualizar(uid)
+        const actualizacionesPaseo = paseoUpdates || {}
         tx.update(paseoRef, {
           mascotas_count: increment(1),
+          ...actualizacionesPaseo,
           ...camposSistemaActualizacion,
         })
       })
@@ -91,4 +95,17 @@ export class ServicioPaseoMascota {
       return { success: false, error: mapFirebaseError(e) }
     }
   }
+
+  /**
+   * Valida el código de recogida proporcionado por el cuidador.
+   * Operación transaccional a nivel de PASEO/TUTOR (no mascota individual).
+   * Verifica el código, actualiza estado de validación e incrementa contador de intentos fallidos.
+   *
+   * @param paseoId ID del paseo
+   * @param tutorId ID del tutor dueño de las mascotas
+   * @param codigoIngresado Código de 6 dígitos proporcionado por el cuidador
+   * @returns { success, error?, intentosFallidos?, validado? }
+   */
+
+
 }

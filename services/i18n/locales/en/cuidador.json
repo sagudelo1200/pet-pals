@@ -78,5 +78,16 @@
     "accion_empezar": "Begin Walk",
     "accion_terminar": "Finish Walk",
     "accion_ver_detalle": "View Detail"
+  },
+  "perfil": {
+    "biografia": "Bio",
+    "experiencia": "Experience",
+    "acepta": "Accepts",
+    "max_mascotas": "Max simultaneous",
+    "mascota": "pet",
+    "mascotas": "pets",
+    "paseo": "walk",
+    "paseos": "walks",
+    "hora": "hour"
   }
 }

@@ -8,6 +8,7 @@ import {
 } from '@/services/firebase/comun'
 import { ServicioAuth } from '@/services/firebase/auth/auth'
 import { ERR } from '@/constants'
+import { validarFormatoCodigo } from '@/logic/paseos/generador'
 import {
   collection,
   query,
@@ -17,6 +18,7 @@ import {
   runTransaction,
   doc,
   getDocs,
+  Timestamp,
 } from 'firebase/firestore'
 import { db } from '@/firebase.config'
 
@@ -161,6 +163,132 @@ export class ServicioPaseo {
 
   static obtenerEventosPendientes(paseoId: string) {
     return (this.pendingEventos.get(paseoId) || []).slice()
+  }
+
+  /**
+   * Valida código de recogida POR TUTOR (no por mascota)
+   * Operación atómica: verifica código y actualiza contadores de intentos
+   */
+  static async validarCodigoRecogidaPorTutor(
+    paseoId: string,
+    tutorId: string,
+    codigoIngresado: string
+  ): Promise<
+    | { success: true; validado: boolean; intentosFallidos: number }
+    | { success: false; error: string; intentosFallidos?: number }
+  > {
+    const uid = ServicioAuth.obtenerUsuarioActual()?.uid
+    if (!uid) return { success: false, error: ERR.COMUN.NO_AUTENTICADO }
+
+    // Validar formato del código
+    if (!validarFormatoCodigo(codigoIngresado)) {
+      return {
+        success: false,
+        error: ERR.PASEOS.CODIGO_RECOGIDA_FORMATO_INVALIDO,
+      }
+    }
+
+    const paseoRef = doc(db, 'paseos', paseoId)
+
+    try {
+      const resultado = await runTransaction(db, async tx => {
+        const paseoSnap = await tx.get(paseoRef)
+
+        if (!paseoSnap.exists()) {
+          throw new Error(ERR.PASEOS.PASEO_NO_ENCONTRADO)
+        }
+
+        const paseoData = paseoSnap.data()
+        const codigosRecogidaPorTutor = (paseoData.codigos_recogida_por_tutor ||
+          {}) as Record<string, string>
+        const intentosFallidos =
+          ((paseoData.intentos_fallidos_recogida_por_tutor || {})[tutorId] ||
+            0) as number
+
+        // Si el tutor no tiene código en este paseo, error
+        if (!codigosRecogidaPorTutor[tutorId]) {
+          throw new Error('CODIGO_RECOGIDA_NO_ENCONTRADO')
+        }
+
+        // Si ya está bloqueado (3+ intentos), rechazar
+        if (intentosFallidos >= 3) {
+          throw new Error(ERR.PASEOS.CODIGO_RECOGIDA_BLOQUEADO)
+        }
+
+        const codigoAlmacenado = codigosRecogidaPorTutor[tutorId]
+
+        // Comparar código
+        if (codigoIngresado === codigoAlmacenado) {
+          // ✅ Código correcto
+          const camposSistema = camposSistemaActualizar(uid)
+          tx.update(paseoRef, {
+            codigo_recogida_validado_por_tutor: {
+              ...(paseoData.codigo_recogida_validado_por_tutor || {}),
+              [tutorId]: true,
+            },
+            timestamp_validacion_recogida_por_tutor: {
+              ...(paseoData.timestamp_validacion_recogida_por_tutor || {}),
+              [tutorId]: Timestamp.now(),
+            },
+            intentos_fallidos_recogida_por_tutor: {
+              ...(paseoData.intentos_fallidos_recogida_por_tutor || {}),
+              [tutorId]: 0,
+            },
+            ...camposSistema,
+          })
+
+          return {
+            success: true as const,
+            validado: true,
+            intentosFallidos: 0,
+          }
+        } else {
+          // ❌ Código incorrecto
+          const nuevoIntento = intentosFallidos + 1
+          const camposSistema = camposSistemaActualizar(uid)
+          console.log(
+            `[ServicioPaseo] Actualizando intentos fallidos para tutor ${tutorId}: ${intentosFallidos} → ${nuevoIntento}`
+          )
+          tx.update(paseoRef, {
+            intentos_fallidos_recogida_por_tutor: {
+              ...(paseoData.intentos_fallidos_recogida_por_tutor || {}),
+              [tutorId]: nuevoIntento,
+            },
+            ...camposSistema,
+          })
+
+          // Si llegó a 3 intentos, bloquear
+          if (nuevoIntento >= 3) {
+            return {
+              success: false as const,
+              error: ERR.PASEOS.CODIGO_RECOGIDA_BLOQUEADO,
+              intentosFallidos: nuevoIntento,
+            }
+          }
+
+          return {
+            success: false as const,
+            error: ERR.PASEOS.CODIGO_RECOGIDA_INCORRECTO,
+            intentosFallidos: nuevoIntento,
+          }
+        }
+      })
+
+      return resultado
+    } catch (e: any) {
+      const errorMsg = e.message || mapFirebaseError(e)
+
+      // Si es un error conocido de validación, devolverlo directamente
+      if (
+        errorMsg === ERR.PASEOS.CODIGO_RECOGIDA_BLOQUEADO ||
+        errorMsg === ERR.PASEOS.CODIGO_RECOGIDA_INCORRECTO ||
+        errorMsg === ERR.PASEOS.PASEO_NO_ENCONTRADO
+      ) {
+        return { success: false, error: errorMsg }
+      }
+
+      return { success: false, error: mapFirebaseError(e) }
+    }
   }
 
   static async buscarPaseos(

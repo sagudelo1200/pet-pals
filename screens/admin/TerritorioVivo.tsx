@@ -17,9 +17,15 @@ const TerritorioVivo: React.FC = () => {
   const { zonas, cargando, error } = useZonasH3()
   const insets = useSafeAreaInsets()
 
+  // Calcular altura del tab bar para dejar espacio
+  const tabBarHeight =
+    Platform.OS === 'ios'
+      ? Math.max(insets.bottom + 65, 85)
+      : Math.max(insets.bottom + 60, 75)
+
   const htmlSource = useMemo(
-    () => construirHTML(zonas, insets.top),
-    [zonas, insets.top]
+    () => construirHTML(zonas, insets.top, tabBarHeight),
+    [zonas, insets.top, tabBarHeight]
   )
 
   if (cargando) {

@@ -128,6 +128,7 @@ const Paseos: React.FC = () => {
           ESTADOS_PASEO.PENDIENTE,
           ESTADOS_PASEO.CONFIRMADO,
           ESTADOS_PASEO.EN_CAMINO,
+          ESTADOS_PASEO.EN_PUNTO_RECOGIDA,
           ESTADOS_PASEO.EN_PROGRESO,
         ].includes(p.estado)
       ),

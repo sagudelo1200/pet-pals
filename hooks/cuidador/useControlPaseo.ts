@@ -26,6 +26,9 @@ export const useControlPaseo = (paseoId: string) => {
         case EVENTOS.INICIAR_RUTA:
           resultado = await paseoActivo.iniciarRutaAsync()
           break
+        case EVENTOS.LLEGAR_PUNTO_RECOGIDA:
+          resultado = await paseoActivo.llegarPuntoRecogidaAsync()
+          break
         case EVENTOS.INICIAR_PASEO:
           resultado = await paseoActivo.iniciarPaseoAsync()
           break
@@ -33,7 +36,7 @@ export const useControlPaseo = (paseoId: string) => {
           resultado = await paseoActivo.finalizarPaseoAsync()
           break
         default:
-          throw new Error('Evento no implementado')
+          throw new Error(`Evento no implementado: ${evento}`)
       }
 
       if (!resultado.success) {

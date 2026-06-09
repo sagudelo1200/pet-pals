@@ -23,6 +23,7 @@
     "PENDIENTE": "Pendiente",
     "CONFIRMADO": "Confirmado",
     "EN_CAMINO": "En camino",
+    "EN_PUNTO_RECOGIDA": "En punto de recogida",
     "EN_PROGRESO": "En progreso",
     "FINALIZADO": "Finalizado",
     "COMPLETADO": "Completado",
@@ -42,6 +43,7 @@
     "ACEPTAR": "Aceptar paseo",
     "RECHAZAR": "Rechazar paseo",
     "INICIAR_RUTA": "Iniciar ruta",
+    "LLEGAR_PUNTO_RECOGIDA": "Llegar al punto de recogida",
     "LLEGAR": "Llegar al destino",
     "INICIAR_PASEO": "Iniciar paseo",
     "FINALIZAR_PASEO": "Finalizar paseo",
@@ -117,7 +119,10 @@
       "no_encontrado_30dias": "No hemos encontrado cuidadores disponibles en los próximos 30 días.",
       "opciones_explicacion": "Lo sentimos — puedes recibir notificaciones cuando haya disponibilidad o publicar una solicitud abierta para que cualquier cuidador pueda aceptarla.",
       "recibir_notificacion": "Notificarme",
-      "publicar_solicitud_abierta": "Publicar solicitud abierta"
+      "publicar_solicitud_abierta": "Publicar solicitud abierta",
+      "error_cargar_perfil": "No se pudo cargar el perfil del cuidador",
+      "ver_perfil_cuidador": "Ver perfil del cuidador",
+      "ver_perfil_hint": "Abre el perfil completo para ver más información sobre este cuidador"
     },
     "confirmar": {
       "titulo": "Revisa y confirma",
@@ -172,6 +177,7 @@
     "mensajes": {
       "confirmado": "{{cuidador}} aceptó el paseo.",
       "EN_CAMINO": "{{cuidador}} va por {{mascota}}.",
+      "en_punto_recogida": "{{cuidador}} ya llegó a recoger a {{mascota}}.",
       "en_progreso": "{{mascota}} está con {{cuidador}}."
     },
     "tiempo_restante": "Faltan aprox. {{tiempo}} min",
@@ -192,6 +198,8 @@
       "inicio": "Inició el paseo en ruta",
       "llegada": "Llegó a destino",
       "iniciar_ruta": "Inició el viaje de recogida",
+      "llegar_punto_recogida": "Llegó al punto de recogida",
+      "validar_codigo_recogida_fallo": "Intento de validación fallido",
       "iniciar_paseo": "Inició el paseo oficial",
       "finalizar_paseo": "Finalizó el paseo",
       "completar": "Paseo completado"
@@ -202,6 +210,8 @@
   },
   "control": {
     "iniciar_ruta": "Iniciar Ruta",
+    "he_llegado": "He llegado",
+    "verificar_codigo": "Verificar código",
     "iniciar_paseo": "Iniciar Paseo",
     "finalizar_paseo": "Finalizar Paseo",
     "ver_resumen": "Ver Resumen",
@@ -225,5 +235,27 @@
     "calificar": "¿Cómo estuvo el servicio de {{cuidador}}?",
     "excelente": "¡Excelente servicio!",
     "toca_calificar": "Toca para calificar"
+  },
+  "validacion_codigo": {
+    "titulo": "Validar Recogida",
+    "titulo_tutor": "Código de Recogida",
+    "ingresa_codigo": "Ingresa el código que el tutor te proporciona",
+    "comparte_codigo_desc": "Comparte este código con el cuidador cuando llegue",
+    "tutor": "Tutor:",
+    "cancelar_confirmacion": "¿Cancelar la recogida?",
+    "codigo_digitos": "Código de 6 dígitos",
+    "codigo_debe_tener_6": "El código debe tener 6 dígitos",
+    "tienes_intentos": "Tienes 3 intentos",
+    "intento_restante": "{{count}} intento restante",
+    "intentos_restantes": "{{count}} intentos restantes",
+    "intentos_agotados": "Has agotado los intentos. Intenta más tarde.",
+    "cancelar": "Cancelar",
+    "verificar": "Verificar",
+    "verificando": "Verificando...",
+    "confirmar_entrega": "He compartido el código",
+    "codigo_validado": "✓ Código validado",
+    "todos_validados": "Todos validados",
+    "copiar_codigo": "Copiar código",
+    "copiado": "Copiado"
   }
 }

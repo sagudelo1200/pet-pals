@@ -53,5 +53,8 @@
   "precio": "Price",
   "tabs": {
     "mi_cuenta": "My Account"
-  }
+  },
+  "atencion": "Attention",
+  "no": "No",
+  "si": "Yes"
 }

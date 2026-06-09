@@ -7,7 +7,6 @@
  */
 
 /* eslint-env jest */
-import { ESTADOS_PASEO } from '@/models/Paseo'
 
 // Nota: Estos tests requieren Firebase emulado o mocks
 // Por ahora documentamos los casos esperados

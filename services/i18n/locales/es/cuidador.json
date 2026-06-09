@@ -78,5 +78,16 @@
     "accion_empezar": "Empezar Paseo",
     "accion_terminar": "Finalizar Paseo",
     "accion_ver_detalle": "Ver Detalle"
+  },
+  "perfil": {
+    "biografia": "Biografía",
+    "experiencia": "Experiencia",
+    "acepta": "Acepta",
+    "max_mascotas": "Máximo simultáneo",
+    "mascota": "mascota",
+    "mascotas": "mascotas",
+    "paseo": "paseo",
+    "paseos": "paseos",
+    "hora": "hora"
   }
 }

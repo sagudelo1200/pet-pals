@@ -117,6 +117,7 @@ export const obtenerExperienciaPaseo = (
           configuracion: { mostrarMapa: false, esInteractivo: true },
         }
       case ESTADOS_PASEO.EN_CAMINO:
+      case ESTADOS_PASEO.EN_PUNTO_RECOGIDA:
       case ESTADOS_PASEO.EN_PROGRESO:
         return {
           tipo: 'PANTALLA',
@@ -137,6 +138,7 @@ export const obtenerExperienciaPaseo = (
         }
       case ESTADOS_PASEO.CONFIRMADO:
       case ESTADOS_PASEO.EN_CAMINO:
+      case ESTADOS_PASEO.EN_PUNTO_RECOGIDA:
       case ESTADOS_PASEO.EN_PROGRESO:
         return {
           tipo: 'PANTALLA',

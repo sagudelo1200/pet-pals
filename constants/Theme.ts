@@ -33,6 +33,11 @@ export const COLOR = {
       fondo: '#F59E0B15',
       texto: '#D97706',
     },
+    EN_PUNTO_RECOGIDA: {
+      primario: '#A855F7', // Púrpura - Punto de recogida
+      fondo: '#A855F715',
+      texto: '#7E22CE',
+    },
     EN_PROGRESO: {
       primario: '#10B981', // Verde éxito
       fondo: '#10B98115',

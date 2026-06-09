@@ -10,6 +10,9 @@ import { MAX_MASCOTAS_POR_PASEO, ERR } from '@/constants'
 import type { Ubicacion } from '@/models/Ubicacion'
 import { crearMaquinaPaseo, EVENTOS } from './maquinaEstados'
 import {
+  generarCodigosRecogidaPorTutor,
+} from './generador'
+import {
   collection,
   query,
   where,
@@ -70,6 +73,9 @@ export const CODIGOS_ERROR_PASEO: Record<CodigoErrorPaseo, string> = {
   ERROR_RED: 'paseos:errores.error_red',
   ERROR_VALIDACION: 'paseos:errores.error_validacion',
   MOTIVO_REQUERIDO: 'paseos:errores.motivo_requerido',
+  PASEO_YA_ACEPTADO: 'paseos:errores.paseo_ya_aceptado',
+  DOBLE_BOOKING_DETECTADO: 'paseos:errores.doble_booking_detectado',
+  CUIDADOR_OCUPADO: 'paseos:errores.cuidador_ocupado',
 } as const
 
 export function obtenerClaveI18nError(codigo: CodigoErrorPaseo): string {
@@ -321,6 +327,48 @@ export class GestorPaseoActivo {
     return res
   }
 
+  async llegarPuntoRecogidaAsync(): Promise<any> {
+    if (!this._paseo) return { success: false, error: 'NO_HAY_PASEO_ACTIVO' }
+
+    if (!this.puede(EVENTOS.LLEGAR_PUNTO_RECOGIDA)) {
+      return { success: false, error: 'TRANSICION_INVALIDA' }
+    }
+
+    const res = await ServicioPaseo.commitEstadoTransaccional(
+      this._paseo.id,
+      ESTADOS_PASEO.EN_CAMINO,
+      ESTADOS_PASEO.EN_PUNTO_RECOGIDA
+    )
+
+    if (res.success) {
+      if (this.puede(EVENTOS.LLEGAR_PUNTO_RECOGIDA)) {
+        const localRes = this.aplicarTransicion(EVENTOS.LLEGAR_PUNTO_RECOGIDA)
+        if (localRes.ok === false) {
+          console.warn(
+            'paseoActivo: Inconsistencia tras llegarPuntoRecogidaAsync',
+            localRes.error
+          )
+        }
+        try {
+          await ServicioPaseo.registrarEvento(
+            this._paseo.id,
+            'LLEGAR_PUNTO_RECOGIDA',
+            {
+              estado_anterior: 'EN_CAMINO',
+              estado_nuevo: 'EN_PUNTO_RECOGIDA',
+            }
+          )
+        } catch (e) {
+          console.warn(
+            'Error registrando evento LLEGAR_PUNTO_RECOGIDA (optimista):',
+            e
+          )
+        }
+      }
+    }
+    return res
+  }
+
   async iniciarPaseoAsync(): Promise<any> {
     if (!this._paseo) return { success: false, error: 'NO_HAY_PASEO_ACTIVO' }
 
@@ -329,9 +377,19 @@ export class GestorPaseoActivo {
     }
 
     const { serverTimestamp } = await import('firebase/firestore')
+
+    // Detectar estado actual y transicionar correctamente
+    const estadoActual = this._paseo.estado
+    const estadoDesde = [
+      ESTADOS_PASEO.EN_CAMINO,
+      ESTADOS_PASEO.EN_PUNTO_RECOGIDA,
+    ].includes(estadoActual)
+      ? estadoActual
+      : ESTADOS_PASEO.EN_CAMINO
+
     const res = await ServicioPaseo.commitEstadoTransaccional(
       this._paseo.id,
-      ESTADOS_PASEO.EN_CAMINO,
+      estadoDesde,
       ESTADOS_PASEO.EN_PROGRESO,
       { fecha_inicio_real: serverTimestamp() }
     )
@@ -518,6 +576,8 @@ function prepararDataPaseoMascota(
     id_mascota: mascota.id,
     id_usuario: mascota.creado_por,
     estado_mascota: 'pendiente',
+    // Nota: Los códigos de validación ahora están a nivel de PASEO (por tutor)
+    // Ver Paseo.codigos_recogida_por_tutor, etc.
     direccion: direccion
       ? {
           id_origen: direccion.id,
@@ -708,12 +768,25 @@ export async function crearConMascotas(
     }
   }
 
+  // Generar códigos de recogida por tutor
+  // En paseos privados: solo el tutor que lo crea (uid)
+  // En paseos compartidos: se agregarán cuando otros tutores unan mascotas
+  const tutoresIniciales = [uid]
+  const codigosRecogidaPorTutor =
+    generarCodigosRecogidaPorTutor(tutoresIniciales)
+
   const paseoRes = await ServicioPaseo.crear({
     ...(data as any),
     ...locationData,
     cupo_maximo_mascotas: max,
     mascotas_count: unique.length,
     mascota_ids: unique,
+    codigos_recogida_por_tutor: codigosRecogidaPorTutor,
+    codigo_recogida_validado_por_tutor: {},
+    intentos_fallidos_recogida_por_tutor: {},
+    codigos_entrega_por_tutor: {},
+    codigo_entrega_validado_por_tutor: {},
+    intentos_fallidos_entrega_por_tutor: {},
     ...visualData,
   } as any)
 
@@ -789,7 +862,7 @@ export async function aceptarSolicitud(paseoId: string) {
 
   // TIER 1.1: Reintento automático (máx 2 intentos) en caso de doble asignación
   const MAX_REINTENTOS = 2
-  let ultimoError: any = null
+  let _ultimoError: any = null
 
   for (let intento = 1; intento <= MAX_REINTENTOS; intento++) {
     const res = await ServicioPaseo.commitEstadoTransaccional(
@@ -821,7 +894,7 @@ export async function aceptarSolicitud(paseoId: string) {
       return res
     }
 
-    ultimoError = res.error
+    _ultimoError = res.error
 
     // Si es doble asignación, reintentar (otro cliente ganó, pero podría haber estado en PENDIENTE)
     const esDoubleAsignacion =
@@ -1016,15 +1089,44 @@ export async function agregarMascota(paseoId: string, mascotaId: string) {
   // Preparar data denormalizada
   const dataMascota = prepararDataPaseoMascota(paseoId, m.data, undefined)
 
+  // Si este tutor (uid) no tiene código en este paseo, generar uno
+  const codigosTutoresActuales = paseo.codigos_recogida_por_tutor || {}
+  const actualizacionesCodigos: any = {}
+  const actualizacionesValidacion: any = {}
+  const actualizacionesIntentos: any = {}
+
+  if (!codigosTutoresActuales[uid]) {
+    const nuevosCodigos = generarCodigosRecogidaPorTutor([uid])
+    actualizacionesCodigos['codigos_recogida_por_tutor'] = {
+      ...codigosTutoresActuales,
+      ...nuevosCodigos,
+    }
+    actualizacionesValidacion['codigo_recogida_validado_por_tutor'] = {
+      ...(paseo.codigo_recogida_validado_por_tutor || {}),
+      [uid]: false,
+    }
+    actualizacionesIntentos['intentos_fallidos_recogida_por_tutor'] = {
+      ...(paseo.intentos_fallidos_recogida_por_tutor || {}),
+      [uid]: 0,
+    }
+  }
+
   // Llamar al servicio para la actualización atómica y transaccional
   const res = await ServicioPaseoMascota.commitMascotaTransaccional(
     paseoId,
     mascotaId,
-    dataMascota
+    dataMascota,
+    {
+      ...actualizacionesCodigos,
+      ...actualizacionesValidacion,
+      ...actualizacionesIntentos,
+    }
   )
   if (res.success) {
     await ServicioPaseo.registrarEvento(paseoId, 'AGREGAR_MASCOTA', {
       id_mascota: mascotaId,
+      tutor_uid: uid,
+      nuevo_codigo_generado: !codigosTutoresActuales[uid],
     })
   }
   return res
@@ -1115,6 +1217,71 @@ export async function rechazarPaseo(
 }
 
 /**
+ * FASE 4: Valida el código de recogida (6 dígitos) proporcionado por el cuidador.
+ *
+ * Operación que:
+ * 1. Valida formato del código
+ * 2. Ejecuta validación transaccional en Firestore a nivel de PASEO/TUTOR (no mascota individual)
+ * 3. Registra evento de validación (exitosa o fallida)
+ * 4. Retorna resultado para UI (validado, intentos restantes, etc.)
+ *
+ * @param paseoId ID del paseo
+ * @param tutorId ID del tutor dueño de las mascotas (recogida de sus mascotas)
+ * @param codigoIngresado Código de 6 dígitos proporcionado por el cuidador
+ * @returns { success, validado, intentosFallidos } o { success: false, error }
+ */
+export async function validarCodigoRecogida(
+  paseoId: string,
+  tutorId: string,
+  codigoIngresado: string
+) {
+  const current = ServicioAuth.obtenerUsuarioActual()
+  const uid = current?.uid
+  if (!uid) return { success: false, error: ERR.COMUN.NO_AUTENTICADO }
+
+  // Delegar a ServicioPaseo la lógica transaccional de validación de códigos
+  const res = await ServicioPaseo.validarCodigoRecogidaPorTutor(
+    paseoId,
+    tutorId,
+    codigoIngresado
+  )
+
+  if (!res.success) {
+    // Registrar evento de fallo
+    const errorMsg = 'error' in res ? res.error : 'Error desconocido'
+    const esBloqueo = errorMsg === ERR.PASEOS.CODIGO_RECOGIDA_BLOQUEADO
+    const esFormatoInvalido =
+      errorMsg === ERR.PASEOS.CODIGO_RECOGIDA_FORMATO_INVALIDO
+
+    await ServicioPaseo.registrarEvento(
+      paseoId,
+      'VALIDAR_CODIGO_RECOGIDA_FALLO',
+      {
+        tutor_id: tutorId,
+        error: errorMsg,
+        bloqueado: esBloqueo,
+        formato_invalido: esFormatoInvalido,
+      }
+    ).catch(e =>
+      console.warn('Error registrando evento VALIDAR_CODIGO_RECOGIDA_FALLO:', e)
+    )
+
+    return res
+  }
+
+  // Éxito: registrar evento positivo
+  await ServicioPaseo.registrarEvento(paseoId, 'VALIDAR_CODIGO_RECOGIDA', {
+    tutor_id: tutorId,
+    validado: res.validado,
+    timestamp: new Date(),
+  }).catch(e =>
+    console.warn('Error registrando evento VALIDAR_CODIGO_RECOGIDA:', e)
+  )
+
+  return res
+}
+
+/**
  * Obtiene la query para los paseos de un tutor.
  */
 export function obtenerQueryPaseosTutor(uid: string): Query {
@@ -1143,6 +1310,7 @@ export function obtenerQueryAgendaCuidador(uid: string): Query {
     where('estado', 'in', [
       ESTADOS_PASEO.CONFIRMADO,
       ESTADOS_PASEO.EN_CAMINO,
+      ESTADOS_PASEO.EN_PUNTO_RECOGIDA,
       ESTADOS_PASEO.EN_PROGRESO,
     ]),
     orderBy('fecha_hora_inicio', 'asc')
@@ -1198,6 +1366,7 @@ export const GestorPaseos = {
   obtenerEstadisticasCuidador,
   completarPaseo,
   rechazarPaseo,
+  validarCodigoRecogida,
   obtenerQueryPaseosTutor,
   obtenerQuerySolicitudesPendientes,
   obtenerQueryAgendaCuidador,

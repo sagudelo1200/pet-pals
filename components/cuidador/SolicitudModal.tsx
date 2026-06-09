@@ -19,8 +19,8 @@ import { useTranslation } from 'react-i18next'
 import { GestorPaseos } from '@/logic/paseos'
 import { GestorMascotas } from '@/logic/mascotas'
 import { useGestorPaseoActivo } from '@/hooks/paseos/useGestorPaseoActivo'
-import { ServicioUsuario } from '@/services/firebase'
-import { Usuario } from '@/models/Usuario'
+import { GestorPerfilPublico } from '@/logic/usuarios/perfilPublico'
+import { PerfilPublico } from '@/models/PerfilPublico'
 
 interface Props {
   visible: boolean
@@ -35,7 +35,7 @@ const SolicitudModal: React.FC<Props> = ({ visible, paseo, onClose }) => {
   const [loading, setLoading] = useState(false)
   const [mascotas, setMascotas] = useState<any[]>([])
   const [loadingMascotas, setLoadingMascotas] = useState(false)
-  const [tutor, setTutor] = useState<Usuario | null>(null)
+  const [tutor, setTutor] = useState<PerfilPublico | null>(null)
   const [loadingTutor, setLoadingTutor] = useState(false)
 
   useEffect(() => {
@@ -62,9 +62,9 @@ const SolicitudModal: React.FC<Props> = ({ visible, paseo, onClose }) => {
         const tutorId = (paseo as any).tutor_ids?.[0] || (paseo as any).id_tutor
         if (tutorId && mounted) {
           setLoadingTutor(true)
-          const resTutor = await ServicioUsuario.obtenerPorId(tutorId)
+          const resTutor = await GestorPerfilPublico.obtenerPorId(tutorId)
           if (resTutor.success && mounted) {
-            setTutor(resTutor.data as Usuario)
+            setTutor(resTutor.data as PerfilPublico)
           }
           setLoadingTutor(false)
         }

@@ -24,8 +24,8 @@ export function construirHTMLCobertura(
     content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
   <link rel="stylesheet"
     href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"><\/script>
-  <script src="https://unpkg.com/h3-js@4.1.0/dist/h3-js.umd.js"><\/script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/h3-js@4.1.0/dist/h3-js.umd.js"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     html, body { height: 100%; background: #0A0F0E; overflow: hidden; }
@@ -82,7 +82,7 @@ export function construirHTMLCobertura(
       margin-top: 4px;
       font-family: monospace;
     }
-  <\/style>
+  </style>
 </head>
 <body>
   <div id="map"></div>
@@ -281,7 +281,7 @@ export function construirHTMLCobertura(
         cells: Array.from(selectedCells),
       }));
     });
-  <\/script>
+  </script>
 </body>
 </html>`
 }

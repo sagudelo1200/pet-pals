@@ -18,7 +18,10 @@ import { Ionicons } from '@expo/vector-icons'
 import { BlurView } from 'expo-blur'
 import { Mapa, Icon, Spacer, Button } from '@/components/ui'
 import InfoCuidadorCard from '@/components/paseos/InfoCuidadorCard'
+import { ModalCodigoRecogidaTutor } from '@/components/paseos/ModalCodigoRecogidaTutor'
 import { useSincronizadorPaseo } from '@/hooks/paseos/useSincronizadorPaseo'
+import { useCodigosRecogidaPorTutor } from '@/hooks/paseos/useCodigosRecogidaPorTutor'
+import { useAuth } from '@/context/AuthContext'
 import { AuthStackParamList } from '@/navigation/types'
 import { COLOR } from '@/constants'
 import { ESTADOS_PASEO } from '@/models/Paseo'
@@ -33,6 +36,13 @@ export default function PaseoActivo({ route, navigation }: Props) {
   const { paseo, loading, eventos, ruta, ubicacionActual } =
     useSincronizadorPaseo(paseoId)
 
+  // FASE 6: Obtener códigos de recogida por tutor
+  const { mascotasPorTutor, codigosPorTutor } =
+    useCodigosRecogidaPorTutor(paseoId)
+
+  // Usuario actual (tutor)
+  const { user } = useAuth()
+  const [mostrarModalCodigo, setMostrarModalCodigo] = useState(false)
   const [yaNotificado, setYaNotificado] = useState(false)
   const navigationAttempted = useRef(false)
   const mapRef = useRef<any>(null)
@@ -113,7 +123,15 @@ export default function PaseoActivo({ route, navigation }: Props) {
         [{ text: t('comun:aceptar'), onPress: () => navigation.goBack() }]
       )
     }
-  }, [paseo?.estado, yaNotificado, t, navigation])
+
+    // FASE 6: Mostrar modal con código de recogida cuando cuidador llega (EN_PUNTO_RECOGIDA)
+    if (
+      paseo.estado === ESTADOS_PASEO.EN_PUNTO_RECOGIDA &&
+      !mostrarModalCodigo
+    ) {
+      setMostrarModalCodigo(true)
+    }
+  }, [paseo?.estado, yaNotificado, mostrarModalCodigo, t, navigation])
 
   useEffect(() => {
     if (!loading) {
@@ -173,7 +191,6 @@ export default function PaseoActivo({ route, navigation }: Props) {
           1000
         )
       }
-      // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
   )
 
@@ -261,6 +278,8 @@ export default function PaseoActivo({ route, navigation }: Props) {
         return t('paseos:activo.mensajes.confirmado', placeholders)
       case ESTADOS_PASEO.EN_CAMINO:
         return t('paseos:activo.mensajes.EN_CAMINO', placeholders)
+      case ESTADOS_PASEO.EN_PUNTO_RECOGIDA:
+        return t('paseos:activo.mensajes.en_punto_recogida', placeholders)
       case ESTADOS_PASEO.EN_PROGRESO:
         return t('paseos:activo.mensajes.en_progreso', placeholders)
       default:
@@ -298,24 +317,33 @@ export default function PaseoActivo({ route, navigation }: Props) {
               geodesic
             />
           )}
-        {ubicacionActual && (
+
+        {/* Marcador de ubicación actual del cuidador (EN_PROGRESO) */}
+        {ubicacionActual && paseo?.estado === ESTADOS_PASEO.EN_PROGRESO && (
           <AnimatedMarker
             coordinate={markerCoordinate as any}
             zIndex={999}
-            anchor={
-              paseo?.estado === ESTADOS_PASEO.EN_PROGRESO
-                ? { x: 0.52, y: 0.52 }
-                : undefined
-            }
-            pinColor={
-              paseo?.estado === ESTADOS_PASEO.EN_PROGRESO
-                ? 'transparent'
-                : COLOR.ENFASIS
-            }
+            anchor={{ x: 0.52, y: 0.52 }}
+            pinColor="transparent"
           >
-            {paseo?.estado === ESTADOS_PASEO.EN_PROGRESO && <MemoPaw />}
+            <MemoPaw />
           </AnimatedMarker>
         )}
+
+        {/* Marcador del punto de encuentro (EN_CAMINO, EN_PUNTO_RECOGIDA) */}
+        {ubicacionInicio &&
+          (paseo?.estado === ESTADOS_PASEO.EN_CAMINO ||
+            paseo?.estado === ESTADOS_PASEO.EN_PUNTO_RECOGIDA) && (
+            <Marker
+              coordinate={ubicacionInicio}
+              zIndex={500}
+              pinColor={COLOR.PRIMARIO}
+              title="Punto de recogida"
+              description={
+                paseo?.ubicacion_inicio_txt || 'Aquí recogeré a tu mascota'
+              }
+            />
+          )}
       </Mapa>
 
       {/* Header Flotante Premium */}
@@ -436,6 +464,29 @@ export default function PaseoActivo({ route, navigation }: Props) {
           </View>
         </View>
       </Animated.View>
+
+      {/* FASE 6: Modal con código de recogida para que tutor autorize */}
+      {paseo &&
+        user &&
+        (() => {
+          const tutorActual = mascotasPorTutor.find(t => t.tutorId === user.uid)
+          const codigoTutor = tutorActual
+            ? codigosPorTutor[tutorActual.tutorId]
+            : '------'
+          return (
+            <ModalCodigoRecogidaTutor
+              visible={mostrarModalCodigo}
+              codigo={codigoTutor}
+              onConfirmar={() => {
+                setMostrarModalCodigo(false)
+              }}
+              onCancelar={() => {
+                setMostrarModalCodigo(false)
+                navigation.goBack()
+              }}
+            />
+          )
+        })()}
     </View>
   )
 }
@@ -446,6 +497,8 @@ function estadoIcono(estado: ESTADOS_PASEO) {
       return 'checkmark-circle'
     case ESTADOS_PASEO.EN_CAMINO:
       return 'bicycle'
+    case ESTADOS_PASEO.EN_PUNTO_RECOGIDA:
+      return 'location'
     case ESTADOS_PASEO.EN_PROGRESO:
       return 'walk'
     case ESTADOS_PASEO.FINALIZADO:

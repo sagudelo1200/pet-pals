@@ -145,8 +145,8 @@ export class ServicioZonasH3 {
    * Devuelve la función de cancelación de la suscripción.
    */
   static suscribirATodas(
-    callback: (zonas: ZonaH3[]) => void,
-    onError?: (err: Error) => void
+    callback: (_zonas: ZonaH3[]) => void,
+    onError?: (_err: Error) => void
   ): () => void {
     const q = collection(db, COLECCION)
     return onSnapshot(

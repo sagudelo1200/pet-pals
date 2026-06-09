@@ -17,6 +17,7 @@ export enum ESTADOS_PASEO {
   PENDIENTE = 'PENDIENTE',
   CONFIRMADO = 'CONFIRMADO',
   EN_CAMINO = 'EN_CAMINO',
+  EN_PUNTO_RECOGIDA = 'EN_PUNTO_RECOGIDA',
   EN_PROGRESO = 'EN_PROGRESO',
   FINALIZADO = 'FINALIZADO',
   COMPLETADO = 'COMPLETADO',
@@ -91,4 +92,31 @@ export interface Paseo extends BaseModel {
   cuidador_foto_visual?: string
   /** Tipo de solicitud: DIRECTA (a un cuidador) o ABIERTA (visible a varios cuidadores). */
   tipo_solicitud?: 'DIRECTA' | 'ABIERTA'
+
+  /**
+   * VALIDACIÓN DE RECOGIDA (POR TUTOR)
+   * En paseos compartidos, cada tutor tiene su propio código.
+   * En paseos privados, hay un único código.
+   */
+  /** Códigos de recogida por tutor: { [tutorId]: codigo_6_digitos }. */
+  codigos_recogida_por_tutor?: Record<string, string>
+  /** Códigos validados por tutor: { [tutorId]: boolean }. */
+  codigo_recogida_validado_por_tutor?: Record<string, boolean>
+  /** Timestamp de validación de recogida por tutor: { [tutorId]: Date }. */
+  timestamp_validacion_recogida_por_tutor?: Record<string, Date>
+  /** Intentos fallidos de recogida por tutor: { [tutorId]: number }. */
+  intentos_fallidos_recogida_por_tutor?: Record<string, number>
+
+  /**
+   * VALIDACIÓN DE ENTREGA (POR TUTOR)
+   * Similar a recogida: cada tutor valida la entrega de sus mascotas.
+   */
+  /** Códigos de entrega por tutor: { [tutorId]: codigo_6_digitos }. */
+  codigos_entrega_por_tutor?: Record<string, string>
+  /** Códigos de entrega validados por tutor: { [tutorId]: boolean }. */
+  codigo_entrega_validado_por_tutor?: Record<string, boolean>
+  /** Timestamp de validación de entrega por tutor: { [tutorId]: Date }. */
+  timestamp_validacion_entrega_por_tutor?: Record<string, Date>
+  /** Intentos fallidos de entrega por tutor: { [tutorId]: number }. */
+  intentos_fallidos_entrega_por_tutor?: Record<string, number>
 }
