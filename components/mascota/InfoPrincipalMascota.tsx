@@ -1,12 +1,12 @@
-import React from 'react'
+import React, { useMemo } from 'react'
 import { View, Text, StyleSheet } from 'react-native'
 import { useTranslation } from 'react-i18next'
 import { COLOR } from '@/constants'
 import { formatearEdadMascota } from '@/logic/mascotas/utilidades'
 import Card from '@/components/ui/Card'
 import Badge from '@/components/ui/Badge'
-import { TextInput, DatePicker } from '@/components/ui'
-import type { Mascota } from '@/models/Mascota'
+import { TextInput, DatePicker, Picker } from '@/components/ui'
+import type { Mascota, GeneroMascota, TamanoMascota } from '@/models/Mascota'
 
 interface InfoPrincipalMascotaProps {
   mascota: Mascota
@@ -23,6 +23,27 @@ export const InfoPrincipalMascota: React.FC<InfoPrincipalMascotaProps> = ({
   onUpdateField,
 }) => {
   const { t } = useTranslation()
+
+  // Opciones de género
+  const opcionesGenero = useMemo(
+    () => [
+      { label: t('mascotas:generos.macho'), value: 'macho' },
+      { label: t('mascotas:generos.hembra'), value: 'hembra' },
+    ],
+    [t]
+  )
+
+  // Opciones de tamaño
+  const opcionesTamano = useMemo(
+    () => [
+      { label: t('mascotas:tamanos.muy_pequeno'), value: 'muy_pequeno' },
+      { label: t('mascotas:tamanos.pequeno'), value: 'pequeno' },
+      { label: t('mascotas:tamanos.mediano'), value: 'mediano' },
+      { label: t('mascotas:tamanos.grande'), value: 'grande' },
+      { label: t('mascotas:tamanos.gigante'), value: 'gigante' },
+    ],
+    [t]
+  )
 
   return (
     <Card style={styles.mainCard} elevated>
@@ -80,6 +101,28 @@ export const InfoPrincipalMascota: React.FC<InfoPrincipalMascotaProps> = ({
               keyboardType="numeric"
             />
           </View>
+          <View style={styles.inputWrapper}>
+            <Picker
+              label={t('mascotas:campos.genero')}
+              value={editedData.genero || ''}
+              onValueChange={(value: string) =>
+                onUpdateField('genero', (value as GeneroMascota) || undefined)
+              }
+              options={opcionesGenero}
+              placeholder={t('mascotas:placeholders.selecciona_genero')}
+            />
+          </View>
+          <View style={styles.inputWrapper}>
+            <Picker
+              label={t('mascotas:campos.tamano')}
+              value={editedData.tamano || ''}
+              onValueChange={(value: string) =>
+                onUpdateField('tamano', (value as TamanoMascota) || undefined)
+              }
+              options={opcionesTamano}
+              placeholder={t('mascotas:placeholders.selecciona_tamano')}
+            />
+          </View>
         </View>
       ) : (
         <View key="view-stats" style={styles.statsRow}>
@@ -112,7 +155,7 @@ export const InfoPrincipalMascota: React.FC<InfoPrincipalMascotaProps> = ({
               numberOfLines={1}
               adjustsFontSizeToFit
             >
-              {t('mascotas:tamanos.' + mascota.tamano?.replace(' ', '_'))}
+              {t('mascotas:tamanos.' + (mascota.tamano || 'undefined'))}
             </Text>
           </View>
         </View>

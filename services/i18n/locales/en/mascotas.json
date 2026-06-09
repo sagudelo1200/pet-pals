@@ -136,5 +136,24 @@
     "permisos_galeria": "We need permission to access your gallery",
     "permisos_camara": "We need permission to access your camera",
     "rollback_realizado": "Changes couldn't be saved. Reverted to the previous version."
+  },
+  "completitud": {
+    "nivel_1": "Basic Profile",
+    "nivel_2": "Physical Profile",
+    "nivel_3": "Known Profile",
+    "nivel_4": "Complete Profile",
+    "mensaje_nivel_1": "Complete the physical profile to unlock walks",
+    "mensaje_nivel_2": "Missing behavior and health info",
+    "mensaje_nivel_3": "Missing health information",
+    "mensaje_nivel_4": "Your pet is fully profiled"
+  },
+  "readiness": {
+    "incompleto": "Not ready for walks",
+    "basico": "Ready for walks",
+    "completo": "Complete profile"
+  },
+  "placeholders": {
+    "selecciona_genero": "Select gender",
+    "selecciona_tamano": "Select size"
   }
 }

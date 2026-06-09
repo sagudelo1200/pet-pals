@@ -3,6 +3,7 @@ import { Alert } from 'react-native'
 import * as ImagePicker from 'expo-image-picker'
 import { useTranslation } from 'react-i18next'
 import { GestorMascotas } from '@/logic/mascotas'
+import { calcularCompletitud, type CompletitudMascota } from '@/logic/mascotas/calcularCompletitud'
 import type { Mascota } from '@/models/Mascota'
 
 export const useEdicionMascota = (
@@ -181,6 +182,23 @@ export const useEdicionMascota = (
     setEditedData(prev => ({ ...prev, [field]: value }))
   }
 
+  const calcularProgresoActual = (): CompletitudMascota => {
+    if (!mascota) {
+      return {
+        nivel: 1,
+        porcentaje: 0,
+        readiness: 'incompleto',
+        campos: {
+          basico: {},
+          fisico: {},
+          comportamiento: {},
+          salud: {},
+        },
+      }
+    }
+    return calcularCompletitud(mascota)
+  }
+
   return {
     mascota,
     loading,
@@ -195,5 +213,6 @@ export const useEdicionMascota = (
     cambiarFoto,
     actualizarCampo,
     eliminarMascota,
+    calcularProgresoActual,
   }
 }

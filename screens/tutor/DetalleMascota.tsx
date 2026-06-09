@@ -16,6 +16,7 @@ import Button from '@/components/ui/Button'
 import Icon from '@/components/ui/Icon'
 import { AuthStackParamList } from '@/navigation/types'
 import type { Mascota } from '@/models/Mascota'
+import { calcularCompletitud } from '@/logic/mascotas/calcularCompletitud'
 
 // Hooks
 import { useAnimacionModal } from '@/hooks/useAnimacionModal'
@@ -23,6 +24,7 @@ import { useEdicionMascota } from '@/hooks/useEdicionMascota'
 
 // Components
 import { HeroMascota } from '@/components/mascota/HeroMascota'
+import { IndicadorCompletitud } from '@/components/mascota/IndicadorCompletitud'
 import { InfoPrincipalMascota } from '@/components/mascota/InfoPrincipalMascota'
 import { DetalleInfoMascota } from '@/components/mascota/DetalleInfoMascota'
 import { SobreMiMascota } from '@/components/mascota/SobreMiMascota'
@@ -190,6 +192,12 @@ const DetalleMascota: React.FC = () => {
             />
 
             <View style={styles.contentContainer}>
+              {/* Indicador de Completitud */}
+              <IndicadorCompletitud
+                completitud={calcularCompletitud(mascota)}
+                size="md"
+              />
+
               {/* Tarjeta Principal */}
               <InfoPrincipalMascota
                 mascota={mascota}

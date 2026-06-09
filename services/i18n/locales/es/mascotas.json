@@ -136,5 +136,24 @@
     "permisos_galeria": "Necesitamos permisos para acceder a tu galería",
     "permisos_camara": "Necesitamos permisos para acceder a tu cámara",
     "rollback_realizado": "No se pudieron guardar los cambios. Se han revertido a la versión anterior."
+  },
+  "completitud": {
+    "nivel_1": "Perfil Básico",
+    "nivel_2": "Perfil Físico",
+    "nivel_3": "Perfil Conocido",
+    "nivel_4": "Perfil Completo",
+    "mensaje_nivel_1": "Completa el perfil físico para desbloquear paseos",
+    "mensaje_nivel_2": "Falta info de comportamiento y salud",
+    "mensaje_nivel_3": "Falta información de salud",
+    "mensaje_nivel_4": "Tu mascota está completamente perfilada"
+  },
+  "readiness": {
+    "incompleto": "No lista para paseos",
+    "basico": "Lista para paseos",
+    "completo": "Perfil completo"
+  },
+  "placeholders": {
+    "selecciona_genero": "Selecciona género",
+    "selecciona_tamano": "Selecciona tamaño"
   }
 }
