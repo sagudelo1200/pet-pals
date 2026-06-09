@@ -20,9 +20,9 @@
         "buildType": "app-bundle",
         "keystore": {
           "keystorePath": "android/app/release.keystore",
-          "keystorePassword": "REDACTED",
+          "keystorePassword": "${KEYSTORE_PASSWORD}",
           "keyAlias": "pawpath",
-          "keyPassword": "REDACTED"
+          "keyPassword": "${KEY_PASSWORD}"
         }
       }
     }
