@@ -183,6 +183,7 @@
     "tiempo_restante": "About {{tiempo}} min left",
     "finalizado_titulo": "Walk Finished!",
     "finalizado_mensaje": "{{nombre}} is already back home. We hope they enjoyed it!",
+    "no_encontrado_titulo": "Walk unavailable",
     "no_encontrado": "We couldn't find this walk. Check your permissions or if the service is still valid.",
     "chat_interno_aviso": "Soon you'll be able to chat directly with the caregiver from here for extra safety. 🐾🚀",
     "mascota_protegida": "Active Protection",
@@ -192,6 +193,8 @@
     "eventos_vacios": "No updates for now • Active monitoring",
     "tipo_evento": {
       "aceptar": "Request Accepted",
+      "rechazar": "Request Rejected",
+      "cancelar": "Walk Cancelled",
       "foto": "Uploaded a photo",
       "necesidad": "Did their business",
       "hidratacion": "Had water",
@@ -199,9 +202,11 @@
       "llegada": "Arrived at destination",
       "iniciar_ruta": "Started pickup route",
       "llegar_punto_recogida": "Arrived at pickup point",
+      "validar_codigo_recogida": "Validated pickup code",
       "validar_codigo_recogida_fallo": "Validation attempt failed",
       "iniciar_paseo": "Started official walk",
       "finalizar_paseo": "Finished the walk",
+      "agregar_mascota": "Added a pet",
       "completar": "Walk completed"
     },
     "en_vivo": "LIVE",

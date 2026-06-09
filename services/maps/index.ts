@@ -5,7 +5,15 @@ import Constants from 'expo-constants'
 
 // Configuración simple para switch
 // En el futuro, esto podría venir de un Remote Config o Flag
-const USE_MOCK = !Constants.expoConfig?.extra?.google?.mapsApiKey
+const apiKey = Constants.expoConfig?.extra?.google?.mapsApiKey
+const USE_MOCK = !apiKey
+
+// DEBUG: Ver qué está pasando
+console.log(
+  '[Maps Service] API Key:',
+  apiKey ? '✓ Presente' : '✗ No encontrada'
+)
+console.log('[Maps Service] Usando:', USE_MOCK ? 'MOCK' : 'GOOGLE API')
 
 export const mapasService: IProveedorMapas = USE_MOCK ? mockMapas : googleMapas
 

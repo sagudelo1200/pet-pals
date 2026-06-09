@@ -16,6 +16,8 @@ import { COLOR } from '@/constants'
 interface ModalCodigoRecogidaTutorProps {
   visible: boolean
   codigo?: string
+  codigoValidado?: boolean
+  esUnicoTutor?: boolean // Si es el único tutor, cierra automáticamente al validarse
   // onConfirmar: acción cuando el tutor confirma la llegada
   onConfirmar: () => void
   onCancelar?: () => void
@@ -24,6 +26,8 @@ interface ModalCodigoRecogidaTutorProps {
 export function ModalCodigoRecogidaTutor({
   visible,
   codigo,
+  codigoValidado = false,
+  esUnicoTutor = false,
   onConfirmar,
   onCancelar,
 }: ModalCodigoRecogidaTutorProps) {
@@ -33,6 +37,19 @@ export function ModalCodigoRecogidaTutor({
   useEffect(() => {
     if (!visible) setCopiado(false)
   }, [visible])
+
+  // Si es único tutor y se valida, cerrar automáticamente después de pequeño delay
+  useEffect(() => {
+    if (codigoValidado && esUnicoTutor && visible) {
+      const timer = setTimeout(() => {
+        onConfirmar()
+      }, 800) // Dar tiempo para que vea el checkmark
+
+      return () => clearTimeout(timer)
+    }
+    // Retorna undefined si no se cumple la condición
+    return undefined
+  }, [codigoValidado, esUnicoTutor, visible, onConfirmar])
 
   const handleConfirmar = () => {
     onConfirmar()
@@ -106,6 +123,22 @@ export function ModalCodigoRecogidaTutor({
               </TouchableOpacity>
             </View>
 
+            {/* Indicador de validación */}
+            {!codigoValidado && (
+              <View style={styles.validacionPendiente}>
+                <Text style={styles.validacionPendienteTexto}>
+                  ⏳ Esperando que el cuidador valide el código...
+                </Text>
+              </View>
+            )}
+            {codigoValidado && (
+              <View style={styles.validacionExitosa}>
+                <Text style={styles.validacionExitosaTexto}>
+                  ✅ ¡Código validado!
+                </Text>
+              </View>
+            )}
+
             {/* Botones */}
             <View style={styles.botonesContainer}>
               {onCancelar && (
@@ -123,8 +156,10 @@ export function ModalCodigoRecogidaTutor({
                 style={[
                   styles.botonPrimario,
                   !onCancelar && styles.botonFullWidth,
+                  !codigoValidado && styles.botonDeshabilitado,
                 ]}
                 onPress={handleConfirmar}
+                disabled={!codigoValidado}
               >
                 <Text style={styles.botonPrimarioTexto}>
                   {t('paseos:validacion_codigo.confirmar_entrega')}
@@ -154,10 +189,10 @@ const styles = StyleSheet.create({
     backgroundColor: COLOR.BLOQUE,
     borderRadius: 16,
     padding: 24,
-    paddingBottom: 96,
+    paddingBottom: 120,
     width: '100%',
     maxWidth: 420,
-    maxHeight: '85%',
+    maxHeight: '90%',
     shadowColor: COLOR.SOMBRA,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.15,
@@ -201,7 +236,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: COLOR.TEXTO,
   },
-  codigoContainer: { alignItems: 'center', marginBottom: 140 },
+  codigoContainer: { alignItems: 'center', marginBottom: 24 },
   codigoLabel: { fontSize: 13, fontWeight: '600', color: COLOR.SUBTEXTO },
   codigoPrincipal: {
     backgroundColor: COLOR.PRIMARIO,
@@ -261,7 +296,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: 24,
     right: 24,
-    bottom: 24,
+    bottom: 20,
   },
   botonSecundario: {
     flex: 1,
@@ -292,5 +327,33 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '700',
     color: COLOR.HUESO,
+  },
+  validacionPendiente: {
+    backgroundColor: '#FFF3CD',
+    borderRadius: 12,
+    padding: 12,
+    marginBottom: 32,
+    alignItems: 'center',
+  },
+  validacionPendienteTexto: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#856404',
+  },
+  validacionExitosa: {
+    backgroundColor: '#D4EDDA',
+    borderRadius: 12,
+    padding: 12,
+    marginBottom: 32,
+    alignItems: 'center',
+  },
+  validacionExitosaTexto: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#155724',
+  },
+  botonDeshabilitado: {
+    backgroundColor: COLOR.INACTIVO,
+    opacity: 0.6,
   },
 })

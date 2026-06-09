@@ -114,6 +114,67 @@ export class MockMapasProvider implements IProveedorMapas {
       },
     }
   }
+
+  async obtenerRuta(
+    origen: { latitude: number; longitude: number },
+    destino: { latitude: number; longitude: number },
+    modo: 'walking' | 'driving' = 'walking'
+  ): Promise<any> {
+    console.log(
+      '[MockMapasProvider] Obteniendo ruta de:',
+      origen,
+      'a:',
+      destino
+    )
+    await new Promise(resolve => setTimeout(resolve, 1000)) // Simular latencia
+
+    // Generar polyline simulada entre origen y destino (10 puntos)
+    const polyline = []
+    for (let i = 0; i <= 10; i++) {
+      const t = i / 10
+      polyline.push({
+        latitude: origen.latitude + (destino.latitude - origen.latitude) * t,
+        longitude:
+          origen.longitude + (destino.longitude - origen.longitude) * t,
+      })
+    }
+
+    // Distancia Haversine aproximada
+    const R = 6371000
+    const dLat = ((destino.latitude - origen.latitude) * Math.PI) / 180
+    const dLon = ((destino.longitude - origen.longitude) * Math.PI) / 180
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos((origen.latitude * Math.PI) / 180) *
+        Math.cos((destino.latitude * Math.PI) / 180) *
+        Math.sin(dLon / 2) *
+        Math.sin(dLon / 2)
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+    const distanciaMetros = R * c
+
+    // ETA: asumir 5 km/h para peatones
+    const duracionSegundos = (distanciaMetros / 1000 / 5) * 3600
+
+    const duracionMinutos = Math.ceil(duracionSegundos / 60)
+    const duracionFormato =
+      duracionMinutos < 60
+        ? `${duracionMinutos} min`
+        : `${Math.floor(duracionMinutos / 60)}h ${duracionMinutos % 60}m`
+
+    const distanciaKm = distanciaMetros / 1000
+    const distanciaFormato =
+      distanciaKm < 1
+        ? `${Math.round(distanciaMetros)} m`
+        : `${distanciaKm.toFixed(1)} km`
+
+    return {
+      distanciaMetros,
+      duracionSegundos,
+      polyline,
+      duracionFormato,
+      distanciaFormato,
+    }
+  }
 }
 
 export const mockMapas = new MockMapasProvider()

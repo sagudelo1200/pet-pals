@@ -3,6 +3,8 @@ import {
   DetalleUbicacion,
   IProveedorMapas,
   SugerenciaAutocomplete,
+  Coordenadas,
+  RutaDireccionamiento,
 } from '@/services/maps/types'
 
 const GOOGLE_API_KEY = Constants.expoConfig?.extra?.google?.mapsApiKey
@@ -192,6 +194,116 @@ export class GoogleMapasProvider implements IProveedorMapas {
       console.error('Error en geocodificación inversa:', error)
       throw error
     }
+  }
+
+  async obtenerRuta(
+    origen: Coordenadas,
+    destino: Coordenadas,
+    modo: 'walking' | 'driving' = 'walking'
+  ): Promise<RutaDireccionamiento> {
+    if (!GOOGLE_API_KEY) {
+      throw new Error('Google Maps API Key not configured')
+    }
+
+    try {
+      const url = 'https://maps.googleapis.com/maps/api/directions/json'
+      const params = new URLSearchParams({
+        origin: `${origen.latitude},${origen.longitude}`,
+        destination: `${destino.latitude},${destino.longitude}`,
+        mode: modo,
+        key: GOOGLE_API_KEY,
+        language: 'es',
+      })
+
+      const response = await fetch(`${url}?${params}`, {
+        method: 'GET',
+      })
+
+      const data = await response.json()
+
+      if (data.status !== 'OK' || !data.routes || data.routes.length === 0) {
+        throw new Error(
+          `Directions API error: ${data.status} - ${data.error_message || 'Sin ruta disponible'}`
+        )
+      }
+
+      const ruta = data.routes[0]
+      const leg = ruta.legs[0]
+
+      // Decodificar polyline (Google devuelve encoded polyline)
+      const polyline = this.decodificarPolyline(ruta.overview_polyline.points)
+
+      const duracionSegundos = leg.duration.value
+      const distanciaMetros = leg.distance.value
+
+      // Formatear para UI
+      const duracionMinutos = Math.ceil(duracionSegundos / 60)
+      const duracionFormato =
+        duracionMinutos < 60
+          ? `${duracionMinutos} min`
+          : `${Math.floor(duracionMinutos / 60)}h ${duracionMinutos % 60}m`
+
+      const distanciaKm = distanciaMetros / 1000
+      const distanciaFormato =
+        distanciaKm < 1
+          ? `${distanciaMetros} m`
+          : `${distanciaKm.toFixed(1)} km`
+
+      return {
+        distanciaMetros,
+        duracionSegundos,
+        polyline,
+        duracionFormato,
+        distanciaFormato,
+      }
+    } catch (error) {
+      throw error
+    }
+  }
+
+  /**
+   * Decodifica polyline encoded de Google Directions API
+   * Basado en el algoritmo de Google
+   */
+  private decodificarPolyline(encoded: string): Coordenadas[] {
+    const poly: Coordenadas[] = []
+    let index = 0
+    let lat = 0
+    let lng = 0
+
+    while (index < encoded.length) {
+      let result = 0
+      let shift = 0
+      let b = 0
+
+      do {
+        b = encoded.charCodeAt(index++) - 63
+        result |= (b & 0x1f) << shift
+        shift += 5
+      } while (b >= 0x20)
+
+      const dlat = result & 1 ? ~(result >> 1) : result >> 1
+      lat += dlat
+
+      result = 0
+      shift = 0
+
+      do {
+        b = encoded.charCodeAt(index++) - 63
+        result |= (b & 0x1f) << shift
+        shift += 5
+      } while (b >= 0x20)
+
+      const dlng = result & 1 ? ~(result >> 1) : result >> 1
+      lng += dlng
+
+      poly.push({
+        latitude: lat / 1e5,
+        longitude: lng / 1e5,
+      })
+    }
+
+    return poly
   }
 }
 

@@ -183,6 +183,7 @@
     "tiempo_restante": "Faltan aprox. {{tiempo}} min",
     "finalizado_titulo": "¡Paseo Finalizado!",
     "finalizado_mensaje": "{{nombre}} ya está de regreso en casa. ¡Sabemos que lo disfrutó!",
+    "no_encontrado_titulo": "Paseo no disponible",
     "no_encontrado": "No pudimos encontrar este paseo. Verifica tus permisos o si el servicio aún es válido.",
     "chat_interno_aviso": "Muy pronto podrás chatear directamente con el cuidador desde aquí para mayor seguridad. 🐾🚀",
     "mascota_protegida": "Protección Activa",
@@ -192,6 +193,8 @@
     "eventos_vacios": "Sin novedades por ahora • Monitoreo activo",
     "tipo_evento": {
       "aceptar": "Solicitud Aceptada",
+      "rechazar": "Solicitud Rechazada",
+      "cancelar": "Paseo Cancelado",
       "foto": "Subió una foto",
       "necesidad": "Hizo sus necesidades",
       "hidratacion": "Se hidrató",
@@ -199,9 +202,11 @@
       "llegada": "Llegó a destino",
       "iniciar_ruta": "Inició el viaje de recogida",
       "llegar_punto_recogida": "Llegó al punto de recogida",
+      "validar_codigo_recogida": "Validó el código de recogida",
       "validar_codigo_recogida_fallo": "Intento de validación fallido",
       "iniciar_paseo": "Inició el paseo oficial",
       "finalizar_paseo": "Finalizó el paseo",
+      "agregar_mascota": "Se agregó una mascota",
       "completar": "Paseo completado"
     },
     "en_vivo": "EN VIVO",

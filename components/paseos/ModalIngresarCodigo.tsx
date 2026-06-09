@@ -26,6 +26,7 @@ interface ModalIngresarCodigoProps {
   onVerificar: (_tutorId: string, _codigo: string) => Promise<void>
   onCerrar: () => void
   isLoading?: boolean
+  esUnicoTutor?: boolean // Si hay un único tutor, simplifica la UX
 }
 export function ModalIngresarCodigo({
   visible,
@@ -34,6 +35,7 @@ export function ModalIngresarCodigo({
   onVerificar,
   onCerrar,
   isLoading = false,
+  esUnicoTutor = false,
 }: ModalIngresarCodigoProps) {
   const { t } = useTranslation()
 
@@ -181,6 +183,21 @@ export function ModalIngresarCodigo({
               {t('paseos:validacion_codigo.ingresa_codigo')}
             </Text>
           </View>
+
+          {/* Mensaje especial cuando es único tutor */}
+          {esUnicoTutor && (
+            <View style={styles.avisoUnicoTutor}>
+              <Icon
+                name="bolt"
+                size={16}
+                color="#ff9800"
+                style={{ marginRight: 8 }}
+              />
+              <Text style={styles.avisoUnicoTutorTexto}>
+                Una vez validado, avanzaremos automáticamente
+              </Text>
+            </View>
+          )}
 
           {mascotasPorTutor.map((tutorData, index) => {
             const codigo = codigosIngresados[tutorData.tutorId] || ''
@@ -397,6 +414,21 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: COLOR.SUBTEXTO,
     lineHeight: 20,
+  },
+  avisoUnicoTutor: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 152, 0, 0.1)',
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    marginBottom: 16,
+  },
+  avisoUnicoTutorTexto: {
+    fontSize: 13,
+    color: '#ff9800',
+    fontWeight: '500',
+    flex: 1,
   },
   contenido: {
     marginBottom: 20,

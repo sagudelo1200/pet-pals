@@ -76,8 +76,8 @@ export function usePublicarUbicacion(
         subscription.current = await Location.watchPositionAsync(
           {
             accuracy: Location.Accuracy.High,
-            timeInterval: 3000,
-            distanceInterval: 6,
+            timeInterval: 9000,
+            distanceInterval: 9,
           },
           location => {
             if (idPaseo && estadoPaseo) {
@@ -103,8 +103,8 @@ export function usePublicarUbicacion(
         if (!isAlreadyTaskRunning) {
           await Location.startLocationUpdatesAsync(LOCATION_TASK_NAME, {
             accuracy: Location.Accuracy.High,
-            timeInterval: 10000,
-            distanceInterval: 20,
+            timeInterval: 12000,
+            distanceInterval: 21,
             foregroundService: {
               notificationTitle: t('paseos:control.notificacion_titulo'),
               notificationBody: t('paseos:control.notificacion_cuerpo'),

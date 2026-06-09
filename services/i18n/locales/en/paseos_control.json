@@ -1,0 +1,27 @@
+{
+  "control": {
+    "iniciar_ruta": "Start Route",
+    "iniciar_paseo": "Start Walk",
+    "finalizar_paseo": "Finish Walk",
+    "he_llegado": "I've Arrived",
+    "verificar_codigo": "Verify Code",
+    "ver_resumen": "View Summary",
+    "mascota": "Pet",
+    "ubicacion": "Location",
+    "tiempo_transcurrido": "Elapsed Time",
+    "ruta_a_recogida": "Route to pickup point",
+    "punto_recogida": "Pickup Point",
+    "ubicacion_desconocida": "Unknown location",
+    "paseo_finalizado": "Walk finished successfully",
+    "transicion_invalida": "Cannot perform this action in the current state",
+    "modo_transporte": "Transport Mode",
+    "a_pie": "Walking",
+    "vehiculo": "Vehicle",
+    "distancia": "Distance",
+    "tiempo_estimado": "Estimated time",
+    "gran_trabajo": "Great Job! 🐾",
+    "exito_mensaje": "You successfully finished {{mascota}}'s walk",
+    "tiempo_total": "Total Time",
+    "finalizar_volver": "Back to home"
+  }
+}

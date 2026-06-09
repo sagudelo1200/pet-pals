@@ -17,7 +17,13 @@
     "production": {
       "autoIncrement": true,
       "android": {
-        "buildType": "app-bundle"
+        "buildType": "app-bundle",
+        "keystore": {
+          "keystorePath": "android/app/release.keystore",
+          "keystorePassword": "REDACTED",
+          "keyAlias": "pawpath",
+          "keyPassword": "REDACTED"
+        }
       }
     }
   },

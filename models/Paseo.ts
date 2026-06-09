@@ -93,6 +93,9 @@ export interface Paseo extends BaseModel {
   /** Tipo de solicitud: DIRECTA (a un cuidador) o ABIERTA (visible a varios cuidadores). */
   tipo_solicitud?: 'DIRECTA' | 'ABIERTA'
 
+  /** Modo de transporte seleccionado por el cuidador durante EN_CAMINO: 'walking' o 'driving'. */
+  modo_transporte_actual?: 'walking' | 'driving'
+
   /**
    * VALIDACIÓN DE RECOGIDA (POR TUTOR)
    * En paseos compartidos, cada tutor tiene su propio código.

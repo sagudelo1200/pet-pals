@@ -3,10 +3,25 @@
     "iniciar_ruta": "Iniciar Ruta",
     "iniciar_paseo": "Iniciar Paseo",
     "finalizar_paseo": "Finalizar Paseo",
+    "he_llegado": "He llegado",
+    "verificar_codigo": "Verificar Código",
     "ver_resumen": "Ver Resumen",
+    "mascota": "Mascota",
+    "ubicacion": "Ubicación",
+    "tiempo_transcurrido": "Tiempo Transcurrido",
+    "ruta_a_recogida": "Ruta a punto de recogida",
     "punto_recogida": "Punto de Recogida",
     "ubicacion_desconocida": "Ubicación desconocida",
     "paseo_finalizado": "Paseo finalizado exitosamente",
-    "transicion_invalida": "No se puede realizar esta acción en el estado actual"
+    "transicion_invalida": "No se puede realizar esta acción en el estado actual",
+    "modo_transporte": "Modo de transporte",
+    "a_pie": "A pie",
+    "vehiculo": "Vehículo",
+    "distancia": "Distancia",
+    "tiempo_estimado": "Tiempo estimado",
+    "gran_trabajo": "¡Gran trabajo! 🐾",
+    "exito_mensaje": "Has finalizado el paseo de {{mascota}} exitosamente",
+    "tiempo_total": "Tiempo Total",
+    "finalizar_volver": "Volver a inicio"
   }
 }

@@ -22,7 +22,7 @@ export default {
     assetBundlePatterns: ['**/*'],
     ios: {
       supportsTablet: true,
-      bundleIdentifier: 'com.petpals.app',
+      bundleIdentifier: 'com.pawpath.app',
       infoPlist: {
         CFBundleAllowMixedLocalizations: true,
         UIBackgroundModes: ['location', 'fetch'],
@@ -35,7 +35,7 @@ export default {
       },
     },
     android: {
-      package: 'com.petpals.app',
+      package: 'com.pawpath.app',
       googleServicesFile: './google-services.json',
       adaptiveIcon: {
         foregroundImage: './assets/splash.png',
@@ -114,7 +114,7 @@ export default {
       google: {
         mapsApiKey: process.env.GOOGLE_MAPS_API_KEY,
         androidCert: process.env.ANDROID_CERT_FINGERPRINT,
-        androidPackage: 'com.petpals.app',
+        androidPackage: 'com.pawpath.app',
       },
       eas: {
         projectId: 'f174e59c-ef40-4133-818f-6615e440fbb1',

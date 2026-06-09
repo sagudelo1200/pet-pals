@@ -6,6 +6,7 @@ import esComun from './locales/es/comun.json'
 import esAuth from './locales/es/auth.json'
 import esMascotas from './locales/es/mascotas.json'
 import esPaseos from './locales/es/paseos.json'
+import esPaseosControl from './locales/es/paseos_control.json'
 import esCargando from './locales/es/cargando.json'
 import esPerfil from './locales/es/perfil.json'
 import esCuidador from './locales/es/cuidador.json'
@@ -18,6 +19,7 @@ import enComun from './locales/en/comun.json'
 import enAuth from './locales/en/auth.json'
 import enMascotas from './locales/en/mascotas.json'
 import enPaseos from './locales/en/paseos.json'
+import enPaseosControl from './locales/en/paseos_control.json'
 import enCargando from './locales/en/cargando.json'
 import enPerfil from './locales/en/perfil.json'
 import enCuidador from './locales/en/cuidador.json'
@@ -48,7 +50,7 @@ if (!i18n.isInitialized) {
         comun: esComun,
         auth: esAuth as any,
         mascotas: esMascotas as any,
-        paseos: esPaseos as any,
+        paseos: { ...esPaseos, ...esPaseosControl } as any,
         cargando: esCargando as any,
         perfil: esPerfil as any,
         cuidador: esCuidador as any,
@@ -60,7 +62,7 @@ if (!i18n.isInitialized) {
         comun: enComun,
         auth: enAuth as any,
         mascotas: enMascotas as any,
-        paseos: enPaseos as any,
+        paseos: { ...enPaseos, ...enPaseosControl } as any,
         cargando: enCargando as any,
         perfil: enPerfil as any,
         cuidador: enCuidador as any,

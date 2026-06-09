@@ -25,12 +25,14 @@ import { ESTADOS_PASEO } from '@/models/Paseo'
 import { useControlPaseo } from '@/hooks/cuidador/useControlPaseo'
 import { usePublicarUbicacion } from '@/hooks/cuidador/usePublicarUbicacion'
 import { useCodigosRecogidaPorTutor } from '@/hooks/paseos/useCodigosRecogidaPorTutor'
+import { useRutaARecogida } from '@/hooks/paseos/useRutaARecogida'
 import { Button, Mapa, Icon } from '@/components/ui'
 import { BannerUbicacion } from '@/components/comun/BannerUbicacion'
 import { ModalIngresarCodigo } from '@/components/paseos/ModalIngresarCodigo'
 import type { AuthStackParamList } from '@/navigation/types'
 import { densificarRuta } from '@/services/geo'
 import { GestorPaseos } from '@/logic/paseos'
+import { ServicioPaseo } from '@/services/firebase/firestore/colecciones/paseo'
 
 type ControlPaseoRouteProp = RouteProp<AuthStackParamList, 'ControlPaseo'>
 
@@ -55,6 +57,34 @@ const ControlPaseo: React.FC = () => {
   // Códigos de recogida por tutor
   const { mascotasPorTutor, validadosPorTutor, intentosFallidosPorTutor } =
     useCodigosRecogidaPorTutor(paseoId)
+
+  // Obtener ruta hacia punto de recogida (cacheada, calcula solo primera vez en EN_CAMINO)
+  const coordRecogida =
+    typeof paseo?.ubicacion_inicio === 'object'
+      ? paseo.ubicacion_inicio.coordenadas
+      : null
+
+  // Estado para modo de transporte (caminando vs vehículo)
+  const [modoTransporte, setModoTransporte] = useState<'walking' | 'driving'>(
+    'walking'
+  )
+
+  // Guardar modo de transporte en Firestore para sincronizar con tutor
+  useEffect(() => {
+    if (paseo?.estado === ESTADOS_PASEO.EN_CAMINO && paseoId) {
+      void ServicioPaseo.actualizar(paseoId, {
+        modo_transporte_actual: modoTransporte,
+      } as any)
+    }
+  }, [modoTransporte, paseo?.estado, paseoId])
+
+  const { ruta: rutaARecogida, cargando: cargandoRuta } = useRutaARecogida({
+    paseoId,
+    coordCuidador: ubicacionActual,
+    coordRecogida,
+    habilitado: paseo?.estado === ESTADOS_PASEO.EN_CAMINO,
+    modo: modoTransporte,
+  })
 
   // Estados para modal de validación de código
   const [mostrarModalCodigo, setMostrarModalCodigo] = useState(false)
@@ -108,6 +138,26 @@ const ControlPaseo: React.FC = () => {
     }, [paseo?.estado, paseo?.ubicacion_inicio])
   )
 
+  // Centrar mapa en toda la ruta cuando se carga por primera vez (EN_CAMINO)
+  useEffect(() => {
+    if (
+      rutaARecogida?.polyline &&
+      rutaARecogida.polyline.length > 0 &&
+      mapRef.current &&
+      paseo?.estado === ESTADOS_PASEO.EN_CAMINO
+    ) {
+      try {
+        // Usar fitToCoordinates para mostrar toda la polyline
+        ;(mapRef.current as any).fitToCoordinates(rutaARecogida.polyline, {
+          edgePadding: { top: 100, right: 50, bottom: 150, left: 50 },
+          animated: true,
+        })
+      } catch (err) {
+        console.debug('[Mapa] Error al centrar en ruta:', err)
+      }
+    }
+  }, [rutaARecogida?.polyline, paseo?.estado])
+
   // Activar publicación de ubicación en tiempo real
   const { errorMessage: gpsError } = usePublicarUbicacion(
     paseoId,
@@ -145,6 +195,19 @@ const ControlPaseo: React.FC = () => {
         <View style={styles.liveMarkerWrapper}>
           <View style={styles.liveMarkerIcon}>
             <Icon name="paw" size={18} color={COLOR.TEXTO} />
+          </View>
+        </View>
+      )),
+    []
+  )
+
+  // Componente memoizado para el icono de paseador (walking) en EN_CAMINO
+  const CaregiverMarker = React.useMemo(
+    () =>
+      React.memo(() => (
+        <View style={styles.liveMarkerWrapper}>
+          <View style={styles.liveMarkerIcon}>
+            <Icon name="walking" size={18} color={COLOR.TEXTO} />
           </View>
         </View>
       )),
@@ -409,8 +472,15 @@ const ControlPaseo: React.FC = () => {
         if ('validado' in res && res.validado) {
           // Verificar si TODOS los tutores han validado
           const tutoresEnPaseo = mascotasPorTutor.map(t => t.tutorId)
+
+          // Incluir el tutor que acaba de validarse (porque Firestore aún no actualizó)
+          const validadosActualizado = {
+            ...validadosPorTutor,
+            [tutorId]: true,
+          }
+
           const allValidated = tutoresEnPaseo.every(
-            tId => validadosPorTutor[tId] === true
+            tId => validadosActualizado[tId] === true
           )
 
           if (allValidated) {
@@ -515,13 +585,24 @@ const ControlPaseo: React.FC = () => {
           right: 0,
         }}
       >
-        {/* Ruta recorrida */}
+        {/* Ruta recorrida en paseo activo */}
         {displayedRuta.length > 0 &&
           paseo?.estado === ESTADOS_PASEO.EN_PROGRESO && (
             <Polyline
               coordinates={displayedRuta}
               strokeColor={COLOR.PRIMARIO}
               strokeWidth={4}
+              geodesic
+            />
+          )}
+
+        {/* Ruta hacia punto de recogida (EN_CAMINO) */}
+        {rutaARecogida?.polyline &&
+          paseo?.estado === ESTADOS_PASEO.EN_CAMINO && (
+            <Polyline
+              coordinates={rutaARecogida.polyline}
+              strokeColor={COLOR.PRIMARIO}
+              strokeWidth={3}
               geodesic
             />
           )}
@@ -536,21 +617,35 @@ const ControlPaseo: React.FC = () => {
           />
         )}
 
+        {/* Icono paw en punto de recogida: mostrar cuando está EN_CAMINO */}
+        {coordRecogida && paseo?.estado === ESTADOS_PASEO.EN_CAMINO && (
+          <Marker
+            coordinate={coordRecogida}
+            anchor={{ x: 0.5, y: 0.5 }}
+            identifier="recogida"
+          >
+            <PawMarker />
+          </Marker>
+        )}
+
         {ubicacionActual && (
           <AnimatedMarker
             coordinate={markerCoordinate as any}
             zIndex={999}
             anchor={
-              paseo?.estado === ESTADOS_PASEO.EN_PROGRESO
+              paseo?.estado === ESTADOS_PASEO.EN_PROGRESO ||
+              paseo?.estado === ESTADOS_PASEO.EN_CAMINO
                 ? { x: 0.52, y: 0.52 }
                 : undefined
             }
             pinColor={
-              paseo?.estado === ESTADOS_PASEO.EN_PROGRESO
+              paseo?.estado === ESTADOS_PASEO.EN_PROGRESO ||
+              paseo?.estado === ESTADOS_PASEO.EN_CAMINO
                 ? 'transparent'
                 : COLOR.ENFASIS
             }
           >
+            {paseo?.estado === ESTADOS_PASEO.EN_CAMINO && <CaregiverMarker />}
             {paseo?.estado === ESTADOS_PASEO.EN_PROGRESO && <PawMarker />}
           </AnimatedMarker>
         )}
@@ -566,6 +661,9 @@ const ControlPaseo: React.FC = () => {
               estado={paseo.estado}
               estadoColor={estadoColor}
               t={t}
+              modoTransporte={modoTransporte}
+              setModoTransporte={setModoTransporte}
+              mostrarToggleModo={paseo?.estado === ESTADOS_PASEO.EN_CAMINO}
             />
           </BlurView>
         ) : (
@@ -576,6 +674,9 @@ const ControlPaseo: React.FC = () => {
               estado={paseo.estado}
               estadoColor={estadoColor}
               t={t}
+              modoTransporte={modoTransporte}
+              setModoTransporte={setModoTransporte}
+              mostrarToggleModo={paseo?.estado === ESTADOS_PASEO.EN_CAMINO}
             />
           </View>
         )}
@@ -669,6 +770,32 @@ const ControlPaseo: React.FC = () => {
             </View>
           </View>
 
+          {/* Distancia y ETA hacia punto de recogida (EN_CAMINO) */}
+          {paseo?.estado === ESTADOS_PASEO.EN_CAMINO &&
+            rutaARecogida &&
+            !cargandoRuta && (
+              <View style={styles.infoRow}>
+                <View
+                  style={[
+                    styles.infoIconBox,
+                    { backgroundColor: `${COLOR.PRIMARIO}1A` },
+                  ]}
+                >
+                  <Text style={styles.infoIcon}>🗺️</Text>
+                </View>
+                <View style={styles.infoContent}>
+                  <Text style={styles.infoLabel}>
+                    {t('paseos:control.ruta_a_recogida') ||
+                      'Ruta a punto de recogida'}
+                  </Text>
+                  <Text style={styles.infoText}>
+                    {rutaARecogida.distanciaFormato} •{' '}
+                    {rutaARecogida.duracionFormato}
+                  </Text>
+                </View>
+              </View>
+            )}
+
           {tiempoTranscurrido !== '00:00:00' && (
             <View style={styles.infoRow}>
               <View
@@ -760,6 +887,7 @@ const ControlPaseo: React.FC = () => {
         onVerificar={handleValidarCodigo}
         onCerrar={() => setMostrarModalCodigo(false)}
         isLoading={validandoCodigo}
+        esUnicoTutor={mascotasPorTutor.length === 1}
       />
     </View>
   )
@@ -772,7 +900,19 @@ const HeaderContent: React.FC<{
   estado: ESTADOS_PASEO
   estadoColor: any
   t: any
-}> = ({ navigation, tiempoTranscurrido, estado, estadoColor, t }) => (
+  modoTransporte?: 'walking' | 'driving'
+  setModoTransporte?: (_modo: 'walking' | 'driving') => void
+  mostrarToggleModo?: boolean
+}> = ({
+  navigation,
+  tiempoTranscurrido,
+  estado,
+  estadoColor,
+  t,
+  modoTransporte = 'walking',
+  setModoTransporte,
+  mostrarToggleModo,
+}) => (
   <View style={styles.headerContent}>
     <TouchableOpacity
       onPress={() => navigation.goBack()}
@@ -792,6 +932,32 @@ const HeaderContent: React.FC<{
           {t(`paseos:estados.${estado}`)}
         </Text>
       </View>
+
+      {/* Toggle para modo de transporte (solo en EN_CAMINO) */}
+      {mostrarToggleModo && setModoTransporte && (
+        <TouchableOpacity
+          onPress={() =>
+            setModoTransporte(
+              modoTransporte === 'walking' ? 'driving' : 'walking'
+            )
+          }
+          style={[
+            styles.modoTransporteButton,
+            {
+              backgroundColor:
+                modoTransporte === 'walking'
+                  ? 'rgba(76, 175, 80, 0.3)'
+                  : 'rgba(33, 150, 243, 0.3)',
+            },
+          ]}
+        >
+          <Text style={styles.modoTransporteText}>
+            {modoTransporte === 'walking'
+              ? `🚶 ${t('paseos:control.a_pie')}`
+              : `🚗 ${t('paseos:control.vehiculo')}`}
+          </Text>
+        </TouchableOpacity>
+      )}
     </View>
 
     <TouchableOpacity style={styles.headerButton}>
@@ -966,6 +1132,19 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     textTransform: 'uppercase',
     letterSpacing: 0.8,
+  },
+  modoTransporteButton: {
+    marginTop: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: COLOR.SUBTEXTO,
+  },
+  modoTransporteText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: COLOR.TEXTO,
   },
   // Panel Inferior
   bottomPanel: {
