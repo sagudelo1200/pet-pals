@@ -35,7 +35,7 @@ export const SobreMiMascota: React.FC<SobreMiMascotaProps> = ({
 
       {isEditMode ? (
         <RNTextInput
-          value={editedData.descripcion}
+          value={editedData.descripcion || ''}
           onChangeText={text => onUpdateField('descripcion', text)}
           multiline
           numberOfLines={5}

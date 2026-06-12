@@ -58,13 +58,13 @@ export const InfoPrincipalMascota: React.FC<InfoPrincipalMascotaProps> = ({
                 <View style={{ marginBottom: 12 }}>
                   <TextInput
                     label={t('mascotas:campos.nombre')}
-                    value={editedData.nombre}
+                    value={editedData.nombre || ''}
                     onChangeText={text => onUpdateField('nombre', text)}
                   />
                 </View>
                 <TextInput
                   label={t('mascotas:campos.raza')}
-                  value={editedData.raza}
+                  value={editedData.raza || ''}
                   onChangeText={text => onUpdateField('raza', text)}
                 />
               </>
@@ -197,9 +197,12 @@ export const InfoPrincipalMascota: React.FC<InfoPrincipalMascotaProps> = ({
             <>
               <TextInput
                 label={t('mascotas:campos.peso') + ' (kg)'}
-                value={editedData.peso?.toString()}
+                value={editedData.peso ? editedData.peso.toString() : ''}
                 onChangeText={text =>
-                  onUpdateField('peso', parseFloat(text) || 0)
+                  onUpdateField(
+                    'peso',
+                    text.trim() ? parseFloat(text) : undefined
+                  )
                 }
                 keyboardType="numeric"
               />

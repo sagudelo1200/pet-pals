@@ -101,7 +101,8 @@
     "condiciones_salud": "Condiciones de salud",
     "alergias": "Alergias",
     "medicamentos": "Medicamentos",
-    "fecha_vacuna": "Fecha de aplicación"
+    "fecha_vacuna": "Fecha de aplicación",
+    "separar_coma": "Separar múltiples valores con comas"
   },
   "edad": {
     "dia": "día",

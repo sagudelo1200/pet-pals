@@ -101,7 +101,8 @@
     "condiciones_salud": "Health conditions",
     "alergias": "Allergies",
     "medicamentos": "Medications",
-    "fecha_vacuna": "Vaccination date"
+    "fecha_vacuna": "Vaccination date",
+    "separar_coma": "Separate multiple values with commas"
   },
   "edad": {
     "dia": "day",

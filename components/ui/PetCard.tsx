@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react'
+import React, { useEffect, useMemo, useRef } from 'react'
 import {
   Animated,
   Pressable,
@@ -9,6 +9,7 @@ import {
 } from 'react-native'
 import { COLOR } from '@/constants'
 import { formatearEdadMascota } from '@/logic/mascotas/utilidades'
+import { calcularCompletitud } from '@/logic/mascotas/calcularCompletitud'
 import Avatar from './Avatar'
 import Icon from './Icon'
 import Chip from './Chip'
@@ -24,7 +25,8 @@ interface PetCardProps {
 
 /**
  * PetCard: Tarjeta especializada para mostrar información de mascotas
- * con animación de entrada y acciones rápidas
+ * con badge de completitud, animación de entrada y acciones rápidas.
+ * Diseño premium con indicador visual de progreso del perfil.
  */
 const PetCard: React.FC<PetCardProps> = ({
   pet,
@@ -35,6 +37,15 @@ const PetCard: React.FC<PetCardProps> = ({
 }) => {
   const scaleAnim = useRef(new Animated.Value(0)).current
   const opacityAnim = useRef(new Animated.Value(0)).current
+
+  const completitud = useMemo(() => calcularCompletitud(pet), [pet])
+
+  // Determinar color del badge según completitud
+  const badgeColor = useMemo(() => {
+    if (completitud.porcentaje >= 80) return '#22c55e' // Verde
+    if (completitud.porcentaje >= 40) return '#eab308' // Amarillo
+    return '#ef4444' // Rojo
+  }, [completitud.porcentaje])
 
   useEffect(() => {
     // Animación de entrada con escala y opacidad
@@ -78,6 +89,13 @@ const PetCard: React.FC<PetCardProps> = ({
         ]}
         android_ripple={{ color: 'rgba(54, 199, 161, 0.1)' }}
       >
+        {/* Badge de completitud en esquina superior derecha */}
+        <View style={styles.badgeContainer}>
+          <View style={[styles.badge, { backgroundColor: badgeColor }]}>
+            <Text style={styles.badgeText}>{completitud.porcentaje}%</Text>
+          </View>
+        </View>
+
         {/* Contenido principal */}
         <View style={styles.content}>
           {/* Avatar */}
@@ -144,15 +162,15 @@ const styles = StyleSheet.create({
   },
   card: {
     backgroundColor: COLOR.BLOQUE,
-    borderRadius: 12,
+    borderRadius: 14,
     borderWidth: 1,
     borderColor: COLOR.BORDE,
     overflow: 'hidden',
     shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 8,
-    elevation: 3,
+    shadowOpacity: 0.12,
+    shadowOffset: { width: 0, height: 3 },
+    shadowRadius: 10,
+    elevation: 4,
   },
   cardPressed: {
     backgroundColor: COLOR.SECUNDARIO,
@@ -161,40 +179,69 @@ const styles = StyleSheet.create({
   cardInactive: {
     opacity: 0.5,
   },
+  badgeContainer: {
+    position: 'absolute',
+    top: 12,
+    right: 12,
+    zIndex: 10,
+  },
+  badge: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOpacity: 0.15,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 6,
+    elevation: 5,
+  },
+  badgeText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#fff',
+    textAlign: 'center',
+  },
   content: {
     flexDirection: 'row',
     alignItems: 'center',
     padding: 16,
+    paddingRight: 70, // Espacio para el badge
   },
   avatar: {
-    marginRight: 12,
+    marginRight: 14,
   },
   info: {
     flex: 1,
   },
   nombre: {
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: '700',
     color: COLOR.TEXTO,
     marginBottom: 4,
+    letterSpacing: 0.2,
   },
   raza: {
-    fontSize: 14,
+    fontSize: 13,
     color: COLOR.SUBTEXTO,
-    marginBottom: 6,
+    marginBottom: 7,
+    fontWeight: '500',
   },
   metaRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    gap: 4,
   },
   meta: {
-    fontSize: 13,
+    fontSize: 12,
     color: COLOR.SUBTEXTO,
+    fontWeight: '500',
   },
   metaSeparator: {
-    fontSize: 13,
-    color: COLOR.SUBTEXTO,
-    marginHorizontal: 6,
+    fontSize: 12,
+    color: COLOR.BORDE,
+    marginHorizontal: 4,
   },
   chip: {
     marginLeft: 0,
@@ -203,7 +250,8 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: COLOR.BORDE,
     paddingHorizontal: 16,
-    paddingVertical: 10,
+    paddingVertical: 11,
+    backgroundColor: 'rgba(54, 199, 161, 0.02)',
   },
   energiaContainer: {
     flexDirection: 'row',
@@ -212,8 +260,9 @@ const styles = StyleSheet.create({
   energiaText: {
     fontSize: 12,
     color: COLOR.SUBTEXTO,
-    marginLeft: 6,
+    marginLeft: 7,
     textTransform: 'capitalize',
+    fontWeight: '500',
   },
 })
 

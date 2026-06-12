@@ -72,11 +72,34 @@ export const useEdicionMascota = (
       return
     }
 
+    // Filtrar vacunas: ignorar las que no tengan nombre
+    const vacunasValidas = (editedData.vacunas || []).filter(
+      v => v.nombre && v.nombre.trim().length > 0
+    )
+
+    // Excluir campos que solo pueden editarse a través de modales asistentes
+    // Los campos de comportamiento solo se editan via ModalComportamientoAsistente
+    // Los campos de compatibilidad solo se editan via ModalCompatibilidadAsistente
+    const {
+      compatibilidad_paseo: _compatibilidad,
+      socializacion: _socializacion,
+      ansiedad: _ansiedad,
+      reactividad: _reactividad,
+      nivel_energia: _nivel_energia,
+      ...datosPermitidos
+    } = editedData
+
+    // Crear payload final con vacunas filtradas y campos protegidos excluidos
+    const payloadGuardar = {
+      ...datosPermitidos,
+      vacunas: vacunasValidas.length > 0 ? vacunasValidas : undefined,
+    }
+
     // 1. Guardar estado previo para rollback
     const previousMascota = { ...mascota }
 
     // 2. Aplicar actualización optimista
-    const optimisticMascota = { ...mascota, ...editedData }
+    const optimisticMascota = { ...mascota, ...payloadGuardar }
     setMascota(optimisticMascota as Mascota)
 
     // 3. Cerrar UI de edición inmediatamente
@@ -88,7 +111,10 @@ export const useEdicionMascota = (
 
     try {
       // 4. Ejecutar petición en segundo plano
-      const resultado = await GestorMascotas.actualizar(mascota.id, editedData)
+      const resultado = await GestorMascotas.actualizar(
+        mascota.id,
+        payloadGuardar
+      )
 
       if (resultado && resultado.success && (resultado as any).data) {
         setMascota((resultado as any).data)
@@ -194,42 +220,10 @@ export const useEdicionMascota = (
     field: K,
     value: Mascota[K]
   ) => {
-    setEditedData(prev => {
-      // Manejo especial para campos anidados de compatibilidad_paseo
-      if (field === 'compatibilidad_paseo' && typeof value === 'string') {
-        // Si es un campo específico de compatibilidad, actualizar estructura anidada
-        return {
-          ...prev,
-          compatibilidad_paseo: {
-            ...(prev.compatibilidad_paseo || {}),
-            tutor: {
-              ...(prev.compatibilidad_paseo?.tutor || {}),
-              [value as any]: value as any,
-              timestamp: Date.now(),
-            },
-          },
-        } as any
-      }
-
-      // Caso especial: field como "ritmo", "compania", "tolerancia"
-      const compatibilidadFields = ['ritmo', 'compania', 'tolerancia']
-      if (compatibilidadFields.includes(field as string)) {
-        return {
-          ...prev,
-          compatibilidad_paseo: {
-            ...(prev.compatibilidad_paseo || {}),
-            tutor: {
-              ...(prev.compatibilidad_paseo?.tutor || {}),
-              [field]: value,
-              timestamp: Date.now(),
-            },
-          },
-        } as any
-      }
-
-      // Comportamiento por defecto
-      return { ...prev, [field]: value }
-    })
+    setEditedData(prev => ({
+      ...prev,
+      [field]: value,
+    }))
   }
 
   const calcularProgresoActual = (): CompletitudMascota => {

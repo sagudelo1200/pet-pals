@@ -33,7 +33,6 @@ import { SeccionSalud } from '@/components/mascota/SeccionSalud'
 import { SeccionCompatibilidad } from '@/components/mascota/SeccionCompatibilidad'
 import { ModalComportamientoAsistente } from '@/components/mascota/ModalComportamientoAsistente'
 import { ModalCompatibilidadAsistente } from '@/components/mascota/ModalCompatibilidadAsistente'
-import { DetalleInfoMascota } from '@/components/mascota/DetalleInfoMascota'
 import { SobreMiMascota } from '@/components/mascota/SobreMiMascota'
 
 type DetalleMascotaRouteProp = RouteProp<AuthStackParamList, 'DetalleMascota'>
@@ -188,7 +187,7 @@ const DetalleMascota: React.FC = () => {
           </View>
         ) : error || !mascota ? (
           <View style={styles.errorContainer}>
-            <Icon name="alert-circle" size={48} color={COLOR.ERROR} />
+            <Icon name="exclamation-circle" size={48} color={COLOR.ERROR} />
             <Text style={styles.errorText}>
               {error || ERR.MASCOTAS.MASCOTA_NO_ENCONTRADA}
             </Text>
@@ -291,9 +290,6 @@ const DetalleMascota: React.FC = () => {
                   </>
                 )}
               </View>
-
-              {/* Información Detallada */}
-              <DetalleInfoMascota mascota={mascota} />
 
               {/* Botón Eliminar (Visible solo en modo visualización) */}
               {!isEditMode && (

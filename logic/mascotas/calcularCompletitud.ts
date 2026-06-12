@@ -61,6 +61,8 @@ export function calcularCompletitud(mascota: Mascota): CompletitudMascota {
     vacunas: !!mascota.vacunas && mascota.vacunas.length > 0,
     condiciones_salud:
       !!mascota.condiciones_salud && mascota.condiciones_salud.length > 0,
+    alergias: !!mascota.alergias && mascota.alergias.length > 0,
+    medicamentos: !!mascota.medicamentos && mascota.medicamentos.length > 0,
   }
 
   // Verificar completitud por nivel
@@ -94,7 +96,12 @@ export function calcularCompletitud(mascota: Mascota): CompletitudMascota {
   }
 
   // Nivel 4: Todos completos
-  if (basico_completo && fisico_completo && comportamiento_completo && salud_completo) {
+  if (
+    basico_completo &&
+    fisico_completo &&
+    comportamiento_completo &&
+    salud_completo
+  ) {
     nivel = 4
     porcentaje = 100
   }

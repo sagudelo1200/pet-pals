@@ -28,6 +28,18 @@ export const SeccionSalud: React.FC<SeccionSaludProps> = ({
 }) => {
   const { t } = useTranslation()
 
+  // Estado temporal para edición de text libre (condiciones, alergias, medicamentos)
+  const [tempCondicionesSalud, setTempCondicionesSalud] =
+    React.useState<string>(
+      (editedData.condiciones_salud || []).join(', ') || ''
+    )
+  const [tempAlergias, setTempAlergias] = React.useState<string>(
+    (editedData.alergias || []).join(', ') || ''
+  )
+  const [tempMedicamentos, setTempMedicamentos] = React.useState<string>(
+    (editedData.medicamentos || []).join(', ') || ''
+  )
+
   // Obtener valores actuales
   const esterilizado = isEditMode
     ? editedData.esterilizado
@@ -153,19 +165,22 @@ export const SeccionSalud: React.FC<SeccionSaludProps> = ({
             </Text>
             <TextInput
               placeholder={t('mascotas:placeholders.condiciones_salud')}
-              value={condicionesSalud?.join(', ') || ''}
-              onChangeText={text =>
-                onUpdateField(
-                  'condiciones_salud',
-                  text
-                    .split(',')
-                    .map(s => s.trim())
-                    .filter(Boolean) as any
-                )
-              }
+              value={tempCondicionesSalud}
+              onChangeText={setTempCondicionesSalud}
+              onBlur={() => {
+                // Split y guardar solo al perder foco
+                const items = tempCondicionesSalud
+                  .split(',')
+                  .map(s => s.trim())
+                  .filter(Boolean)
+                onUpdateField('condiciones_salud', items as any)
+              }}
               multiline
               style={styles.textAreaInput}
             />
+            <Text style={styles.helperText}>
+              {t('mascotas:campos.separar_coma')}
+            </Text>
           </View>
 
           {/* Alergias - Tags/Pills */}
@@ -175,19 +190,22 @@ export const SeccionSalud: React.FC<SeccionSaludProps> = ({
             </Text>
             <TextInput
               placeholder={t('mascotas:placeholders.alergias')}
-              value={alergias?.join(', ') || ''}
-              onChangeText={text =>
-                onUpdateField(
-                  'alergias',
-                  text
-                    .split(',')
-                    .map(s => s.trim())
-                    .filter(Boolean) as any
-                )
-              }
+              value={tempAlergias}
+              onChangeText={setTempAlergias}
+              onBlur={() => {
+                // Split y guardar solo al perder foco
+                const items = tempAlergias
+                  .split(',')
+                  .map(s => s.trim())
+                  .filter(Boolean)
+                onUpdateField('alergias', items as any)
+              }}
               multiline
               style={styles.textAreaInput}
             />
+            <Text style={styles.helperText}>
+              {t('mascotas:campos.separar_coma')}
+            </Text>
           </View>
 
           {/* Medicamentos - Tags/Pills */}
@@ -197,19 +215,22 @@ export const SeccionSalud: React.FC<SeccionSaludProps> = ({
             </Text>
             <TextInput
               placeholder={t('mascotas:placeholders.medicamentos')}
-              value={medicamentos?.join(', ') || ''}
-              onChangeText={text =>
-                onUpdateField(
-                  'medicamentos',
-                  text
-                    .split(',')
-                    .map(s => s.trim())
-                    .filter(Boolean) as any
-                )
-              }
+              value={tempMedicamentos}
+              onChangeText={setTempMedicamentos}
+              onBlur={() => {
+                // Split y guardar solo al perder foco
+                const items = tempMedicamentos
+                  .split(',')
+                  .map(s => s.trim())
+                  .filter(Boolean)
+                onUpdateField('medicamentos', items as any)
+              }}
               multiline
               style={styles.textAreaInput}
             />
+            <Text style={styles.helperText}>
+              {t('mascotas:campos.separar_coma')}
+            </Text>
           </View>
         </View>
       ) : (
@@ -274,7 +295,11 @@ export const SeccionSalud: React.FC<SeccionSaludProps> = ({
               <View style={styles.conditionsContainer}>
                 {condicionesSalud.map((c, i) => (
                   <View key={i} style={styles.conditionTag}>
-                    <Icon name="alert-circle" size={12} color={COLOR.ALERTA} />
+                    <Icon
+                      name="exclamation-circle"
+                      size={12}
+                      color={COLOR.ALERTA}
+                    />
                     <Text style={styles.conditionText}>{c}</Text>
                   </View>
                 ))}
@@ -579,5 +604,12 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: COLOR.SUBTEXTO,
     fontStyle: 'italic',
+  },
+  helperText: {
+    fontSize: 12,
+    color: COLOR.SUBTEXTO,
+    fontStyle: 'italic',
+    marginTop: 4,
+    marginLeft: 2,
   },
 })

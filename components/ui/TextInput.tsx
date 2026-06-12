@@ -21,6 +21,7 @@ interface Props {
   autoFocus?: boolean
   returnKeyType?: 'done' | 'go' | 'next' | 'search' | 'send'
   onSubmitEditing?: () => void
+  onBlur?: () => void
   multiline?: boolean
   numberOfLines?: number
 }
@@ -44,6 +45,7 @@ const TextInput: React.FC<Props> = ({
   autoFocus,
   returnKeyType,
   onSubmitEditing,
+  onBlur,
   multiline,
   numberOfLines,
 }) => {
@@ -75,6 +77,11 @@ const TextInput: React.FC<Props> = ({
     },
   ]
 
+  const handleBlur = () => {
+    setFocused(false)
+    onBlur?.()
+  }
+
   return (
     <View style={containerStyle} testID={testID}>
       {label ? <Text style={styles.label}>{label}</Text> : null}
@@ -90,7 +97,7 @@ const TextInput: React.FC<Props> = ({
         returnKeyType={returnKeyType}
         onSubmitEditing={onSubmitEditing}
         onFocus={() => setFocused(true)}
-        onBlur={() => setFocused(false)}
+        onBlur={handleBlur}
         color={inputColor}
         icon={iconName}
         family="FontAwesome5"
