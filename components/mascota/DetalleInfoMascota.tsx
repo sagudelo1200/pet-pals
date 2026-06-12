@@ -54,15 +54,10 @@ export const DetalleInfoMascota: React.FC<DetalleInfoMascotaProps> = ({
             {t('mascotas:energia.' + mascota.nivel_energia)}
           </Text>
         </View>
-        <View style={styles.tagsContainer}>
-          {mascota.condiciones_comportamiento?.map((c, i) => (
-            <Badge key={i} label={c} variant="neutral" style={styles.tag} />
-          ))}
-        </View>
       </View>
 
       {/* Espacio extra para scroll */}
-      <View style={{ height: 40 }} />
+      <View style={{ height: 60 }} />
     </View>
   )
 }

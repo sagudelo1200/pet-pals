@@ -44,7 +44,7 @@ export const SobreMiMascota: React.FC<SobreMiMascotaProps> = ({
             t('mascotas:placeholders.descripcion') ||
             'Cuéntanos más sobre tu mascota...'
           }
-          placeholderTextColor={COLOR.BORDE}
+          placeholderTextColor={COLOR.SUBTEXTO}
         />
       ) : (
         <Text style={styles.description}>

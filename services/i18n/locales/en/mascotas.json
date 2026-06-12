@@ -13,6 +13,7 @@
     "error_eliminar": "We couldn't delete the pet. Please try again",
     "error_cargar": "We couldn't load your pets. Please try again",
     "error_cargar_imagen": "We couldn't upload the selected image.",
+    "imagen_demasiado_grande": "Image is too large. Maximum allowed: {{tamaño_maximo}}",
     "sincronizacion_fallida": "Synchronization error"
   },
   "lista": {
@@ -98,6 +99,8 @@
     "nivel_energia": "Energy level",
     "vacunas": "Vaccines",
     "condiciones_salud": "Health conditions",
+    "alergias": "Allergies",
+    "medicamentos": "Medications",
     "fecha_vacuna": "Vaccination date"
   },
   "edad": {
@@ -161,6 +164,8 @@
     "selecciona_nivel": "Select a level",
     "nombre_vacuna": "Vaccine (e.g. Rabies, Pentavalent, etc.)",
     "condiciones_salud": "E.g. Allergies, Diabetes, Conditions, etc.",
+    "alergias": "E.g. Food, Environmental, Medication, etc.",
+    "medicamentos": "E.g. Amoxicillin, Prednisone, etc.",
     "descripcion": "Tell us more about your pet (optional)"
   },
   "comportamiento": {
@@ -177,6 +182,15 @@
     "alto": "High"
   },
   "sin_definir": "Undefined",
+  "salud": {
+    "estado": "Health Status",
+    "vacunas_titulo": "Vaccines",
+    "condiciones_medicas": "Medical Conditions",
+    "sin_vacunas": "No vaccines recorded",
+    "sin_condiciones": "No conditions recorded",
+    "esterilizado_si": "Neutered",
+    "esterilizado_no": "Not neutered"
+  },
   "asistente": {
     "titulo": "Getting to know your pet",
     "paso": "Step {{actual}} of {{total}}",

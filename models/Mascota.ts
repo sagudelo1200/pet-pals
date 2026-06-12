@@ -53,7 +53,7 @@ export type ToleranciaFrustracion =
 /**
  * Compatibilidad de tamaño con otros perros en paseos grupales.
  */
-export type TamañoCompatible = 'pequeño' | 'mediano' | 'grande' | 'gigante'
+export type TamanoCompatible = 'pequeño' | 'mediano' | 'grande' | 'gigante'
 
 /**
  * Observación de compatibilidad registrada por cuidador.
@@ -68,7 +68,7 @@ export interface ObservacionCompatibilidad {
   /** Tolerancia a frustración observada */
   tolerancia?: ToleranciaFrustracion
   /** Compatibilidad de tamaño observada */
-  tamaño_compatible?: TamañoCompatible
+  tamano_compatible?: TamanoCompatible
   /** ID del paseo donde se observó */
   paseoId: string
   /** Timestamp de la observación */
@@ -85,7 +85,7 @@ export interface CompatibilidadPaseo {
     ritmo?: RitmoPaseo
     compania?: CompaniaPaseo
     tolerancia?: ToleranciaFrustracion
-    tamaño_compatible?: TamañoCompatible
+    tamano_compatible?: TamanoCompatible
     timestamp: number
   }
   /** Observaciones de cuidadores (array, puede crecer) */
@@ -131,10 +131,10 @@ export interface Mascota extends BaseModel {
   vacunas?: VacunaMascota[]
   /** Condiciones de salud relevantes. */
   condiciones_salud?: string[]
-  /** Condiciones de comportamiento a considerar. */
-  condiciones_comportamiento?: string[]
-  /** Resumen del historial médico. */
-  historial_medico?: string
+  /** Alergias de la mascota. */
+  alergias?: string[]
+  /** Medicamentos que toma la mascota. */
+  medicamentos?: string[]
 
   /** Nivel de energía para recomendaciones de paseo. */
   nivel_energia?: NivelEnergia

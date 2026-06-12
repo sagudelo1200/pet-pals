@@ -132,8 +132,8 @@ export const ModalAsistenteGenerico: React.FC<ModalAsistenteGenericoProps> = ({
     if (currentStep < config.atributos.length - 1) {
       setCurrentStep(currentStep + 1)
     } else {
-      if (huboCambios()) {
-        // Guardar si hubo cambios
+      // Último paso: guardar solo si hubo cambios
+      if (!huboCambios()) {
         handleClose()
         return
       }

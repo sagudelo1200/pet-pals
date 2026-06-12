@@ -58,14 +58,9 @@ const Dashboard: React.FC = () => {
         'visión normal',
         'audición normal',
       ],
-      historial_medico:
-        'Controles veterinarios al día. Sin antecedentes de cirugías mayores ni enfermedades hereditarias detectadas.',
+      alergias: [],
+      medicamentos: [],
       nivel_energia: 'alto',
-      condiciones_comportamiento: [
-        'muy atento al entorno',
-        'alta capacidad de concentración',
-        'responde bien a estímulos visuales',
-      ],
       preferencias_paseo: [
         'paseos largos',
         'espacios abiertos',

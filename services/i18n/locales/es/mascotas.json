@@ -13,6 +13,7 @@
     "error_eliminar": "No pudimos eliminar la mascota. Intenta nuevamente",
     "error_cargar": "No pudimos cargar tus mascotas. Intenta nuevamente",
     "error_cargar_imagen": "No pudimos cargar la imagen seleccionada.",
+    "imagen_demasiado_grande": "La imagen es demasiado grande. Máximo permitido: {{tamaño_maximo}}",
     "sincronizacion_fallida": "Error de sincronización"
   },
   "lista": {
@@ -98,6 +99,8 @@
     "nivel_energia": "Nivel de energía",
     "vacunas": "Vacunas",
     "condiciones_salud": "Condiciones de salud",
+    "alergias": "Alergias",
+    "medicamentos": "Medicamentos",
     "fecha_vacuna": "Fecha de aplicación"
   },
   "edad": {
@@ -161,6 +164,8 @@
     "selecciona_nivel": "Selecciona un nivel",
     "nombre_vacuna": "Vacuna (ej: Rabia, Pentavalente, etc.)",
     "condiciones_salud": "Ej: Alergias, Diabetes, Condiciones, etc.",
+    "alergias": "Ej: Alimento, Ambiental, Medicamento, etc.",
+    "medicamentos": "Ej: Amoxicilina, Prednisona, etc.",
     "descripcion": "Cuéntanos más sobre tu mascota (opcional)"
   },
   "comportamiento": {
@@ -178,8 +183,13 @@
   },
   "sin_definir": "Sin definir",
   "salud": {
-    "vacunas": "Vacunas",
-    "condiciones": "Condiciones"
+    "estado": "Estado",
+    "vacunas_titulo": "Vacunas",
+    "condiciones_medicas": "Condiciones Médicas",
+    "sin_vacunas": "Sin vacunas registradas",
+    "sin_condiciones": "Sin condiciones registradas",
+    "esterilizado_si": "Esterilizado",
+    "esterilizado_no": "Sin esterilizar"
   },
   "unidades": {
     "kg": "kg"

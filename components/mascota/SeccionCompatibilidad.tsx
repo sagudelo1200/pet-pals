@@ -25,7 +25,7 @@ export const SeccionCompatibilidad: React.FC<SeccionCompatibilidadProps> = ({
   const { t } = useTranslation()
 
   const getFieldValue = (
-    key: 'ritmo' | 'compania' | 'tolerancia' | 'tamaño_compatible'
+    key: 'ritmo' | 'compania' | 'tolerancia' | 'tamano_compatible'
   ): CompatibilidadValue => {
     const tutor = mascota.compatibilidad_paseo?.tutor
     if (!tutor) return undefined
@@ -52,7 +52,7 @@ export const SeccionCompatibilidad: React.FC<SeccionCompatibilidadProps> = ({
               | 'ritmo'
               | 'compania'
               | 'tolerancia'
-              | 'tamaño_compatible'
+              | 'tamano_compatible'
           )
           const opcion = getOpcionInfo(atributo, valor)
 

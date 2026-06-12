@@ -117,7 +117,7 @@ export const atributosCompatibilidad: AtributoCompatibilidad[] = [
     ],
   },
   {
-    key: 'tamaño_compatible',
+    key: 'tamano_compatible',
     labelKey: 'mascotas:compatibilidad.tamaño_compatible',
     scenarioKey: 'mascotas:compatibilidad.tamaño_compatible_parque_scenario',
     preguntaKey: 'mascotas:compatibilidad.pregunta_tamaño_compatible',

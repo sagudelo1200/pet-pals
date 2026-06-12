@@ -18,7 +18,7 @@ const IMAGENES_POR_ATRIBUTO: Record<string, any> = {
   ritmo: PaseadorPerrosSvg,
   compania: PaseoTranquiloSvg,
   tolerancia: PerroSvg,
-  tamaño_compatible: DiaEnElParqueSvg,
+  tamano_compatible: DiaEnElParqueSvg,
 }
 
 // Configuración específica para compatibilidad
@@ -30,7 +30,7 @@ const getConfigCompatibilidad = (t: any): ConfiguracionModalAsistente => ({
   obtenerValor: (atributo, mascota) => {
     // Los valores de compatibilidad están anidados en tutor
     return mascota.compatibilidad_paseo?.tutor?.[
-      atributo.key as 'ritmo' | 'compania' | 'tolerancia' | 'tamaño_compatible'
+      atributo.key as 'ritmo' | 'compania' | 'tolerancia' | 'tamano_compatible'
     ]
   },
   construirPayload: (valores: Record<string, any>) => {

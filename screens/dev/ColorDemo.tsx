@@ -66,15 +66,9 @@ const ColorDemo: React.FC = () => {
         'Alergia leve al polen',
         'Displasia de cadera grado 1',
       ],
-      historial_medico:
-        'Cirugía de esterilización realizada en 2021. Chequeo anual completo en junio 2023 con resultados normales. Tratamiento preventivo contra pulgas y garrapatas al día.',
+      alergias: ['Polen', 'Algunos antibióticos'],
+      medicamentos: ['Antihistamínico (según sea necesario)'],
       nivel_energia: 'alto',
-      condiciones_comportamiento: [
-        'Sociable con otros perros',
-        'Amigable con niños',
-        'Puede tirar de la correa',
-        'Le encanta nadar',
-      ],
       preferencias_paseo: [
         'Prefiere parques con áreas abiertas',
         'Le gusta jugar con pelota',

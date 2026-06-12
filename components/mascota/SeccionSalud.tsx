@@ -36,6 +36,10 @@ export const SeccionSalud: React.FC<SeccionSaludProps> = ({
   const condicionesSalud = isEditMode
     ? editedData.condiciones_salud
     : mascota.condiciones_salud
+  const alergias = isEditMode ? editedData.alergias : mascota.alergias
+  const medicamentos = isEditMode
+    ? editedData.medicamentos
+    : mascota.medicamentos
 
   const handleAgregarVacuna = () => {
     const nuevasVacunas = [...(vacunas || []), { nombre: '' }]
@@ -163,12 +167,58 @@ export const SeccionSalud: React.FC<SeccionSaludProps> = ({
               style={styles.textAreaInput}
             />
           </View>
+
+          {/* Alergias - Tags/Pills */}
+          <View style={[styles.fieldGroup, { marginTop: 16 }]}>
+            <Text style={styles.fieldLabel}>
+              {t('mascotas:campos.alergias')}
+            </Text>
+            <TextInput
+              placeholder={t('mascotas:placeholders.alergias')}
+              value={alergias?.join(', ') || ''}
+              onChangeText={text =>
+                onUpdateField(
+                  'alergias',
+                  text
+                    .split(',')
+                    .map(s => s.trim())
+                    .filter(Boolean) as any
+                )
+              }
+              multiline
+              style={styles.textAreaInput}
+            />
+          </View>
+
+          {/* Medicamentos - Tags/Pills */}
+          <View style={[styles.fieldGroup, { marginTop: 16 }]}>
+            <Text style={styles.fieldLabel}>
+              {t('mascotas:campos.medicamentos')}
+            </Text>
+            <TextInput
+              placeholder={t('mascotas:placeholders.medicamentos')}
+              value={medicamentos?.join(', ') || ''}
+              onChangeText={text =>
+                onUpdateField(
+                  'medicamentos',
+                  text
+                    .split(',')
+                    .map(s => s.trim())
+                    .filter(Boolean) as any
+                )
+              }
+              multiline
+              style={styles.textAreaInput}
+            />
+          </View>
         </View>
       ) : (
         <View style={styles.viewContainer}>
           {/* Estado - Check/X */}
           <View style={styles.healthSection}>
-            <Text style={styles.subsectionTitle}>Estado</Text>
+            <Text style={styles.subsectionTitle}>
+              {t('mascotas:salud.estado')}
+            </Text>
             <View style={styles.statusRow}>
               <View style={styles.statusItem}>
                 <Icon
@@ -192,7 +242,7 @@ export const SeccionSalud: React.FC<SeccionSaludProps> = ({
           {vacunas && vacunas.length > 0 ? (
             <View style={styles.healthSection}>
               <Text style={styles.subsectionTitle}>
-                Vacunas ({vacunas.length})
+                {t('mascotas:salud.vacunas_titulo')} ({vacunas.length})
               </Text>
               <View style={styles.pillsContainer}>
                 {vacunas.map((vacuna, index) => (
@@ -218,12 +268,56 @@ export const SeccionSalud: React.FC<SeccionSaludProps> = ({
           {/* Condiciones de salud */}
           {condicionesSalud && condicionesSalud.length > 0 ? (
             <View style={styles.healthSection}>
-              <Text style={styles.subsectionTitle}>Condiciones Médicas</Text>
+              <Text style={styles.subsectionTitle}>
+                {t('mascotas:salud.condiciones_medicas')}
+              </Text>
               <View style={styles.conditionsContainer}>
                 {condicionesSalud.map((c, i) => (
                   <View key={i} style={styles.conditionTag}>
                     <Icon name="alert-circle" size={12} color={COLOR.ALERTA} />
                     <Text style={styles.conditionText}>{c}</Text>
+                  </View>
+                ))}
+              </View>
+            </View>
+          ) : null}
+
+          {/* Alergias */}
+          {alergias && alergias.length > 0 ? (
+            <View style={styles.healthSection}>
+              <Text style={styles.subsectionTitle}>
+                {t('mascotas:campos.alergias')}
+              </Text>
+              <View style={styles.conditionsContainer}>
+                {alergias.map((a, i) => (
+                  <View key={i} style={styles.allergyTag}>
+                    <Icon
+                      name="exclamation-circle"
+                      size={12}
+                      color={COLOR.PRIMARIO}
+                    />
+                    <Text style={styles.allergyText}>{a}</Text>
+                  </View>
+                ))}
+              </View>
+            </View>
+          ) : null}
+
+          {/* Medicamentos */}
+          {medicamentos && medicamentos.length > 0 ? (
+            <View style={styles.healthSection}>
+              <Text style={styles.subsectionTitle}>
+                {t('mascotas:campos.medicamentos')}
+              </Text>
+              <View style={styles.conditionsContainer}>
+                {medicamentos.map((m, i) => (
+                  <View key={i} style={styles.medicationTag}>
+                    <Icon
+                      name="prescription-bottle"
+                      size={12}
+                      color={COLOR.EXITO}
+                    />
+                    <Text style={styles.medicationText}>{m}</Text>
                   </View>
                 ))}
               </View>
@@ -337,6 +431,38 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
     color: COLOR.ALERTA,
+  },
+  allergyTag: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    backgroundColor: `${COLOR.PRIMARIO}15`,
+    borderRadius: 16,
+    borderWidth: 0.5,
+    borderColor: `${COLOR.PRIMARIO}40`,
+  },
+  allergyText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: COLOR.PRIMARIO,
+  },
+  medicationTag: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    backgroundColor: `${COLOR.EXITO}15`,
+    borderRadius: 16,
+    borderWidth: 0.5,
+    borderColor: `${COLOR.EXITO}40`,
+  },
+  medicationText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: COLOR.EXITO,
   },
   fieldGroup: {
     paddingBottom: 16,

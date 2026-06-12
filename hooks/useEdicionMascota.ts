@@ -139,6 +139,18 @@ export const useEdicionMascota = (
           const response = await fetch(asset.uri)
           const blob = await response.blob()
 
+          // Validar tamaño de la imagen (máximo 5 MB)
+          const maxSizeInBytes = 5 * 1024 * 1024 // 5 MB
+          if (blob.size > maxSizeInBytes) {
+            Alert.alert(
+              t('comun:error'),
+              t('mascotas:errores.imagen_demasiado_grande', {
+                tamaño_maximo: '5 MB',
+              })
+            )
+            return
+          }
+
           const reader = new FileReader()
           reader.onload = () => {
             const base64data = reader.result as string
