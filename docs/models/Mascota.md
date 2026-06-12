@@ -18,7 +18,7 @@ export interface Mascota extends BaseModel {
   raza?: string
   fecha_nacimiento?: Date
   genero?: 'macho' | 'hembra'
-  tamano?: 'muy pequeño' | 'pequeño' | 'mediano' | 'grande' | 'gigante'
+  tamano?: 'pequeño' | 'mediano' | 'grande' | 'gigante'
   peso?: number
   esterilizado?: boolean
   vacunas?: { nombre: string; fecha?: Date }[]

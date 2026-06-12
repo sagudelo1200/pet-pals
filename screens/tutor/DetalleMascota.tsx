@@ -21,11 +21,18 @@ import { calcularCompletitud } from '@/logic/mascotas/calcularCompletitud'
 // Hooks
 import { useAnimacionModal } from '@/hooks/useAnimacionModal'
 import { useEdicionMascota } from '@/hooks/useEdicionMascota'
+import { useComportamientoEditor } from '@/hooks/useComportamientoEditor'
+import { useCompatibilidadEditor } from '@/hooks/useCompatibilidadEditor'
 
 // Components
 import { HeroMascota } from '@/components/mascota/HeroMascota'
 import { IndicadorCompletitud } from '@/components/mascota/IndicadorCompletitud'
 import { InfoPrincipalMascota } from '@/components/mascota/InfoPrincipalMascota'
+import { SeccionComportamiento } from '@/components/mascota/SeccionComportamiento'
+import { SeccionSalud } from '@/components/mascota/SeccionSalud'
+import { SeccionCompatibilidad } from '@/components/mascota/SeccionCompatibilidad'
+import { ModalComportamientoAsistente } from '@/components/mascota/ModalComportamientoAsistente'
+import { ModalCompatibilidadAsistente } from '@/components/mascota/ModalCompatibilidadAsistente'
 import { DetalleInfoMascota } from '@/components/mascota/DetalleInfoMascota'
 import { SobreMiMascota } from '@/components/mascota/SobreMiMascota'
 
@@ -63,6 +70,20 @@ const DetalleMascota: React.FC = () => {
 
   const scrollViewRef = useRef<ScrollView>(null)
   const lastNavTime = useRef(0)
+
+  // Hook para abrir/cerrar modal de comportamiento
+  const {
+    modalVisible: asistenteVisible,
+    openModal: abrirAsistente,
+    closeModal: cerrarAsistente,
+  } = useComportamientoEditor(mascotaNormalizada)
+
+  // Hook para abrir/cerrar modal de compatibilidad
+  const {
+    modalVisible: compatibilidadModalVisible,
+    openModal: abrirCompatibilidadModal,
+    closeModal: cerrarCompatibilidadModal,
+  } = useCompatibilidadEditor(mascotaNormalizada)
 
   // Hooks
   const { slideAnim, opacityAnim, panResponder, isExpanded, expandir, cerrar } =
@@ -103,6 +124,7 @@ const DetalleMascota: React.FC = () => {
     actualizarCampo,
     eliminarMascota,
     cambiosRealizados,
+    actualizarMascotaLocal,
   } = useEdicionMascota(mascotaId, mascotaNormalizada)
 
   const handleEdit = () => {
@@ -206,8 +228,28 @@ const DetalleMascota: React.FC = () => {
                 onUpdateField={actualizarCampo}
               />
 
-              {/* Sobre Mí (Reubicado) */}
+              {/* Sobre Mí */}
               <SobreMiMascota
+                mascota={mascota}
+                isEditMode={isEditMode}
+                editedData={editedData}
+                onUpdateField={actualizarCampo}
+              />
+
+              {/* Sección de Comportamiento */}
+              <SeccionComportamiento
+                mascota={mascota}
+                onOpenAsistente={abrirAsistente}
+              />
+
+              {/* Sección de Compatibilidad de Paseo */}
+              <SeccionCompatibilidad
+                mascota={mascota}
+                onOpenAssistant={abrirCompatibilidadModal}
+              />
+
+              {/* Sección de Salud */}
+              <SeccionSalud
                 mascota={mascota}
                 isEditMode={isEditMode}
                 editedData={editedData}
@@ -295,6 +337,40 @@ const DetalleMascota: React.FC = () => {
           </ScrollView>
         )}
       </Animated.View>
+
+      {/* Modal Asistente de Comportamiento - Independiente */}
+      {mascota && (
+        <ModalComportamientoAsistente
+          visible={asistenteVisible}
+          petName={mascota.nombre}
+          mascotaId={mascota.id}
+          initialBehaviorData={mascota}
+          onClose={cerrarAsistente}
+          onCompleted={savedData => {
+            // Modal guardó los datos a Firebase y los devuelve
+            // Actualizamos el estado local sin query adicional
+            actualizarMascotaLocal(savedData)
+            cerrarAsistente()
+          }}
+        />
+      )}
+
+      {/* Modal Asistente de Compatibilidad - Independiente */}
+      {mascota && (
+        <ModalCompatibilidadAsistente
+          visible={compatibilidadModalVisible}
+          petName={mascota.nombre}
+          mascotaId={mascota.id}
+          initialCompatibilidadData={mascota}
+          onClose={cerrarCompatibilidadModal}
+          onCompleted={(savedData: Partial<Mascota>) => {
+            // Modal guardó los datos a Firebase y los devuelve
+            // Actualizamos el estado local sin query adicional
+            actualizarMascotaLocal(savedData)
+            cerrarCompatibilidadModal()
+          }}
+        />
+      )}
     </View>
   )
 }
@@ -329,10 +405,10 @@ const styles = StyleSheet.create({
   },
   handleArea: {
     width: '100%',
-    height: 40,
+    height: 36,
     alignItems: 'center',
     justifyContent: 'flex-start',
-    paddingTop: 12,
+    paddingTop: 10,
     position: 'absolute',
     zIndex: 20,
     top: 0,
@@ -359,24 +435,24 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   scrollContent: {
-    paddingBottom: 60,
+    paddingBottom: 40,
   },
   contentContainer: {
-    paddingHorizontal: 21,
+    paddingHorizontal: 16,
     marginTop: -42,
   },
   actionsRow: {
     flexDirection: 'row',
     gap: 12,
-    marginBottom: 24,
+    marginBottom: 16,
   },
   actionButton: {
     flex: 1,
   },
   deleteContainer: {
-    marginTop: 30,
+    marginTop: 20,
     alignItems: 'center',
-    marginBottom: 21,
+    marginBottom: 16,
   },
   deleteButton: {
     borderColor: COLOR.ERROR,

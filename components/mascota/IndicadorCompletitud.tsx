@@ -2,7 +2,10 @@ import React, { useMemo } from 'react'
 import { View, Text, StyleSheet } from 'react-native'
 import { useTranslation } from 'react-i18next'
 import { COLOR } from '@/constants'
-import { obtenerClaveNivel, type CompletitudMascota } from '@/logic/mascotas/calcularCompletitud'
+import {
+  obtenerClaveNivel,
+  type CompletitudMascota,
+} from '@/logic/mascotas/calcularCompletitud'
 
 interface IndicadorCompletitudProps {
   /** Objeto de completitud calculado */
@@ -68,7 +71,12 @@ export const IndicadorCompletitud: React.FC<IndicadorCompletitudProps> = ({
   if (compact) {
     return (
       <View style={styles.compactContainer}>
-        <Text style={[styles.percentageCompact, { fontSize: config.percentageSize, color: colorConfig.barColor }]}>
+        <Text
+          style={[
+            styles.percentageCompact,
+            { fontSize: config.percentageSize, color: colorConfig.barColor },
+          ]}
+        >
           {completitud.porcentaje}%
         </Text>
       </View>
@@ -79,10 +87,20 @@ export const IndicadorCompletitud: React.FC<IndicadorCompletitudProps> = ({
     <View style={styles.container}>
       {/* Header: Nivel + Porcentaje */}
       <View style={[styles.header, { marginBottom: config.spacing }]}>
-        <Text style={[styles.levelLabel, { fontSize: config.levelSize, color: COLOR.SUBTEXTO }]}>
+        <Text
+          style={[
+            styles.levelLabel,
+            { fontSize: config.levelSize, color: COLOR.SUBTEXTO },
+          ]}
+        >
           {t(obtenerClaveNivel(completitud.nivel))}
         </Text>
-        <Text style={[styles.percentageLabel, { fontSize: config.percentageSize, color: colorConfig.barColor }]}>
+        <Text
+          style={[
+            styles.percentageLabel,
+            { fontSize: config.percentageSize, color: colorConfig.barColor },
+          ]}
+        >
           {completitud.porcentaje}%
         </Text>
       </View>
@@ -116,23 +134,28 @@ export const IndicadorCompletitud: React.FC<IndicadorCompletitudProps> = ({
 const styles = StyleSheet.create({
   container: {
     marginBottom: 12,
+    paddingHorizontal: 0,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    marginBottom: 8,
   },
   levelLabel: {
-    fontWeight: '500',
+    fontWeight: '600',
+    letterSpacing: 0.2,
   },
   percentageLabel: {
-    fontWeight: '600',
+    fontWeight: '700',
+    letterSpacing: 0.3,
   },
   barContainer: {
     width: '100%',
     overflow: 'hidden',
-    borderRadius: 2,
+    borderRadius: 3,
     position: 'relative',
+    backgroundColor: COLOR.BORDE,
   },
   barBackground: {
     position: 'absolute',
@@ -141,12 +164,14 @@ const styles = StyleSheet.create({
   },
   barProgress: {
     height: '100%',
-    borderRadius: 1,
+    borderRadius: 2,
   },
   compactContainer: {
     marginBottom: 8,
+    alignItems: 'center',
   },
   percentageCompact: {
-    fontWeight: '600',
+    fontWeight: '700',
+    letterSpacing: 0.3,
   },
 })

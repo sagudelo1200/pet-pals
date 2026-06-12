@@ -37,7 +37,6 @@ export function calcularDuracionRecomendada(
   let base = 30
 
   switch (tamano) {
-    case 'muy pequeño':
     case 'pequeño':
       base = 25
       break

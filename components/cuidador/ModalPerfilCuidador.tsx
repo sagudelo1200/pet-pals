@@ -176,7 +176,7 @@ export function ModalPerfilCuidador({
               {perfil.tarifa_por_hora && (
                 <View style={styles.tarifaContainer}>
                   <Icon
-                    name="dollar"
+                    name="dollar-sign"
                     size={20}
                     color={COLOR.EXITO}
                     style={{ marginRight: 8 }}

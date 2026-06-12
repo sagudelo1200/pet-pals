@@ -181,8 +181,8 @@ service cloud.firestore {
       'id', 'nombre', 'raza', 'edad', 'descripcion', 'foto', 'especie', 'genero',
       'peso', 'tamano', 'nivel_energia', 'fecha_nacimiento', 'esterilizado',
       'vacunas', 'condiciones_salud', 'condiciones_comportamiento', 'activo',
-      'preferencias_paseo', 'historial_medico',
-      'creado_por', 'creado_en', 'actualizado_en', 'actualizado_por'
+      'preferencias_paseo', 'historial_medico', 'socializacion', 'ansiedad', 'reactividad',
+      'compatibilidad_paseo', 'creado_por', 'creado_en', 'actualizado_en', 'actualizado_por'
       ]);
       allow delete: if autenticado() && (es_tutor() || es_admin());
     }

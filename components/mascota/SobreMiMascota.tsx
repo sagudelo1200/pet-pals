@@ -2,6 +2,8 @@ import React from 'react'
 import { View, Text, TextInput as RNTextInput, StyleSheet } from 'react-native'
 import { useTranslation } from 'react-i18next'
 import { COLOR } from '@/constants'
+import Card from '@/components/ui/Card'
+import Icon from '@/components/ui/Icon'
 import type { Mascota } from '@/models/Mascota'
 
 interface SobreMiMascotaProps {
@@ -21,48 +23,81 @@ export const SobreMiMascota: React.FC<SobreMiMascotaProps> = ({
   const { t } = useTranslation()
 
   return (
-    <View style={styles.section}>
-      <Text style={styles.sectionTitle}>{t('mascotas:detalle.sobre_mi')}</Text>
+    <Card style={styles.container} elevated>
+      <View style={styles.header}>
+        <View style={styles.titleContainer}>
+          <Icon name="paw" size={20} color={COLOR.PRIMARIO} />
+          <Text style={styles.sectionTitle}>
+            {t('mascotas:detalle.sobre_mi')}
+          </Text>
+        </View>
+      </View>
+
       {isEditMode ? (
         <RNTextInput
           value={editedData.descripcion}
           onChangeText={text => onUpdateField('descripcion', text)}
           multiline
-          numberOfLines={4}
+          numberOfLines={5}
           style={styles.textArea}
+          placeholder={
+            t('mascotas:placeholders.descripcion') ||
+            'Cuéntanos más sobre tu mascota...'
+          }
+          placeholderTextColor={COLOR.BORDE}
         />
       ) : (
         <Text style={styles.description}>
-          {mascota.descripcion || t('mascotas:detalle.sin_descripcion')}
+          {mascota.descripcion && mascota.descripcion.trim()
+            ? mascota.descripcion
+            : t('mascotas:detalle.sin_descripcion')}
         </Text>
       )}
-    </View>
+    </Card>
   )
 }
 
 const styles = StyleSheet.create({
-  section: {
-    marginBottom: 24,
+  container: {
+    marginBottom: 12,
+    shadowColor: '#000',
+    shadowOpacity: 0.08,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 8,
+    elevation: 3,
   },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: COLOR.TEXTO,
+  header: {
     marginBottom: 12,
   },
+  titleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: COLOR.TEXTO,
+    letterSpacing: 0.3,
+    textTransform: 'uppercase',
+  },
   description: {
-    fontSize: 15,
+    fontSize: 14,
     color: COLOR.SUBTEXTO,
     lineHeight: 22,
+    fontWeight: '500',
+    letterSpacing: 0.2,
   },
   textArea: {
-    borderWidth: 1,
-    borderColor: COLOR.BORDE,
-    borderRadius: 8,
+    borderWidth: 1.5,
+    borderColor: `${COLOR.PRIMARIO}30`,
+    borderRadius: 10,
     padding: 12,
-    fontSize: 15,
+    fontSize: 14,
     color: COLOR.TEXTO,
     textAlignVertical: 'top',
     minHeight: 100,
+    backgroundColor: COLOR.SECUNDARIO,
+    fontWeight: '500',
   },
 })

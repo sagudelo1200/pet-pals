@@ -3,7 +3,10 @@ import { Alert } from 'react-native'
 import * as ImagePicker from 'expo-image-picker'
 import { useTranslation } from 'react-i18next'
 import { GestorMascotas } from '@/logic/mascotas'
-import { calcularCompletitud, type CompletitudMascota } from '@/logic/mascotas/calcularCompletitud'
+import {
+  calcularCompletitud,
+  type CompletitudMascota,
+} from '@/logic/mascotas/calcularCompletitud'
 import type { Mascota } from '@/models/Mascota'
 
 export const useEdicionMascota = (
@@ -179,7 +182,42 @@ export const useEdicionMascota = (
     field: K,
     value: Mascota[K]
   ) => {
-    setEditedData(prev => ({ ...prev, [field]: value }))
+    setEditedData(prev => {
+      // Manejo especial para campos anidados de compatibilidad_paseo
+      if (field === 'compatibilidad_paseo' && typeof value === 'string') {
+        // Si es un campo específico de compatibilidad, actualizar estructura anidada
+        return {
+          ...prev,
+          compatibilidad_paseo: {
+            ...(prev.compatibilidad_paseo || {}),
+            tutor: {
+              ...(prev.compatibilidad_paseo?.tutor || {}),
+              [value as any]: value as any,
+              timestamp: Date.now(),
+            },
+          },
+        } as any
+      }
+
+      // Caso especial: field como "ritmo", "compania", "tolerancia"
+      const compatibilidadFields = ['ritmo', 'compania', 'tolerancia']
+      if (compatibilidadFields.includes(field as string)) {
+        return {
+          ...prev,
+          compatibilidad_paseo: {
+            ...(prev.compatibilidad_paseo || {}),
+            tutor: {
+              ...(prev.compatibilidad_paseo?.tutor || {}),
+              [field]: value,
+              timestamp: Date.now(),
+            },
+          },
+        } as any
+      }
+
+      // Comportamiento por defecto
+      return { ...prev, [field]: value }
+    })
   }
 
   const calcularProgresoActual = (): CompletitudMascota => {
@@ -199,6 +237,12 @@ export const useEdicionMascota = (
     return calcularCompletitud(mascota)
   }
 
+  const actualizarMascotaLocal = (updates: Partial<Mascota>) => {
+    if (mascota) {
+      setMascota({ ...mascota, ...updates })
+    }
+  }
+
   return {
     mascota,
     loading,
@@ -214,5 +258,6 @@ export const useEdicionMascota = (
     actualizarCampo,
     eliminarMascota,
     calcularProgresoActual,
+    actualizarMascotaLocal,
   }
 }

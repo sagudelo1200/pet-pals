@@ -47,12 +47,12 @@ export function calcularCompletitud(mascota: Mascota): CompletitudMascota {
   }
 
   // Sección 3: PERFIL DE COMPORTAMIENTO (75%)
+  // Para Sprint 2a: Solo los 4 campos básicos de comportamiento
   const campos_comportamiento = {
     nivel_energia: !!mascota.nivel_energia,
-    condiciones_comportamiento:
-      !!mascota.condiciones_comportamiento &&
-      mascota.condiciones_comportamiento.length > 0,
-    descripcion: !!mascota.descripcion && mascota.descripcion.trim().length > 0,
+    socializacion: !!mascota.socializacion,
+    ansiedad: !!mascota.ansiedad,
+    reactividad: !!mascota.reactividad,
   }
 
   // Sección 4: PERFIL DE SALUD (100%)

@@ -8,13 +8,6 @@ import Constants from 'expo-constants'
 const apiKey = Constants.expoConfig?.extra?.google?.mapsApiKey
 const USE_MOCK = !apiKey
 
-// DEBUG: Ver qué está pasando
-console.log(
-  '[Maps Service] API Key:',
-  apiKey ? '✓ Presente' : '✗ No encontrada'
-)
-console.log('[Maps Service] Usando:', USE_MOCK ? 'MOCK' : 'GOOGLE API')
-
 export const mapasService: IProveedorMapas = USE_MOCK ? mockMapas : googleMapas
 
 // Exportar instancias individuales por si se necesitan específicamente (ej. tests)
