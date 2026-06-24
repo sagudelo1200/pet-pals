@@ -13,6 +13,9 @@ export type AuthStackParamList = {
     mascotaId: string
     mascota?: Mascota
   }
+  EdicionMascota: {
+    mascotaId: string
+  }
 
   PerfilCuidador: undefined
   ExcepcionSemanal: { isoSemana: string }

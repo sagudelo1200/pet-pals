@@ -8,12 +8,16 @@ import {
   type CompletitudMascota,
 } from '@/logic/mascotas/calcularCompletitud'
 import type { Mascota } from '@/models/Mascota'
+import { useMascotaRealtime } from './useMascotaRealtime'
 
 export const useEdicionMascota = (
   mascotaId: string,
   mascotaParam?: Mascota
 ) => {
   const { t } = useTranslation()
+
+  // Listener en tiempo real para mantener sincronización
+  const { mascota: mascotaRealtime } = useMascotaRealtime(mascotaId)
 
   const [mascota, setMascota] = useState<Mascota | null>(mascotaParam || null)
   const [loading, setLoading] = useState(!mascotaParam)
@@ -77,21 +81,11 @@ export const useEdicionMascota = (
       v => v.nombre && v.nombre.trim().length > 0
     )
 
-    // Excluir campos que solo pueden editarse a través de modales asistentes
-    // Los campos de comportamiento solo se editan via ModalComportamientoAsistente
-    // Los campos de compatibilidad solo se editan via ModalCompatibilidadAsistente
-    const {
-      compatibilidad_paseo: _compatibilidad,
-      socializacion: _socializacion,
-      ansiedad: _ansiedad,
-      reactividad: _reactividad,
-      nivel_energia: _nivel_energia,
-      ...datosPermitidos
-    } = editedData
-
-    // Crear payload final con vacunas filtradas y campos protegidos excluidos
+    // Crear payload final con todos los datos editados
+    // Los campos de comportamiento y compatibilidad pueden venir de los modales
+    // o ser editados directamente, así que los incluimos en el guardado
     const payloadGuardar = {
-      ...datosPermitidos,
+      ...editedData,
       vacunas: vacunasValidas.length > 0 ? vacunasValidas : undefined,
     }
 
@@ -116,18 +110,15 @@ export const useEdicionMascota = (
         payloadGuardar
       )
 
-      if (resultado && resultado.success && (resultado as any).data) {
-        setMascota((resultado as any).data)
-        setCambiosRealizados(true)
-      } else if (resultado && resultado.success) {
-        setCambiosRealizados(true)
-      } else {
+      if (!resultado || !resultado.success) {
         throw new Error((resultado as any)?.error || 'Error al guardar')
       }
+
+      setCambiosRealizados(true)
+      // mascotaRealtime sincronizará automáticamente via listener
     } catch (error) {
-      // 6. Rollback en caso de error
+      // Rollback en caso de error
       console.error('Error guardando mascota:', error)
-      setMascota(previousMascota)
       setMascota(previousMascota)
       Alert.alert(
         t('mascotas:errores.sincronizacion_fallida'),
@@ -237,6 +228,8 @@ export const useEdicionMascota = (
           fisico: {},
           comportamiento: {},
           salud: {},
+          compatibilidad: {},
+          notas: {},
         },
       }
     }
@@ -245,7 +238,10 @@ export const useEdicionMascota = (
 
   const actualizarMascotaLocal = (updates: Partial<Mascota>) => {
     if (mascota) {
-      setMascota({ ...mascota, ...updates })
+      // Actualizar AMBOS estados: mascota (para cálculo de completitud) y editedData (para guardado)
+      const mascotaActualizada = { ...mascota, ...updates }
+      setMascota(mascotaActualizada)
+      setEditedData(prev => ({ ...prev, ...updates }))
     }
   }
 

@@ -16,6 +16,8 @@ export interface CompletitudMascota {
     fisico: Record<string, boolean>
     comportamiento: Record<string, boolean>
     salud: Record<string, boolean>
+    compatibilidad: Record<string, boolean>
+    notas: Record<string, boolean>
   }
 }
 
@@ -47,7 +49,6 @@ export function calcularCompletitud(mascota: Mascota): CompletitudMascota {
   }
 
   // Sección 3: PERFIL DE COMPORTAMIENTO (75%)
-  // Para Sprint 2a: Solo los 4 campos básicos de comportamiento
   const campos_comportamiento = {
     nivel_energia: !!mascota.nivel_energia,
     socializacion: !!mascota.socializacion,
@@ -65,7 +66,43 @@ export function calcularCompletitud(mascota: Mascota): CompletitudMascota {
     medicamentos: !!mascota.medicamentos && mascota.medicamentos.length > 0,
   }
 
-  // Verificar completitud por nivel
+  // Sección 5: COMPATIBILIDAD DE PASEO (adicional)
+  const campos_compatibilidad = {
+    ritmo: !!mascota.compatibilidad_paseo?.tutor?.ritmo,
+    compania: !!mascota.compatibilidad_paseo?.tutor?.compania,
+    tolerancia: !!mascota.compatibilidad_paseo?.tutor?.tolerancia,
+    tamano_compatible: !!mascota.compatibilidad_paseo?.tutor?.tamano_compatible,
+  }
+
+  // Sección 6: NOTAS (adicional)
+  const campos_notas = {
+    descripcion: !!mascota.descripcion && mascota.descripcion.trim().length > 0,
+  }
+
+  /**
+   * Calcula porcentaje ponderado de una sección
+   * Cada campo tiene peso igual dentro de su sección
+   */
+  const calcularPorcentajeSeccion = (campos: Record<string, boolean>) => {
+    const totalCampos = Object.keys(campos).length
+    if (totalCampos === 0) return 0
+    const completados = Object.values(campos).filter(Boolean).length
+    return Math.round((completados / totalCampos) * 100)
+  }
+
+  // Calcular porcentajes por sección
+  const porcentaje_basico = calcularPorcentajeSeccion(campos_basico)
+  const porcentaje_fisico = calcularPorcentajeSeccion(campos_fisico)
+  const porcentaje_comportamiento = calcularPorcentajeSeccion(
+    campos_comportamiento
+  )
+  const porcentaje_salud = calcularPorcentajeSeccion(campos_salud)
+  const porcentaje_compatibilidad = calcularPorcentajeSeccion(
+    campos_compatibilidad
+  )
+  const porcentaje_notas = calcularPorcentajeSeccion(campos_notas)
+
+  // Verificar completitud por nivel (requisitos mínimos de sección)
   const basico_completo = Object.values(campos_basico).every(v => v)
   const fisico_completo = Object.values(campos_fisico).every(v => v)
   const comportamiento_completo = Object.values(campos_comportamiento).every(
@@ -73,23 +110,23 @@ export function calcularCompletitud(mascota: Mascota): CompletitudMascota {
   )
   const salud_completo = Object.values(campos_salud).every(v => v)
 
-  // Determinar nivel y porcentaje
+  // Determinar nivel y porcentaje general
   let nivel: 1 | 2 | 3 | 4 = 1
   let porcentaje = 0
 
-  // Nivel 1: Básico
+  // Nivel 1: Básico completo
   if (basico_completo) {
     nivel = 1
     porcentaje = 25
   }
 
-  // Nivel 2: Básico + Físico
+  // Nivel 2: Básico + Físico completos
   if (basico_completo && fisico_completo) {
     nivel = 2
     porcentaje = 50
   }
 
-  // Nivel 3: Básico + Físico + Comportamiento
+  // Nivel 3: Básico + Físico + Comportamiento completos
   if (basico_completo && fisico_completo && comportamiento_completo) {
     nivel = 3
     porcentaje = 75
@@ -119,6 +156,8 @@ export function calcularCompletitud(mascota: Mascota): CompletitudMascota {
       fisico: campos_fisico,
       comportamiento: campos_comportamiento,
       salud: campos_salud,
+      compatibilidad: campos_compatibilidad,
+      notas: campos_notas,
     },
   }
 }

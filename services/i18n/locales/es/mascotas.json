@@ -63,11 +63,24 @@
       "subtitulo": "Una última mirada antes de guardar.",
       "guardar": "Guardar mascota",
       "editar": "Editar información"
-    }
+    },
+    "paso": "Paso",
+    "de": "de"
   },
   "editar": {
     "titulo": "Editar Mascota",
-    "guardar": "Guardar cambios"
+    "guardar": "Guardar cambios",
+    "edicion_info": "Edita los campos que desees completar",
+    "seccion_basica": "Información Básica",
+    "seccion_salud": "Salud",
+    "seccion_comportamiento": "Comportamiento",
+    "seccion_compatibilidad": "Compatibilidad de Paseo",
+    "sobre_mi_mascota": "Sobre mi mascota",
+    "guardado_exitoso": "¡Cambios guardados!",
+    "cambios_guardados": "Los cambios de tu mascota se han guardado exitosamente",
+    "lista_para_paseos": "¡Tu mascota está lista para paseos!",
+    "puedes_solicitar_paseo": "Ahora puedes solicitar un paseador para que cuide y pasee a tu mascota.",
+    "solicitar_paseo": "Solicitar paseo"
   },
   "detalle": {
     "informacion_basica": "Información Básica",

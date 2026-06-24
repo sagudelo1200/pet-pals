@@ -297,6 +297,18 @@ export const CrearMascotaFlow: React.FC<CrearMascotaFlowProps> = ({
 
   return (
     <BottomSheet visible={visible} onClose={onClose}>
+      {/* Barra de progreso minimalista */}
+      <View style={styles.progressBar}>
+        <View
+          style={[
+            styles.progressFill,
+            {
+              width: `${(pasoActual / totalPasos) * 100}%`,
+            },
+          ]}
+        />
+      </View>
+
       {renderPaso()}
       {pasoActual > 1 && (
         <Button
@@ -322,6 +334,17 @@ export const CrearMascotaFlow: React.FC<CrearMascotaFlowProps> = ({
 }
 
 const styles = StyleSheet.create({
+  progressBar: {
+    height: 2,
+    backgroundColor: COLOR.BORDE,
+    borderRadius: 0,
+    overflow: 'hidden',
+  },
+  progressFill: {
+    height: 2,
+    backgroundColor: COLOR.PRIMARIO,
+    borderRadius: 0,
+  },
   pasoContainer: {
     paddingVertical: 20,
   },
@@ -367,19 +390,12 @@ const styles = StyleSheet.create({
     marginTop: 12,
   },
   indicador: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    gap: 8,
-    marginTop: 20,
+    display: 'none', // Ocultar indicador de puntos
   },
   punto: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: COLOR.BORDE,
+    display: 'none',
   },
   puntoActivo: {
-    backgroundColor: COLOR.PRIMARIO,
-    width: 24,
+    display: 'none',
   },
 })

@@ -19,13 +19,26 @@ import {
   ScreenHeader,
 } from '@/components/ui'
 import { useMascotas } from '@/hooks/useMascotas'
+import { useMascotasRealtime } from '@/hooks/useMascotasRealtime'
+import { useAuth } from '@/context/AuthContext'
 import { CrearMascotaFlow } from './CrearMascotaFlow'
 import type { Mascota } from '@/models/Mascota'
 import PerroSoloSvg from '@/assets/imgs/undraw/perro_solo.svg'
 
 export default function Mascotas({ navigation }: any) {
   const { t } = useTranslation()
-  const { mascotas, loading, error, refrescar, crear } = useMascotas()
+  const { user } = useAuth()
+  const { mascotas: mascotasContext, crear, refrescar } = useMascotas()
+  const {
+    mascotas: mascotasRealtime,
+    loading,
+    error,
+  } = useMascotasRealtime(user?.uid)
+
+  // Usar datos en tiempo real si están disponibles, sino usar contexto
+  const mascotas =
+    mascotasRealtime.length > 0 ? mascotasRealtime : mascotasContext
+
   const [modalVisible, setModalVisible] = useState(false)
   const [mascotaEditando, setMascotaEditando] = useState<Mascota | undefined>()
   const fadeAnim = useRef(new Animated.Value(1)).current
@@ -41,7 +54,7 @@ export default function Mascotas({ navigation }: any) {
   }, [loading, mascotas.length])
 
   // Refrescar lista cuando volvemos a esta pantalla desde DetalleMascota
-  // Refrescar lista SOLO si hay cambios confirmados desde DetalleMascota
+  // Con real-time listener, esto ocurre automáticamente
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
       // @ts-ignore
@@ -49,18 +62,13 @@ export default function Mascotas({ navigation }: any) {
         .getState()
         // @ts-ignore
         .routes.find(r => r.name === 'Mascotas')?.params
-      if (params?.refresh) {
-        refrescar()
-        // Limpiar params para evitar bucle infinito si se queda montado con params
-        navigation.setParams({ refresh: undefined })
-      }
       if (params?.openCreate) {
         handleAbrirCrear()
         navigation.setParams({ openCreate: undefined })
       }
     })
     return unsubscribe
-  }, [navigation, refrescar])
+  }, [navigation])
 
   const handleAbrirCrear = () => {
     setMascotaEditando(undefined)

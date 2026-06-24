@@ -141,13 +141,14 @@ export const ModalAsistenteGenerico: React.FC<ModalAsistenteGenericoProps> = ({
       setIsSaving(true)
       try {
         const payload = config.construirPayload(valores)
-        const resultado = await GestorMascotas.actualizar(mascotaId, payload)
 
-        if (!resultado.success) {
-          Alert.alert(t('comun:error'), t('mascotas:errores.error_guardar'))
-          return
+        // Guardar en Firebase primero
+        const resultado = await GestorMascotas.actualizar(mascotaId, payload)
+        if (!resultado || !resultado.success) {
+          throw new Error('Error al guardar en Firebase')
         }
 
+        // Luego notificar al padre para que actualice estado local
         if (onCompleted) {
           onCompleted(payload)
         }

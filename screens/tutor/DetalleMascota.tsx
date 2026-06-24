@@ -85,7 +85,7 @@ const DetalleMascota: React.FC = () => {
   } = useCompatibilidadEditor(mascotaNormalizada)
 
   // Hooks
-  const { slideAnim, opacityAnim, panResponder, isExpanded, expandir, cerrar } =
+  const { slideAnim, opacityAnim, panResponder, isExpanded, cerrar } =
     useAnimacionModal({
       onClose: () => {
         if (cambiosRealizados) {
@@ -116,7 +116,6 @@ const DetalleMascota: React.FC = () => {
     isEditMode,
     editedData,
     saving,
-    iniciarEdicion,
     cancelarEdicion,
     guardarCambios,
     cambiarFoto,
@@ -127,10 +126,10 @@ const DetalleMascota: React.FC = () => {
   } = useEdicionMascota(mascotaId, mascotaNormalizada)
 
   const handleEdit = () => {
-    iniciarEdicion()
-    if (!isExpanded) {
-      expandir()
-    }
+    // Navegar a pantalla de edición completa
+    ;(navigation as any).navigate('EdicionMascota', {
+      mascotaId,
+    })
   }
 
   const handlePaseo = () => {

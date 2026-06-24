@@ -6,6 +6,7 @@ import AdminTabNavigator from '@/navigation/AdminTabNavigator'
 import ExplorerTabNavigator from '@/navigation/ExplorerTabNavigator'
 import AuthNavigator from './AuthNavigator'
 import DetalleMascota from '@/screens/tutor/DetalleMascota'
+import { EdicionMascota } from '@/screens/tutor/EdicionMascota'
 import PaseoActivo from '@/screens/tutor/PaseoActivo'
 import PaseoFinalizado from '@/screens/tutor/PaseoFinalizado'
 import ControlPaseo from '@/screens/cuidador/ControlPaseo'
@@ -33,6 +34,14 @@ export default function RootNavigator(): React.ReactElement {
           presentation: 'transparentModal',
           headerShown: false,
           cardStyle: { backgroundColor: 'transparent' },
+        }}
+      />
+      <Stack.Screen
+        name="EdicionMascota"
+        component={EdicionMascota}
+        options={{
+          headerShown: false,
+          presentation: 'card',
         }}
       />
       <Stack.Screen name="PerfilCuidador" component={PerfilCuidador} />

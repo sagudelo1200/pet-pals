@@ -34,7 +34,7 @@ export const MascotasProvider: React.FC<{ children: ReactNode }> = ({
   children,
 }) => {
   const { t } = useTranslation()
-  const { user } = useAuth() // Get user from AuthContext
+  const { user } = useAuth()
   const [mascotas, setMascotas] = useState<Mascota[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -62,7 +62,7 @@ export const MascotasProvider: React.FC<{ children: ReactNode }> = ({
     } finally {
       setLoading(false)
     }
-  }, [t, user]) // Add user dependency
+  }, [t, user])
 
   useEffect(() => {
     cargarMascotas()

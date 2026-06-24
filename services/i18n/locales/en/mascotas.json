@@ -63,11 +63,24 @@
       "subtitulo": "One last look before saving.",
       "guardar": "Save pet",
       "editar": "Edit information"
-    }
+    },
+    "paso": "Step",
+    "de": "of"
   },
   "editar": {
     "titulo": "Edit Pet",
-    "guardar": "Save changes"
+    "guardar": "Save changes",
+    "edicion_info": "Edit the fields you want to complete",
+    "seccion_basica": "Basic Information",
+    "seccion_salud": "Health",
+    "seccion_comportamiento": "Behavior",
+    "seccion_compatibilidad": "Walk Compatibility",
+    "sobre_mi_mascota": "About my pet",
+    "guardado_exitoso": "Changes saved!",
+    "cambios_guardados": "Your pet's changes have been saved successfully",
+    "lista_para_paseos": "Your pet is ready for walks!",
+    "puedes_solicitar_paseo": "You can now request a pet sitter to care for and walk your pet.",
+    "solicitar_paseo": "Request a walk"
   },
   "detalle": {
     "informacion_basica": "Basic Information",

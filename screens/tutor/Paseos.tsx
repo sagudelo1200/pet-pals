@@ -6,6 +6,7 @@ import {
   useIsFocused,
   useRoute,
   RouteProp,
+  useFocusEffect,
 } from '@react-navigation/native'
 import type { TutorTabParamList } from '@/navigation/types'
 import { COLOR } from '@/constants'
@@ -22,6 +23,7 @@ import { usePaseos } from '@/hooks/paseos/usePaseos'
 import DetallePaseoBottomSheet from '@/components/paseos/DetallePaseoBottomSheet'
 import { ESTADOS_PASEO } from '@/models/Paseo'
 import { obtenerExperienciaPaseo } from '@/logic/paseos/routerPaseos'
+import { calcularCompletitud } from '@/logic/mascotas/calcularCompletitud'
 
 type TabTipo = 'proximos' | 'historial'
 
@@ -94,31 +96,91 @@ const Paseos: React.FC = () => {
       )
       return
     }
+
+    // Verificar si al menos una mascota está lista para paseos (nivel >= 2)
+    const mascotasListas = mascotas.filter(m => {
+      const completitud = calcularCompletitud(m)
+      return completitud.nivel >= 2
+    })
+
+    if (mascotasListas.length === 0) {
+      Alert.alert(
+        t('paseos:errores.mascota_no_lista_titulo'),
+        t('paseos:errores.mascota_no_lista_msg'),
+        [
+          { text: t('comun:entendido'), style: 'cancel' },
+          {
+            text: t('paseos:errores.completar_perfil'),
+            onPress: () => {
+              // @ts-ignore
+              navigation.navigate('Mascotas')
+            },
+          },
+        ]
+      )
+      return
+    }
+
     setModalVisible(true)
   }
 
   // Open modal if navigation params request it (e.g., from DetalleMascota)
-  React.useEffect(() => {
-    const params = route.params as any
-    if (params?.abrirSolicitar) {
-      const mascotaId = params.mascotaId
-      setMascotasInicialesIds(mascotaId ? [mascotaId] : undefined)
-      setForzarMascotaInicial(!!params.forzarMascotaInicial)
-      setModalVisible(true)
-      // Ensure the 'forzar' flag only applies once: clear it in the next tick
-      setTimeout(() => setForzarMascotaInicial(false), 0)
-      try {
-        // @ts-ignore
-        navigation.setParams?.({
-          abrirSolicitar: false,
-          mascotaId: undefined,
-          forzarMascotaInicial: false,
-        })
-      } catch (_e) {
-        // ignore if not supported
+  // Use useFocusEffect to listen every time the screen is focused
+  useFocusEffect(
+    React.useCallback(() => {
+      const params = route.params as any
+      if (params?.abrirSolicitar) {
+        const mascotaId = params.mascotaId
+
+        // Validar que la mascota esté lista para paseos (nivel >= 2)
+        if (mascotaId) {
+          const mascota = mascotas.find(m => m.id === mascotaId)
+          if (mascota) {
+            const completitud = calcularCompletitud(mascota)
+            if (completitud.nivel < 2) {
+              Alert.alert(
+                t('paseos:errores.mascota_no_lista_titulo'),
+                t('paseos:errores.mascota_no_lista_msg'),
+                [
+                  {
+                    text: t('comun:entendido'),
+                    onPress: () => {
+                      try {
+                        // @ts-ignore
+                        navigation.setParams?.({
+                          abrirSolicitar: false,
+                          mascotaId: undefined,
+                        })
+                      } catch (_e) {
+                        // ignore
+                      }
+                    },
+                  },
+                ]
+              )
+              return
+            }
+          }
+        }
+
+        setMascotasInicialesIds(mascotaId ? [mascotaId] : undefined)
+        setForzarMascotaInicial(!!params.forzarMascotaInicial)
+        setModalVisible(true)
+        // Ensure the 'forzar' flag only applies once: clear it in the next tick
+        setTimeout(() => setForzarMascotaInicial(false), 0)
+        try {
+          // @ts-ignore
+          navigation.setParams?.({
+            abrirSolicitar: false,
+            mascotaId: undefined,
+            forzarMascotaInicial: false,
+          })
+        } catch (_e) {
+          // ignore if not supported
+        }
       }
-    }
-  }, [route.params])
+    }, [route.params, navigation, mascotas, t])
+  )
 
   // Filtrado de datos
   const proximos = useMemo(
