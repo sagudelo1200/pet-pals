@@ -29,6 +29,7 @@ import { useRutaARecogida } from '@/hooks/paseos/useRutaARecogida'
 import { Button, Mapa, Icon } from '@/components/ui'
 import { BannerUbicacion } from '@/components/comun/BannerUbicacion'
 import { ModalIngresarCodigo } from '@/components/paseos/ModalIngresarCodigo'
+import { ChatPanel } from '@/components/chat'
 import type { AuthStackParamList } from '@/navigation/types'
 import { densificarRuta } from '@/services/geo'
 import { GestorPaseos } from '@/logic/paseos'
@@ -89,6 +90,7 @@ const ControlPaseo: React.FC = () => {
   // Estados para modal de validación de código
   const [mostrarModalCodigo, setMostrarModalCodigo] = useState(false)
   const [validandoCodigo, setValidandoCodigo] = useState(false)
+  const [mostrarChat, setMostrarChat] = useState(false)
 
   // Referencia al mapa para centrado
   const mapRef = useRef<MapView>(null)
@@ -664,6 +666,7 @@ const ControlPaseo: React.FC = () => {
               modoTransporte={modoTransporte}
               setModoTransporte={setModoTransporte}
               mostrarToggleModo={paseo?.estado === ESTADOS_PASEO.EN_CAMINO}
+              onChat={() => setMostrarChat(true)}
             />
           </BlurView>
         ) : (
@@ -677,6 +680,7 @@ const ControlPaseo: React.FC = () => {
               modoTransporte={modoTransporte}
               setModoTransporte={setModoTransporte}
               mostrarToggleModo={paseo?.estado === ESTADOS_PASEO.EN_CAMINO}
+              onChat={() => setMostrarChat(true)}
             />
           </View>
         )}
@@ -889,6 +893,13 @@ const ControlPaseo: React.FC = () => {
         isLoading={validandoCodigo}
         esUnicoTutor={mascotasPorTutor.length === 1}
       />
+
+      {/* Chat Panel: Bottom Sheet */}
+      <ChatPanel
+        paseoId={paseoId}
+        visible={mostrarChat}
+        onClose={() => setMostrarChat(false)}
+      />
     </View>
   )
 }
@@ -903,6 +914,7 @@ const HeaderContent: React.FC<{
   modoTransporte?: 'walking' | 'driving'
   setModoTransporte?: (_modo: 'walking' | 'driving') => void
   mostrarToggleModo?: boolean
+  onChat?: () => void
 }> = ({
   navigation,
   tiempoTranscurrido,
@@ -912,6 +924,7 @@ const HeaderContent: React.FC<{
   modoTransporte = 'walking',
   setModoTransporte,
   mostrarToggleModo,
+  onChat,
 }) => (
   <View style={styles.headerContent}>
     <TouchableOpacity
@@ -960,8 +973,8 @@ const HeaderContent: React.FC<{
       )}
     </View>
 
-    <TouchableOpacity style={styles.headerButton}>
-      <Ionicons name="ellipsis-vertical" size={24} color={COLOR.TEXTO} />
+    <TouchableOpacity onPress={onChat} style={styles.headerButton}>
+      <Ionicons name="chatbubble" size={24} color={COLOR.TEXTO} />
     </TouchableOpacity>
   </View>
 )

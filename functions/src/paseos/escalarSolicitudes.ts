@@ -44,7 +44,7 @@ const getTasksClient = (): CloudTasksClient => {
  * Crea una Cloud Task programada para 10 minutos después
  */
 export const onCrearPaseoDirecto = onDocumentCreated("paseos", async (event) => {
-  const paseo = event.data?.data() as any;
+  const paseo = event.data?.data() as Record<string, unknown>;
   const paseoId = event.data?.id;
 
   // Solo procesar paseos DIRECTA (tienen id_cuidador y estado PENDIENTE)
@@ -152,7 +152,7 @@ export const escalarPaseoIndividual = onRequest(
           return {success: false, razon: "Paseo no existe"};
         }
 
-        const docData = docSnap.data() as any;
+        const docData = docSnap.data() as Record<string, unknown>;
 
         // Validación 1: Estado debe ser PENDIENTE
         if (docData.estado !== "PENDIENTE") {
@@ -223,9 +223,10 @@ export const escalarPaseoIndividual = onRequest(
 
       // Fire-and-forget: Notificar al tutor (no bloquea la respuesta)
       if (resultado.docData?.creado_por) {
-        notificarTutorEscalada(paseoId, resultado.docData.creado_por).catch((e) =>
-          console.warn("[Escalada] Error en notificación:", e)
-        );
+        notificarTutorEscalada(
+          paseoId,
+          resultado.docData.creado_por as string
+        ).catch((e) => console.warn("[Escalada] Error en notificación:", e));
       }
 
       res.status(200).json({

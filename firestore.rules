@@ -404,6 +404,49 @@ service cloud.firestore {
       allow delete: if autenticado() && (resource.data.id_explorador == request.auth.uid || es_admin());
     }
 
+    // CONVERSACIONES (CHAT)
+    match /conversaciones/{docId} {
+      // Lectura: solo participantes de la conversación
+      allow read: if autenticado() && request.auth.uid in resource.data.participantes;
+
+      // Crear: solo Cloud Function (se activa cuando paseo pasa a CONFIRMADO)
+      allow create: if false;
+
+      // Actualizar: solo para cambiar activa/cerrada_en (cuando paseo finaliza)
+      allow update: if false; // Por ahora, solo Cloud Function
+
+      // Eliminar: no permitir
+      allow delete: if false;
+
+      // SUBCOLECCION: MENSAJES
+      match /mensajes/{msgId} {
+        // Lectura: solo participantes de la conversación
+        allow read: if autenticado() && 
+        request.auth.uid in get(/databases/$(database)/documents/conversaciones/$(docId)).data.participantes;
+
+        // Crear: solo participantes de la conversación
+        allow create: if autenticado() &&
+        request.auth.uid in get(/databases/$(database)/documents/conversaciones/$(docId)).data.participantes &&
+        request.resource.data.autor_uid == request.auth.uid &&
+        request.resource.data.contenido is string &&
+        request.resource.data.contenido.size() > 0 &&
+        request.resource.data.contenido.size() <= 5000 &&
+        request.resource.data.tipo_mensaje in ['texto', 'sistema', 'notificacion'] &&
+        tiene_campos_sistema_basicos() &&
+        campos_sistema_validos_crear();
+
+        // Actualizar: solo marcar como leído (agregar a leidos_por)
+        allow update: if autenticado() &&
+        request.auth.uid in get(/databases/$(database)/documents/conversaciones/$(docId)).data.participantes &&
+        request.resource.data.leidos_por[request.auth.uid] == true &&
+        request.resource.data.contenido == resource.data.contenido &&
+        campos_sistema_validos_actualizar();
+
+        // Eliminar: no permitir (solo admin en casos de abuso)
+        allow delete: if false;
+      }
+    }
+
     // RESUMEN TERRITORIAL AGREGADO
     // /territorio_resumen/{h3_index}
     match /territorio_resumen/{h3Index} {

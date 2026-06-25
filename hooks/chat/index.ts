@@ -1,0 +1,1 @@
+export { useMensajesPaseo } from './useMensajesPaseo'

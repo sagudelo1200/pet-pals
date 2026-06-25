@@ -79,7 +79,7 @@ const listFunctions = async () => {
   try {
     log('\n📋 Listando Cloud Functions desplegadas...', 'info')
     const output = runCommand(
-      'firebase functions:list --json',
+      'firebase functions:list --json --project pet-pals-369',
       'Obteniendo lista de funciones'
     )
 
@@ -132,7 +132,7 @@ const listFunctions = async () => {
 const getFunctionLogs = async functionName => {
   try {
     log(`\n📊 Obteniendo logs de ${functionName}...`, 'info')
-    const cmd = `firebase functions:log --follow=false -- ${functionName}`
+    const cmd = `firebase functions:log --follow=false --project pet-pals-369 -- ${functionName}`
     const output = runCommand(cmd, `Leyendo logs de ${functionName}`)
 
     if (output) {
@@ -174,7 +174,7 @@ const deleteFunction = async (functionName, region = REGION) => {
       'info'
     )
 
-    const cmd = `gcloud functions delete ${functionName} --region=${region} --quiet`
+    const cmd = `gcloud functions delete ${functionName} --region=${region} --project pet-pals-369 --quiet`
     const result = runCommand(cmd, `Eliminando ${functionName}`)
 
     if (result !== null) {
@@ -237,7 +237,7 @@ const deleteAllFunctions = async () => {
     let deletedCount = 0
     for (const fn of functionsToDelete) {
       try {
-        const cmd = `gcloud functions delete ${fn.id} --region=${fn.region} --quiet`
+        const cmd = `gcloud functions delete ${fn.id} --region=${fn.region} --project pet-pals-369 --quiet`
         const result = runCommand(cmd, `Eliminando ${fn.id} (${fn.region})`)
         if (result !== null) {
           deletedCount++
@@ -283,7 +283,7 @@ const verifySetup = async () => {
     // Verificar que estamos autenticados
     try {
       const project = runCommand(
-        'firebase projects:list --json',
+        'firebase projects:list --json --project pet-pals-369',
         'Verificando autenticación'
       )
       if (!project) throw new Error()

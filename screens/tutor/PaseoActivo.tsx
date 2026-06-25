@@ -20,6 +20,7 @@ import { Mapa, Icon, Spacer, Button } from '@/components/ui'
 import PerroTristeSvg from '@/assets/imgs/undraw/perro_triste_come_periodico.svg'
 import InfoCuidadorCard from '@/components/paseos/InfoCuidadorCard'
 import { ModalCodigoRecogidaTutor } from '@/components/paseos/ModalCodigoRecogidaTutor'
+import { ChatPanel } from '@/components/chat'
 import { useSincronizadorPaseo } from '@/hooks/paseos/useSincronizadorPaseo'
 import { useCodigosRecogidaPorTutor } from '@/hooks/paseos/useCodigosRecogidaPorTutor'
 import { useRutaARecogida } from '@/hooks/paseos/useRutaARecogida'
@@ -67,6 +68,7 @@ export default function PaseoActivo({ route, navigation }: Props) {
   })
 
   const [mostrarModalCodigo, setMostrarModalCodigo] = useState(false)
+  const [mostrarChat, setMostrarChat] = useState(false)
   const [yaNotificado, setYaNotificado] = useState(false)
   const navigationAttempted = useRef(false)
   const modalCodigoProcessed = useRef(false)
@@ -530,7 +532,7 @@ export default function PaseoActivo({ route, navigation }: Props) {
             name={paseo.cuidador_nombre_visual}
             size={48}
             onChat={() => {
-              // TODO: implementar chat
+              setMostrarChat(true)
             }}
           />
 
@@ -656,6 +658,13 @@ export default function PaseoActivo({ route, navigation }: Props) {
             />
           )
         })()}
+
+      {/* Chat Panel: Bottom Sheet */}
+      <ChatPanel
+        paseoId={paseoId}
+        visible={mostrarChat}
+        onClose={() => setMostrarChat(false)}
+      />
     </View>
   )
 }
