@@ -11,7 +11,7 @@ import {
 } from 'react-native'
 import { Marker, Polyline, Region, AnimatedRegion } from 'react-native-maps'
 import { useTranslation } from 'react-i18next'
-import { useFocusEffect } from '@react-navigation/native'
+import { useFocusEffect, useNavigation } from '@react-navigation/native'
 import { StackScreenProps } from '@react-navigation/stack'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
@@ -20,7 +20,6 @@ import { Mapa, Icon, Spacer, Button } from '@/components/ui'
 import PerroTristeSvg from '@/assets/imgs/undraw/perro_triste_come_periodico.svg'
 import InfoCuidadorCard from '@/components/paseos/InfoCuidadorCard'
 import { ModalCodigoRecogidaTutor } from '@/components/paseos/ModalCodigoRecogidaTutor'
-import { ChatPanel } from '@/components/chat'
 import { useSincronizadorPaseo } from '@/hooks/paseos/useSincronizadorPaseo'
 import { useCodigosRecogidaPorTutor } from '@/hooks/paseos/useCodigosRecogidaPorTutor'
 import { useRutaARecogida } from '@/hooks/paseos/useRutaARecogida'
@@ -68,7 +67,6 @@ export default function PaseoActivo({ route, navigation }: Props) {
   })
 
   const [mostrarModalCodigo, setMostrarModalCodigo] = useState(false)
-  const [mostrarChat, setMostrarChat] = useState(false)
   const [yaNotificado, setYaNotificado] = useState(false)
   const navigationAttempted = useRef(false)
   const modalCodigoProcessed = useRef(false)
@@ -532,7 +530,7 @@ export default function PaseoActivo({ route, navigation }: Props) {
             name={paseo.cuidador_nombre_visual}
             size={48}
             onChat={() => {
-              setMostrarChat(true)
+              navigation.navigate('Chat', { paseoId })
             }}
           />
 
@@ -658,13 +656,6 @@ export default function PaseoActivo({ route, navigation }: Props) {
             />
           )
         })()}
-
-      {/* Chat Panel: Bottom Sheet */}
-      <ChatPanel
-        paseoId={paseoId}
-        visible={mostrarChat}
-        onClose={() => setMostrarChat(false)}
-      />
     </View>
   )
 }

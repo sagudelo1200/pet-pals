@@ -13,6 +13,7 @@ import ControlPaseo from '@/screens/cuidador/ControlPaseo'
 import PerfilCuidador from '@/screens/cuidador/PerfilCuidador'
 import ExcepcionSemanal from '@/screens/cuidador/ExcepcionSemanal'
 import CoberturaCuidador from '@/screens/cuidador/CoberturaCuidador'
+import { ChatScreen } from '@/screens/paseos/ChatScreen'
 import { AuthStackParamList } from './types'
 
 // Stack principal con autenticación
@@ -79,6 +80,14 @@ export default function RootNavigator(): React.ReactElement {
           headerShown: true,
           headerTitle: 'Control de Paseo 🐾',
           headerBackTitleVisible: false,
+        }}
+      />
+      <Stack.Screen
+        name="Chat"
+        component={ChatScreen}
+        options={{
+          headerShown: false,
+          presentation: 'card',
         }}
       />
     </Stack.Navigator>

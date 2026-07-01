@@ -317,7 +317,11 @@ const DetallePaseoBottomSheet: React.FC<Props> = ({
             })}
             icon="comment-dots"
             onPress={() => {
-              // TODO: Implementar chat/llamada
+              onClose()
+              setTimeout(() => {
+                // @ts-ignore
+                navigation.navigate('Chat', { paseoId: paseo.id })
+              }, 300)
             }}
             style={styles.actionButton}
           />

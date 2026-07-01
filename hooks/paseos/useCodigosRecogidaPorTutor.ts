@@ -82,11 +82,6 @@ export function useCodigosRecogidaPorTutor(
           const validados = paseo.codigo_recogida_validado_por_tutor || {}
           const intentos = paseo.intentos_fallidos_recogida_por_tutor || {}
 
-          console.log(
-            '[useCodigosRecogidaPorTutor] Actualización de Firestore:',
-            { intentos }
-          )
-
           if (isMounted) {
             setCodigosPorTutor(codigos)
             setValidadosPorTutor(validados)

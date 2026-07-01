@@ -2,7 +2,7 @@ import React, { useRef, useEffect, useState } from 'react'
 import {
   View,
   StyleSheet,
-  FlatList,
+  ScrollView,
   TextInput,
   TouchableOpacity,
   ActivityIndicator,
@@ -62,11 +62,6 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
       }
     }
   }, [visible, conversacion, mensajes, user?.uid, marcarComoLeido])
-
-  // Debug: log de mensajes
-  useEffect(() => {
-    console.log('[ChatPanel] Mensajes actuales:', mensajes.length, mensajes)
-  }, [mensajes])
 
   const handleEnviar = async () => {
     if (!contenido.trim() || enviando) return
@@ -182,43 +177,41 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
           </View>
 
           {/* Contenedor principal de mensajes - con flex */}
-          <View style={styles.mensajesWrapper}>
-            {loading ? (
+          <View style={styles.listaWrapper}>
+            {loading && (
               <View style={styles.centerContent}>
                 <ActivityIndicator size="large" color={COLOR.ENFASIS} />
               </View>
-            ) : error ? (
+            )}
+
+            {error && (
               <View style={styles.centerContent}>
                 <Icon name="exclamation-circle" size={48} color={COLOR.ERROR} />
                 <Text style={styles.errorText}>{error}</Text>
               </View>
-            ) : mensajes.length === 0 ? (
+            )}
+
+            {!loading && !error && mensajes.length === 0 && (
               <View style={styles.centerContent}>
                 <Icon name="comments" size={48} color={COLOR.BORDE} />
                 <Text style={styles.emptyText}>
                   {t('chat:sin_mensajes') || 'Sin mensajes aún'}
                 </Text>
               </View>
-            ) : (
-              <>
-                <Text
-                  style={{
-                    fontSize: 10,
-                    color: COLOR.SUBTEXTO,
-                    paddingHorizontal: 12,
-                  }}
-                >
-                  Debug: {mensajes.length} mensajes
-                </Text>
-                <FlatList
-                  data={mensajes}
-                  renderItem={renderMensaje}
-                  keyExtractor={item => item.id}
-                  style={styles.listaContent}
-                  contentContainerStyle={styles.listaContentPadding}
-                  scrollEnabled={true}
-                />
-              </>
+            )}
+
+            {!loading && !error && mensajes.length > 0 && (
+              <ScrollView
+                style={{ flex: 1 }}
+                contentContainerStyle={styles.listaContentPadding}
+                scrollEnabled={true}
+              >
+                {mensajes.map(mensaje => (
+                  <View key={mensaje.id}>
+                    {renderMensaje({ item: mensaje })}
+                  </View>
+                ))}
+              </ScrollView>
             )}
           </View>
 
@@ -304,14 +297,13 @@ const styles = StyleSheet.create({
     backgroundColor: COLOR.BASE,
     overflow: 'hidden',
   },
-  listaContent: {
+  listaWrapper: {
     flex: 1,
-    width: '100%',
+    backgroundColor: COLOR.BASE,
   },
   listaContentPadding: {
     paddingHorizontal: 12,
     paddingVertical: 12,
-    flexGrow: 1,
   },
   mensajeContainer: {
     marginVertical: 6,

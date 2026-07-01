@@ -14,6 +14,7 @@ import {
   useNavigation,
   useFocusEffect,
 } from '@react-navigation/native'
+import { StackScreenProps } from '@react-navigation/stack'
 import { useTranslation } from 'react-i18next'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import MapView, { Marker, Polyline, AnimatedRegion } from 'react-native-maps'
@@ -29,7 +30,6 @@ import { useRutaARecogida } from '@/hooks/paseos/useRutaARecogida'
 import { Button, Mapa, Icon } from '@/components/ui'
 import { BannerUbicacion } from '@/components/comun/BannerUbicacion'
 import { ModalIngresarCodigo } from '@/components/paseos/ModalIngresarCodigo'
-import { ChatPanel } from '@/components/chat'
 import type { AuthStackParamList } from '@/navigation/types'
 import { densificarRuta } from '@/services/geo'
 import { GestorPaseos } from '@/logic/paseos'
@@ -48,7 +48,10 @@ const ESTADOS_FLUJO = [
 const ControlPaseo: React.FC = () => {
   const { t } = useTranslation()
   const route = useRoute<ControlPaseoRouteProp>()
-  const navigation = useNavigation()
+  const navigation =
+    useNavigation<
+      StackScreenProps<AuthStackParamList, 'ControlPaseo'>['navigation']
+    >()
   const insets = useSafeAreaInsets()
   const { paseoId } = route.params
 
@@ -90,7 +93,6 @@ const ControlPaseo: React.FC = () => {
   // Estados para modal de validación de código
   const [mostrarModalCodigo, setMostrarModalCodigo] = useState(false)
   const [validandoCodigo, setValidandoCodigo] = useState(false)
-  const [mostrarChat, setMostrarChat] = useState(false)
 
   // Referencia al mapa para centrado
   const mapRef = useRef<MapView>(null)
@@ -666,7 +668,7 @@ const ControlPaseo: React.FC = () => {
               modoTransporte={modoTransporte}
               setModoTransporte={setModoTransporte}
               mostrarToggleModo={paseo?.estado === ESTADOS_PASEO.EN_CAMINO}
-              onChat={() => setMostrarChat(true)}
+              onChat={() => navigation.navigate('Chat', { paseoId })}
             />
           </BlurView>
         ) : (
@@ -680,7 +682,7 @@ const ControlPaseo: React.FC = () => {
               modoTransporte={modoTransporte}
               setModoTransporte={setModoTransporte}
               mostrarToggleModo={paseo?.estado === ESTADOS_PASEO.EN_CAMINO}
-              onChat={() => setMostrarChat(true)}
+              onChat={() => navigation.navigate('Chat', { paseoId })}
             />
           </View>
         )}
@@ -895,11 +897,6 @@ const ControlPaseo: React.FC = () => {
       />
 
       {/* Chat Panel: Bottom Sheet */}
-      <ChatPanel
-        paseoId={paseoId}
-        visible={mostrarChat}
-        onClose={() => setMostrarChat(false)}
-      />
     </View>
   )
 }

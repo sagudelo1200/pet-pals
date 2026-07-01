@@ -23,6 +23,7 @@ export type AuthStackParamList = {
   PaseoActivo: { paseoId: string }
   PaseoFinalizado: { paseoId: string }
   ControlPaseo: { paseoId: string }
+  Chat: { paseoId: string }
 }
 
 // Flujo interno de autenticación (pantallas del stack de Auth)
