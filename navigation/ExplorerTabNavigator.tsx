@@ -2,6 +2,7 @@ import React from 'react'
 import { Platform } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
+import { createStackNavigator } from '@react-navigation/stack'
 import { ExplorerTabParamList } from './types'
 import { Icon } from '@/components/ui'
 import { COLOR } from '@/constants'
@@ -11,6 +12,8 @@ import { useTranslation } from 'react-i18next'
 import InicioExplorador from '@/screens/explorador/InicioExplorador'
 import MapaTerritorial from '@/screens/explorador/MapaTerritorial'
 import HistorialExploraciones from '@/screens/explorador/HistorialExploraciones'
+import ExplorarLibremente from '@/screens/explorador/ExplorarLibremente'
+import ResumenExploracion from '@/screens/explorador/ResumenExploracion'
 import CapturaTerritorial from '@/screens/explorador/CapturaTerritorial'
 import MiCuenta from '@/screens/comun/MiCuenta'
 import {
@@ -19,6 +22,7 @@ import {
 } from '@/context/CapturaTerritorialContext'
 
 const Tab = createBottomTabNavigator<ExplorerTabParamList>()
+const Stack = createStackNavigator<ExplorerTabParamList>()
 
 const TabNavigatorContent = () => {
   const { t } = useTranslation()
@@ -113,10 +117,49 @@ const TabNavigatorWithCaptura = () => {
   )
 }
 
+// Stack Navigator que maneja tabs + pantallas de exploración modales
+const RootExplorerNavigator = () => {
+  return (
+    <Stack.Navigator
+      screenOptions={{
+        headerShown: false,
+      }}
+    >
+      {/* Tabs principales */}
+      <Stack.Group>
+        <Stack.Screen
+          name="InicioExplorador"
+          component={TabNavigatorWithCaptura}
+          options={{
+            animationTypeForReplace: 'pop',
+          }}
+        />
+      </Stack.Group>
+
+      {/* Pantallas modales de exploración a pantalla completa */}
+      <Stack.Group
+        screenOptions={{
+          animationEnabled: true,
+          cardStyle: { backgroundColor: 'transparent' },
+        }}
+      >
+        <Stack.Screen
+          name="ExplorarLibremente"
+          component={ExplorarLibremente}
+        />
+        <Stack.Screen
+          name="ResumenExploracion"
+          component={ResumenExploracion}
+        />
+      </Stack.Group>
+    </Stack.Navigator>
+  )
+}
+
 const ExplorerTabNavigator = () => {
   return (
     <CapturaTerritorialProvider>
-      <TabNavigatorWithCaptura />
+      <RootExplorerNavigator />
     </CapturaTerritorialProvider>
   )
 }

@@ -69,4 +69,11 @@ export type ExplorerTabParamList = {
   MapaTerritorial: undefined
   HistorialExploraciones: undefined
   MiCuenta: undefined
+  ExplorarLibremente: undefined
+  ResumenExploracion: {
+    eventos: any[]
+    tiempoTotal: string
+    mascotasObservadas: number
+    huellas: number
+  }
 }

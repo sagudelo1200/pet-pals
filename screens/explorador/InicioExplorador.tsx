@@ -1,12 +1,12 @@
 import React from 'react'
 import { View, Text, StyleSheet, ScrollView } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import { useNavigation } from '@react-navigation/native'
 import Screen from '@/components/ui/Screen'
 import { Button, Card, Icon } from '@/components/ui'
 import { COLOR } from '@/constants'
 import { useTranslation } from 'react-i18next'
 import { LinearGradient } from 'expo-linear-gradient'
-import { useCapturaTerritorial } from '@/context/CapturaTerritorialContext'
 import { useHistorialExploraciones } from '@/hooks/explorador/useHistorialExploraciones'
 
 /**
@@ -17,7 +17,7 @@ import { useHistorialExploraciones } from '@/hooks/explorador/useHistorialExplor
 const InicioExplorador = () => {
   const { t } = useTranslation()
   const insets = useSafeAreaInsets()
-  const { abrirCaptura } = useCapturaTerritorial()
+  const navigation = useNavigation<any>()
   const { exploraciones } = useHistorialExploraciones()
 
   // Calcular estadísticas
@@ -74,7 +74,7 @@ const InicioExplorador = () => {
             variant="primario"
             size="lg"
             icon="plus-circle"
-            onPress={abrirCaptura}
+            onPress={() => navigation.navigate('ExplorarLibremente')}
             style={styles.explorationButton}
           />
 
