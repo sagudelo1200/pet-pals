@@ -13,7 +13,7 @@ import { COLOR } from '@/constants'
 interface InputFooterProps {
   inputRef: React.RefObject<TextInput>
   contenido: string
-  setContenido: (text: string) => void
+  setContenido: (_text: string) => void
   handleEnviar: () => Promise<void>
   enviando: boolean
   conversacion: any

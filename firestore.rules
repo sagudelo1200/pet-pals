@@ -379,30 +379,36 @@ service cloud.firestore {
     // EXPLORACIONES TERRITORIALES
     // /exploraciones/{id}
     match /exploraciones/{id} {
-      // Lectura: solo el explorador que creó la captura puede leerla
-      allow read: if autenticado() && resource.data.id_explorador == request.auth.uid;
+      // Lectura: explorador puede ver sus propias capturas, admin ve todas
+      allow read: if autenticado() && 
+      (resource.data.id_explorador == request.auth.uid || es_admin());
 
-      // Crear: solo usuarios con rol explorador
+      // Crear: usuarios autenticados pueden crear exploraciones
       allow create: if autenticado()
-        && tiene_rol_actual('explorador')
         && es_creador()
         && tiene_campos_sistema_basicos()
         && campos_sistema_validos_crear()
         && request.resource.data.id_explorador == request.auth.uid
         && request.resource.data.h3_index is string
         && request.resource.data.h3_index.size() > 0
-        && request.resource.data.tipo_punto in ['parque','calle','comercio','conjunto','nodo_social','otro']
+        && request.resource.data.tipo_punto in ['parque','calle','comercio','conjunto','otro']
         && request.resource.data.mascotas_visibles is int
-        && request.resource.data.mascotas_visibles >= 0;
+        && request.resource.data.mascotas_visibles >= 0
+        && request.resource.data.flujo_peatonal in ['bajo','medio','alto']
+        && request.resource.data.estado == 'pendiente'
+        && request.resource.data.huellas_inmediatas == 3
+        && request.resource.data.coordenadas is map
+        && 'latitude' in request.resource.data.coordenadas
+        && 'longitude' in request.resource.data.coordenadas;
 
-      // Actualizar: solo el explorador creador puede actualizar su propia captura
-      allow update: if autenticado()
-        && resource.data.id_explorador == request.auth.uid
+      // Actualizar: solo admin puede cambiar estado y huellas
+      allow update: if autenticado() && es_admin()
         && campos_sistema_validos_actualizar();
 
-      // Eliminar: solo el explorador creador o admin
-      allow delete: if autenticado() && (resource.data.id_explorador == request.auth.uid || es_admin());
+      // Eliminar: solo admin
+      allow delete: if es_admin();
     }
+
 
     // CONVERSACIONES (CHAT)
     match /conversaciones/{docId} {

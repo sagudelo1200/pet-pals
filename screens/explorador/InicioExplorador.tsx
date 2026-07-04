@@ -6,27 +6,38 @@ import { Button, Card, Icon } from '@/components/ui'
 import { COLOR } from '@/constants'
 import { useTranslation } from 'react-i18next'
 import { LinearGradient } from 'expo-linear-gradient'
+import { useCapturaTerritorial } from '@/context/CapturaTerritorialContext'
+import { useHistorialExploraciones } from '@/hooks/explorador/useHistorialExploraciones'
 
 /**
- * Pantalla principal del rol Explorador.
- * Muestra estadísticas personales, acceso rápido a captura territorial
- * y resumen de contribuciones.
+ * Pantalla principal del explorador - Dashboard territorial.
+ * Primero: Información territorial y oportunidades
+ * Luego: Estadísticas personales (huellas)
  */
 const InicioExplorador = () => {
   const { t } = useTranslation()
   const insets = useSafeAreaInsets()
+  const { abrirCaptura } = useCapturaTerritorial()
+  const { exploraciones } = useHistorialExploraciones()
+
+  // Calcular estadísticas
+  const capturas = exploraciones.length
+  const celdas = new Set(exploraciones.map(e => e.h3_index)).size
+
+  // Simular zonas por explorar (este número será dinámico en FASE 2+)
+  const zonasProximas = 4
 
   return (
     <Screen style={styles.container} includeTopInset={false}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
         {/* Header con gradiente */}
         <LinearGradient
-          colors={[COLOR.ENFASIS, COLOR.PRIMARIO]}
+          colors={[COLOR.PRIMARIO, COLOR.ENFASIS]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
-          style={[styles.headerGradient, { paddingTop: insets.top + 20 }]}
+          style={[styles.headerGradient, { paddingTop: insets.top + 24 }]}
         >
-          <Icon name="map-marked-alt" size={48} color="#FFF" />
+          <Icon name="compass" size={44} color="#FFF" />
           <Text style={styles.headerTitle}>
             {t('explorador:bienvenido_explorador')}
           </Text>
@@ -35,73 +46,91 @@ const InicioExplorador = () => {
           </Text>
         </LinearGradient>
 
-        <View style={styles.content}>
-          {/* Tarjeta de estadísticas personales */}
-          <Card style={styles.statsCard}>
-            <Text style={styles.statsTitle}>
-              {t('explorador:mis_contribuciones')}
-            </Text>
-            <View style={styles.statsRow}>
-              <View style={styles.statItem}>
-                <Text style={styles.statValue}>0</Text>
-                <Text style={styles.statLabel}>{t('explorador:capturas')}</Text>
-              </View>
-              <View style={styles.statItem}>
-                <Text style={styles.statValue}>0</Text>
-                <Text style={styles.statLabel}>{t('explorador:celdas')}</Text>
-              </View>
-              <View style={styles.statItem}>
-                <Text style={styles.statValue}>0</Text>
-                <Text style={styles.statLabel}>
-                  {t('explorador:validaciones')}
+        {/* SECCIÓN 1: Información Territorial */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>
+            🗺️ {t('explorador:actividad_territorial')}
+          </Text>
+
+          {/* Oportunidades */}
+          <Card style={styles.opportunityCard}>
+            <View style={styles.opportunityContent}>
+              <Text style={styles.opportunityNumber}>{zonasProximas}</Text>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.opportunityText}>
+                  {t('explorador:zonas_por_explorar')}
+                </Text>
+                <Text style={styles.opportunitySubtext}>
+                  {t('explorador:tu_barrio_actividad')} medio
                 </Text>
               </View>
+              <Icon name="map-marked-alt" size={32} color={COLOR.ENFASIS} />
             </View>
           </Card>
 
-          {/* Botón principal: nueva captura */}
+          {/* Botón principal de exploración */}
           <Button
-            title={t('explorador:nueva_captura')}
-            icon="plus-circle"
+            title={`🧭 ${t('explorador:nueva_exploracion')}`}
             variant="primario"
             size="lg"
-            style={styles.captureButton}
-            onPress={() => {
-              // TODO: Abrir bottom sheet de captura territorial
-              console.log('Abrir captura territorial')
-            }}
+            icon="plus-circle"
+            onPress={abrirCaptura}
+            style={styles.explorationButton}
           />
 
-          {/* Tarjeta informativa */}
+          {/* Nota informativa */}
           <Card style={styles.infoCard}>
             <View style={styles.infoRow}>
-              <Icon
-                name="info-circle"
-                size={24}
-                color={COLOR.INFO}
-                containerStyle={{ marginRight: 12 }}
-              />
-              <View style={{ flex: 1 }}>
-                <Text style={styles.infoTitle}>
-                  {t('explorador:como_funciona')}
-                </Text>
-                <Text style={styles.infoText}>
-                  {t('explorador:captura_observaciones_desc')}
-                </Text>
-              </View>
+              <Icon name="lightbulb" size={18} color={COLOR.ENFASIS} />
+              <Text style={styles.infoText}>
+                Cada exploración suma huellas y ayuda a descubrir demanda real
+                en tu zona.
+              </Text>
             </View>
           </Card>
+        </View>
 
-          {/* Placeholder: próximas funcionalidades */}
-          <Card style={styles.comingSoonCard}>
-            <Text style={styles.comingSoonTitle}>
-              {t('explorador:proximamente')}
-            </Text>
-            <Text style={styles.comingSoonText}>
-              • {t('explorador:gamificacion_puntos')}
-              {'\n'}• {t('explorador:validacion_comercios')}
-              {'\n'}• {t('explorador:alertas_territoriales')}
-            </Text>
+        {/* SECCIÓN 2: Tu Impacto Territorial */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>📊 Tu Impacto Territorial</Text>
+
+          <View style={styles.impactGrid}>
+            {/* Impacto 1: Exploraciones */}
+            <Card style={styles.impactCard}>
+              <View style={styles.impactContent}>
+                <Text style={styles.impactEmoji}>🗺️</Text>
+                <Text style={styles.impactValue}>{capturas}</Text>
+                <Text style={styles.impactLabel}>Exploraciones</Text>
+                <Text style={styles.impactDesc}>
+                  {capturas === 1
+                    ? 'Zona visitada y mapeada'
+                    : 'Zonas visitadas y mapeadas'}
+                </Text>
+              </View>
+            </Card>
+
+            {/* Impacto 2: Celdas */}
+            <Card style={styles.impactCard}>
+              <View style={styles.impactContent}>
+                <Text style={styles.impactEmoji}>📍</Text>
+                <Text style={styles.impactValue}>{celdas}</Text>
+                <Text style={styles.impactLabel}>Territorios</Text>
+                <Text style={styles.impactDesc}>
+                  {celdas === 1
+                    ? 'Área única descubierta'
+                    : 'Áreas únicas descubiertas'}
+                </Text>
+              </View>
+            </Card>
+          </View>
+
+          <Card style={styles.impactFooter}>
+            <View style={styles.impactFooterRow}>
+              <Icon name="heart" size={16} color={COLOR.ENFASIS} />
+              <Text style={styles.impactFooterText}>
+                Cada exploración ayuda a las mascotas y cuidadores de tu barrio.
+              </Text>
+            </View>
           </Card>
         </View>
       </ScrollView>
@@ -116,91 +145,134 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     flexGrow: 1,
+    paddingBottom: 32,
   },
   headerGradient: {
-    paddingBottom: 40,
     paddingHorizontal: 20,
-    borderBottomLeftRadius: 30,
-    borderBottomRightRadius: 30,
+    paddingBottom: 32,
     alignItems: 'center',
+    gap: 12,
   },
   headerTitle: {
-    fontSize: 24,
+    fontSize: 28,
     fontWeight: 'bold',
     color: '#FFF',
-    marginTop: 16,
     textAlign: 'center',
   },
   headerSubtitle: {
     fontSize: 14,
-    color: 'rgba(255,255,255,0.9)',
-    marginTop: 8,
+    color: '#FFF',
+    opacity: 0.9,
     textAlign: 'center',
   },
-  content: {
-    padding: 20,
+  section: {
+    paddingHorizontal: 16,
+    marginTop: 24,
   },
-  statsCard: {
-    marginBottom: 20,
-  },
-  statsTitle: {
-    fontSize: 16,
-    fontWeight: '600',
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: '700',
     color: COLOR.TEXTO,
     marginBottom: 16,
   },
-  statsRow: {
+  opportunityCard: {
+    backgroundColor: COLOR.ENFASIS + '15',
+    borderLeftColor: COLOR.ENFASIS,
+    borderLeftWidth: 4,
+    marginBottom: 12,
+  },
+  opportunityContent: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
-  },
-  statItem: {
     alignItems: 'center',
+    gap: 16,
   },
-  statValue: {
-    fontSize: 28,
+  opportunityNumber: {
+    fontSize: 32,
     fontWeight: 'bold',
     color: COLOR.ENFASIS,
   },
-  statLabel: {
+  opportunityText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: COLOR.TEXTO,
+  },
+  opportunitySubtext: {
     fontSize: 12,
     color: COLOR.SUBTEXTO,
-    marginTop: 4,
+    marginTop: 2,
   },
-  captureButton: {
-    marginBottom: 20,
+  explorationButton: {
+    marginBottom: 12,
+    paddingVertical: 16,
   },
   infoCard: {
-    marginBottom: 20,
-    backgroundColor: COLOR.INFO + '10',
+    backgroundColor: COLOR.PRIMARIO + '10',
+    borderRadius: 8,
   },
   infoRow: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
-  },
-  infoTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: COLOR.TEXTO,
-    marginBottom: 6,
+    alignItems: 'center',
+    gap: 12,
   },
   infoText: {
-    fontSize: 14,
+    flex: 1,
+    fontSize: 12,
     color: COLOR.SUBTEXTO,
-    lineHeight: 20,
+    lineHeight: 18,
   },
-  comingSoonCard: {
-    backgroundColor: COLOR.INACTIVO,
-  },
-  comingSoonTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: COLOR.TEXTO,
+  impactGrid: {
+    display: 'flex',
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+    justifyContent: 'space-between',
     marginBottom: 12,
   },
-  comingSoonText: {
-    fontSize: 14,
+  impactCard: {
+    width: '48%',
+    backgroundColor: COLOR.BLOQUE,
+    borderRadius: 12,
+    borderLeftWidth: 4,
+    borderLeftColor: COLOR.ENFASIS,
+  },
+  impactContent: {
+    alignItems: 'center',
+    paddingVertical: 20,
+    gap: 8,
+  },
+  impactEmoji: {
+    fontSize: 32,
+  },
+  impactValue: {
+    fontSize: 32,
+    fontWeight: 'bold',
+    color: COLOR.ENFASIS,
+  },
+  impactLabel: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: COLOR.TEXTO,
+  },
+  impactDesc: {
+    fontSize: 11,
     color: COLOR.SUBTEXTO,
-    lineHeight: 22,
+    textAlign: 'center',
+    lineHeight: 15,
+  },
+  impactFooter: {
+    backgroundColor: COLOR.ENFASIS + '08',
+    borderRadius: 8,
+  },
+  impactFooterRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  impactFooterText: {
+    flex: 1,
+    fontSize: 12,
+    color: COLOR.SUBTEXTO,
+    lineHeight: 16,
   },
 })
 

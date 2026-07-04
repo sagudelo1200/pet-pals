@@ -11,11 +11,16 @@ import { useTranslation } from 'react-i18next'
 import InicioExplorador from '@/screens/explorador/InicioExplorador'
 import MapaTerritorial from '@/screens/explorador/MapaTerritorial'
 import HistorialExploraciones from '@/screens/explorador/HistorialExploraciones'
+import CapturaTerritorial from '@/screens/explorador/CapturaTerritorial'
 import MiCuenta from '@/screens/comun/MiCuenta'
+import {
+  CapturaTerritorialProvider,
+  useCapturaTerritorial,
+} from '@/context/CapturaTerritorialContext'
 
 const Tab = createBottomTabNavigator<ExplorerTabParamList>()
 
-const ExplorerTabNavigator = () => {
+const TabNavigatorContent = () => {
   const { t } = useTranslation()
   const insets = useSafeAreaInsets()
 
@@ -90,6 +95,29 @@ const ExplorerTabNavigator = () => {
         }}
       />
     </Tab.Navigator>
+  )
+}
+
+const TabNavigatorWithCaptura = () => {
+  const { mostrarCaptura, cerrarCaptura } = useCapturaTerritorial()
+
+  return (
+    <>
+      <TabNavigatorContent />
+      <CapturaTerritorial
+        visible={mostrarCaptura}
+        onClose={cerrarCaptura}
+        onSuccess={cerrarCaptura}
+      />
+    </>
+  )
+}
+
+const ExplorerTabNavigator = () => {
+  return (
+    <CapturaTerritorialProvider>
+      <TabNavigatorWithCaptura />
+    </CapturaTerritorialProvider>
   )
 }
 

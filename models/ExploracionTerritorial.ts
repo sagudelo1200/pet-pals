@@ -1,26 +1,20 @@
 import { BaseModel } from './BaseModel'
 
 /** Tipo de punto territorial observado */
-export type TipoPunto =
-  | 'parque'
-  | 'calle'
-  | 'comercio'
-  | 'conjunto'
-  | 'nodo_social'
-  | 'otro'
+export type TipoPunto = 'parque' | 'calle' | 'comercio' | 'conjunto' | 'otro'
 
 /** Nivel de flujo o intensidad observable */
 export type NivelObservable = 'bajo' | 'medio' | 'alto'
 
-/** Nivel de recurrencia observada */
-export type NivelRecurrencia = 'baja' | 'media' | 'alta'
+/** Estado de validación de la exploración */
+export type EstadoExploracion = 'pendiente' | 'validada' | 'rechazada'
 
 /**
  * Captura territorial individual realizada por un explorador.
- * Representa una observación de campo en una celda H3 específica.
+ * MVP simplificado: máximo 8 campos para captura rápida (< 2 min).
  */
 export interface ExploracionTerritorial extends BaseModel {
-  /** ID del explorador que realizó la captura */
+  /** ID del explorador que realizó la captura (heredado de creado_por) */
   id_explorador: string
 
   /** Índice H3 de la celda observada (resolución 8) */
@@ -32,51 +26,30 @@ export interface ExploracionTerritorial extends BaseModel {
     longitude: number
   }
 
-  /** Dirección formateada legible (opcional) */
-  direccion_formateada?: string
-
   /** Tipo de punto territorial observado */
   tipo_punto: TipoPunto
 
-  /** Cantidad de mascotas visibles en el momento */
+  /** Cantidad de mascotas visibles (0-100) */
   mascotas_visibles: number
 
-  /** Cantidad de personas con mascota observadas */
-  personas_con_mascota: number
-
-  /** Nivel de flujo peatonal */
+  /** Nivel de flujo peatonal percibido */
   flujo_peatonal: NivelObservable
 
-  /** Nivel de recurrencia observada en la zona */
-  recurrencia_observada: NivelRecurrencia
+  /** Estado de validación */
+  estado: EstadoExploracion
 
-  /** Nivel de seguridad percibida */
-  seguridad_percibida: NivelObservable
+  /** Huellas otorgadas si estado = 'validada' */
+  huellas_otorgadas?: number
 
-  /** Nivel pet-friendly del entorno */
-  pet_friendly: NivelObservable
+  /** Huellas inmediatas (siempre 5 por exploración) */
+  huellas_inmediatas: number
 
-  /** Disposición percibida de uso de la app */
-  disposicion_uso_app: NivelObservable
-
-  /** Cantidad de comercios pet-friendly observados */
-  comercios_pet_friendly: number
-
-  /** Cantidad de personas que manifestaron interés */
-  interesados_count: number
-
-  /** Teléfonos de interesados (con consentimiento) */
-  telefonos_interesados?: string[]
-
-  /** Horarios activos observados (formato HH:mm) */
-  horarios_activos?: string[]
-
-  /** Observaciones textuales libres */
+  /** Observaciones textuales libres (opcional, ≤ 250 chars) */
   observaciones?: string
 
   /** URL de foto del entorno (opcional) */
   foto_url?: string
 
-  /** Indica si fue sincronizada con el servidor */
-  sincronizado: boolean
+  /** Razón del rechazo si estado = 'rechazada' */
+  razon_rechazo?: string
 }

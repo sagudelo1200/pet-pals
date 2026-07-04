@@ -67,7 +67,7 @@ export const GestorAuth = {
           nombre: displayName,
           correo: email,
           celular: '',
-          roles: ['tutor'],
+          roles: ['tutor', 'explorador'],
           verificado: false,
           estado: 'activo',
         } as any)
@@ -181,7 +181,7 @@ export const GestorAuth = {
           nombre: user.displayName || 'Usuario',
           correo: user.email || '',
           celular: '',
-          roles: ['tutor'],
+          roles: ['tutor', 'explorador'],
           verificado: true,
           estado: 'activo',
           foto: user.photoURL || null,

@@ -11,7 +11,7 @@ import {
 } from 'react-native'
 import { Marker, Polyline, Region, AnimatedRegion } from 'react-native-maps'
 import { useTranslation } from 'react-i18next'
-import { useFocusEffect, useNavigation } from '@react-navigation/native'
+import { useFocusEffect } from '@react-navigation/native'
 import { StackScreenProps } from '@react-navigation/stack'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
