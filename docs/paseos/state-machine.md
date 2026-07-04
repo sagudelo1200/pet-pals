@@ -1,6 +1,6 @@
 # Máquina de Estados de Paseos
 
-Este documento describe el diseño de la máquina de estados para el modelo "Paseo" en `pet-pals-native`.
+Este documento describe el diseño de la máquina de estados para el modelo "Paseo" en `paw-path`.
 
 ## Estados
 

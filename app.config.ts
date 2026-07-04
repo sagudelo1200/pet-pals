@@ -2,9 +2,9 @@ import 'dotenv/config'
 
 export default {
   expo: {
-    name: 'Pet Pals',
-    slug: 'pet-pals',
-    scheme: 'petpals', // Necesario para Deep Linking y Auth Session
+    name: 'Paw-Path',
+    slug: 'paw-path',
+    scheme: 'pawpath', // Necesario para Deep Linking y Auth Session
     privacy: 'public',
     platforms: ['ios', 'android'],
     version: '0.1.0',
@@ -27,11 +27,11 @@ export default {
         CFBundleAllowMixedLocalizations: true,
         UIBackgroundModes: ['location', 'fetch'],
         NSLocationAlwaysAndWhenInUseUsageDescription:
-          'Pet Pals necesita acceder a tu ubicación siempre para que los tutores puedan ver el recorrido de su mascota en tiempo real, incluso con la app cerrada.',
+          'Paw-Path necesita acceder a tu ubicación siempre para que los tutores puedan ver el recorrido de su mascota en tiempo real, incluso con la app cerrada.',
         NSLocationAlwaysUsageDescription:
-          'Pet Pals necesita acceder a tu ubicación siempre para que los tutores puedan ver el recorrido de su mascota en tiempo real, incluso con la app cerrada.',
+          'Paw-Path necesita acceder a tu ubicación siempre para que los tutores puedan ver el recorrido de su mascota en tiempo real, incluso con la app cerrada.',
         NSLocationWhenInUseUsageDescription:
-          'Pet Pals necesita acceder a tu ubicación mientras usas la app para registrar el inicio y progreso de los paseos.',
+          'Paw-Path necesita acceder a tu ubicación mientras usas la app para registrar el inicio y progreso de los paseos.',
       },
     },
     android: {
@@ -75,7 +75,7 @@ export default {
         'expo-location',
         {
           locationAlwaysAndWhenInUsePermission:
-            'Permite que Pet Pals acceda a tu ubicación siempre para seguimiento en tiempo real de los paseos.',
+            'Permite que Paw-Path acceda a tu ubicación constante durante el seguimiento en tiempo real de los paseos.',
           isAndroidBackgroundLocationEnabled: true,
         },
       ],
@@ -92,7 +92,7 @@ export default {
       ],
     ],
     description:
-      '🐾 Pet Pals - Paseos seguros y felices para tu mascota. Confianza y tranquilidad para ti.',
+      '🐾 Paw-Path - Paseos seguros y felices para tu mascota. Confianza y tranquilidad para ti.',
     extra: {
       brand: {
         primaryColor: '#1B5E20',

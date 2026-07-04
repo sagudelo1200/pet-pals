@@ -1,6 +1,6 @@
 # Documentación Funcional: Flujo de Servicio de Paseo (Estado Actual)
 
-Este documento describe detalladamente el ciclo de vida de un paseo en la aplicación **Pet Pals**, desde que un Tutor lo solicita hasta que un Cuidador lo acepta. Se centra en la experiencia del usuario y las reglas de negocio, evitando términos técnicos de programación.
+Este documento describe detalladamente el ciclo de vida de un paseo en la aplicación **Paw-Path**, desde que un Tutor lo solicita hasta que un Cuidador lo acepta. Se centra en la experiencia del usuario y las reglas de negocio, evitando términos técnicos de programación.
 
 ---
 
@@ -8,7 +8,7 @@ Este documento describe detalladamente el ciclo de vida de un paseo en la aplica
 
 - **Tutor (Cliente):** Dueño de la mascota que necesita el servicio.
 - **Cuidador (Prestador):** Persona verificada que realizará el paseo.
-- **Sistema (Pet Pals):** La plataforma que conecta, valida y asegura la transacción.
+- **Sistema (Paw-Path):** La plataforma que conecta, valida y asegura la transacción.
 
 ---
 

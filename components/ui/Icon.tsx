@@ -20,12 +20,12 @@ export interface IconProps {
 }
 
 /**
- * Icono unificado de Pet Pals
+ * Icono unificado de Paw-Path
  * - Base FontAwesome5 (expo)
  * - Por defecto usa estilo 'solid' para consistencia visual
  */
 /**
- * Icono unificado de Pet Pals
+ * Icono unificado de Paw-Path
  * - Base FontAwesome5 (expo)
  * - Por defecto usa estilo 'solid' y COLOR.TEXTO del tema
  */

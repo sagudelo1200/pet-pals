@@ -12,12 +12,12 @@ const getAppName = () => {
   if (Platform.OS === 'ios') {
     return 'main'
   }
-  return 'petpals'
+  return 'pawpath'
 }
 
 // Registrar el componente con diferentes nombres para compatibilidad
 AppRegistry.registerComponent('main', () => App)
-AppRegistry.registerComponent('petpals', () => App)
+AppRegistry.registerComponent('pawpath', () => App)
 AppRegistry.registerComponent(getAppName(), () => App)
 
 // Registrar también para Expo

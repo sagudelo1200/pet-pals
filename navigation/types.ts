@@ -1,4 +1,4 @@
-// Tipos de navegación simplificados para Pet Pals
+// Tipos de navegación simplificados para Paw-Path
 
 import { Mascota } from '@/models/Mascota'
 

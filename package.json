@@ -1,7 +1,7 @@
 {
-  "name": "pet-pals-native",
+  "name": "paw-path",
   "version": "0.1.0",
-  "description": "Pet Pals - Seguridad y bienestar para tu mascota, confianza para ti.",
+  "description": "Paw-Path - Seguridad y bienestar para tu mascota, confianza para ti.",
   "main": "index.tsx",
   "scripts": {
     "start": "expo start",
@@ -22,7 +22,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/sagudelo1200/pet-pals-native.git"
+    "url": "git+https://github.com/sagudelo1200/paw-path.git"
   },
   "dependencies": {
     "@expo/metro-runtime": "~6.1.2",
@@ -94,7 +94,7 @@
     "typescript": "~5.9.2"
   },
   "keywords": [
-    "pet-pals",
+    "paw-path",
     "mascotas",
     "react native",
     "expo",
@@ -104,7 +104,7 @@
   ],
   "author": "Santiago Agudelo (https://www.github.com/sagudelo1200)",
   "bugs": {
-    "url": "https://github.com/sagudelo1200/pet-pals-native/issues"
+    "url": "https://github.com/sagudelo1200/paw-path/issues"
   },
-  "homepage": "https://sagudelo1200.github.io/pet-pals-native/"
+  "homepage": "https://sagudelo1200.github.io/paw-path/"
 }

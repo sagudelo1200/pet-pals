@@ -1,8 +1,8 @@
-# Pet Pals
+# Paw-Path
 
-Pet Pals implementa un sistema cuyo **core** es coordinar un **servicio** (solicitud → asignación → ejecución → cierre) y, durante la ejecución, habilitar **seguimiento en tiempo real**.
+Paw-Path implementa un sistema cuyo **core** es coordinar un **servicio** (solicitud → asignación → ejecución → cierre) y, durante la ejecución, habilitar **seguimiento en tiempo real**.
 
-Este README describe el **dominio** (conceptos, estados y flujos) y luego muestra el **caso de uso** concreto de Pet Pals. No incluye instalación, marketing ni promesas futuras.
+Este README describe el **dominio** (conceptos, estados y flujos) y luego muestra el **caso de uso** concreto de Paw-Path. No incluye instalación, marketing ni promesas futuras.
 
 ## Core / dominio
 
@@ -13,7 +13,7 @@ Este README describe el **dominio** (conceptos, estados y flujos) y luego muestr
 
 ### Entidades
 
-- **Mascota**: unidad atendida por el servicio (en Pet Pals, una mascota).
+- **Mascota**: unidad atendida por el servicio (en Paw-Path, una mascota).
 - **Paseo**: la unidad central del sistema. Define actores, estado y registro de eventos.
 
 ### Estados del servicio (paseo)
@@ -48,7 +48,7 @@ Durante una ejecución activa, el sistema puede publicar/consumir ubicación par
 
 ### Datos (alto nivel)
 
-Pet Pals separa “estado del servicio” y “coordenadas en vivo” en dos almacenes:
+Paw-Path separa “estado del servicio” y “coordenadas en vivo” en dos almacenes:
 
 - **Firestore**: entidades del dominio y trazabilidad (eventos).
 - **Realtime Database**: ubicación en tiempo real durante servicios activos.
@@ -58,7 +58,7 @@ En lenguaje simple:
 - Firestore guarda qué pasa y con quién.
 - RTDB guarda dónde va el ejecutor ahora.
 
-## Caso de uso: Pet Pals
+## Caso de uso: Paw-Path
 
 ### Para tutores
 
