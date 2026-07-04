@@ -65,6 +65,7 @@ export type AdminTabParamList = {
 
 // Tabs para el rol de Explorador
 export type ExplorerTabParamList = {
+  ExplorerRoot: undefined
   InicioExplorador: undefined
   MapaTerritorial: undefined
   HistorialExploraciones: undefined

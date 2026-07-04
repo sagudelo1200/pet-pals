@@ -248,7 +248,7 @@ const ResumenExploracion = ({ route, navigation }: any) => {
         <View style={styles.actionButtons}>
           <Pressable
             style={styles.btnSecundario}
-            onPress={() => navigation.navigate('InicioExplorador')}
+            onPress={() => navigation.navigate('ExplorerRoot' as never)}
           >
             <Text style={styles.btnSecundarioText}>
               {t('volver_dashboard')}

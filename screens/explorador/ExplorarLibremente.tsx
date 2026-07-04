@@ -159,41 +159,227 @@ const ModalNota = React.memo(
   )
 )
 
-interface ModalGenericoProps {
+interface ModalInteresadosProps {
   visible: boolean
-  type: EventoTipo | null
+  selected: string
+  onSelect: (_option: string) => void
   onClose: () => void
   onConfirm: () => void
   t: (_key: string) => string
 }
 
-const ModalGenerico = React.memo(
-  ({ visible, type, onClose, onConfirm, t }: ModalGenericoProps) => (
-    <Modal visible={visible} transparent animationType="fade">
-      <Pressable style={styles.modalOverlay} onPress={onClose}>
-        <View style={styles.modalCard}>
-          <Text style={styles.modalTitle}>
-            {type === 'interesados' && `👥 ${t('personas_interesadas')}`}
-            {type === 'aliado' && `🤝 ${t('aliado_negocio')}`}
-            {type === 'seguridad' && `🛡️ ${t('seguridad_riesgo')}`}
-          </Text>
+const ModalInteresados = React.memo(
+  ({
+    visible,
+    selected,
+    onSelect,
+    onClose,
+    onConfirm,
+    t,
+  }: ModalInteresadosProps) => {
+    const opciones = [
+      { label: t('interes_mirando_mascotas'), value: 'mirando' },
+      { label: t('interes_preguntando_paseos'), value: 'preguntando' },
+      { label: t('interes_querer_acariciar'), value: 'acariciar' },
+      { label: t('interes_otro'), value: 'otro' },
+    ]
 
-          <Text style={styles.modalDesc}>
-            {t('evento')} {t('registrado_correctamente')}.
-          </Text>
+    return (
+      <Modal visible={visible} transparent animationType="fade">
+        <Pressable style={styles.modalOverlay} onPress={onClose}>
+          <View style={styles.modalCard}>
+            <Text style={styles.modalTitle}>
+              👥 {t('personas_interesadas')}
+            </Text>
+            <Text style={styles.modalDesc}>{t('pregunta_tipo_interes')}</Text>
 
-          <View style={styles.modalFooter}>
-            <Pressable
-              style={[styles.btnConfirm, { flex: 1 }]}
-              onPress={onConfirm}
-            >
-              <Text style={styles.btnTextConfirm}>{t('continuar')}</Text>
-            </Pressable>
+            <View style={styles.optionGrid}>
+              {opciones.map(option => (
+                <Pressable
+                  key={option.value}
+                  style={[
+                    styles.optionButton,
+                    selected === option.value && styles.optionButtonActive,
+                  ]}
+                  onPress={() => onSelect(option.value)}
+                >
+                  <Text
+                    style={[
+                      styles.optionText,
+                      selected === option.value && styles.optionTextActive,
+                    ]}
+                  >
+                    {option.label}
+                  </Text>
+                </Pressable>
+              ))}
+            </View>
+
+            <View style={styles.modalFooter}>
+              <Pressable style={styles.btnCancel} onPress={onClose}>
+                <Text style={styles.btnText}>{t('cancelar')}</Text>
+              </Pressable>
+              <Pressable
+                style={[styles.btnConfirm, !selected && styles.btnDisabled]}
+                onPress={onConfirm}
+                disabled={!selected}
+              >
+                <Text style={styles.btnTextConfirm}>{t('guardar')}</Text>
+              </Pressable>
+            </View>
           </View>
-        </View>
-      </Pressable>
-    </Modal>
-  )
+        </Pressable>
+      </Modal>
+    )
+  }
+)
+
+interface ModalAliadoProps {
+  visible: boolean
+  selected: string
+  onSelect: (_option: string) => void
+  onClose: () => void
+  onConfirm: () => void
+  t: (_key: string) => string
+}
+
+const ModalAliado = React.memo(
+  ({
+    visible,
+    selected,
+    onSelect,
+    onClose,
+    onConfirm,
+    t,
+  }: ModalAliadoProps) => {
+    const opciones = [
+      { label: t('aliado_negocio_pet'), value: 'pet-friendly' },
+      { label: t('aliado_veterinaria'), value: 'veterinaria' },
+      { label: t('aliado_guarderia'), value: 'guarderia' },
+      { label: t('aliado_parque'), value: 'parque' },
+      { label: t('aliado_otro'), value: 'otro' },
+    ]
+
+    return (
+      <Modal visible={visible} transparent animationType="fade">
+        <Pressable style={styles.modalOverlay} onPress={onClose}>
+          <View style={styles.modalCard}>
+            <Text style={styles.modalTitle}>🤝 {t('aliado_negocio')}</Text>
+            <Text style={styles.modalDesc}>{t('pregunta_tipo_aliado')}</Text>
+
+            <View style={styles.optionGrid}>
+              {opciones.map(option => (
+                <Pressable
+                  key={option.value}
+                  style={[
+                    styles.optionButton,
+                    selected === option.value && styles.optionButtonActive,
+                  ]}
+                  onPress={() => onSelect(option.value)}
+                >
+                  <Text
+                    style={[
+                      styles.optionText,
+                      selected === option.value && styles.optionTextActive,
+                    ]}
+                  >
+                    {option.label}
+                  </Text>
+                </Pressable>
+              ))}
+            </View>
+
+            <View style={styles.modalFooter}>
+              <Pressable style={styles.btnCancel} onPress={onClose}>
+                <Text style={styles.btnText}>{t('cancelar')}</Text>
+              </Pressable>
+              <Pressable
+                style={[styles.btnConfirm, !selected && styles.btnDisabled]}
+                onPress={onConfirm}
+                disabled={!selected}
+              >
+                <Text style={styles.btnTextConfirm}>{t('guardar')}</Text>
+              </Pressable>
+            </View>
+          </View>
+        </Pressable>
+      </Modal>
+    )
+  }
+)
+
+interface ModalSeguridadProps {
+  visible: boolean
+  selected: string
+  onSelect: (_option: string) => void
+  onClose: () => void
+  onConfirm: () => void
+  t: (_key: string) => string
+}
+
+const ModalSeguridad = React.memo(
+  ({
+    visible,
+    selected,
+    onSelect,
+    onClose,
+    onConfirm,
+    t,
+  }: ModalSeguridadProps) => {
+    const opciones = [
+      { label: t('riesgo_trafico_intenso'), value: 'trafico' },
+      { label: t('riesgo_perro_suelto'), value: 'perro_suelto' },
+      { label: t('riesgo_zona_oscura'), value: 'oscura' },
+      { label: t('riesgo_acceso_limitado'), value: 'acceso' },
+      { label: t('riesgo_otro'), value: 'otro' },
+    ]
+
+    return (
+      <Modal visible={visible} transparent animationType="fade">
+        <Pressable style={styles.modalOverlay} onPress={onClose}>
+          <View style={styles.modalCard}>
+            <Text style={styles.modalTitle}>🛡️ {t('seguridad_riesgo')}</Text>
+            <Text style={styles.modalDesc}>{t('pregunta_tipo_riesgo')}</Text>
+
+            <View style={styles.optionGrid}>
+              {opciones.map(option => (
+                <Pressable
+                  key={option.value}
+                  style={[
+                    styles.optionButton,
+                    selected === option.value && styles.optionButtonActive,
+                  ]}
+                  onPress={() => onSelect(option.value)}
+                >
+                  <Text
+                    style={[
+                      styles.optionText,
+                      selected === option.value && styles.optionTextActive,
+                    ]}
+                  >
+                    {option.label}
+                  </Text>
+                </Pressable>
+              ))}
+            </View>
+
+            <View style={styles.modalFooter}>
+              <Pressable style={styles.btnCancel} onPress={onClose}>
+                <Text style={styles.btnText}>{t('cancelar')}</Text>
+              </Pressable>
+              <Pressable
+                style={[styles.btnConfirm, !selected && styles.btnDisabled]}
+                onPress={onConfirm}
+                disabled={!selected}
+              >
+                <Text style={styles.btnTextConfirm}>{t('guardar')}</Text>
+              </Pressable>
+            </View>
+          </View>
+        </Pressable>
+      </Modal>
+    )
+  }
 )
 
 // ============================================================================
@@ -215,6 +401,9 @@ const ExplorarLibremente = ({ navigation }: any) => {
   const [modalActivo, setModalActivo] = useState<EventoTipo | null>(null)
   const [mascotasCount, setMascotasCount] = useState<string>('')
   const [modalNota, setModalNota] = useState<string>('')
+  const [interesadosSelected, setInteresadosSelected] = useState<string>('')
+  const [aliadoSelected, setAliadoSelected] = useState<string>('')
+  const [seguridadSelected, setSeguridadSelected] = useState<string>('')
 
   // Timer para contar tiempo transcurrido
   useEffect(() => {
@@ -316,7 +505,7 @@ const ExplorarLibremente = ({ navigation }: any) => {
       >
         <Pressable
           style={styles.btnBack}
-          onPress={() => navigation.navigate('InicioExplorador')}
+          onPress={() => navigation.navigate('ExplorerRoot' as never)}
         >
           <Icon name="close" size={24} color={COLOR.HUESO} />
         </Pressable>
@@ -442,16 +631,44 @@ const ExplorarLibremente = ({ navigation }: any) => {
         t={t}
       />
 
-      <ModalGenerico
-        visible={
-          modalActivo === 'interesados' ||
-          modalActivo === 'aliado' ||
-          modalActivo === 'seguridad'
-        }
-        type={modalActivo}
-        onClose={() => setModalActivo(null)}
+      <ModalInteresados
+        visible={modalActivo === 'interesados'}
+        selected={interesadosSelected}
+        onSelect={setInteresadosSelected}
+        onClose={() => {
+          setModalActivo(null)
+          setInteresadosSelected('')
+        }}
         onConfirm={() => {
-          agregarEvento(modalActivo!, { registrado: true })
+          agregarEvento('interesados', { tipo: interesadosSelected })
+        }}
+        t={t}
+      />
+
+      <ModalAliado
+        visible={modalActivo === 'aliado'}
+        selected={aliadoSelected}
+        onSelect={setAliadoSelected}
+        onClose={() => {
+          setModalActivo(null)
+          setAliadoSelected('')
+        }}
+        onConfirm={() => {
+          agregarEvento('aliado', { tipo: aliadoSelected })
+        }}
+        t={t}
+      />
+
+      <ModalSeguridad
+        visible={modalActivo === 'seguridad'}
+        selected={seguridadSelected}
+        onSelect={setSeguridadSelected}
+        onClose={() => {
+          setModalActivo(null)
+          setSeguridadSelected('')
+        }}
+        onConfirm={() => {
+          agregarEvento('seguridad', { tipo: seguridadSelected })
         }}
         t={t}
       />

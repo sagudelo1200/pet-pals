@@ -128,7 +128,7 @@ const RootExplorerNavigator = () => {
       {/* Tabs principales */}
       <Stack.Group>
         <Stack.Screen
-          name="InicioExplorador"
+          name="ExplorerRoot"
           component={TabNavigatorWithCaptura}
           options={{
             animationTypeForReplace: 'pop',
