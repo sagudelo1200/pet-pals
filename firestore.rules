@@ -98,6 +98,54 @@ service cloud.firestore {
       return request.resource.data.keys().hasOnly(camposPermitidos);
     }
 
+    // HELPERS COMBINADOS PARA CREAR Y ACTUALIZAR
+
+    // Validación combinada para CREATE: autenticado + es_creador + campos_sistema válidos
+    function puede_crear_valido() {
+      return autenticado()
+        && es_creador()
+        && tiene_campos_sistema_basicos()
+        && campos_sistema_validos_crear();
+    }
+
+    // Validación combinada para UPDATE: autenticado + campos_sistema válidos
+    function puede_actualizar_valido() {
+      return autenticado()
+        && campos_sistema_validos_actualizar();
+    }
+
+    // HELPERS PARA UBICACIONES (casos especiales sin validación de timestamps)
+    // Validación para CREATE en ubicaciones (sin campos_sistema_validos_crear)
+    function puede_crear_ubicacion_valida() {
+      return autenticado()
+        && es_creador()
+        && tiene_campos_sistema_basicos()
+        && request.resource.data.proveedor in ['google','mapbox']
+        && request.resource.data.proveedor_place_id is string
+        && request.resource.data.proveedor_place_id.size() > 0
+        && request.resource.data.direccion_formateada is string
+        && request.resource.data.direccion_formateada.size() > 3;
+    }
+
+    // HELPERS PARA CONVERSACIONES/MENSAJES
+    // Validación base para crear un mensaje en chat
+    function es_contenido_valido() {
+      return request.resource.data.contenido is string
+        && request.resource.data.contenido.size() > 0
+        && request.resource.data.contenido.size() <= 5000;
+    }
+
+    // Validación completa para crear un mensaje
+    function puede_crear_mensaje_valido(conversacionId) {
+      return autenticado()
+        && request.auth.uid in get(/databases/$(database)/documents/conversaciones/$(conversacionId)).data.participantes
+        && request.resource.data.autor_uid == request.auth.uid
+        && es_contenido_valido()
+        && request.resource.data.tipo_mensaje in ['texto', 'sistema', 'notificacion']
+        && tiene_campos_sistema_basicos()
+        && campos_sistema_validos_crear();
+    }
+
     // PASEOS HELPERS ESPECIFICOS
 
     function estado_permite_unirse(estado) {
@@ -138,12 +186,8 @@ service cloud.firestore {
     // USUARIOS
     match /usuarios/{uid} {
       allow read: if autenticado() && (es_mismo_uid(uid) || es_admin());
-      allow create: if autenticado() && es_mismo_uid(uid)
-        && es_creador()
-        && tiene_campos_sistema_basicos()
-        && campos_sistema_validos_crear();
-      allow update: if autenticado() && (es_mismo_uid(uid) || es_admin())
-        && campos_sistema_validos_actualizar();
+      allow create: if puede_crear_valido() && es_mismo_uid(uid);
+      allow update: if puede_actualizar_valido() && (es_mismo_uid(uid) || es_admin());
       allow delete: if es_admin();
     }
 
@@ -152,14 +196,11 @@ service cloud.firestore {
       // Permitir lectura a cualquier usuario autenticado o si el perfil es verificado (público)
       allow read: if autenticado() || resource.data.verificacion == 'verificado';
 
-      allow create: if autenticado()
-        && (request.resource.data.creado_por == request.auth.uid || es_admin())
-        && tiene_campos_sistema_basicos()
-        && campos_sistema_validos_crear();
+      allow create: if puede_crear_valido()
+        && (request.resource.data.creado_por == request.auth.uid || es_admin());
 
-      allow update: if autenticado()
-        && (resource.data.creado_por == request.auth.uid || es_admin())
-        && campos_sistema_validos_actualizar();
+      allow update: if puede_actualizar_valido()
+        && (resource.data.creado_por == request.auth.uid || es_admin());
 
       allow delete: if es_admin();
     }
@@ -168,13 +209,11 @@ service cloud.firestore {
     match /mascotas/{id} {
       // Permitir lectura si es tutor (dueño), admin, o si es cuidador (para ver detalles en solicitudes)
       allow read: if autenticado() && (es_tutor() || es_admin() || tiene_rol_actual('cuidador'));
-      allow create: if autenticado()
-        && es_creador()
-        && tiene_campos_sistema_basicos()
-        && campos_sistema_validos_crear();
-      allow update: if autenticado()
+      allow create: if puede_crear_valido()
+        && request.resource.data.creado_por == request.auth.uid
+        && request.resource.data.id == id;
+      allow update: if puede_actualizar_valido()
         && es_tutor()
-        && campos_sistema_validos_actualizar()
         && request.resource.data.creado_por == resource.data.creado_por
         && request.resource.data.id == resource.data.id
         && solo_campos_permitidos([
@@ -190,24 +229,15 @@ service cloud.firestore {
     // UBICACIONES (direcciones geocodificadas)
     match /ubicaciones/{id} {
 
-      // Lectura: cualquier usuario autenticado puede leer ubicaciones (se puede endurecer si hace falta)
+      // Lectura: cualquier usuario autenticado puede leer ubicaciones
       allow read: if autenticado();
 
-      // Crear: validaciones sin campos_sistema_validos_crear
-      // (serverTimestamp no se puede comparar con request.time en reglas)
-      // Las coordenadas GeoPoint se validan en el código del servicio
-      allow create: if autenticado()
-        && es_creador()
-        && tiene_campos_sistema_basicos()
-        && request.resource.data.proveedor in ['google','mapbox']
-        && request.resource.data.proveedor_place_id is string
-        && request.resource.data.proveedor_place_id.size() > 0
-        && request.resource.data.direccion_formateada is string
-        && request.resource.data.direccion_formateada.size() > 3;
+      // Crear: validaciones especiales (sin campos_sistema_validos_crear)
+      allow create: if puede_crear_ubicacion_valida();
 
-      // Update: el creador o admin puede actualizar. Mantener campos de sistema y no cambiar creado_por/creado_en.
-      allow update: if autenticado() && (es_admin() || resource.data.creado_por == request.auth.uid)
-        && campos_sistema_validos_actualizar()
+      // Update: el creador o admin puede actualizar
+      allow update: if puede_actualizar_valido()
+        && (es_admin() || resource.data.creado_por == request.auth.uid)
         && request.resource.data.creado_por == resource.data.creado_por
         && request.resource.data.creado_en == resource.data.creado_en
         && solo_campos_permitidos([
@@ -239,16 +269,12 @@ service cloud.firestore {
       (resource.data.estado == 'PENDIENTE' && (!('id_cuidador' in resource.data) || resource.data.id_cuidador == null))
       );
 
-      allow create: if autenticado()
-        && es_creador()
-        && tiene_campos_sistema_basicos()
-        && campos_sistema_validos_crear()
-      // Validar que el cuidador no sea el mismo que el creador
+      allow create: if puede_crear_valido()
         && (!('id_cuidador' in request.resource.data) || 
       request.resource.data.id_cuidador != request.auth.uid);
 
       // OPTIMIZADO: Validaciones en orden de costo (baratas primero)
-      allow update: if autenticado() && campos_sistema_validos_actualizar() && (
+      allow update: if puede_actualizar_valido() && (
       // Caso 1: El Creador actualiza (validación más barata - solo request.auth.uid)
       resource.data.creado_por == request.auth.uid ||
 
@@ -294,9 +320,7 @@ service cloud.firestore {
       );
 
       // OPTIMIZADO: Validaciones baratas primero
-      allow create: if autenticado() &&
-      tiene_campos_sistema_basicos() &&
-      campos_sistema_validos_crear() &&
+      allow create: if puede_crear_valido() &&
       (
       // Primero verificar si es el usuario que se está agregando (barato)
       (request.resource.data.id_usuario == request.auth.uid && 
@@ -307,14 +331,12 @@ service cloud.firestore {
       );
 
       // Actor o tutor puede actualizar observaciones
-      allow update: if (
+      allow update: if puede_actualizar_valido() && (
       (es_actor_paseo_doc(get_paseo_doc(paseoId))
-        && campos_sistema_validos_actualizar()
         && request.resource.data.id_mascota == resource.data.id_mascota
         && request.resource.data.id_usuario == resource.data.id_usuario)
         ||
       (es_tutor_mascota()
-        && campos_sistema_validos_actualizar()
         && request.resource.data.id_paseo == resource.data.id_paseo
         && request.resource.data.id_mascota == resource.data.id_mascota
         && request.resource.data.id_usuario == resource.data.id_usuario
@@ -384,10 +406,7 @@ service cloud.firestore {
       (resource.data.id_explorador == request.auth.uid || es_admin());
 
       // Crear: usuarios autenticados pueden crear exploraciones
-      allow create: if autenticado()
-        && es_creador()
-        && tiene_campos_sistema_basicos()
-        && campos_sistema_validos_crear()
+      allow create: if puede_crear_valido()
         && request.resource.data.id_explorador == request.auth.uid
         && request.resource.data.h3_index is string
         && request.resource.data.h3_index.size() > 0
@@ -404,8 +423,7 @@ service cloud.firestore {
         && 'longitude' in request.resource.data.coordenadas;
 
       // Actualizar: solo admin puede cambiar estado y huellas
-      allow update: if autenticado() && es_admin()
-        && campos_sistema_validos_actualizar();
+      allow update: if puede_actualizar_valido() && es_admin();
 
       // Eliminar: solo admin
       allow delete: if es_admin();
@@ -432,23 +450,15 @@ service cloud.firestore {
         allow read: if autenticado() && 
         request.auth.uid in get(/databases/$(database)/documents/conversaciones/$(docId)).data.participantes;
 
-        // Crear: solo participantes de la conversación
-        allow create: if autenticado() &&
-        request.auth.uid in get(/databases/$(database)/documents/conversaciones/$(docId)).data.participantes &&
-        request.resource.data.autor_uid == request.auth.uid &&
-        request.resource.data.contenido is string &&
-        request.resource.data.contenido.size() > 0 &&
-        request.resource.data.contenido.size() <= 5000 &&
-        request.resource.data.tipo_mensaje in ['texto', 'sistema', 'notificacion'] &&
-        tiene_campos_sistema_basicos() &&
-        campos_sistema_validos_crear();
+        // Crear: solo participantes de la conversación (usar helper combinado)
+        allow create: if puede_crear_mensaje_valido(docId);
 
         // Actualizar: solo marcar como leído (agregar a leidos_por)
         allow update: if autenticado() &&
         request.auth.uid in get(/databases/$(database)/documents/conversaciones/$(docId)).data.participantes &&
         request.resource.data.leidos_por[request.auth.uid] == true &&
         request.resource.data.contenido == resource.data.contenido &&
-        campos_sistema_validos_actualizar();
+        puede_actualizar_valido();
 
         // Eliminar: no permitir (solo admin en casos de abuso)
         allow delete: if false;
