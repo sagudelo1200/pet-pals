@@ -85,16 +85,18 @@ const ResumenExploracion = ({ route, navigation }: any) => {
             <Icon name="check-circle" size={80} color="#FFF" />
           </Animated.View>
           <Text style={styles.successTitle}>
-            🌟 {t('exploracion_completada')}
+            🌟 {t('explorador:exploracion_completada')}
           </Text>
           <Text style={styles.successSubtitle}>
-            {t('aporte_construye_mapa')}
+            {t('explorador:aporte_construye_mapa')}
           </Text>
         </LinearGradient>
 
         {/* SECCIÓN: RESUMEN DE ACTIVIDAD */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>📊 {t('resumen_actividad')}</Text>
+          <Text style={styles.sectionTitle}>
+            📊 {t('explorador:resumen_actividad')}
+          </Text>
 
           <View style={styles.summaryGrid}>
             <View style={styles.summaryCard}>
@@ -107,28 +109,33 @@ const ResumenExploracion = ({ route, navigation }: any) => {
               <Text style={styles.summaryEmoji}>🐕</Text>
               <Text style={styles.summaryValue}>{mascotasObservadas}</Text>
               <Text style={styles.summaryLabel}>
-                {t('mascotas_observadas_count')}
+                {t('explorador:mascotas_observadas_count')}
               </Text>
             </View>
 
             <View style={styles.summaryCard}>
               <Text style={styles.summaryEmoji}>📍</Text>
               <Text style={styles.summaryValue}>{eventos.length}</Text>
-              <Text style={styles.summaryLabel}>{t('eventos_count')}</Text>
+              <Text style={styles.summaryLabel}>
+                {t('explorador:eventos_count')}
+              </Text>
             </View>
           </View>
         </View>
 
         {/* SECCIÓN: EVENTOS CAPTURADOS */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>📋 {t('eventos_registrados')}</Text>
+          <Text style={styles.sectionTitle}>
+            📋 {t('explorador:eventos_registrados')}
+          </Text>
 
           <View style={styles.eventosList}>
             {eventosPorTipo.mascotas > 0 && (
               <View style={styles.eventoItem}>
                 <Icon name="dog" size={20} color={COLOR.ENFASIS} />
                 <Text style={styles.eventoText}>
-                  {t('mascotas_observadas')} ({eventosPorTipo.mascotas})
+                  {t('explorador:mascotas_observadas')} (
+                  {eventosPorTipo.mascotas})
                 </Text>
               </View>
             )}
@@ -137,7 +144,8 @@ const ResumenExploracion = ({ route, navigation }: any) => {
               <View style={styles.eventoItem}>
                 <Icon name="account-multiple" size={20} color={COLOR.ENFASIS} />
                 <Text style={styles.eventoText}>
-                  {t('personas_interesadas')} ({eventosPorTipo.interesados})
+                  {t('explorador:personas_interesadas')} (
+                  {eventosPorTipo.interesados})
                 </Text>
               </View>
             )}
@@ -146,7 +154,7 @@ const ResumenExploracion = ({ route, navigation }: any) => {
               <View style={styles.eventoItem}>
                 <Icon name="handshake" size={20} color={COLOR.ENFASIS} />
                 <Text style={styles.eventoText}>
-                  {t('aliado_negocio')} ({eventosPorTipo.aliado})
+                  {t('explorador:aliado_negocio')} ({eventosPorTipo.aliado})
                 </Text>
               </View>
             )}
@@ -155,7 +163,8 @@ const ResumenExploracion = ({ route, navigation }: any) => {
               <View style={styles.eventoItem}>
                 <Icon name="shield-alert" size={20} color={COLOR.ENFASIS} />
                 <Text style={styles.eventoText}>
-                  {t('seguridad_riesgo')} ({eventosPorTipo.seguridad})
+                  {t('explorador:seguridad_riesgo')} ({eventosPorTipo.seguridad}
+                  )
                 </Text>
               </View>
             )}
@@ -164,7 +173,7 @@ const ResumenExploracion = ({ route, navigation }: any) => {
               <View style={styles.eventoItem}>
                 <Icon name="note-multiple" size={20} color={COLOR.ENFASIS} />
                 <Text style={styles.eventoText}>
-                  {t('nota_rapida')} ({eventosPorTipo.nota})
+                  {t('explorador:nota_rapida')} ({eventosPorTipo.nota})
                 </Text>
               </View>
             )}
@@ -173,7 +182,9 @@ const ResumenExploracion = ({ route, navigation }: any) => {
 
         {/* SECCIÓN: RECOMPENSAS */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>🏆 {t('recompensas_ganadas')}</Text>
+          <Text style={styles.sectionTitle}>
+            🏆 {t('explorador:recompensas_ganadas')}
+          </Text>
 
           <LinearGradient
             colors={['#FFF9E6', '#FFF3CC']}
@@ -185,7 +196,7 @@ const ResumenExploracion = ({ route, navigation }: any) => {
               <Text style={styles.recompensaEmoji}>🐾</Text>
               <View style={styles.recompensaInfo}>
                 <Text style={styles.recompensaLabel}>
-                  {t('huellas_ganadas')}
+                  {t('explorador:huellas_ganadas')}
                 </Text>
                 <Text style={styles.recompensaValue}>+{huellas}</Text>
               </View>
@@ -201,7 +212,9 @@ const ResumenExploracion = ({ route, navigation }: any) => {
             <View style={styles.recompensaRow}>
               <Text style={styles.recompensaEmoji}>⭐</Text>
               <View style={styles.recompensaInfo}>
-                <Text style={styles.recompensaLabel}>{t('xp_ganado')}</Text>
+                <Text style={styles.recompensaLabel}>
+                  {t('explorador:xp_ganado')}
+                </Text>
                 <Text style={styles.recompensaValue}>+25 XP</Text>
               </View>
             </View>
@@ -217,10 +230,10 @@ const ResumenExploracion = ({ route, navigation }: any) => {
               <Text style={styles.recompensaEmoji}>🗺️</Text>
               <View style={styles.recompensaInfo}>
                 <Text style={styles.recompensaLabel}>
-                  {t('zona_explorada')}
+                  {t('explorador:zona_explorada')}
                 </Text>
                 <Text style={styles.recompensaValue}>
-                  +1 {t('zona_explorada')}
+                  +1 {t('explorador:zona_explorada')}
                 </Text>
               </View>
             </View>
@@ -229,16 +242,16 @@ const ResumenExploracion = ({ route, navigation }: any) => {
 
         {/* SECCIÓN: INSIGHTS (opcional) */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>💡 {t('insights')}</Text>
+          <Text style={styles.sectionTitle}>💡 {t('explorador:insights')}</Text>
 
           <View style={styles.insightCard}>
             <Icon name="lightbulb" size={20} color={COLOR.ENFASIS} />
             <View style={{ flex: 1 }}>
               <Text style={styles.insightTitle}>
-                {t('zona_activa_detectada')}
+                {t('explorador:zona_activa_detectada')}
               </Text>
               <Text style={styles.insightDesc}>
-                {t('zona_actividad_mascotas')}
+                {t('explorador:zona_actividad_mascotas')}
               </Text>
             </View>
           </View>
@@ -251,7 +264,7 @@ const ResumenExploracion = ({ route, navigation }: any) => {
             onPress={() => navigation.navigate('ExplorerRoot' as never)}
           >
             <Text style={styles.btnSecundarioText}>
-              {t('volver_dashboard')}
+              {t('explorador:volver_dashboard')}
             </Text>
           </Pressable>
 
@@ -260,7 +273,9 @@ const ResumenExploracion = ({ route, navigation }: any) => {
             onPress={() => navigation.navigate('ExplorarLibremente')}
           >
             <Icon name="plus-circle" size={20} color="#FFF" />
-            <Text style={styles.btnPrimarioText}>{t('nueva_exploracion')}</Text>
+            <Text style={styles.btnPrimarioText}>
+              {t('explorador:nueva_exploracion')}
+            </Text>
           </Pressable>
         </View>
       </ScrollView>

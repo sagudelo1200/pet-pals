@@ -1,0 +1,11 @@
+{
+  "titulo": "Error",
+  "subtitulo": "Algo salió mal",
+  "intentar_nuevamente": "Intentar nuevamente",
+  "volver": "Volver atrás",
+  "no_encontrado": "No encontrado",
+  "acceso_denegado": "Acceso denegado",
+  "error_conexion": "Error de conexión",
+  "error_desconocido": "Error desconocido",
+  "intenta_mas_tarde": "Intenta más tarde"
+}

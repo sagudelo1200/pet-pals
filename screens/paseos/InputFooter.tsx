@@ -6,6 +6,7 @@ import {
   Pressable,
   ActivityIndicator,
 } from 'react-native'
+import { useTranslation } from 'react-i18next'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Icon } from '@/components/ui'
 import { COLOR } from '@/constants'
@@ -27,6 +28,7 @@ export const InputFooter: React.FC<InputFooterProps> = ({
   enviando,
   conversacion,
 }) => {
+  const { t } = useTranslation()
   const insets = useSafeAreaInsets()
 
   return (
@@ -35,7 +37,7 @@ export const InputFooter: React.FC<InputFooterProps> = ({
     >
       <TextInput
         ref={inputRef}
-        placeholder="Escribe un mensaje..."
+        placeholder={t('chat:escribe_mensaje')}
         placeholderTextColor={COLOR.SUBTEXTO}
         value={contenido}
         onChangeText={setContenido}

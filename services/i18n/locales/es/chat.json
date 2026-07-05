@@ -1,0 +1,16 @@
+{
+  "titulo": "Chat",
+  "sin_mensajes": "Sin mensajes aún",
+  "escribe_mensaje": "Escribe un mensaje...",
+  "enviar": "Enviar",
+  "cargando_mensajes": "Cargando mensajes...",
+  "error_cargar": "Error al cargar mensajes",
+  "mensaje_enviado": "Mensaje enviado",
+  "error_envio": "Error al enviar mensaje",
+  "fecha_hoy": "Hoy",
+  "fecha_ayer": "Ayer",
+  "escribiendo": "escribiendo...",
+  "tutor_label": "Tutor",
+  "cuidador_label": "Cuidador",
+  "en_linea": "En línea"
+}

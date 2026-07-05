@@ -39,6 +39,10 @@
     "cancelado_titulo": "Paseo cancelado",
     "completado_titulo": "Paseo completado"
   },
+  "acciones": {
+    "ver_detalles": "Ver detalles",
+    "contactar": "Contactar"
+  },
   "eventos": {
     "ACEPTAR": "Aceptar paseo",
     "RECHAZAR": "Rechazar paseo",
@@ -78,6 +82,7 @@
     "sin_permisos": "No tienes permisos para realizar esta acción",
     "error_red": "Error de conexión. Verifica tu internet",
     "error_validacion": "Los datos proporcionados no son válidos",
+    "error_cargar": "Error al cargar los paseos",
     "motivo_requerido": "Se requiere un motivo para esta acción"
   },
   "boton_solicitar": "Solicitar paseo",
@@ -165,7 +170,7 @@
     "esperando_cuidador": "Esperando que un cuidador acepte tu solicitud...",
     "cuidador": "Cuidador Asignado"
   },
-  "acciones": {
+  "cancelacion": {
     "cancelar": "Cancelar Paseo",
     "confirmar_cancelar": "¿Estás seguro de que deseas cancelar este paseo? Esta acción no se puede deshacer."
   },
@@ -217,6 +222,9 @@
     "cancelado_mensaje": "Este paseo ha sido cancelado."
   },
   "control": {
+    "ruta_a_recogida": "Ruta a punto de recogida",
+    "a_pie": "A pie",
+    "vehiculo": "En vehículo",
     "iniciar_ruta": "Iniciar Ruta",
     "he_llegado": "He llegado",
     "verificar_codigo": "Verificar código",

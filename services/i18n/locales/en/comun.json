@@ -56,5 +56,7 @@
   },
   "atencion": "Attention",
   "no": "No",
-  "si": "Yes"
+  "si": "Yes",
+  "entendido": "Got it",
+  "tiempo": "Time"
 }

@@ -13,8 +13,7 @@
             ".write": "auth != null && newData.child('latitud').isNumber() && newData.child('longitud').isNumber() && newData.child('actualizado_en').exists()",
             ".validate": "newData.child('latitud').isNumber() && newData.child('longitud').isNumber()"
           }
-        },
-        ".write": "false"
+        }
       }
     },
 

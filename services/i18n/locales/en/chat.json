@@ -1,0 +1,16 @@
+{
+  "titulo": "Chat",
+  "sin_mensajes": "No messages yet",
+  "escribe_mensaje": "Type a message...",
+  "enviar": "Send",
+  "cargando_mensajes": "Loading messages...",
+  "error_cargar": "Error loading messages",
+  "mensaje_enviado": "Message sent",
+  "error_envio": "Error sending message",
+  "fecha_hoy": "Today",
+  "fecha_ayer": "Yesterday",
+  "escribiendo": "typing...",
+  "tutor_label": "Tutor",
+  "cuidador_label": "Caregiver",
+  "en_linea": "Online"
+}

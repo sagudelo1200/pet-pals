@@ -39,6 +39,10 @@
     "cancelado_titulo": "Walk Cancelled",
     "completado_titulo": "Walk Completed"
   },
+  "acciones": {
+    "ver_detalles": "View details",
+    "contactar": "Contact"
+  },
   "eventos": {
     "ACEPTAR": "Accept walk",
     "RECHAZAR": "Reject walk",
@@ -78,6 +82,7 @@
     "sin_permisos": "You don't have permission to perform this action",
     "error_red": "Connection error. Check your internet",
     "error_validacion": "The provided data is not valid",
+    "error_cargar": "Error loading walks",
     "motivo_requerido": "A reason is required for this action"
   },
   "boton_solicitar": "Request walk",
@@ -165,7 +170,7 @@
     "esperando_cuidador": "Waiting for a caregiver to accept your request...",
     "cuidador": "Assigned Caregiver"
   },
-  "acciones": {
+  "cancelacion": {
     "cancelar": "Cancel Walk",
     "confirmar_cancelar": "Are you sure you want to cancel this walk? This action cannot be undone."
   },
@@ -217,6 +222,9 @@
     "cancelado_mensaje": "This walk has been cancelled."
   },
   "control": {
+    "ruta_a_recogida": "Route to pickup point",
+    "a_pie": "On foot",
+    "vehiculo": "By vehicle",
     "iniciar_ruta": "Start Route",
     "he_llegado": "I've Arrived",
     "verificar_codigo": "Verify Code",

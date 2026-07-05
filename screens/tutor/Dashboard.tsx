@@ -1,92 +1,234 @@
-import React, { useState } from 'react'
-import { StyleSheet, View, Platform, Alert, ScrollView } from 'react-native'
+import React, { useMemo, useCallback, useState } from 'react'
+import {
+  StyleSheet,
+  View,
+  Platform,
+  ScrollView,
+  RefreshControl,
+  Alert,
+  Animated,
+} from 'react-native'
 import { theme, Text } from 'galio-framework'
-import { useNavigation } from '@react-navigation/native'
+import { useNavigation, useFocusEffect } from '@react-navigation/native'
 import { BottomTabNavigationProp } from '@react-navigation/bottom-tabs'
 import { TutorTabParamList } from '@/navigation/types'
 import { useTranslation } from 'react-i18next'
 import { COLOR } from '@/constants'
+
+// Contextos y Hooks
 import { useAuth } from '@/context/AuthContext'
-import {
-  Card,
-  Button,
-  Divider,
-  Spacer,
-  Chip,
-  Avatar,
-  Badge,
-  Icon,
-} from '@/components/ui'
-import Screen from '@/components/ui/Screen'
-import ScreenHeader from '@/components/ui/ScreenHeader'
-import type { Mascota } from '@/models/Mascota'
 import { useMascotas } from '@/hooks/useMascotas'
+import { usePaseos } from '@/hooks/paseos/usePaseos'
+import { useAnimacionFadeIn } from '@/hooks/useAnimacionFadeIn'
+
+// Componentes UI Base
+import {
+  Chip,
+  EmptyState,
+  Skeleton,
+  ScreenHeader,
+  Screen,
+  Spacer,
+} from '@/components/ui'
+
+// Componentes Dashboard
+import { MisMascotasPreview } from '@/components/tutor/dashboard/MisMascotasPreview'
+import { ProximoPaseoPreview } from '@/components/tutor/dashboard/ProximoPaseoPreview'
+import { ActividadRecientePreview } from '@/components/tutor/dashboard/ActividadRecientePreview'
+
+// Componentes de Dominio
+import { SolicitarPaseoModal } from '@/components/paseos/SolicitarPaseoModal'
+import DetallePaseoBottomSheet from '@/components/paseos/DetallePaseoBottomSheet'
+import { CrearMascotaFlow } from './CrearMascotaFlow'
+
+// Modelos
+import { ESTADOS_PASEO } from '@/models/Paseo'
+
+// Helpers
+import {
+  obtenerProximoPaseo,
+  obtenerActividadReciente,
+} from '@/logic/dashboard/helpers'
 
 type DashboardNavigationProp = BottomTabNavigationProp<TutorTabParamList>
 
+/**
+ * Dashboard del Tutor - Pantalla Principal
+ *
+ * Estructura:
+ * 1. Header con saludo personalizado
+ * 2. Mis Mascotas (preview 1-3)
+ * 3. Próximo Paseo (si existe)
+ * 4. Acciones Rápidas
+ * 5. Actividad Reciente (últimos 5 eventos)
+ *
+ * FASE 1: Datos reales de Firestore
+ * FASE 2: Componentes reutilizables
+ * FASE 3: Navegación funcional
+ */
 const Dashboard: React.FC = () => {
-  const _navigation = useNavigation<DashboardNavigationProp>()
+  const navigation = useNavigation<DashboardNavigationProp>()
   const { t } = useTranslation()
   const { profile } = useAuth()
 
-  const [creandoMascota, setCreandoMascota] = useState(false)
+  // ===== DATA HOOKS (FASE 1) =====
+  const {
+    mascotas,
+    loading: mascotasLoading,
+    error: errorMascotas,
+    refrescar: refrescarMascotas,
+  } = useMascotas()
 
-  const { crear } = useMascotas()
+  const {
+    paseos,
+    cargando: paseosLoading,
+    error: errorPaseos,
+    refetch: refetchPaseos,
+  } = usePaseos()
 
-  const crearMascotaSemilla = async () => {
-    setCreandoMascota(true)
-    const mascotaData: Omit<
-      Mascota,
-      'id' | 'creado_en' | 'actualizado_en' | 'creado_por' | 'actualizado_por'
-    > = {
-      nombre: 'Cocoa',
-      foto: 'https://cdn.pixabay.com/photo/2023/02/20/23/11/dog-7803251_1280.jpg',
-      especie: 'perro',
-      raza: 'Border Collie',
-      fecha_nacimiento: new Date('2019-07-19'),
-      genero: 'macho',
-      tamano: 'mediano',
-      peso: 18,
-      esterilizado: true,
-      vacunas: [
-        { nombre: 'Rabia', fecha: new Date('2019-08-22') },
-        { nombre: 'Moquillo', fecha: new Date('2019-08-22') },
-        { nombre: 'Parvovirus', fecha: new Date('2019-08-22') },
-      ],
-      condiciones_salud: [
-        'sin condiciones crónicas conocidas',
-        'visión normal',
-        'audición normal',
-      ],
-      alergias: [],
-      medicamentos: [],
-      nivel_energia: 'alto',
-      preferencias_paseo: [
-        'paseos largos',
-        'espacios abiertos',
-        'juegos de búsqueda o pelota',
-      ],
-      descripcion:
-        'Perro de mirada alerta e inteligente, con pelaje marrón y blanco bien cuidado. Se percibe equilibrado, activo y con fuerte instinto de observación.',
-      activo: true,
-    }
+  // ===== LOCAL STATE =====
+  const [mostrarCrearMascota, setMostrarCrearMascota] = useState(false)
+  const [mostrarSolicitarPaseo, setMostrarSolicitarPaseo] = useState(false)
+  const [mostrarDetallePaseo, setMostrarDetallePaseo] = useState(false)
+  const [refrescando, setRefrescando] = useState(false)
+  const [paseoSeleccionadoId, setPaseoSeleccionadoId] = useState<string | null>(
+    null
+  )
 
+  // ===== ANIMACIONES (FASE 4 - VISUAL) =====
+  const { animatedStyle: mascotasAnim } = useAnimacionFadeIn(0, 400)
+  const { animatedStyle: paseoAnim } = useAnimacionFadeIn(150, 400)
+  const { animatedStyle: accionesAnim } = useAnimacionFadeIn(300, 400)
+  const { animatedStyle: actividadAnim } = useAnimacionFadeIn(450, 400)
+
+  // ===== COMPUTED STATES (FASE 1) =====
+  const proximoPaseo = useMemo(
+    () => obtenerProximoPaseo(paseos || []),
+    [paseos]
+  )
+
+  const actividadReciente = useMemo(
+    () => obtenerActividadReciente(paseos || []),
+    [paseos]
+  )
+
+  const paseoSeleccionado = useMemo(
+    () => paseos?.find(p => p.id === paseoSeleccionadoId) || null,
+    [paseos, paseoSeleccionadoId]
+  )
+
+  // ===== ERROR HANDLING =====
+  useFocusEffect(
+    useCallback(() => {
+      if (errorMascotas) {
+        Alert.alert(t('errores:titulo'), t('mascotas:errores.error_cargar'))
+      }
+      if (errorPaseos) {
+        Alert.alert(t('errores:titulo'), t('paseos:errores.error_cargar'))
+      }
+    }, [errorMascotas, errorPaseos, t])
+  )
+
+  // ===== HANDLERS (FASE 3) =====
+
+  const handleRefrescar = useCallback(async () => {
+    setRefrescando(true)
     try {
-      await crear(mascotaData)
-      Alert.alert('✅ Mascota creada', 'Max ha sido creada exitosamente.', [
-        { text: 'OK' },
-      ])
-    } catch (error) {
-      console.error('Error creando mascota via context:', error)
-      Alert.alert('Error', 'Ocurrió un error inesperado')
+      await Promise.all([refrescarMascotas(), refetchPaseos()])
+    } catch (err) {
+      console.error('Error refrescando:', err)
     } finally {
-      setCreandoMascota(false)
+      setRefrescando(false)
     }
-  }
+  }, [refrescarMascotas, refetchPaseos])
 
-  const handleAlert = () => {
-    Alert.alert('Acción de prueba', 'Hiciste tap en el botón de prueba 🎯')
-  }
+  // Navegación (FASE 3)
+  const handleAbrirMascotas = useCallback(() => {
+    // @ts-ignore
+    navigation.navigate('Mascotas')
+  }, [navigation])
+
+  const handleAbrirPaseos = useCallback(() => {
+    // @ts-ignore
+    navigation.navigate('Paseos')
+  }, [navigation])
+
+  const handleAbrirExplorador = useCallback(() => {
+    // @ts-ignore
+    navigation.navigate('Explorador')
+  }, [navigation])
+
+  const handleVerDetallesPaseo = useCallback(() => {
+    if (!proximoPaseo) return
+
+    // Si el paseo está activo, navega a la pantalla de seguimiento (mapa)
+    if (
+      proximoPaseo.estado === ESTADOS_PASEO.EN_PROGRESO ||
+      proximoPaseo.estado === ESTADOS_PASEO.EN_CAMINO ||
+      proximoPaseo.estado === ESTADOS_PASEO.EN_PUNTO_RECOGIDA
+    ) {
+      // @ts-ignore
+      navigation.navigate('PaseoActivo', { paseoId: proximoPaseo.id })
+      return
+    }
+
+    // Para otros estados (PENDIENTE, CONFIRMADO, etc.), abre el modal de detalles
+    setPaseoSeleccionadoId(proximoPaseo.id)
+    setMostrarDetallePaseo(true)
+  }, [proximoPaseo, navigation])
+
+  const handleContactarCuidador = useCallback(() => {
+    if (proximoPaseo?.id) {
+      // Navegar a Chat (FASE 3)
+      // @ts-ignore
+      navigation.navigate('Chat', { paseoId: proximoPaseo.id })
+    }
+  }, [proximoPaseo, navigation])
+
+  const handleVerDetalleActividad = useCallback(
+    (paseoId: string) => {
+      const paseo = paseos?.find(p => p.id === paseoId)
+      if (!paseo) return
+
+      // Si el paseo está activo, navega a la pantalla de seguimiento
+      if (
+        paseo.estado === ESTADOS_PASEO.EN_PROGRESO ||
+        paseo.estado === ESTADOS_PASEO.EN_CAMINO ||
+        paseo.estado === ESTADOS_PASEO.EN_PUNTO_RECOGIDA
+      ) {
+        // @ts-ignore
+        navigation.navigate('PaseoActivo', { paseoId })
+        return
+      }
+
+      // Para otros estados, abre el modal de detalles
+      setPaseoSeleccionadoId(paseoId)
+      setMostrarDetallePaseo(true)
+    },
+    [paseos, navigation]
+  )
+
+  const handleAgregarMascota = useCallback(() => {
+    setMostrarCrearMascota(true)
+  }, [])
+
+  const handleSolicitarPaseo = useCallback(() => {
+    if (mascotas.length === 0) {
+      Alert.alert(
+        t('paseos:errores.SIN_MASCOTAS_TITULO'),
+        t('paseos:errores.SIN_MASCOTAS_MSG'),
+        [
+          { text: 'Cancelar', style: 'cancel' },
+          {
+            text: 'Crear Mascota',
+            onPress: () => setMostrarCrearMascota(true),
+          },
+        ]
+      )
+      return
+    }
+    setMostrarSolicitarPaseo(true)
+  }, [mascotas.length, t])
 
   return (
     <Screen style={styles.container} includeTopInset>
@@ -97,104 +239,151 @@ const Dashboard: React.FC = () => {
         subtitle={t('tutor:dashboard.subtitulo')}
         showBack={false}
       />
+
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refrescando}
+            onRefresh={handleRefrescar}
+            tintColor={COLOR.PRIMARIO}
+          />
+        }
       >
-        {/* Próximo paseo */}
-        <Card
-          title={t('tutor:dashboard.proximo_paseo')}
-          subtitle="Hoy, 5:30 PM"
-          right={<Badge label="Confirmado" variant="exito" size="sm" />}
-          style={{ marginBottom: 16 }}
-        >
-          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-            <Avatar name="Luna" />
-            <Spacer horizontal size={12} />
-            <View style={{ flex: 1 }}>
-              <Text style={{ color: COLOR.TEXTO, fontWeight: '700' }}>
-                Luna
-              </Text>
-              <Text style={{ color: COLOR.SUBTEXTO }}>
-                Con Juan - Punto de encuentro parque central
-              </Text>
-            </View>
-            <Button title="Detalles" size="sm" onPress={handleAlert} />
-          </View>
-        </Card>
+        {/* ===== SECCIÓN 1: MIS MASCOTAS (FASE 2) ===== */}
+        <Animated.View style={[styles.section, mascotasAnim]}>
+          {mascotasLoading ? (
+            <Skeleton height={100} />
+          ) : mascotas.length === 0 ? (
+            <EmptyState
+              iconName="paw"
+              title={t('tutor:dashboard.sin_mascotas_titulo')}
+              description={t('tutor:dashboard.sin_mascotas_desc')}
+              actionLabel={t('tutor:dashboard.agregar_mascota')}
+              onActionPress={handleAgregarMascota}
+            />
+          ) : (
+            <MisMascotasPreview
+              mascotas={mascotas}
+              onVerTodas={handleAbrirMascotas}
+              onAgregarMascota={handleAgregarMascota}
+            />
+          )}
+        </Animated.View>
 
-        {/* Acciones rápidas */}
-        <Card
-          title={t('tutor:dashboard.acciones_rapidas')}
-          subtitle={t('tutor:dashboard.lo_mas_usado')}
-          style={{ marginBottom: 16 }}
-        >
-          <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
+        <Spacer size={theme.SIZES.BASE} />
+
+        {/* ===== SECCIÓN 2: PRÓXIMO PASEO (FASE 1 + 2 + 3) ===== */}
+        <Animated.View style={[styles.section, paseoAnim]}>
+          <Text style={styles.sectionTitle}>
+            {t('tutor:dashboard.proximo_paseo')}
+          </Text>
+
+          {paseosLoading ? (
+            <Skeleton height={150} />
+          ) : proximoPaseo ? (
+            <ProximoPaseoPreview
+              paseo={proximoPaseo}
+              onVerDetalles={handleVerDetallesPaseo}
+              onContactar={handleContactarCuidador}
+            />
+          ) : (
+            <EmptyState
+              iconName="walking"
+              title={t('tutor:dashboard.sin_paseo_titulo')}
+              description={t('tutor:dashboard.sin_paseo_desc')}
+              actionLabel={t('tutor:dashboard.solicitar_paseo')}
+              onActionPress={handleSolicitarPaseo}
+            />
+          )}
+        </Animated.View>
+
+        <Spacer size={theme.SIZES.BASE} />
+
+        {/* ===== SECCIÓN 3: ACCIONES RÁPIDAS (FASE 3) ===== */}
+        <Animated.View style={[styles.section, accionesAnim]}>
+          <Text style={styles.sectionTitle}>
+            {t('tutor:dashboard.acciones_rapidas')}
+          </Text>
+
+          <View style={styles.accionesGrid}>
             <Chip
               label={t('tutor:dashboard.solicitar_paseo')}
               leftIconName="walking"
-              onPress={handleAlert}
+              onPress={handleSolicitarPaseo}
             />
-            <Spacer horizontal size={8} />
             <Chip
-              label={
-                creandoMascota
-                  ? 'Creando...'
-                  : t('tutor:dashboard.agregar_mascota')
-              }
+              label={t('tutor:dashboard.agregar_mascota')}
               leftIconName="paw"
-              onPress={crearMascotaSemilla}
-              disabled={creandoMascota}
+              onPress={handleAgregarMascota}
             />
-            <Spacer horizontal size={8} />
             <Chip
-              label={t('tutor:dashboard.ver_historial')}
+              label={t('tutor:dashboard.ver_paseos')}
               leftIconName="history"
-              onPress={handleAlert}
+              onPress={handleAbrirPaseos}
+            />
+            <Chip
+              label={t('tutor:dashboard.explorar')}
+              leftIconName="map-marker"
+              onPress={handleAbrirExplorador}
             />
           </View>
-        </Card>
+        </Animated.View>
 
-        {/* Actividad reciente */}
-        <Card
-          title={t('tutor:dashboard.actividad_reciente')}
-          subtitle={t('tutor:dashboard.ultimos_movimientos')}
-        >
-          <View>
-            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-              <Icon name="walking" size={16} color={COLOR.SUBTEXTO} />
-              <Spacer horizontal size={8} />
-              <Text style={{ color: COLOR.TEXTO, flex: 1 }}>
-                Paseo completado con Max - 10:00 AM
-              </Text>
-              <Badge label="Completado" variant="exito" size="sm" />
-            </View>
-            <Spacer size={10} />
-            <Divider />
-            <Spacer size={10} />
-            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-              <Icon name="map-marker-alt" size={16} color={COLOR.SUBTEXTO} />
-              <Spacer horizontal size={8} />
-              <Text style={{ color: COLOR.TEXTO, flex: 1 }}>
-                Punto de encuentro actualizado
-              </Text>
-              <Badge label="Info" variant="info" size="sm" />
-            </View>
-            <Spacer size={10} />
-            <Divider />
-            <Spacer size={10} />
-            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-              <Icon name="star" size={16} color={COLOR.SUBTEXTO} />
-              <Spacer horizontal size={8} />
-              <Text style={{ color: COLOR.TEXTO, flex: 1 }}>
-                Valoraste a Ana con 5 estrellas
-              </Text>
-              <Badge label="¡Gracias!" variant="enfasis" size="sm" />
-            </View>
-          </View>
-        </Card>
+        <Spacer size={theme.SIZES.BASE} />
+
+        {/* ===== SECCIÓN 4: ACTIVIDAD RECIENTE (FASE 1 + 2) ===== */}
+        <Animated.View style={[styles.section, actividadAnim]}>
+          <Text style={styles.sectionTitle}>
+            {t('tutor:dashboard.actividad_reciente')}
+          </Text>
+
+          {paseosLoading ? (
+            <Skeleton height={200} />
+          ) : actividadReciente.length === 0 ? (
+            <EmptyState
+              iconName="inbox"
+              title={t('tutor:dashboard.sin_actividad_titulo')}
+              description={t('tutor:dashboard.sin_actividad_desc')}
+              actionLabel={t('tutor:dashboard.solicitar_paseo')}
+              onActionPress={handleSolicitarPaseo}
+            />
+          ) : (
+            <ActividadRecientePreview
+              paseos={actividadReciente}
+              onPresionar={handleVerDetalleActividad}
+            />
+          )}
+        </Animated.View>
+
+        <Spacer size={theme.SIZES.BASE * 2} />
       </ScrollView>
+
+      {/* ===== MODALES Y BOTTOM SHEETS ===== */}
+      <CrearMascotaFlow
+        visible={mostrarCrearMascota}
+        onClose={() => setMostrarCrearMascota(false)}
+        onGuardar={async () => {
+          setMostrarCrearMascota(false)
+          await refrescarMascotas()
+        }}
+      />
+
+      <SolicitarPaseoModal
+        visible={mostrarSolicitarPaseo}
+        onClose={() => setMostrarSolicitarPaseo(false)}
+      />
+
+      <DetallePaseoBottomSheet
+        visible={mostrarDetallePaseo}
+        paseo={paseoSeleccionado}
+        onClose={() => {
+          setMostrarDetallePaseo(false)
+          setPaseoSeleccionadoId(null)
+        }}
+      />
     </Screen>
   )
 }
@@ -211,114 +400,19 @@ const styles = StyleSheet.create({
     padding: theme.SIZES.BASE,
     paddingBottom: Platform.OS === 'android' ? 120 : theme.SIZES.BASE * 2,
   },
-  header: {
-    marginBottom: theme.SIZES.BASE * 2,
-    alignItems: 'center',
-  },
-  welcomeText: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: COLOR.TEXTO,
-    textAlign: 'center',
-    marginBottom: 8,
-  },
-  subtitleText: {
-    fontSize: 16,
-    color: COLOR.SUBTEXTO,
-    textAlign: 'center',
-  },
-  mascotasButton: {
-    backgroundColor: COLOR.PRIMARIO,
-    paddingVertical: 20,
-    paddingHorizontal: 24,
-    borderRadius: 12,
-    alignItems: 'center',
-    marginBottom: theme.SIZES.BASE * 2,
-    shadowColor: COLOR.PRIMARIO,
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.3,
-    shadowRadius: 4.65,
-    elevation: 8,
-  },
-  mascotasIcon: {
-    fontSize: 32,
-    marginBottom: 8,
-  },
-  mascotasButtonText: {
-    color: COLOR.TEXTO,
-    fontSize: 18,
-    fontWeight: '700',
-    marginBottom: 4,
-  },
-  mascotasSubtext: {
-    color: COLOR.TEXTO,
-    fontSize: 14,
-    textAlign: 'center',
-    opacity: 0.8,
-  },
-  statsContainer: {
-    backgroundColor: COLOR.SECUNDARIO,
-    padding: theme.SIZES.BASE,
-    borderRadius: 12,
-    marginBottom: theme.SIZES.BASE * 2,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 3.84,
-    elevation: 5,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: COLOR.TEXTO,
+  section: {
     marginBottom: theme.SIZES.BASE,
   },
-  statsRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  statCard: {
-    flex: 1,
-    alignItems: 'center',
-    padding: theme.SIZES.BASE,
-    backgroundColor: COLOR.BLOQUE,
-    borderRadius: 8,
-    marginHorizontal: 4,
-  },
-  statNumber: {
-    fontSize: 24,
-    marginBottom: 4,
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: '600',
     color: COLOR.TEXTO,
+    marginBottom: 12,
   },
-  statLabel: {
-    fontSize: 12,
-    color: COLOR.SUBTEXTO,
-    textAlign: 'center',
-  },
-  quickActionsContainer: {
-    backgroundColor: COLOR.SECUNDARIO,
-    padding: theme.SIZES.BASE,
-    borderRadius: 12,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 3.84,
-    elevation: 5,
-  },
-  comingSoonText: {
-    fontSize: 14,
-    color: COLOR.SUBTEXTO,
-    textAlign: 'center',
-    fontStyle: 'italic',
+  accionesGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
   },
 })
 

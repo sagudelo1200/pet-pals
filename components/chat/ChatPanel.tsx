@@ -88,7 +88,9 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
         {!esDelUsuario && (
           <View style={styles.autorBadgeWrapper}>
             <Text style={styles.autorLabel}>
-              {esDelTutor ? '👤 Tutor' : '🚶 Cuidador'}
+              {esDelTutor
+                ? `👤 ${t('chat:tutor_label')}`
+                : `🚶 ${t('chat:cuidador_label')}`}
             </Text>
           </View>
         )}
@@ -168,7 +170,7 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
                 {t('chat:titulo') || 'Chat del Paseo'}
               </Text>
               <Text style={styles.subtitle}>
-                {conversacion ? 'En línea' : 'Cargando...'}
+                {conversacion ? t('chat:en_linea') : t('comun:cargando')}
               </Text>
             </View>
             <TouchableOpacity onPress={onClose}>

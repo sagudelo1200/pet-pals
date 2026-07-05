@@ -1,0 +1,11 @@
+{
+  "titulo": "Error",
+  "subtitulo": "Something went wrong",
+  "intentar_nuevamente": "Try again",
+  "volver": "Go back",
+  "no_encontrado": "Not found",
+  "acceso_denegado": "Access denied",
+  "error_conexion": "Connection error",
+  "error_desconocido": "Unknown error",
+  "intenta_mas_tarde": "Try again later"
+}

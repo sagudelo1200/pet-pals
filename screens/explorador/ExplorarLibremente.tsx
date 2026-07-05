@@ -47,7 +47,9 @@ const ModalMascotas = React.memo(
     <Modal visible={visible} transparent animationType="fade">
       <Pressable style={styles.modalOverlay} onPress={onClose}>
         <View style={styles.modalCard}>
-          <Text style={styles.modalTitle}>🐕 {t('mascotas_observadas')}</Text>
+          <Text style={styles.modalTitle}>
+            🐕 {t('explorador:mascotas_observadas')}
+          </Text>
 
           <View style={styles.optionGrid}>
             {[
@@ -117,7 +119,9 @@ const ModalNota = React.memo(
     <Modal visible={visible} transparent animationType="fade">
       <Pressable style={styles.modalOverlay} onPress={onClose}>
         <View style={styles.modalCard}>
-          <Text style={styles.modalTitle}>📝 {t('nota_rapida')}</Text>
+          <Text style={styles.modalTitle}>
+            📝 {t('explorador:nota_rapida')}
+          </Text>
 
           <View style={styles.notaContainer}>
             {tags.map(tag => (
@@ -178,10 +182,13 @@ const ModalInteresados = React.memo(
     t,
   }: ModalInteresadosProps) => {
     const opciones = [
-      { label: t('interes_mirando_mascotas'), value: 'mirando' },
-      { label: t('interes_preguntando_paseos'), value: 'preguntando' },
-      { label: t('interes_querer_acariciar'), value: 'acariciar' },
-      { label: t('interes_otro'), value: 'otro' },
+      { label: t('explorador:interes_mirando_mascotas'), value: 'mirando' },
+      {
+        label: t('explorador:interes_preguntando_paseos'),
+        value: 'preguntando',
+      },
+      { label: t('explorador:interes_querer_acariciar'), value: 'acariciar' },
+      { label: t('explorador:interes_otro'), value: 'otro' },
     ]
 
     return (
@@ -189,9 +196,11 @@ const ModalInteresados = React.memo(
         <Pressable style={styles.modalOverlay} onPress={onClose}>
           <View style={styles.modalCard}>
             <Text style={styles.modalTitle}>
-              👥 {t('personas_interesadas')}
+              👥 {t('explorador:personas_interesadas')}
             </Text>
-            <Text style={styles.modalDesc}>{t('pregunta_tipo_interes')}</Text>
+            <Text style={styles.modalDesc}>
+              {t('explorador:pregunta_tipo_interes')}
+            </Text>
 
             <View style={styles.optionGrid}>
               {opciones.map(option => (
@@ -253,19 +262,23 @@ const ModalAliado = React.memo(
     t,
   }: ModalAliadoProps) => {
     const opciones = [
-      { label: t('aliado_negocio_pet'), value: 'pet-friendly' },
-      { label: t('aliado_veterinaria'), value: 'veterinaria' },
-      { label: t('aliado_guarderia'), value: 'guarderia' },
-      { label: t('aliado_parque'), value: 'parque' },
-      { label: t('aliado_otro'), value: 'otro' },
+      { label: t('explorador:aliado_negocio_pet'), value: 'pet-friendly' },
+      { label: t('explorador:aliado_veterinaria'), value: 'veterinaria' },
+      { label: t('explorador:aliado_guarderia'), value: 'guarderia' },
+      { label: t('explorador:aliado_parque'), value: 'parque' },
+      { label: t('explorador:aliado_otro'), value: 'otro' },
     ]
 
     return (
       <Modal visible={visible} transparent animationType="fade">
         <Pressable style={styles.modalOverlay} onPress={onClose}>
           <View style={styles.modalCard}>
-            <Text style={styles.modalTitle}>🤝 {t('aliado_negocio')}</Text>
-            <Text style={styles.modalDesc}>{t('pregunta_tipo_aliado')}</Text>
+            <Text style={styles.modalTitle}>
+              🤝 {t('explorador:aliado_negocio')}
+            </Text>
+            <Text style={styles.modalDesc}>
+              {t('explorador:pregunta_tipo_aliado')}
+            </Text>
 
             <View style={styles.optionGrid}>
               {opciones.map(option => (
@@ -327,19 +340,23 @@ const ModalSeguridad = React.memo(
     t,
   }: ModalSeguridadProps) => {
     const opciones = [
-      { label: t('riesgo_trafico_intenso'), value: 'trafico' },
-      { label: t('riesgo_perro_suelto'), value: 'perro_suelto' },
-      { label: t('riesgo_zona_oscura'), value: 'oscura' },
-      { label: t('riesgo_acceso_limitado'), value: 'acceso' },
-      { label: t('riesgo_otro'), value: 'otro' },
+      { label: t('explorador:riesgo_trafico_intenso'), value: 'trafico' },
+      { label: t('explorador:riesgo_perro_suelto'), value: 'perro_suelto' },
+      { label: t('explorador:riesgo_zona_oscura'), value: 'oscura' },
+      { label: t('explorador:riesgo_acceso_limitado'), value: 'acceso' },
+      { label: t('explorador:riesgo_otro'), value: 'otro' },
     ]
 
     return (
       <Modal visible={visible} transparent animationType="fade">
         <Pressable style={styles.modalOverlay} onPress={onClose}>
           <View style={styles.modalCard}>
-            <Text style={styles.modalTitle}>🛡️ {t('seguridad_riesgo')}</Text>
-            <Text style={styles.modalDesc}>{t('pregunta_tipo_riesgo')}</Text>
+            <Text style={styles.modalTitle}>
+              🛡️ {t('explorador:seguridad_riesgo')}
+            </Text>
+            <Text style={styles.modalDesc}>
+              {t('explorador:pregunta_tipo_riesgo')}
+            </Text>
 
             <View style={styles.optionGrid}>
               {opciones.map(option => (
@@ -486,12 +503,12 @@ const ExplorarLibremente = ({ navigation }: any) => {
 
   // Tags para nota rápida
   const notaTags = [
-    t('nota_mascotas_asustadas'),
-    t('nota_zona_segura'),
-    t('nota_buena_iluminacion'),
-    t('nota_vigilancia'),
-    t('nota_acceso_limitado'),
-    t('nota_paso_frecuente'),
+    t('explorador:nota_mascotas_asustadas'),
+    t('explorador:nota_zona_segura'),
+    t('explorador:nota_buena_iluminacion'),
+    t('explorador:nota_vigilancia'),
+    t('explorador:nota_acceso_limitado'),
+    t('explorador:nota_paso_frecuente'),
   ]
 
   return (
@@ -511,7 +528,9 @@ const ExplorarLibremente = ({ navigation }: any) => {
         </Pressable>
 
         <View style={styles.headerInfo}>
-          <Text style={styles.headerTitle}>🔍 {t('explorando')}</Text>
+          <Text style={styles.headerTitle}>
+            🔍 {t('explorador:explorando')}
+          </Text>
           <Text style={styles.headerSubtitle}>⏱️ {tiempoTranscurrido}</Text>
         </View>
       </LinearGradient>
@@ -522,7 +541,7 @@ const ExplorarLibremente = ({ navigation }: any) => {
         <View style={styles.fotoContainer}>
           <Icon name="image" size={60} color={COLOR.BLOQUE} />
           <Text style={styles.placeholderText}>
-            {t('captura_foto_opcional')}
+            {t('explorador:captura_foto_opcional')}
           </Text>
         </View>
 
@@ -535,7 +554,7 @@ const ExplorarLibremente = ({ navigation }: any) => {
           >
             <Icon name="dog" size={24} color={COLOR.HUESO} />
             <Text style={styles.floatingBtnLabel}>
-              {t('mascotas_observadas')}
+              {t('explorador:mascotas_observadas')}
             </Text>
           </Pressable>
 
@@ -546,7 +565,7 @@ const ExplorarLibremente = ({ navigation }: any) => {
           >
             <Icon name="account-multiple" size={24} color={COLOR.HUESO} />
             <Text style={styles.floatingBtnLabel}>
-              {t('personas_interesadas')}
+              {t('explorador:personas_interesadas')}
             </Text>
           </Pressable>
 
@@ -556,7 +575,9 @@ const ExplorarLibremente = ({ navigation }: any) => {
             onPress={() => setModalActivo('aliado')}
           >
             <Icon name="handshake" size={24} color={COLOR.HUESO} />
-            <Text style={styles.floatingBtnLabel}>{t('aliado_negocio')}</Text>
+            <Text style={styles.floatingBtnLabel}>
+              {t('explorador:aliado_negocio')}
+            </Text>
           </Pressable>
 
           {/* Botón: Seguridad */}
@@ -565,7 +586,9 @@ const ExplorarLibremente = ({ navigation }: any) => {
             onPress={() => setModalActivo('seguridad')}
           >
             <Icon name="shield-alert" size={24} color={COLOR.HUESO} />
-            <Text style={styles.floatingBtnLabel}>{t('seguridad_riesgo')}</Text>
+            <Text style={styles.floatingBtnLabel}>
+              {t('explorador:seguridad_riesgo')}
+            </Text>
           </Pressable>
 
           {/* Botón: Nota */}
@@ -574,7 +597,9 @@ const ExplorarLibremente = ({ navigation }: any) => {
             onPress={() => setModalActivo('nota')}
           >
             <Icon name="note-multiple" size={24} color={COLOR.HUESO} />
-            <Text style={styles.floatingBtnLabel}>{t('nota_rapida')}</Text>
+            <Text style={styles.floatingBtnLabel}>
+              {t('explorador:nota_rapida')}
+            </Text>
           </Pressable>
         </View>
       </View>
@@ -583,8 +608,12 @@ const ExplorarLibremente = ({ navigation }: any) => {
       <View style={styles.footer}>
         <Text style={styles.footerInfo}>
           {eventosCapturados.length}{' '}
-          {t(eventosCapturados.length === 1 ? 'evento' : 'eventos')}{' '}
-          {t('capturados')}
+          {t(
+            eventosCapturados.length === 1
+              ? 'explorador:evento'
+              : 'explorador:eventos'
+          )}{' '}
+          {t('explorador:capturados')}
         </Text>
         <Pressable
           style={[
@@ -596,7 +625,9 @@ const ExplorarLibremente = ({ navigation }: any) => {
         >
           <Icon name="check-circle" size={20} color={COLOR.HUESO} />
           <Text style={styles.btnFinalizarText}>
-            {captureLoading ? t('guardando') : t('finalizar_exploracion')}
+            {captureLoading
+              ? t('comun:guardando')
+              : t('explorador:finalizar_exploracion')}
           </Text>
         </Pressable>
       </View>
