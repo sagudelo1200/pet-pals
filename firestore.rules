@@ -213,7 +213,7 @@ service cloud.firestore {
         && solo_campos_permitidos([
       'id','proveedor','proveedor_place_id','direccion_formateada','coordenadas',
       'componentes','componentes_raw','componentes_source','viewport','alias','instrucciones',
-      'metadata','estado','h3_index','creado_por','creado_en','actualizado_en','actualizado_por'
+      'metadata','estado','h3_index','h3_observacion','creado_por','creado_en','actualizado_en','actualizado_por'
       ]);
 
       // Solo admin puede borrar
@@ -391,6 +391,8 @@ service cloud.firestore {
         && request.resource.data.id_explorador == request.auth.uid
         && request.resource.data.h3_index is string
         && request.resource.data.h3_index.size() > 0
+        && request.resource.data.h3_observacion is string
+        && request.resource.data.h3_observacion.size() > 0
         && request.resource.data.tipo_punto in ['parque','calle','comercio','conjunto','otro']
         && request.resource.data.mascotas_visibles is int
         && request.resource.data.mascotas_visibles >= 0

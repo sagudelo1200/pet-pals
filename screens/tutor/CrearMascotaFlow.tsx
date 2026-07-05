@@ -103,10 +103,18 @@ export const CrearMascotaFlow: React.FC<CrearMascotaFlowProps> = ({
   }
 
   const handleGuardar = async () => {
-    // Optimistic UI: Cerramos inmediatamente
-    onGuardar(datosMascota)
-    reiniciar()
-    onClose()
+    try {
+      // Esperar a que onGuardar se complete
+      await onGuardar(datosMascota)
+      reiniciar()
+      onClose()
+    } catch (error: any) {
+      console.error('[CrearMascotaFlow] Error al guardar:', error)
+      Alert.alert(
+        t('errores:titulo'),
+        error.message || t('mascotas:errores.error_crear')
+      )
+    }
   }
 
   const handleSeleccionarFoto = async () => {

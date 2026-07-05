@@ -102,7 +102,44 @@ export function calcularCompletitud(mascota: Mascota): CompletitudMascota {
   )
   const porcentaje_notas = calcularPorcentajeSeccion(campos_notas)
 
-  // Verificar completitud por nivel (requisitos mínimos de sección)
+  // Pesos por sección para el cálculo ponderado
+  // Las primeras 4 secciones son críticas (nivel básico/completo)
+  // Compatibilidad y notas son complementarias
+  const pesos = {
+    basico: 0.25,
+    fisico: 0.25,
+    comportamiento: 0.25,
+    salud: 0.25,
+    compatibilidad: 0.0, // Optativa
+    notas: 0.0, // Optativa
+  }
+
+  // Calcular porcentaje general PONDERADO (0-100)
+  // Ahora es continuo, no binario
+  const porcentajeGeneral = Math.round(
+    porcentaje_basico * pesos.basico +
+      porcentaje_fisico * pesos.fisico +
+      porcentaje_comportamiento * pesos.comportamiento +
+      porcentaje_salud * pesos.salud
+  )
+
+  // Determinar nivel basado en porcentaje continuo
+  let nivel: 1 | 2 | 3 | 4 = 1
+  if (porcentajeGeneral >= 75) {
+    nivel = 4
+  } else if (porcentajeGeneral >= 50) {
+    nivel = 3
+  } else if (porcentajeGeneral >= 25) {
+    nivel = 2
+  } else {
+    nivel = 1
+  }
+
+  // Determinar estado de preparación para paseos
+  const readiness: 'incompleto' | 'basico' | 'completo' =
+    nivel < 2 ? 'incompleto' : nivel < 4 ? 'basico' : 'completo'
+
+  // Verificar completitud por sección (solo para referencia)
   const basico_completo = Object.values(campos_basico).every(v => v)
   const fisico_completo = Object.values(campos_fisico).every(v => v)
   const comportamiento_completo = Object.values(campos_comportamiento).every(
@@ -110,46 +147,9 @@ export function calcularCompletitud(mascota: Mascota): CompletitudMascota {
   )
   const salud_completo = Object.values(campos_salud).every(v => v)
 
-  // Determinar nivel y porcentaje general
-  let nivel: 1 | 2 | 3 | 4 = 1
-  let porcentaje = 0
-
-  // Nivel 1: Básico completo
-  if (basico_completo) {
-    nivel = 1
-    porcentaje = 25
-  }
-
-  // Nivel 2: Básico + Físico completos
-  if (basico_completo && fisico_completo) {
-    nivel = 2
-    porcentaje = 50
-  }
-
-  // Nivel 3: Básico + Físico + Comportamiento completos
-  if (basico_completo && fisico_completo && comportamiento_completo) {
-    nivel = 3
-    porcentaje = 75
-  }
-
-  // Nivel 4: Todos completos
-  if (
-    basico_completo &&
-    fisico_completo &&
-    comportamiento_completo &&
-    salud_completo
-  ) {
-    nivel = 4
-    porcentaje = 100
-  }
-
-  // Determinar estado de preparación para paseos
-  const readiness: 'incompleto' | 'basico' | 'completo' =
-    nivel < 2 ? 'incompleto' : nivel < 4 ? 'basico' : 'completo'
-
   return {
     nivel,
-    porcentaje,
+    porcentaje: porcentajeGeneral,
     readiness,
     campos: {
       basico: campos_basico,

@@ -16,26 +16,26 @@ const ROL_CONFIG = {
   tutor: {
     icon: 'home' as const,
     color: COLOR.PRIMARIO,
-    titulo: 'Tutor',
-    descripcion: 'Solicita paseos para tus mascotas',
+    tituloKey: 'comun:rol_tutor_titulo',
+    descripcionKey: 'comun:rol_tutor_descripcion',
   },
   cuidador: {
     icon: 'walking' as const,
     color: COLOR.EXITO,
-    titulo: 'Cuidador',
-    descripcion: 'Ofrece servicios de paseo',
+    tituloKey: 'comun:rol_cuidador_titulo',
+    descripcionKey: 'comun:rol_cuidador_descripcion',
   },
   explorador: {
     icon: 'map-marked-alt' as const,
     color: COLOR.ENFASIS,
-    titulo: 'Explorador',
-    descripcion: 'Captura inteligencia territorial',
+    tituloKey: 'comun:rol_explorador_titulo',
+    descripcionKey: 'comun:rol_explorador_descripcion',
   },
   admin: {
     icon: 'ghost' as const,
     color: COLOR.INFO,
-    titulo: 'Administrador',
-    descripcion: 'Gestiona la plataforma',
+    tituloKey: 'comun:rol_admin_titulo',
+    descripcionKey: 'comun:rol_admin_descripcion',
   },
 }
 
@@ -76,9 +76,9 @@ export const SeleccionarRolModal: React.FC<Props> = ({
                   <Icon name={config.icon} size={32} color={config.color} />
                 </View>
                 <View style={styles.rolInfo}>
-                  <Text style={styles.rolTitulo}>{config.titulo}</Text>
+                  <Text style={styles.rolTitulo}>{t(config.tituloKey)}</Text>
                   <Text style={styles.rolDescripcion}>
-                    {config.descripcion}
+                    {t(config.descripcionKey)}
                   </Text>
                 </View>
                 <Icon name="chevron-right" size={20} color={COLOR.SUBTEXTO} />

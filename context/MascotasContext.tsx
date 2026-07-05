@@ -5,9 +5,11 @@ import React, {
   useEffect,
   useCallback,
   ReactNode,
+  useRef,
 } from 'react'
 import { useTranslation } from 'react-i18next'
 import { GestorMascotas } from '@/logic/mascotas'
+import { ServicioMascota } from '@/services/firebase/firestore/colecciones/mascota'
 import { useAuth } from '@/context/AuthContext'
 import type { Mascota } from '@/models/Mascota'
 
@@ -38,6 +40,7 @@ export const MascotasProvider: React.FC<{ children: ReactNode }> = ({
   const [mascotas, setMascotas] = useState<Mascota[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const unsubscribeRef = useRef<(() => void) | null>(null)
 
   const cargarMascotas = useCallback(async () => {
     if (!user?.uid) {
@@ -64,9 +67,47 @@ export const MascotasProvider: React.FC<{ children: ReactNode }> = ({
     }
   }, [t, user])
 
+  // Sincronización inicial + escucha en tiempo real
   useEffect(() => {
-    cargarMascotas()
-  }, [cargarMascotas])
+    if (!user?.uid) {
+      setMascotas([])
+      setLoading(false)
+      // Limpiar suscripción anterior si existe
+      if (unsubscribeRef.current) {
+        unsubscribeRef.current()
+        unsubscribeRef.current = null
+      }
+      return
+    }
+
+    setLoading(true)
+    setError(null)
+
+    // Establecer listener en tiempo real para cambios en cualquier mascota del usuario
+    const unsubscribe = ServicioMascota.escucharPorUsuario(
+      user.uid,
+      (mascotasData: Mascota[]) => {
+        setMascotas(mascotasData)
+        setLoading(false)
+        setError(null)
+      },
+      (mensajeError: string) => {
+        console.error('Error en listener de mascotas:', mensajeError)
+        setError(mensajeError)
+        setLoading(false)
+      }
+    )
+
+    unsubscribeRef.current = unsubscribe
+
+    // Limpieza al cambiar usuario
+    return () => {
+      if (unsubscribeRef.current) {
+        unsubscribeRef.current()
+        unsubscribeRef.current = null
+      }
+    }
+  }, [user?.uid])
 
   const refrescar = useCallback(async () => {
     await cargarMascotas()

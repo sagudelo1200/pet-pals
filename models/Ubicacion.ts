@@ -35,6 +35,12 @@ export interface Ubicacion extends BaseModel {
   h3_index?: string
 
   /**
+   * Índice H3 para microzoning y clustering (resolución 9, opcional).
+   * Se almacena cuando se requiere precision fina de observaciones.
+   */
+  h3_observacion?: string
+
+  /**
    * Componentes parseados (opcional). NO son la fuente de verdad — sólo ayudan a mostrar/filtrar.
    * En LATAM es común que muchos campos falten (sin numeración, barrios informales, "frente a...").
    */

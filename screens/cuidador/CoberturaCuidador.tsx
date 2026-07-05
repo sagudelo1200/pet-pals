@@ -134,20 +134,23 @@ export default function CoberturaCuidador() {
         subtitle="Toca los hexágonos para activar o desactivar"
       />
 
+      {/* @ts-expect-error - WebView type conflict with react-native globals */}
       <WebView
         ref={webViewRef}
         source={{ html: htmlSource! }}
         style={styles.webview}
         originWhitelist={['*']}
-        javaScriptEnabled
-        domStorageEnabled
-        geolocationEnabled
+        javaScriptEnabled={true}
+        domStorageEnabled={true}
+        geolocationEnabled={true}
         scrollEnabled={false}
-        mixedContentMode={Platform.OS === 'android' ? 'always' : undefined}
-        onMessage={handleMessage}
-        onError={e =>
-          console.warn('[CoberturaCuidador] WebView error:', e.nativeEvent)
+        mixedContentMode={
+          Platform.OS === 'android' ? ('always' as any) : undefined
         }
+        onMessage={handleMessage}
+        onError={(e: any) => {
+          console.warn('[CoberturaCuidador] WebView error:', e.nativeEvent)
+        }}
       />
 
       {/* Banner de guardado: pointerEvents none para no bloquear el WebView */}

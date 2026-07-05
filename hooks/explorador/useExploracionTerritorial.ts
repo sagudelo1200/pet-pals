@@ -3,7 +3,10 @@ import { useAuth } from '@/context/AuthContext'
 import { ServicioExploracionTerritorial } from '@/services/firebase'
 import { ExploracionTerritorial } from '@/models/ExploracionTerritorial'
 import { useUbicacionDispositivo } from '../useUbicacionDispositivo'
-import { coordsAH3 } from '@/services/geo'
+import {
+  HUELLAS_INMEDIATAS_POR_CAPTURA,
+  ESTADO_INICIAL_EXPLORACION,
+} from '@/constants'
 
 interface CapturPayload {
   tipo_punto: ExploracionTerritorial['tipo_punto']
@@ -41,13 +44,10 @@ export function useExploracionTerritorial() {
 
         const { latitude, longitude } = position.coords
 
-        // Calcular H3 index
-        const h3_index = coordsAH3(latitude, longitude)
-
         // Preparar datos
+        // NOTA: NO calculamos H3 aquí. El Servicio es responsable de toda decisión territorial.
         const dataToSave = {
           id_explorador: user.uid,
-          h3_index,
           coordenadas: {
             latitude,
             longitude,
@@ -57,8 +57,8 @@ export function useExploracionTerritorial() {
           flujo_peatonal: payload.flujo_peatonal,
           observaciones: payload.observaciones || '',
           foto_url: payload.foto_url || '',
-          estado: 'pendiente' as const,
-          huellas_inmediatas: 3,
+          estado: ESTADO_INICIAL_EXPLORACION,
+          huellas_inmediatas: HUELLAS_INMEDIATAS_POR_CAPTURA,
         }
 
         // Guardar en Firestore

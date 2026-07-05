@@ -1,5 +1,7 @@
 import { ServicioCrudBase } from '@/services/firebase/firestore/base'
 import { ExploracionTerritorial } from '@/models/ExploracionTerritorial'
+import { ServicioTerritorio } from '@/services/territorio'
+import { ESTADO_INICIAL_EXPLORACION } from '@/constants'
 import {
   collection,
   query,
@@ -16,6 +18,7 @@ import {
   CrudResult,
   camposSistemaCrear,
   mapFirebaseError,
+  toDb,
 } from '@/services/firebase/comun'
 
 export class ServicioExploracionTerritorial {
@@ -56,11 +59,24 @@ export class ServicioExploracionTerritorial {
         {}
       )
 
-      // Preparar documento: mantener coordenadas como objeto plano
+      // Obtener contexto territorial (H3 R8 + R9 desde Servicio)
+      const contexto = ServicioTerritorio.obtenerContextoTerritorial(
+        dataFiltered.coordenadas.latitude,
+        dataFiltered.coordenadas.longitude
+      )
+
+      // Usar toDb() para convertir coordenadas a GeoPoint automáticamente
+      const dataPersistido = toDb({
+        ...dataFiltered,
+        h3_index: contexto.h3_index,
+        h3_observacion: contexto.h3_observacion,
+        estado: ESTADO_INICIAL_EXPLORACION,
+      })
+
+      // Preparar documento final
       const docData = {
         id,
-        ...dataFiltered,
-        estado: 'pendiente',
+        ...dataPersistido,
         ...base,
       } as any
 

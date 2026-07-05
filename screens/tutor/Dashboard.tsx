@@ -49,6 +49,7 @@ import {
   obtenerProximoPaseo,
   obtenerActividadReciente,
 } from '@/logic/dashboard/helpers'
+import { calcularCompletitud } from '@/logic/mascotas/calcularCompletitud'
 
 type DashboardNavigationProp = BottomTabNavigationProp<TutorTabParamList>
 
@@ -77,6 +78,7 @@ const Dashboard: React.FC = () => {
     loading: mascotasLoading,
     error: errorMascotas,
     refrescar: refrescarMascotas,
+    crear: crearMascota,
   } = useMascotas()
 
   const {
@@ -213,6 +215,7 @@ const Dashboard: React.FC = () => {
   }, [])
 
   const handleSolicitarPaseo = useCallback(() => {
+    // Validar que existan mascotas
     if (mascotas.length === 0) {
       Alert.alert(
         t('paseos:errores.SIN_MASCOTAS_TITULO'),
@@ -227,8 +230,29 @@ const Dashboard: React.FC = () => {
       )
       return
     }
+
+    // Validar que AL MENOS una mascota esté lista (completitud.nivel >= 2)
+    const mascotasListas = mascotas.filter(m => {
+      const completitud = calcularCompletitud(m)
+      return completitud.nivel >= 2
+    })
+
+    if (mascotasListas.length === 0) {
+      Alert.alert(
+        t('paseos:errores.mascota_no_lista_titulo'),
+        t('paseos:errores.mascota_no_lista_msg'),
+        [
+          {
+            text: t('comun:entendido'),
+            style: 'default',
+          },
+        ]
+      )
+      return
+    }
+
     setMostrarSolicitarPaseo(true)
-  }, [mascotas.length, t])
+  }, [mascotas, t])
 
   return (
     <Screen style={styles.container} includeTopInset>
@@ -365,9 +389,17 @@ const Dashboard: React.FC = () => {
       <CrearMascotaFlow
         visible={mostrarCrearMascota}
         onClose={() => setMostrarCrearMascota(false)}
-        onGuardar={async () => {
-          setMostrarCrearMascota(false)
-          await refrescarMascotas()
+        onGuardar={async datosMascota => {
+          try {
+            await crearMascota(datosMascota)
+            setMostrarCrearMascota(false)
+            await refrescarMascotas()
+          } catch (error: any) {
+            Alert.alert(
+              t('errores:titulo'),
+              t('mascotas:errores.error_crear') || error.message
+            )
+          }
         }}
       />
 

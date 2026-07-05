@@ -8,6 +8,7 @@ import {
   getDocs,
 } from 'firebase/firestore'
 import { db } from '@/firebase.config'
+import { ServicioTerritorio } from '@/services/territorio'
 import {
   toDomain,
   toDb,
@@ -92,6 +93,12 @@ export class ServicioUbicacion {
         return { success: false, error: 'NO_AUTENTICADO' }
       }
 
+      // Obtener contexto territorial (H3 R8 + R9 desde Servicio)
+      const contexto = ServicioTerritorio.obtenerContextoTerritorial(
+        payload.coordenadas.latitude,
+        payload.coordenadas.longitude
+      )
+
       // toDb() convierte automáticamente:
       // - Dates → Timestamps
       // - {latitude, longitude} → GeoPoint
@@ -109,7 +116,8 @@ export class ServicioUbicacion {
         alias: payload.alias,
         instrucciones: payload.instrucciones,
         metadata: (payload as any).metadata,
-        h3_index: (payload as any).h3_index ?? null,
+        h3_index: contexto.h3_index, // del Servicio
+        h3_observacion: contexto.h3_observacion, // del Servicio
       })
 
       const finalData = {

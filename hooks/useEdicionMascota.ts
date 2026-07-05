@@ -28,6 +28,7 @@ export const useEdicionMascota = (
   const [saving, setSaving] = useState(false)
   const [cambiosRealizados, setCambiosRealizados] = useState(false)
 
+  // 1. Cargar mascota inicial
   useEffect(() => {
     const cargarMascota = async () => {
       if (mascotaParam) {
@@ -58,6 +59,21 @@ export const useEdicionMascota = (
 
     cargarMascota()
   }, [mascotaId, mascotaParam, t])
+
+  // 2. SINCRONIZACIÓN EN TIEMPO REAL: Escuchar cambios de Firestore
+  // Solo sincronizar si NO estamos en modo edición Y NO estamos guardando
+  // Esto evita sobrescribir cambios optimistas durante el guardado
+  useEffect(() => {
+    if (
+      !isEditMode &&
+      !saving &&
+      mascotaRealtime &&
+      mascota?.id === mascotaRealtime.id
+    ) {
+      // Actualizar el estado local con los cambios de Firestore
+      setMascota(mascotaRealtime)
+    }
+  }, [mascotaRealtime, isEditMode, saving, mascota?.id])
 
   const iniciarEdicion = () => {
     if (!mascota) return

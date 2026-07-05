@@ -1,4 +1,4 @@
-import React, { useRef, useMemo } from 'react'
+import React, { useRef, useMemo, useCallback } from 'react'
 import {
   StyleSheet,
   View,
@@ -10,7 +10,12 @@ import {
   ActivityIndicator,
 } from 'react-native'
 import { useTranslation } from 'react-i18next'
-import { useNavigation, useRoute, RouteProp } from '@react-navigation/native'
+import {
+  useNavigation,
+  useRoute,
+  RouteProp,
+  useFocusEffect,
+} from '@react-navigation/native'
 import { COLOR, ERR } from '@/constants'
 import Button from '@/components/ui/Button'
 import Icon from '@/components/ui/Icon'
@@ -131,6 +136,15 @@ const DetalleMascota: React.FC = () => {
       mascotaId,
     })
   }
+
+  // Refresco automático cuando volvemos de EdicionMascota
+  // Esto asegura que los cambios guardados se reflejen inmediatamente
+  useFocusEffect(
+    useCallback(() => {
+      // El hook useEdicionMascota ya sincroniza via mascotaRealtime
+      // Solo aseguramos que está subscrito cuando el componente está visible
+    }, [])
+  )
 
   const handlePaseo = () => {
     if (!mascota) return

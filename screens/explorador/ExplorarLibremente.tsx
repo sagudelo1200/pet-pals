@@ -7,6 +7,7 @@ import { COLOR } from '@/constants'
 import { useExploracionTerritorial } from '@/hooks/explorador/useExploracionTerritorial'
 import { useGlobalLoading } from '@/hooks'
 import { LinearGradient } from 'expo-linear-gradient'
+import JugandoConPerroSvg from '@/assets/imgs/undraw/jugando_con_perro.svg'
 
 /**
  * Pantalla de exploración libre - Paso 3 del flujo PawPath
@@ -537,12 +538,9 @@ const ExplorarLibremente = ({ navigation }: any) => {
 
       {/* ZONA DE EXPLORACIÓN */}
       <View style={styles.explorationContainer}>
-        {/* FOTO / CÁMARA (placeholder por ahora) */}
+        {/* FOTO / CÁMARA - SVG placeholder */}
         <View style={styles.fotoContainer}>
-          <Icon name="image" size={60} color={COLOR.BLOQUE} />
-          <Text style={styles.placeholderText}>
-            {t('explorador:captura_foto_opcional')}
-          </Text>
+          <JugandoConPerroSvg width={200} height={200} />
         </View>
 
         {/* BOTONES FLOTANTES - Acciones rápidas */}

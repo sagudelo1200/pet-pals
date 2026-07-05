@@ -3,7 +3,6 @@ import { Ubicacion } from '@/models/Ubicacion'
 import { CrudResult } from '@/services/firebase/comun'
 import { validarPayload } from './validaciones'
 import { normalizeComponentsForLATAM } from './normalizador'
-import { coordsAH3 } from '@/services/geo'
 
 type CrearPayload = Omit<
   Ubicacion,
@@ -96,10 +95,7 @@ export const GestorUbicaciones = {
         componentes_source:
           (payload as any).componentes_source ?? payload.proveedor,
         estado: payload.estado ?? 'pendiente',
-        h3_index: coordsAH3(
-          (payload as any).coordenadas.latitude,
-          (payload as any).coordenadas.longitude
-        ),
+        // NOTA: No calculamos H3 aquí. ServicioUbicacion inyecta contexto territorial.
       }
 
       return ServicioUbicacion.crear(dataToSave)

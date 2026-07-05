@@ -20,6 +20,9 @@ export interface ExploracionTerritorial extends BaseModel {
   /** Índice H3 de la celda observada (resolución 8) */
   h3_index: string
 
+  /** Índice H3 para microzoning y clustering (resolución 9) */
+  h3_observacion: string
+
   /** Coordenadas exactas de la observación */
   coordenadas: {
     latitude: number

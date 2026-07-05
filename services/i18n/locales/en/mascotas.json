@@ -9,6 +9,7 @@
     "nombre_muy_corto": "Name must be at least 2 characters",
     "especie_requerida": "Please tell us what type of pet it is",
     "peso_invalido": "Weight must be a positive number",
+    "error_crear": "We couldn't create the pet. Please try again",
     "error_guardar": "We couldn't save the data. Please try again",
     "error_eliminar": "We couldn't delete the pet. Please try again",
     "error_cargar": "We couldn't load your pets. Please try again",

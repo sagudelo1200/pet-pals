@@ -9,6 +9,7 @@
     "nombre_muy_corto": "El nombre debe tener al menos 2 caracteres",
     "especie_requerida": "Por favor indícanos qué tipo de mascota es",
     "peso_invalido": "El peso debe ser un número positivo",
+    "error_crear": "No pudimos crear la mascota. Intenta nuevamente",
     "error_guardar": "No pudimos guardar los datos. Intenta nuevamente",
     "error_eliminar": "No pudimos eliminar la mascota. Intenta nuevamente",
     "error_cargar": "No pudimos cargar tus mascotas. Intenta nuevamente",
