@@ -85,11 +85,7 @@ const Ingresar: React.FC = () => {
   }, [navigation])
 
   return (
-    <Screen
-      contentContainerStyle={styles.content}
-      style={styles.container}
-      includeTopInset
-    >
+    <Screen contentContainerStyle={styles.content} style={styles.container}>
       {/* Círculo decorativo */}
       <View style={styles.decorativeCircle} />
 

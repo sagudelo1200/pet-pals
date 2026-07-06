@@ -61,7 +61,7 @@ const ResumenExploracion = ({ route, navigation }: any) => {
   })
 
   return (
-    <Screen style={styles.container} includeTopInset={false}>
+    <Screen style={styles.container}>
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}

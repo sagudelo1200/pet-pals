@@ -63,7 +63,8 @@ export function useExploracionTerritorial() {
 
         // Guardar en Firestore
         const result = await ServicioExploracionTerritorial.crear(
-          dataToSave as any
+          dataToSave as any,
+          user.uid
         )
 
         if (!result.success) {
@@ -73,7 +74,8 @@ export function useExploracionTerritorial() {
         }
 
         console.log(
-          '[useExploracionTerritorial] Exploración guardada exitosamente'
+          '[useExploracionTerritorial] Exploración guardada exitosamente con creado_por:',
+          user.uid
         )
         return result.data || null
       } catch (err: any) {

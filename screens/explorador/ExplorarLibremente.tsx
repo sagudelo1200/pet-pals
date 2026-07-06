@@ -513,7 +513,7 @@ const ExplorarLibremente = ({ navigation }: any) => {
   ]
 
   return (
-    <Screen style={styles.container} includeTopInset={false}>
+    <Screen style={styles.container}>
       {/* HEADER CON INFORMACIÓN DE SESIÓN */}
       <LinearGradient
         colors={[COLOR.PRIMARIO, COLOR.ENFASIS]}
@@ -540,7 +540,7 @@ const ExplorarLibremente = ({ navigation }: any) => {
       <View style={styles.explorationContainer}>
         {/* FOTO / CÁMARA - SVG placeholder */}
         <View style={styles.fotoContainer}>
-          <JugandoConPerroSvg width={200} height={200} />
+          <JugandoConPerroSvg width={300} height={300} />
         </View>
 
         {/* BOTONES FLOTANTES - Acciones rápidas */}

@@ -5,7 +5,7 @@ import { COLOR } from '@/constants'
 
 const Placeholder: React.FC<{ titulo: string }> = ({ titulo }) => {
   return (
-    <Screen style={styles.container} includeTopInset>
+    <Screen style={styles.container}>
       <View style={styles.content}>
         <Text style={styles.titulo}>{titulo}</Text>
         <Text style={styles.subtitulo}>Próximamente...</Text>

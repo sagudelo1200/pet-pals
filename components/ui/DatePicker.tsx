@@ -9,54 +9,12 @@ import {
   ScrollView,
   FlatList,
 } from 'react-native'
+import { useTranslation } from 'react-i18next'
 import { COLOR } from '@/constants'
 import Icon from './Icon'
 import { Calendar, LocaleConfig } from 'react-native-calendars'
 
-// Configurar el calendario en español
-const MESES = [
-  'Enero',
-  'Febrero',
-  'Marzo',
-  'Abril',
-  'Mayo',
-  'Junio',
-  'Julio',
-  'Agosto',
-  'Septiembre',
-  'Octubre',
-  'Noviembre',
-  'Diciembre',
-]
-
-LocaleConfig.locales['es'] = {
-  monthNames: MESES,
-  monthNamesShort: [
-    'Ene',
-    'Feb',
-    'Mar',
-    'Abr',
-    'May',
-    'Jun',
-    'Jul',
-    'Ago',
-    'Sep',
-    'Oct',
-    'Nov',
-    'Dic',
-  ],
-  dayNames: [
-    'Domingo',
-    'Lunes',
-    'Martes',
-    'Miércoles',
-    'Jueves',
-    'Viernes',
-    'Sábado',
-  ],
-  dayNamesShort: ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'],
-  today: 'Hoy',
-}
+// Configurar idioma por defecto
 LocaleConfig.defaultLocale = 'es'
 
 interface DatePickerProps {
@@ -88,9 +46,95 @@ const DatePicker: React.FC<DatePickerProps> = ({
   maximumDate,
   minimumDate,
 }) => {
+  const { t } = useTranslation(['comun'])
   const [showPicker, setShowPicker] = useState(false)
   const [showYearSelector, setShowYearSelector] = useState(false)
   const [showMonthSelector, setShowMonthSelector] = useState(false)
+  const monthScrollRef = React.useRef<ScrollView>(null)
+  const yearScrollRef = React.useRef<FlatList<number>>(null)
+
+  // Generar array de meses desde i18n
+  const MESES = useMemo(
+    () => [
+      t('comun:datepicker.meses.enero'),
+      t('comun:datepicker.meses.febrero'),
+      t('comun:datepicker.meses.marzo'),
+      t('comun:datepicker.meses.abril'),
+      t('comun:datepicker.meses.mayo'),
+      t('comun:datepicker.meses.junio'),
+      t('comun:datepicker.meses.julio'),
+      t('comun:datepicker.meses.agosto'),
+      t('comun:datepicker.meses.septiembre'),
+      t('comun:datepicker.meses.octubre'),
+      t('comun:datepicker.meses.noviembre'),
+      t('comun:datepicker.meses.diciembre'),
+    ],
+    [t]
+  )
+
+  // Generar meses cortos desde i18n
+  const MESES_CORTOS = useMemo(
+    () => [
+      t('comun:datepicker.meses_cortos.enero'),
+      t('comun:datepicker.meses_cortos.febrero'),
+      t('comun:datepicker.meses_cortos.marzo'),
+      t('comun:datepicker.meses_cortos.abril'),
+      t('comun:datepicker.meses_cortos.mayo'),
+      t('comun:datepicker.meses_cortos.junio'),
+      t('comun:datepicker.meses_cortos.julio'),
+      t('comun:datepicker.meses_cortos.agosto'),
+      t('comun:datepicker.meses_cortos.septiembre'),
+      t('comun:datepicker.meses_cortos.octubre'),
+      t('comun:datepicker.meses_cortos.noviembre'),
+      t('comun:datepicker.meses_cortos.diciembre'),
+    ],
+    [t]
+  )
+
+  // Generar días desde i18n
+  const DIAS = useMemo(
+    () => [
+      t('comun:datepicker.dias.domingo'),
+      t('comun:datepicker.dias.lunes'),
+      t('comun:datepicker.dias.martes'),
+      t('comun:datepicker.dias.miercoles'),
+      t('comun:datepicker.dias.jueves'),
+      t('comun:datepicker.dias.viernes'),
+      t('comun:datepicker.dias.sabado'),
+    ],
+    [t]
+  )
+
+  // Generar días cortos desde i18n
+  const DIAS_CORTOS = useMemo(
+    () => [
+      t('comun:datepicker.dias_cortos.domingo'),
+      t('comun:datepicker.dias_cortos.lunes'),
+      t('comun:datepicker.dias_cortos.martes'),
+      t('comun:datepicker.dias_cortos.miercoles'),
+      t('comun:datepicker.dias_cortos.jueves'),
+      t('comun:datepicker.dias_cortos.viernes'),
+      t('comun:datepicker.dias_cortos.sabado'),
+    ],
+    [t]
+  )
+
+  // Actualizar LocaleConfig con las traducciones de i18n
+  React.useEffect(() => {
+    LocaleConfig.locales['es'] = {
+      monthNames: MESES,
+      monthNamesShort: MESES_CORTOS,
+      dayNames: DIAS,
+      dayNamesShort: DIAS_CORTOS,
+      today: t('comun:datepicker.hoy'),
+    }
+  }, [MESES, MESES_CORTOS, DIAS, DIAS_CORTOS, t])
+
+  // Generar placeholder desde i18n (si no se proporciona uno explícito)
+  const finalPlaceholder =
+    placeholder !== 'Selecciona una fecha'
+      ? placeholder
+      : t('comun:datepicker.placeholder')
 
   // Estado para controlar qué mes/año está mostrando el calendario
   const [currentDate, setCurrentDate] = useState(() => {
@@ -100,6 +144,64 @@ const DatePicker: React.FC<DatePickerProps> = ({
       year: d.getFullYear(),
     }
   })
+
+  // Función auxiliar para centrar scroll en ScrollView (meses)
+  const scrollToCenterScrollView = (
+    ref: React.RefObject<ScrollView>,
+    index: number
+  ) => {
+    if (!ref.current) return
+
+    const itemHeight = 48
+    const containerHeight = 360
+    const offsetY = index * itemHeight - (containerHeight / 2 - itemHeight / 2)
+
+    // Usar requestAnimationFrame para asegurar que el componente esté completamente renderizado
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        ref.current?.scrollTo({
+          y: Math.max(0, offsetY),
+          animated: true,
+        })
+      })
+    })
+  }
+
+  // Función auxiliar para centrar scroll en FlatList (años)
+  const scrollToCenterFlatList = (
+    ref: React.RefObject<FlatList<number>>,
+    index: number
+  ) => {
+    if (!ref.current) return
+
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        ref.current?.scrollToIndex?.({
+          index: Math.max(0, index),
+          animated: true,
+          viewPosition: 0.5, // Centra el item en el viewport
+        })
+      })
+    })
+  }
+
+  // Efecto para centrar el mes actual cuando se abre el selector
+  React.useEffect(() => {
+    if (showMonthSelector) {
+      const monthIndex = currentDate.month - 1
+      scrollToCenterScrollView(monthScrollRef, monthIndex)
+    }
+  }, [showMonthSelector])
+
+  // Efecto para centrar el año actual cuando se abre el selector
+  React.useEffect(() => {
+    if (showYearSelector) {
+      const yearIndex = years.indexOf(currentDate.year)
+      if (yearIndex !== -1) {
+        scrollToCenterFlatList(yearScrollRef, yearIndex)
+      }
+    }
+  }, [showYearSelector])
 
   // Generar lista de años (dinámica según límites)
   const years = useMemo(() => {
@@ -126,7 +228,7 @@ const DatePicker: React.FC<DatePickerProps> = ({
   }, [minimumDate, maximumDate])
 
   const formatDate = (date?: Date): string => {
-    if (!date) return placeholder
+    if (!date) return finalPlaceholder
 
     const day = date.getDate().toString().padStart(2, '0')
     const month = (date.getMonth() + 1).toString().padStart(2, '0')
@@ -247,7 +349,7 @@ const DatePicker: React.FC<DatePickerProps> = ({
             <View style={styles.modalHeader}>
               <View>
                 <Text style={styles.modalTitle}>
-                  {label || 'Selecciona una fecha'}
+                  {label || t('comun:datepicker.placeholder')}
                 </Text>
                 <View style={styles.headerSelectors}>
                   <Pressable
@@ -294,7 +396,7 @@ const DatePicker: React.FC<DatePickerProps> = ({
             <View style={styles.contentBody}>
               {showMonthSelector ? (
                 <View style={[styles.listContainer, { height: 360 }]}>
-                  <ScrollView>
+                  <ScrollView ref={monthScrollRef}>
                     {MESES.map((mes, index) => (
                       <Pressable
                         key={mes}
@@ -344,8 +446,12 @@ const DatePicker: React.FC<DatePickerProps> = ({
               ) : showYearSelector ? (
                 <View style={[styles.listContainer, { height: 360 }]}>
                   <FlatList
+                    ref={yearScrollRef}
                     data={years}
                     keyExtractor={item => item.toString()}
+                    initialScrollIndex={years.indexOf(currentDate.year)}
+                    onScrollToIndexFailed={() => {}}
+                    scrollEnabled={true}
                     renderItem={({ item }) => (
                       <Pressable
                         onPress={() => handleYearSelect(item)}

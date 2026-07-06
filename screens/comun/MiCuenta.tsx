@@ -113,10 +113,7 @@ const MiCuenta = () => {
   }
 
   return (
-    <Screen
-      style={[styles.container, { paddingBottom: TAB_BAR_HEIGHT }]}
-      includeTopInset={false}
-    >
+    <Screen style={[styles.container, { paddingBottom: TAB_BAR_HEIGHT }]}>
       <View style={styles.scrollContent}>
         {/* Header Grande con Gradiente */}
         <LinearGradient

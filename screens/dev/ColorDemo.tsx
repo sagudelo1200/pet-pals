@@ -183,7 +183,6 @@ const ColorDemo: React.FC = () => {
 
   return (
     <Screen
-      includeTopInset
       scroll
       style={styles.container}
       contentContainerStyle={styles.content}

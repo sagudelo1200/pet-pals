@@ -66,5 +66,55 @@
   "no": "No",
   "si": "Sí",
   "entendido": "Entendido",
-  "tiempo": "Tiempo"
+  "tiempo": "Tiempo",
+  "datepicker": {
+    "placeholder": "Selecciona una fecha",
+    "hoy": "Hoy",
+    "meses": {
+      "enero": "Enero",
+      "febrero": "Febrero",
+      "marzo": "Marzo",
+      "abril": "Abril",
+      "mayo": "Mayo",
+      "junio": "Junio",
+      "julio": "Julio",
+      "agosto": "Agosto",
+      "septiembre": "Septiembre",
+      "octubre": "Octubre",
+      "noviembre": "Noviembre",
+      "diciembre": "Diciembre"
+    },
+    "meses_cortos": {
+      "enero": "Ene",
+      "febrero": "Feb",
+      "marzo": "Mar",
+      "abril": "Abr",
+      "mayo": "May",
+      "junio": "Jun",
+      "julio": "Jul",
+      "agosto": "Ago",
+      "septiembre": "Sep",
+      "octubre": "Oct",
+      "noviembre": "Nov",
+      "diciembre": "Dic"
+    },
+    "dias": {
+      "domingo": "Domingo",
+      "lunes": "Lunes",
+      "martes": "Martes",
+      "miercoles": "Miércoles",
+      "jueves": "Jueves",
+      "viernes": "Viernes",
+      "sabado": "Sábado"
+    },
+    "dias_cortos": {
+      "domingo": "Dom",
+      "lunes": "Lun",
+      "martes": "Mar",
+      "miercoles": "Mié",
+      "jueves": "Jue",
+      "viernes": "Vie",
+      "sabado": "Sáb"
+    }
+  }
 }

@@ -215,7 +215,7 @@ const ExcepcionSemanal: React.FC = () => {
   }
 
   return (
-    <Screen style={styles.container} includeTopInset>
+    <Screen style={styles.container}>
       <ScreenHeader title="Semana personalizada" subtitle={isoSemana} />
 
       <ScrollView

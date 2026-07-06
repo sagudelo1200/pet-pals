@@ -205,7 +205,7 @@ const PerfilCuidador: React.FC = () => {
   const [tab, setTab] = useState<'datos' | 'horario'>('datos')
 
   return (
-    <Screen style={styles.container} includeTopInset>
+    <Screen style={styles.container}>
       <ScreenHeader
         title={t('perfil:editar.titulo')}
         subtitle={t('perfil:editar.subtitulo')}

@@ -66,5 +66,55 @@
   "no": "No",
   "si": "Yes",
   "entendido": "Got it",
-  "tiempo": "Time"
+  "tiempo": "Time",
+  "datepicker": {
+    "placeholder": "Select a date",
+    "hoy": "Today",
+    "meses": {
+      "enero": "January",
+      "febrero": "February",
+      "marzo": "March",
+      "abril": "April",
+      "mayo": "May",
+      "junio": "June",
+      "julio": "July",
+      "agosto": "August",
+      "septiembre": "September",
+      "octubre": "October",
+      "noviembre": "November",
+      "diciembre": "December"
+    },
+    "meses_cortos": {
+      "enero": "Jan",
+      "febrero": "Feb",
+      "marzo": "Mar",
+      "abril": "Apr",
+      "mayo": "May",
+      "junio": "Jun",
+      "julio": "Jul",
+      "agosto": "Aug",
+      "septiembre": "Sep",
+      "octubre": "Oct",
+      "noviembre": "Nov",
+      "diciembre": "Dec"
+    },
+    "dias": {
+      "domingo": "Sunday",
+      "lunes": "Monday",
+      "martes": "Tuesday",
+      "miercoles": "Wednesday",
+      "jueves": "Thursday",
+      "viernes": "Friday",
+      "sabado": "Saturday"
+    },
+    "dias_cortos": {
+      "domingo": "Sun",
+      "lunes": "Mon",
+      "martes": "Tue",
+      "miercoles": "Wed",
+      "jueves": "Thu",
+      "viernes": "Fri",
+      "sabado": "Sat"
+    }
+  }
 }

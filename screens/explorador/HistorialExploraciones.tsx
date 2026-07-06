@@ -167,7 +167,7 @@ const HistorialExploraciones = () => {
   )
 
   return (
-    <Screen style={styles.container} includeTopInset={true}>
+    <Screen style={styles.container}>
       <FlatList
         data={exploraciones}
         renderItem={renderExploracion}

@@ -255,7 +255,7 @@ const Dashboard: React.FC = () => {
   }, [mascotas, t])
 
   return (
-    <Screen style={styles.container} includeTopInset>
+    <Screen style={styles.container}>
       <ScreenHeader
         title={t('tutor:dashboard.titulo', {
           nombre: profile?.nombre ?? 'Tutor',

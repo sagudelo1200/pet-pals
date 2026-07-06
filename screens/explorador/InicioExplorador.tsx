@@ -1,6 +1,5 @@
 import React from 'react'
 import { View, Text, StyleSheet, ScrollView } from 'react-native'
-import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useNavigation } from '@react-navigation/native'
 import Screen from '@/components/ui/Screen'
 import { Button, Card, Icon } from '@/components/ui'
@@ -16,7 +15,6 @@ import { useHistorialExploraciones } from '@/hooks/explorador/useHistorialExplor
  */
 const InicioExplorador = () => {
   const { t } = useTranslation()
-  const insets = useSafeAreaInsets()
   const navigation = useNavigation<any>()
   const { exploraciones } = useHistorialExploraciones()
 
@@ -28,16 +26,16 @@ const InicioExplorador = () => {
   const zonasProximas = 4
 
   return (
-    <Screen style={styles.container} includeTopInset={false}>
+    <Screen style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
         {/* Header con gradiente */}
         <LinearGradient
           colors={[COLOR.PRIMARIO, COLOR.ENFASIS]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
-          style={[styles.headerGradient, { paddingTop: insets.top + 24 }]}
+          style={[styles.headerGradient, { paddingTop: 24 }]}
         >
-          <Icon name="compass" size={44} color="#FFF" />
+          <Icon name="compass" size={44} color={COLOR.TEXTO} />
           <Text style={styles.headerTitle}>
             {t('explorador:bienvenido_explorador')}
           </Text>
@@ -156,12 +154,12 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#FFF',
+    color: COLOR.TEXTO,
     textAlign: 'center',
   },
   headerSubtitle: {
     fontSize: 14,
-    color: '#FFF',
+    color: COLOR.SUBTEXTO,
     opacity: 0.9,
     textAlign: 'center',
   },

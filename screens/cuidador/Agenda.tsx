@@ -78,7 +78,7 @@ const Agenda: React.FC = () => {
   )
 
   return (
-    <Screen style={styles.container} includeTopInset>
+    <Screen style={styles.container}>
       <ScreenHeader
         title={t('cuidador:agenda.titulo')}
         subtitle={t('cuidador:agenda.subtitulo')}

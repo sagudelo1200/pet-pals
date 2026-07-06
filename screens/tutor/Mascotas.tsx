@@ -162,7 +162,6 @@ export default function Mascotas({ navigation }: any) {
 
   return (
     <Screen
-      includeTopInset
       contentContainerStyle={{ flex: 1 }}
       floating={<Fab onPress={handleAbrirCrear} style={styles.fab} />}
     >

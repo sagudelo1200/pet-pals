@@ -100,7 +100,6 @@ const Bienvenida: FC = () => {
       style={styles.container}
       contentContainerStyle={styles.content}
       disableDismiss
-      includeTopInset
     >
       <LinearGradient
         colors={[COLOR.BASE, COLOR.BLOQUE]}

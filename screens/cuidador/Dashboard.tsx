@@ -64,7 +64,7 @@ const Dashboard: React.FC = () => {
   }
 
   return (
-    <Screen style={styles.container} includeTopInset>
+    <Screen style={styles.container}>
       {/* El el titulo, saludar al usuario */}
       <ScreenHeader
         title={t('cuidador:dashboard.titulo', {

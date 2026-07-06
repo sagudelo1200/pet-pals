@@ -28,16 +28,18 @@ export class ServicioExploracionTerritorial {
    * Crear una nueva exploración territorial
    * NOTA: Las coordenadas se guardan como objeto plano {latitude, longitude}, NO como GeoPoint,
    * para cumplir con las validaciones de Firestore Rules
+   * @param uid (Requerido) UID del usuario creador para consistencia en creado_por
    */
   static async crear(
     data: Omit<
       ExploracionTerritorial,
       'id' | 'creado_en' | 'actualizado_en' | 'creado_por' | 'actualizado_por'
-    >
+    >,
+    uid?: string
   ): Promise<CrudResult<ExploracionTerritorial>> {
     try {
-      // Generar campos de sistema
-      const base = camposSistemaCrear()
+      // Generar campos de sistema con el UID explícito
+      const base = camposSistemaCrear(uid)
 
       if (!base.creado_por) {
         return { success: false, error: 'NO_AUTENTICADO' }
