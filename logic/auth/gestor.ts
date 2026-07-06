@@ -48,7 +48,8 @@ export const GestorAuth = {
   async registrarConCorreo(
     email: string,
     password: string,
-    displayName: string
+    displayName: string,
+    fechaNacimiento?: Date
   ): Promise<AuthResult> {
     try {
       const userCredential = await createUserWithEmailAndPassword(
@@ -67,6 +68,7 @@ export const GestorAuth = {
           nombre: displayName,
           correo: email,
           celular: '',
+          fecha_nacimiento: fechaNacimiento || null,
           roles: ['tutor', 'explorador'],
           verificado: false,
           estado: 'activo',

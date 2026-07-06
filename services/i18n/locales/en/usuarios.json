@@ -1,0 +1,27 @@
+{
+  "errores": {
+    "usuario_no_encontrado": "User not found.",
+    "usuario_no_autenticado": "User is not authenticated. Sign in to continue.",
+    "error_guardar_celular": "Error saving your phone number. Please try again.",
+    "generico": "Error processing the user request. Please try again."
+  },
+  "perfil": {
+    "celular": {
+      "titulo_modal": "Your phone number is important",
+      "descripcion_modal": "We need your phone number so tutors and caregivers can contact you with confidence. It's essential for coordinating walks and ensuring your pets' safety.",
+      "titulo_modal_cuidador": "Confirm your phone number to accept walks",
+      "descripcion_modal_cuidador": "Tutors could contact you directly. Share your phone number so we can securely connect them with you.",
+      "placeholder": "300 123 4567 or +57 300 123 4567",
+      "label": "Phone number",
+      "exito": "Phone number saved successfully"
+    }
+  },
+  "validacion": {
+    "celular": {
+      "caracteres_invalidos": "The phone number contains invalid characters.",
+      "longitud_incorrecta": "The phone number must have exactly 10 digits (has {{cantidad}}).",
+      "no_empieza_con_3": "The phone number must start with 3 (Colombian mobile operator).",
+      "contiene_no_numericos": "The phone number contains non-numeric characters."
+    }
+  }
+}

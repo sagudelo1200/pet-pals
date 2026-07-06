@@ -31,7 +31,7 @@ interface DatePickerProps {
 }
 
 /**
- * DatePicker: Componente de selección de fecha con diseño PetPals
+ * DatePicker: Componente de selección de fecha con diseño Paw-Path
  * Usa react-native-calendars para personalización completa con selector rápido de mes/año
  */
 const DatePicker: React.FC<DatePickerProps> = ({

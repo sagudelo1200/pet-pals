@@ -21,6 +21,8 @@ import { GestorMascotas } from '@/logic/mascotas'
 import { useGestorPaseoActivo } from '@/hooks/paseos/useGestorPaseoActivo'
 import { GestorPerfilPublico } from '@/logic/usuarios/perfilPublico'
 import { PerfilPublico } from '@/models/PerfilPublico'
+import { usePedirCelularSiFalta } from '@/hooks/usePedirCelularSiFalta'
+import { ModalCompletarCelular } from '@/components/paseos/ModalCompletarCelular'
 
 interface Props {
   visible: boolean
@@ -37,6 +39,17 @@ const SolicitudModal: React.FC<Props> = ({ visible, paseo, onClose }) => {
   const [loadingMascotas, setLoadingMascotas] = useState(false)
   const [tutor, setTutor] = useState<PerfilPublico | null>(null)
   const [loadingTutor, setLoadingTutor] = useState(false)
+  const [modalCelularVisible, setModalCelularVisible] = useState(false)
+  const {
+    tieneCelular,
+    guardarCelular,
+    cargando: cargandoCelular,
+  } = usePedirCelularSiFalta({
+    onCompletado: () => {
+      setModalCelularVisible(false)
+      handleAceptarInterno()
+    },
+  })
 
   useEffect(() => {
     let mounted = true
@@ -91,23 +104,24 @@ const SolicitudModal: React.FC<Props> = ({ visible, paseo, onClose }) => {
     maximumFractionDigits: 0,
   }).format((paseo as any).precio || 0)
 
-  const handleAceptar = async () => {
+  const handleAceptar = () => {
+    if (!tieneCelular()) {
+      setModalCelularVisible(true)
+      return
+    }
+    handleAceptarInterno()
+  }
+
+  const handleAceptarInterno = async () => {
     setLoading(true)
     try {
-      // 1. Inicializamos el gestor con el paseo actual para poder operar sobre él
       gestion.seleccionar(paseo)
-
-      // 2. Ejecutamos la acción de negocio a través del gestor
       const res = await acciones.aceptar()
-
       setLoading(false)
-
       if (res.success) {
         onClose()
-        // Navegar al panel de control del paseo
         navigation.navigate('ControlPaseo', { paseoId: paseo.id })
       } else {
-        // En caso de error, limpiamos el gestor para no dejar estado sucio
         gestion.limpiar()
         Alert.alert(t('comun:error'), res.error || t('comun:error_desconocido'))
       }
@@ -298,6 +312,14 @@ const SolicitudModal: React.FC<Props> = ({ visible, paseo, onClose }) => {
           </View>
         </View>
       </ScrollView>
+      <ModalCompletarCelular
+        visible={modalCelularVisible}
+        onClose={() => setModalCelularVisible(false)}
+        onCelularConfirmado={guardarCelular}
+        cargando={cargandoCelular}
+        titulo={t('usuarios.perfil.celular.titulo_modal_cuidador')}
+        descripcion={t('usuarios.perfil.celular.descripcion_modal_cuidador')}
+      />
     </BottomSheet>
   )
 }

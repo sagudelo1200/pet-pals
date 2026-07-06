@@ -114,13 +114,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const registrar = async (
     email: string,
     password: string,
-    displayName: string
+    displayName: string,
+    fechaNacimiento?: Date
   ): Promise<AuthResult> => {
     setCargando(true)
     const result = await GestorAuth.registrarConCorreo(
       email,
       password,
-      displayName
+      displayName,
+      fechaNacimiento
     )
     if (!result.success) setCargando(false)
     return result

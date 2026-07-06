@@ -98,6 +98,15 @@ service cloud.firestore {
       return request.resource.data.keys().hasOnly(camposPermitidos);
     }
 
+    // HELPERS PARA VALIDACIÓN DE EDAD
+
+    // Valida que el usuario sea mayor de edad (18+)
+    function usuario_es_mayor_edad() {
+      return 'fecha_nacimiento' in request.resource.data
+        && request.resource.data.fecha_nacimiento is timestamp
+        && (request.time.toMillis() - request.resource.data.fecha_nacimiento.toMillis()) >= (18 * 365.25 * 24 * 60 * 60 * 1000);
+    }
+
     // HELPERS COMBINADOS PARA CREAR Y ACTUALIZAR
 
     // Validación combinada para CREATE: autenticado + es_creador + campos_sistema válidos
@@ -186,7 +195,7 @@ service cloud.firestore {
     // USUARIOS
     match /usuarios/{uid} {
       allow read: if autenticado() && (es_mismo_uid(uid) || es_admin());
-      allow create: if puede_crear_valido() && es_mismo_uid(uid);
+      allow create: if puede_crear_valido() && es_mismo_uid(uid) && usuario_es_mayor_edad();
       allow update: if puede_actualizar_valido() && (es_mismo_uid(uid) || es_admin());
       allow delete: if es_admin();
     }

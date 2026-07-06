@@ -1,10 +1,13 @@
 import { StyleSheet, View, Text, Alert, Image, ScrollView } from 'react-native'
+import React, { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { COLOR } from '@/constants'
 import { Button, Card, Icon } from '@/components/ui'
 import Switch from '@/components/ui/Switch'
 import { useConfirmarPaseo } from '@/hooks/paseos/useConfirmarPaseo'
 import { PetAvatar } from '@/components/ui/PetAvatar'
+import { usePedirCelularSiFalta } from '@/hooks/usePedirCelularSiFalta'
+import { ModalCompletarCelular } from './ModalCompletarCelular'
 
 interface Props {
   mascotaIds: string[]
@@ -33,6 +36,7 @@ export const ConfirmarPaseoPaso = ({
   onBack,
 }: Props) => {
   const { t } = useTranslation()
+  const [modalCelularVisible, setModalCelularVisible] = useState(false)
   const {
     mascotas,
     cuidador,
@@ -50,13 +54,24 @@ export const ConfirmarPaseoPaso = ({
     duracion,
     esCompartido,
   })
+  const {
+    tieneCelular,
+    guardarCelular,
+    cargando: cargandoCelular,
+  } = usePedirCelularSiFalta({
+    onCompletado: () => {
+      setModalCelularVisible(false)
+      // Después de guardar celular, proceder con la confirmación
+      confirmarReservaInterno()
+    },
+  })
 
   const COMPARTIDO_DISCOUNT = 0.15 // 15% descuento para paseos compartidos
   const subtotal = total
   const descuento = esCompartido ? subtotal * COMPARTIDO_DISCOUNT : 0
   const totalConDescuento = subtotal - descuento
 
-  const handleConfirmar = async () => {
+  const confirmarReservaInterno = async () => {
     const success = await confirmarReserva()
     if (success) {
       Alert.alert(
@@ -73,194 +88,222 @@ export const ConfirmarPaseoPaso = ({
     }
   }
 
+  const handleConfirmar = async () => {
+    // Verificar si tiene celular, sino pedir que lo complete
+    if (!tieneCelular()) {
+      setModalCelularVisible(true)
+      return
+    }
+    // Si ya tiene celular, proceder con confirmación
+    confirmarReservaInterno()
+  }
+
   const formatDate = (date: Date | null) => {
     if (!date) return ''
     return date.toLocaleDateString() // Simplificado por ahora
   }
 
   return (
-    <ScrollView
-      style={styles.container}
-      contentContainerStyle={{ paddingBottom: 24 }}
-      showsVerticalScrollIndicator={false}
-    >
-      <Text style={styles.title}>{t('paseos:pasos.confirmar.titulo')}</Text>
+    <>
+      <ScrollView
+        style={styles.container}
+        contentContainerStyle={{ paddingBottom: 24 }}
+        showsVerticalScrollIndicator={false}
+      >
+        <Text style={styles.title}>{t('paseos:pasos.confirmar.titulo')}</Text>
 
-      <Card style={styles.card} elevated>
-        {/* Compact Horizontal Layout for critical info */}
-        <View style={styles.compactRow}>
-          <View style={[styles.section, { flex: 1, marginBottom: 0 }]}>
-            <Text style={styles.label}>
-              {t('paseos:pasos.confirmar.resumen_fecha')}
-            </Text>
-            <View style={styles.row}>
-              <Icon name="calendar-alt" size={13} color={COLOR.PRIMARIO} />
-              <Text style={[styles.value, { marginLeft: 6 }]}>
-                {formatDate(fecha)}
+        <Card style={styles.card} elevated>
+          {/* Compact Horizontal Layout for critical info */}
+          <View style={styles.compactRow}>
+            <View style={[styles.section, { flex: 1, marginBottom: 0 }]}>
+              <Text style={styles.label}>
+                {t('paseos:pasos.confirmar.resumen_fecha')}
               </Text>
-            </View>
-          </View>
-
-          <View style={[styles.section, { flex: 0.8, marginBottom: 0 }]}>
-            <Text style={styles.label}>{t('paseos:campos.duracion')}</Text>
-            <View style={styles.row}>
-              <Icon name="clock" size={13} color={COLOR.PRIMARIO} />
-              <Text style={[styles.value, { marginLeft: 6 }]}>
-                {hora} ({duracion || 60} min)
-              </Text>
-            </View>
-          </View>
-        </View>
-
-        <View style={styles.divider} />
-
-        {/* Mascotas */}
-        <View style={[styles.section, { marginBottom: 4 }]}>
-          <Text style={styles.label}>
-            {t('paseos:pasos.confirmar.resumen_mascotas')}
-          </Text>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.petsRow}
-            style={styles.petsScroll}
-          >
-            {mascotas.map((pet: any) => (
-              <View key={pet.id} style={styles.petItem}>
-                <PetAvatar uri={pet.foto} size="small" />
-                <Text style={styles.petName}>{pet.nombre}</Text>
-              </View>
-            ))}
-          </ScrollView>
-        </View>
-
-        <View style={styles.divider} />
-
-        {/* Ubicación */}
-        <View style={[styles.section, { marginBottom: 4 }]}>
-          <Text style={styles.label}>
-            {t('paseos:pasos.confirmar.resumen_ubicacion')}
-          </Text>
-          <View style={styles.row}>
-            <Icon name="map-marker-alt" size={13} color={COLOR.ERROR} />
-            <Text style={[styles.value, { marginLeft: 6 }]} numberOfLines={1}>
-              {direccion?.alias ||
-                direccion?.direccion_formateada ||
-                t('comun:cargando')}
-            </Text>
-          </View>
-        </View>
-
-        <View style={styles.divider} />
-
-        {/* Cuidador */}
-        <View style={[styles.section, { marginBottom: 4 }]}>
-          <Text style={styles.label}>
-            {t('paseos:pasos.confirmar.resumen_cuidador')}
-          </Text>
-          <View style={styles.row}>
-            {cuidador ? (
-              <>
-                <Image
-                  source={{ uri: cuidador.imagen }}
-                  style={styles.avatarMini}
-                />
-                <Text style={styles.value}>{cuidador.nombre}</Text>
-              </>
-            ) : (
-              <>
-                <View
-                  style={[
-                    styles.avatarMini,
-                    {
-                      backgroundColor: 'rgba(42, 134, 168, 0.2)',
-                      justifyContent: 'center',
-                      alignItems: 'center',
-                    },
-                  ]}
-                >
-                  <Icon name="bullhorn" size={10} color={COLOR.INFO} />
-                </View>
-                <Text style={styles.value}>
-                  {t('paseos:pasos.confirmar.solicitud_abierta_nombre')}
+              <View style={styles.row}>
+                <Icon name="calendar-alt" size={13} color={COLOR.PRIMARIO} />
+                <Text style={[styles.value, { marginLeft: 6 }]}>
+                  {formatDate(fecha)}
                 </Text>
-              </>
+              </View>
+            </View>
+
+            <View style={[styles.section, { flex: 0.8, marginBottom: 0 }]}>
+              <Text style={styles.label}>{t('paseos:campos.duracion')}</Text>
+              <View style={styles.row}>
+                <Icon name="clock" size={13} color={COLOR.PRIMARIO} />
+                <Text style={[styles.value, { marginLeft: 6 }]}>
+                  {hora} ({duracion || 60} min)
+                </Text>
+              </View>
+            </View>
+          </View>
+
+          <View style={styles.divider} />
+
+          {/* Mascotas */}
+          <View style={[styles.section, { marginBottom: 4 }]}>
+            <Text style={styles.label}>
+              {t('paseos:pasos.confirmar.resumen_mascotas')}
+            </Text>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.petsRow}
+              style={styles.petsScroll}
+            >
+              {mascotas.map((pet: any) => (
+                <View key={pet.id} style={styles.petItem}>
+                  <PetAvatar uri={pet.foto} size="small" />
+                  <Text style={styles.petName}>{pet.nombre}</Text>
+                </View>
+              ))}
+            </ScrollView>
+          </View>
+
+          <View style={styles.divider} />
+
+          {/* Ubicación */}
+          <View style={[styles.section, { marginBottom: 4 }]}>
+            <Text style={styles.label}>
+              {t('paseos:pasos.confirmar.resumen_ubicacion')}
+            </Text>
+            <View style={styles.row}>
+              <Icon name="map-marker-alt" size={13} color={COLOR.ERROR} />
+              <Text style={[styles.value, { marginLeft: 6 }]} numberOfLines={1}>
+                {direccion?.alias ||
+                  direccion?.direccion_formateada ||
+                  t('comun:cargando')}
+              </Text>
+            </View>
+          </View>
+
+          <View style={styles.divider} />
+
+          {/* Cuidador */}
+          <View style={[styles.section, { marginBottom: 4 }]}>
+            <Text style={styles.label}>
+              {t('paseos:pasos.confirmar.resumen_cuidador')}
+            </Text>
+            <View style={styles.row}>
+              {cuidador ? (
+                <>
+                  <Image
+                    source={{ uri: cuidador.imagen }}
+                    style={styles.avatarMini}
+                  />
+                  <Text style={styles.value}>{cuidador.nombre}</Text>
+                </>
+              ) : (
+                <>
+                  <View
+                    style={[
+                      styles.avatarMini,
+                      {
+                        backgroundColor: 'rgba(42, 134, 168, 0.2)',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                      },
+                    ]}
+                  >
+                    <Icon name="bullhorn" size={10} color={COLOR.INFO} />
+                  </View>
+                  <Text style={styles.value}>
+                    {t('paseos:pasos.confirmar.solicitud_abierta_nombre')}
+                  </Text>
+                </>
+              )}
+            </View>
+          </View>
+
+          <View style={styles.divider} />
+
+          {/* Paseo Compartido Compact */}
+          <View style={[styles.section, { marginBottom: 4 }]}>
+            <View style={styles.savingsBannerCompact}>
+              <Icon name="check-circle" size={14} color={COLOR.EXITO} />
+              <Text style={styles.savingsTextCompact}>
+                {t('paseos:pasos.confirmar.ahorro_mensaje', {
+                  descuento: Math.round(COMPARTIDO_DISCOUNT * 100),
+                })}
+              </Text>
+            </View>
+            <View style={{ marginTop: 4 }}>
+              <Switch
+                value={esCompartido}
+                onValueChange={onCompartidoChange}
+                label={t('paseos:pasos.confirmar.paseo_compartido_label')}
+                style={{ paddingVertical: 4 }}
+              />
+            </View>
+          </View>
+
+          <View style={styles.divider} />
+
+          {/* Price Breakdown Compact */}
+          <View style={styles.priceSectionCompact}>
+            <View style={styles.priceRowCompact}>
+              <Text style={styles.priceLabel}>
+                {t('paseos:pasos.confirmar.costo_servicio')}
+              </Text>
+              <Text style={styles.priceValue}>
+                ${subtotal.toLocaleString()}
+              </Text>
+            </View>
+            {esCompartido && (
+              <View style={styles.priceRowCompact}>
+                <Text style={[styles.priceLabel, styles.discountText]}>
+                  {t('paseos:pasos.confirmar.descuento_compartido')}
+                </Text>
+                <Text style={[styles.priceValue, styles.discountText]}>
+                  -${descuento.toLocaleString()}
+                </Text>
+              </View>
             )}
           </View>
-        </View>
 
-        <View style={styles.divider} />
-
-        {/* Paseo Compartido Compact */}
-        <View style={[styles.section, { marginBottom: 4 }]}>
-          <View style={styles.savingsBannerCompact}>
-            <Icon name="check-circle" size={14} color={COLOR.EXITO} />
-            <Text style={styles.savingsTextCompact}>
-              {t('paseos:pasos.confirmar.ahorro_mensaje', {
-                descuento: Math.round(COMPARTIDO_DISCOUNT * 100),
-              })}
+          {/* Total Price Compact */}
+          <View style={styles.totalRowCompact}>
+            <Text style={styles.totalLabel}>
+              {t('paseos:pasos.confirmar.total')}
+            </Text>
+            <Text style={styles.totalValue}>
+              ${totalConDescuento.toLocaleString()}
             </Text>
           </View>
-          <View style={{ marginTop: 4 }}>
-            <Switch
-              value={esCompartido}
-              onValueChange={onCompartidoChange}
-              label={t('paseos:pasos.confirmar.paseo_compartido_label')}
-              style={{ paddingVertical: 4 }}
-            />
-          </View>
+        </Card>
+
+        <View style={styles.actions}>
+          <Button
+            title={t('comun:atras')}
+            variant="bloque"
+            onPress={onBack}
+            disabled={loading}
+            style={{ flex: 1 }}
+          />
+          <Button
+            title={loading ? '...' : t('paseos:pasos.confirmar.btn_confirmar')}
+            variant="primario"
+            onPress={handleConfirmar}
+            loading={loading}
+            style={{ flex: 1.2 }}
+          />
         </View>
 
-        <View style={styles.divider} />
-
-        {/* Price Breakdown Compact */}
-        <View style={styles.priceSectionCompact}>
-          <View style={styles.priceRowCompact}>
-            <Text style={styles.priceLabel}>
-              {t('paseos:pasos.confirmar.costo_servicio')}
-            </Text>
-            <Text style={styles.priceValue}>${subtotal.toLocaleString()}</Text>
-          </View>
-          {esCompartido && (
-            <View style={styles.priceRowCompact}>
-              <Text style={[styles.priceLabel, styles.discountText]}>
-                {t('paseos:pasos.confirmar.descuento_compartido')}
-              </Text>
-              <Text style={[styles.priceValue, styles.discountText]}>
-                -${descuento.toLocaleString()}
-              </Text>
-            </View>
-          )}
-        </View>
-
-        {/* Total Price Compact */}
-        <View style={styles.totalRowCompact}>
-          <Text style={styles.totalLabel}>
-            {t('paseos:pasos.confirmar.total')}
-          </Text>
-          <Text style={styles.totalValue}>
-            ${totalConDescuento.toLocaleString()}
-          </Text>
-        </View>
-      </Card>
-
-      <View style={styles.actions}>
-        <Button
-          title={t('comun:atras')}
-          variant="bloque"
-          onPress={onBack}
-          disabled={loading}
-          style={{ flex: 1 }}
+        {/* Modal para completar celular */}
+        <ModalCompletarCelular
+          visible={modalCelularVisible}
+          onClose={() => setModalCelularVisible(false)}
+          onCelularConfirmado={async celularIngresado => {
+            const res = await guardarCelular(celularIngresado)
+            if (!res.success) {
+              Alert.alert('Error', res.error || t('usuarios.errores.generico'))
+            }
+            // onCompletado callback handle the rest
+          }}
+          cargando={cargandoCelular}
         />
-        <Button
-          title={loading ? '...' : t('paseos:pasos.confirmar.btn_confirmar')}
-          variant="primario"
-          onPress={handleConfirmar}
-          loading={loading}
-          style={{ flex: 1.2 }}
-        />
-      </View>
-    </ScrollView>
+      </ScrollView>
+    </>
   )
 }
 

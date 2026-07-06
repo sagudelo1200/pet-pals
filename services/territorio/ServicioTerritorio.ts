@@ -1,7 +1,7 @@
 import { latLngToCell } from 'h3-js'
 
 /**
- * Resoluciones H3 estándar para Pet Pals
+ * Resoluciones H3 estándar para Paw-Path
  * Centralizadas aquí para evitar números mágicos distribuidos por el código
  *
  * @internal

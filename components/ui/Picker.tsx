@@ -29,7 +29,7 @@ interface PickerProps {
 }
 
 /**
- * Picker: Componente de selección dropdown con diseño PetPals
+ * Picker: Componente de selección dropdown con diseño Paw-Path
  */
 const Picker: React.FC<PickerProps> = ({
   label,

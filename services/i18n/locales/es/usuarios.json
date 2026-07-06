@@ -1,6 +1,27 @@
 {
   "errores": {
     "usuario_no_encontrado": "No se encontró el usuario solicitado.",
+    "usuario_no_autenticado": "El usuario no está autenticado. Inicia sesión para continuar.",
+    "error_guardar_celular": "Error al guardar tu celular. Intenta nuevamente.",
     "generico": "Error al procesar la solicitud del usuario. Intenta nuevamente."
+  },
+  "perfil": {
+    "celular": {
+      "titulo_modal": "Tu número de celular es importante",
+      "descripcion_modal": "Necesitamos tu celular para que tutores y cuidadores puedan contactarte con confianza. Es esencial para coordinar paseos y garantizar la seguridad de tus mascotas.",
+      "titulo_modal_cuidador": "Confirma tu celular para aceptar paseos",
+      "descripcion_modal_cuidador": "Los tutores podrían contactarte directamente. Comparte tu celular para que podamos conectarlos contigo de forma segura.",
+      "placeholder": "300 123 4567 o +57 300 123 4567",
+      "label": "Número de celular",
+      "exito": "Celular guardado exitosamente"
+    }
+  },
+  "validacion": {
+    "celular": {
+      "caracteres_invalidos": "El celular contiene caracteres inválidos.",
+      "longitud_incorrecta": "El celular debe tener exactamente 10 dígitos (tiene {{cantidad}}).",
+      "no_empieza_con_3": "El celular debe empezar con 3 (operador móvil colombiano).",
+      "contiene_no_numericos": "El celular contiene caracteres no numéricos."
+    }
   }
 }

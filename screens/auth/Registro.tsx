@@ -1,6 +1,7 @@
 import React, { useCallback, useMemo, useState, useRef, useEffect } from 'react'
 import { StyleSheet, View, Alert, Animated, Dimensions } from 'react-native'
 import { Block, Text } from 'galio-framework'
+import DateTimePicker from '@react-native-community/datetimepicker'
 import { COLOR } from '@/constants'
 import { Button, TextInput } from '@/components/ui'
 import { GoogleSignInButton } from '@/components/auth/GoogleSignInButton'
@@ -23,8 +24,11 @@ const Registro: React.FC = () => {
   const [nombre, setNombre] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [fechaNacimiento, setFechaNacimiento] = useState(new Date(2000, 0, 1))
+  const [showDatePicker, setShowDatePicker] = useState(false)
   const [emailTouched, setEmailTouched] = useState(false)
   const [passwordTouched, setPasswordTouched] = useState(false)
+  const [fechaTouched, setFechaTouched] = useState(false)
 
   // Animaciones
   const messageOpacity = useRef(new Animated.Value(0)).current
@@ -75,6 +79,30 @@ const Registro: React.FC = () => {
 
   const passwordValid = useMemo(() => password.length >= 6, [password])
 
+  const calcularEdad = (fecha: Date): number => {
+    const hoy = new Date()
+    let edad = hoy.getFullYear() - fecha.getFullYear()
+    const mesActual = hoy.getMonth()
+    const mesNacimiento = fecha.getMonth()
+    if (
+      mesActual < mesNacimiento ||
+      (mesActual === mesNacimiento && hoy.getDate() < fecha.getDate())
+    ) {
+      edad--
+    }
+    return edad
+  }
+
+  const fechaValida = useMemo(() => {
+    return calcularEdad(fechaNacimiento) >= 18
+  }, [fechaNacimiento])
+
+  const fechaError = useMemo(() => {
+    if (!fechaTouched) return ''
+    if (!fechaValida) return t('auth:registro.errores.edad.minimo')
+    return ''
+  }, [fechaValida, fechaTouched, t])
+
   const emailError = useMemo(() => {
     if (!emailTouched) return ''
     if (email.trim().length === 0)
@@ -92,8 +120,8 @@ const Registro: React.FC = () => {
   }, [password, passwordTouched, passwordValid, t])
 
   const canSubmit = useMemo(() => {
-    return nombre.trim() !== '' && emailValid && passwordValid
-  }, [nombre, emailValid, passwordValid])
+    return nombre.trim() !== '' && emailValid && passwordValid && fechaValida
+  }, [nombre, emailValid, passwordValid, fechaValida])
 
   const onSubmit = useCallback(async () => {
     if (!canSubmit) {
@@ -104,7 +132,12 @@ const Registro: React.FC = () => {
       return
     }
 
-    const result = await registrar(email.trim(), password, nombre.trim())
+    const result = await registrar(
+      email.trim(),
+      password,
+      nombre.trim(),
+      fechaNacimiento
+    )
     if (!result.success || !result.user) {
       Alert.alert(
         t('auth:registro.errores.registroFallido.titulo'),
@@ -114,11 +147,19 @@ const Registro: React.FC = () => {
     }
 
     await recargarPerfil?.()
-  }, [canSubmit, email, nombre, password, registrar])
+  }, [canSubmit, email, nombre, password, fechaNacimiento, registrar])
 
   const goToLogin = useCallback(() => {
     navigation.navigate('Ingresar')
   }, [navigation])
+
+  const handleDateChange = (event: any, selectedDate?: Date) => {
+    if (selectedDate) {
+      setFechaNacimiento(selectedDate)
+      if (!fechaTouched) setFechaTouched(true)
+    }
+    setShowDatePicker(false)
+  }
 
   return (
     <Screen contentContainerStyle={styles.content} style={styles.container}>
@@ -194,6 +235,37 @@ const Registro: React.FC = () => {
             iconName="lock"
             errorText={passwordError}
           />
+
+          <TextInput
+            label={t('auth:registro.formulario.fechaNacimiento.label')}
+            value={fechaNacimiento.toLocaleDateString('es-CO')}
+            onFocus={() => {
+              setShowDatePicker(true)
+              if (!fechaTouched) setFechaTouched(true)
+            }}
+            placeholder={t(
+              'auth:registro.formulario.fechaNacimiento.placeholder'
+            )}
+            editable={false}
+            iconName="calendar"
+            errorText={fechaError}
+          />
+
+          {showDatePicker && (
+            <DateTimePicker
+              value={fechaNacimiento}
+              mode="date"
+              display="spinner"
+              onChange={handleDateChange}
+              maximumDate={
+                new Date(
+                  new Date().getFullYear() - 18,
+                  new Date().getMonth(),
+                  new Date().getDate()
+                )
+              }
+            />
+          )}
 
           <Button
             title={

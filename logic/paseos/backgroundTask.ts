@@ -3,10 +3,10 @@ import * as Location from 'expo-location'
 import { GestorSeguimiento } from './seguimiento'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 
-export const LOCATION_TASK_NAME = 'BACKGROUND_LOCATION_PETPALS'
+export const LOCATION_TASK_NAME = 'BACKGROUND_LOCATION_PAWPATH'
 
 /**
- * Tarea de segundo plano para el seguimiento de ubicación en PetPals.
+ * Tarea de segundo plano para el seguimiento de ubicación en Paw-Path.
  * Rectificada con manejo de errores robusto y validación de contexto.
  */
 TaskManager.defineTask(LOCATION_TASK_NAME, async ({ data, error }) => {

@@ -15,10 +15,10 @@ Está basado en la **Ley 1581 de 2012** (Protección de Datos en Colombia).
 
 ## INFORMACIÓN DEL USUARIO
 
-**Email**: ********\_\_\_********  
-**Nombre Completo**: ********\_\_\_********  
-**Documento de Identidad**: ********\_\_\_********  
-**Fecha**: ********\_\_\_********
+**Email**: ___________________  
+**Nombre Completo**: ___________________  
+**Documento de Identidad**: ___________________  
+**Fecha**: ___________________
 
 ---
 
@@ -136,9 +136,9 @@ Declaro que:
 - ☐ Entiendo la finalidad del tratamiento
 - ☐ Doy mi consentimiento explícito y voluntario
 
-**Firma / Huella Digital**: ********\_\_\_********
+**Firma / Huella Digital**: ___________________
 
-**Fecha**: ********\_\_\_********
+**Fecha**: ___________________
 
 ---
 
