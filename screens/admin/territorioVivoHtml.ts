@@ -12,6 +12,21 @@ export const COLORES_ESTADO: Record<
   en_operacion: { fill: '#F59E0B', opacity: 0.7, label: 'En operación' },
 }
 
+// ─── Función para color por índice de inteligencia (0-100) ─────────────────
+function colorPorIndice(valor: number | undefined): {
+  fill: string
+  opacity: number
+} {
+  if (valor === undefined || valor === null) {
+    return { fill: '#6B7280', opacity: 0.25 } // Gris: sin datos
+  }
+  // Verde (alto) -> Amarillo -> Rojo (bajo)
+  if (valor >= 70) return { fill: '#10B981', opacity: 0.6 } // Verde
+  if (valor >= 50) return { fill: '#F59E0B', opacity: 0.55 } // Amarillo
+  if (valor >= 30) return { fill: '#F97316', opacity: 0.55 } // Naranja
+  return { fill: '#EF4444', opacity: 0.5 } // Rojo
+}
+
 // ─── Constructor del HTML de Leaflet ─────────────────────────────────────────
 export function construirHTML(
   zonas: ZonaH3[],
@@ -20,12 +35,19 @@ export function construirHTML(
 ): string {
   const zonasJSON = JSON.stringify(
     zonas.map(z => ({
-      id: z.indice_celda,
-      estado: z.estado,
-      cuidadores: z.cuidadores_count,
-      demanda: z.demanda_total,
-      activos: z.paseos_activos,
-      total: z.paseos_total,
+      id: z.indice_celda || z.h3_r9,
+      estado: z.operativa?.estado,
+      cuidadores: z.operativa?.cuidadores_count || 0,
+      demanda: z.operativa?.demanda_total || 0,
+      activos: z.operativa?.paseos_activos || 0,
+      total: z.operativa?.paseos_total || 0,
+      // Inteligencia territorial
+      bienestar: z.narrativa?.indices?.bienestar,
+      seguridad: z.narrativa?.indices?.seguridad,
+      actividad: z.narrativa?.indices?.actividad,
+      socializacion: z.narrativa?.indices?.socializacion,
+      tipo: z.narrativa?.identidad?.tipo,
+      eventos: z.narrativa?.total_eventos || 0,
     }))
   )
 
@@ -191,72 +213,157 @@ export function construirHTML(
     });
     new ThemeControl().addTo(map);
 
+    // ── Botón para cambiar vista: Estado vs Inteligencia ────────────
+    var vistaInteligencia = false;
+    var IntelligenceControl = L.Control.extend({
+      options: { position: 'topleft' },
+      onAdd: function () {
+        var btn = L.DomUtil.create('div', 'leaflet-bar leaflet-control');
+        btn.innerHTML = '🧠';
+        btn.title = 'Cambiar a Inteligencia Territorial';
+        btn.style.cssText = [
+          'background:#121918','color:#EBF4F2','cursor:pointer',
+          'width:36px','height:36px','display:flex',
+          'align-items:center','justify-content:center',
+          'font-size:16px','line-height:1',
+          'border:2px solid #1F2D2A','border-radius:4px',
+          'user-select:none','margin-top:8px',
+        ].join(';');
+        L.DomEvent.on(btn, 'click', function () {
+          vistaInteligencia = !vistaInteligencia;
+          btn.style.borderColor = vistaInteligencia ? '#2DB391' : '#1F2D2A';
+          btn.style.backgroundColor = vistaInteligencia ? '#1D8F73' : '#121918';
+          btn.title = vistaInteligencia 
+            ? 'Cambiar a Estado de Zonas' 
+            : 'Cambiar a Inteligencia Territorial';
+          renderizarZonas();
+        });
+        L.DomEvent.disableClickPropagation(btn);
+        return btn;
+      },
+    });
+    new IntelligenceControl().addTo(map);
+
     // ── Leyenda ───────────────────────────────────────────────
     var leyenda = L.control({ position: 'bottomleft' });
     leyenda.onAdd = function() {
       var div = L.DomUtil.create('div', 'leyenda');
-      var estados = Object.keys(COLORES);
-      var html = '<strong style="display:block;margin-bottom:6px">Estado de zonas<\\/strong>';
-      estados.forEach(function(k) {
-        var c = COLORES[k];
-        html += '<div class="leyenda-item">'
-          + '<div class="leyenda-dot" style="background:' + c.fill
-          + ';opacity:' + (c.opacity + 0.3) + '"><\\/div>'
-          + c.label
-          + '<\\/div>';
-      });
+      var html = '';
+      
+      if (vistaInteligencia) {
+        // Leyenda de bienestar
+        html = '<strong style="display:block;margin-bottom:6px">Bienestar<\\/strong>'
+          + '<div class="leyenda-item"><div class="leyenda-dot" style="background:#10B981;opacity:0.8"><\\/div>70-100<\\/div>'
+          + '<div class="leyenda-item"><div class="leyenda-dot" style="background:#F59E0B;opacity:0.8"><\\/div>50-69<\\/div>'
+          + '<div class="leyenda-item"><div class="leyenda-dot" style="background:#F97316;opacity:0.8"><\\/div>30-49<\\/div>'
+          + '<div class="leyenda-item"><div class="leyenda-dot" style="background:#EF4444;opacity:0.8"><\\/div>0-29<\\/div>'
+          + '<div class="leyenda-item"><div class="leyenda-dot" style="background:#6B7280;opacity:0.5"><\\/div>Sin datos<\\/div>';
+      } else {
+        // Leyenda de estado
+        var estados = Object.keys(COLORES);
+        html = '<strong style="display:block;margin-bottom:6px">Estado de zonas<\\/strong>';
+        estados.forEach(function(k) {
+          var c = COLORES[k];
+          html += '<div class="leyenda-item">'
+            + '<div class="leyenda-dot" style="background:' + c.fill
+            + ';opacity:' + (c.opacity + 0.3) + '"><\\/div>'
+            + c.label
+            + '<\\/div>';
+        });
+      }
       div.innerHTML = html;
       return div;
     };
     leyenda.addTo(map);
 
+    // ── Función para obtener color por índice ──────────────────
+    function getColorPorIndice(valor) {
+      if (valor === undefined || valor === null) {
+        return { fill: '#6B7280', opacity: 0.25 };
+      }
+      if (valor >= 70) return { fill: '#10B981', opacity: 0.6 };
+      if (valor >= 50) return { fill: '#F59E0B', opacity: 0.55 };
+      if (valor >= 30) return { fill: '#F97316', opacity: 0.55 };
+      return { fill: '#EF4444', opacity: 0.5 };
+    }
+
     // ── Renderizado de zonas ──────────────────────────────────
     var polygons = L.layerGroup().addTo(map);
-    var bounds   = [];
+    var bounds = [];
 
-    ZONAS.forEach(function(zona) {
-      try {
-        // Ocultar celdas "sin_actividad" con todos los indicadores en 0
-        if (zona.estado === 'sin_actividad'
-            && zona.cuidadores === 0
-            && zona.demanda   === 0
-            && zona.activos   === 0
-            && zona.total     === 0) return;
+    function renderizarZonas() {
+      // Limpiar y reconstruir
+      map.removeLayer(polygons);
+      polygons = L.layerGroup().addTo(map);
+      bounds = [];
+      leyenda.remove();
+      leyenda.addTo(map);
 
-        var boundary = h3.cellToBoundary(zona.id);
-        var latlngs  = boundary.map(function(p) { return [p[0], p[1]]; });
-        var c = COLORES[zona.estado] || COLORES['sin_actividad'];
+      ZONAS.forEach(function(zona) {
+        try {
+          // Ocultar celdas "sin_actividad" con todos los indicadores en 0
+          if (zona.estado === 'sin_actividad'
+              && zona.cuidadores === 0
+              && zona.demanda   === 0
+              && zona.activos   === 0
+              && zona.total     === 0) return;
 
-        var poly = L.polygon(latlngs, {
-          color:       c.fill,
-          fillColor:   c.fill,
-          fillOpacity: c.opacity,
-          weight:      1.5,
-          opacity:     0.85,
-        });
+          var boundary = h3.cellToBoundary(zona.id);
+          var latlngs  = boundary.map(function(p) { return [p[0], p[1]]; });
+          
+          var c;
+          if (vistaInteligencia) {
+            c = getColorPorIndice(zona.bienestar);
+          } else {
+            c = COLORES[zona.estado] || COLORES['sin_actividad'];
+          }
 
-        var estadoLabel = (COLORES[zona.estado] || {}).label || zona.estado;
-        poly.bindPopup(
-          '<div class="popup-titulo">' + estadoLabel.toUpperCase() + '<\\/div>'
-          + '<div class="popup-fila">🐕 Cuidadores: <b>' + zona.cuidadores + '<\\/b><\\/div>'
-          + '<div class="popup-fila">📋 Demanda: <b>'    + zona.demanda   + '<\\/b><\\/div>'
-          + '<div class="popup-fila">🦮 Activos: <b>'    + zona.activos   + '<\\/b><\\/div>'
-          + '<div class="popup-fila">✅ Total paseos: <b>'+ zona.total    + '<\\/b><\\/div>'
-          + '<div class="popup-fila" style="margin-top:4px;font-size:10px;color:#98A7A4">'
-          + zona.id + '<\\/div>'
-        );
+          var poly = L.polygon(latlngs, {
+            color:       c.fill,
+            fillColor:   c.fill,
+            fillOpacity: c.opacity,
+            weight:      1.5,
+            opacity:     0.85,
+          });
 
-        polygons.addLayer(poly);
-        latlngs.forEach(function(ll) { bounds.push(ll); });
-      } catch(e) {
-        console.warn('Error dibujando zona', zona.id, e);
+          // Popup con información relevante
+          var popupHTML = '';
+          if (vistaInteligencia) {
+            popupHTML = '<div class="popup-titulo">Inteligencia Territorial<\\/div>'
+              + '<div class="popup-fila">Tipo: <b>' + (zona.tipo || '—') + '<\\/b><\\/div>'
+              + '<div class="popup-fila">🌟 Bienestar: <b>' + (zona.bienestar ?? '—') + '<\\/b><\\/div>'
+              + '<div class="popup-fila">🛡️ Seguridad: <b>' + (zona.seguridad ?? '—') + '<\\/b><\\/div>'
+              + '<div class="popup-fila">⚡ Actividad: <b>' + (zona.actividad ?? '—') + '<\\/b><\\/div>'
+              + '<div class="popup-fila">👥 Socialización: <b>' + (zona.socializacion ?? '—') + '<\\/b><\\/div>'
+              + '<div class="popup-fila">📊 Eventos: <b>' + zona.eventos + '<\\/b><\\/div>';
+          } else {
+            var estadoLabel = (COLORES[zona.estado] || {}).label || zona.estado;
+            popupHTML = '<div class="popup-titulo">' + estadoLabel.toUpperCase() + '<\\/div>'
+              + '<div class="popup-fila">🐕 Cuidadores: <b>' + zona.cuidadores + '<\\/b><\\/div>'
+              + '<div class="popup-fila">📋 Demanda: <b>'    + zona.demanda   + '<\\/b><\\/div>'
+              + '<div class="popup-fila">🦮 Activos: <b>'    + zona.activos   + '<\\/b><\\/div>'
+              + '<div class="popup-fila">✅ Total paseos: <b>'+ zona.total    + '<\\/b><\\/div>';
+          }
+          
+          popupHTML += '<div class="popup-fila" style="margin-top:4px;font-size:10px;color:#98A7A4">'
+            + zona.id + '<\\/div>';
+
+          poly.bindPopup(popupHTML);
+          polygons.addLayer(poly);
+          latlngs.forEach(function(ll) { bounds.push(ll); });
+        } catch(e) {
+          console.warn('Error dibujando zona', zona.id, e);
+        }
+      });
+
+      // Auto-fit a las zonas cargadas
+      if (bounds.length > 0) {
+        try { map.fitBounds(bounds, { padding: [30, 30] }); } catch(e) {}
       }
-    });
-
-    // Auto-fit a las zonas cargadas
-    if (bounds.length > 0) {
-      try { map.fitBounds(bounds, { padding: [30, 30] }); } catch(e) {}
     }
+
+    // Renderizar inicial
+    renderizarZonas();
   </script>
 </body>
 </html>`

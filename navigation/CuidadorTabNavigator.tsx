@@ -127,7 +127,7 @@ const styles = StyleSheet.create({
     minWidth: 18,
     height: 18,
     paddingHorizontal: 5,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: COLOR.HUESO,
     borderRadius: 18,
     borderWidth: 1,
     borderColor: 'rgba(0,0,0,0.06)',
