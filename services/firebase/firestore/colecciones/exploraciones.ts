@@ -70,8 +70,8 @@ export class ServicioExploracionTerritorial {
       // Usar toDb() para convertir coordenadas a GeoPoint automáticamente
       const dataPersistido = toDb({
         ...dataFiltered,
-        h3_index: contexto.h3_index,
-        h3_observacion: contexto.h3_observacion,
+        h3_r8: contexto.h3_r8,
+        h3_r9: contexto.h3_r9,
         estado: ESTADO_INICIAL_EXPLORACION,
       })
 
@@ -176,7 +176,7 @@ export class ServicioExploracionTerritorial {
   ): Promise<CrudResult<ExploracionTerritorial[]>> {
     return ServicioCrudBase.buscar<ExploracionTerritorial>(
       this.COLLECTION,
-      'h3_index',
+      'h3_r8',
       h3Index
     )
   }

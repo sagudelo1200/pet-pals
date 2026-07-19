@@ -116,8 +116,8 @@ export class ServicioUbicacion {
         alias: payload.alias,
         instrucciones: payload.instrucciones,
         metadata: (payload as any).metadata,
-        h3_index: contexto.h3_index, // del Servicio
-        h3_observacion: contexto.h3_observacion, // del Servicio
+        h3_r8: contexto.h3_r8, // del Servicio
+        h3_r9: contexto.h3_r9, // del Servicio
       })
 
       const finalData = {

@@ -17,11 +17,11 @@ export interface ExploracionTerritorial extends BaseModel {
   /** ID del explorador que realizó la captura (heredado de creado_por) */
   id_explorador: string
 
-  /** Índice H3 de la celda observada (resolución 8) */
-  h3_index: string
+  /** Índice H3 de resolución 8 (~460m). Indexación primaria y cobertura. */
+  h3_r8: string
 
-  /** Índice H3 para microzoning y clustering (resolución 9) */
-  h3_observacion: string
+  /** Índice H3 de resolución 9 (~174m). Microzoning y clustering de observaciones. */
+  h3_r9: string
 
   /** Coordenadas exactas de la observación */
   coordenadas: {

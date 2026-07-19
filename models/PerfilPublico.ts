@@ -21,11 +21,10 @@ export interface PerfilPublico extends BaseModel {
   experiencia?: string
 
   /**
-   * Celda H3 de origen del cuidador (resolución 8, ≈460m de radio).
+   * Celda H3 de resolución 8 (~460m) de origen del cuidador.
    * Se usa como origen para el índice de cobertura `/indice_cobertura/{celda}/cuidadores/{uid}`.
-   * Reemplaza el campo `zonas_servicio` que nunca fue poblado ni consultado.
    */
-  h3_home?: string
+  h3_r8?: string
 
   /**
    * Horario semanal recurrente del cuidador.
@@ -36,7 +35,7 @@ export interface PerfilPublico extends BaseModel {
 
   /**
    * Celdas H3 de cobertura definidas manualmente por el cuidador (resolución 8).
-   * Si está presente, reemplaza el gridDisk(h3_home, 2) automático en el índice.
+   * Si está presente, reemplaza el gridDisk(h3_r8, 2) automático en el índice.
    */
   celdas_cobertura?: string[]
 

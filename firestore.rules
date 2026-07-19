@@ -161,6 +161,11 @@ service cloud.firestore {
       return estado in ['pendiente', 'confirmado'];
     }
 
+    // Verifica si el paseo está sin cuidador asignado (null o string vacío)
+    function sin_cuidador_asignado(p) {
+      return p != null && (!('id_cuidador' in p.data) || p.data.id_cuidador == null || p.data.id_cuidador == '');
+    }
+
     function es_actor_paseo_doc(p) {
       return autenticado() && p != null && (
       p.data.creado_por == request.auth.uid ||
@@ -252,7 +257,7 @@ service cloud.firestore {
         && solo_campos_permitidos([
       'id','proveedor','proveedor_place_id','direccion_formateada','coordenadas',
       'componentes','componentes_raw','componentes_source','viewport','alias','instrucciones',
-      'metadata','estado','h3_index','h3_observacion','creado_por','creado_en','actualizado_en','actualizado_por'
+      'metadata','estado','h3_r8','h3_r9','creado_por','creado_en','actualizado_en','actualizado_por'
       ]);
 
       // Solo admin puede borrar
@@ -264,18 +269,18 @@ service cloud.firestore {
       // OPTIMIZADO: Validaciones baratas primero
       // Permitir lectura si:
       // 1. Eres actor del paseo (creador o cuidador asignado)
-      // 2. El paseo está PENDIENTE y no tiene cuidador asignado (para que cuidadores puedan ver solicitudes)
+      // 2. El paseo está PENDIENTE Y sin cuidador asignado (mercado abierto)
       allow get: if autenticado() && (
       resource == null || 
       resource.data.creado_por == request.auth.uid ||
       resource.data.id_cuidador == request.auth.uid ||
-      (resource.data.estado == 'PENDIENTE' && (!('id_cuidador' in resource.data) || resource.data.id_cuidador == null))
+      (resource.data.estado == 'PENDIENTE' && sin_cuidador_asignado(resource))
       );
 
       allow list: if autenticado() && (
       resource.data.creado_por == request.auth.uid ||
       resource.data.id_cuidador == request.auth.uid ||
-      (resource.data.estado == 'PENDIENTE' && (!('id_cuidador' in resource.data) || resource.data.id_cuidador == null))
+      (resource.data.estado == 'PENDIENTE' && sin_cuidador_asignado(resource))
       );
 
       allow create: if puede_crear_valido()
@@ -292,7 +297,7 @@ service cloud.firestore {
       resource.data.estado == 'PENDIENTE' &&
       request.resource.data.estado == 'CONFIRMADO' &&
       request.resource.data.id_cuidador == request.auth.uid &&
-      (!('id_cuidador' in resource.data) || resource.data.id_cuidador == null || resource.data.id_cuidador == request.auth.uid)
+      (!('id_cuidador' in resource.data) || resource.data.id_cuidador == null || resource.data.id_cuidador == '' || resource.data.id_cuidador == request.auth.uid)
       ) ||
 
       // Caso 3: El Cuidador asignado actualiza estado (con validación de transición)
@@ -363,12 +368,24 @@ service cloud.firestore {
       // OPTIMIZADO: Verificar autenticado primero, luego get()
       allow read: if autenticado() && es_actor_paseo_doc(get_paseo_doc(paseoId));
 
-      // OPTIMIZADO: Validaciones baratas primero (campos), luego get()
+      // OPTIMIZADO: Crear eventos en la bitácora del paseo
+      // - Validar campos obligatorios y campos de sistema
+      // - El actor debe ser el usuario autenticado
+      // - El usuario debe ser actor del paseo
+      // NOTA: No validamos campos_sistema_validos_crear() porque cliente usa serverTimestamp()
+      // que no puede ser comparado directamente con request.time en rules
       allow create: if autenticado() &&
-      request.resource.data.keys().hasAll(['evento','payload','actor','creado_en']) &&
+      request.resource.data.evento is string &&
+      request.resource.data.evento.size() > 0 &&
       request.resource.data.actor == request.auth.uid &&
-      request.resource.data.creado_en == request.time &&
-      es_actor_paseo_doc(get_paseo_doc(paseoId));
+      request.resource.data.creado_por == request.auth.uid &&
+      request.resource.data.actualizado_por == request.auth.uid &&
+      request.resource.data.creado_en is timestamp &&
+      request.resource.data.actualizado_en is timestamp &&
+      es_actor_paseo_doc(get_paseo_doc(paseoId)) &&
+      solo_campos_permitidos([
+      'evento','payload','actor','creado_por','creado_en','actualizado_por','actualizado_en'
+      ]);
 
       // Solo admin puede modificar o borrar eventos
       allow update, delete: if es_admin();
@@ -383,19 +400,21 @@ service cloud.firestore {
       allow write: if autenticado() && (uid == request.auth.uid || es_admin());
     }
 
-    // INTELIGENCIA TERRITORIAL H3
+    // INTELIGENCIA TERRITORIAL H3 - ESTRUCTURA UNIFICADA
     // /h3_zonas/{celdaH3}
+    // 
+    // Documento único que contiene dos secciones bien separadas:
+    // 1. NARRATIVA: Identidad, índices, contadores de eventos (gestionado por TerritorialAggregator)
+    // 2. OPERATIVA: Cobertura de cuidadores, demanda, estado (gestionado por ServicioZonasH3)
+    //
+    // Ambas secciones son fire-and-forget desde cliente (no requieren validación exhaustiva).
     match /h3_zonas/{celdaH3} {
-      // Lectura pública para usuarios autenticados (future: panel admin)
+      // Lectura: usuarios autenticados pueden leer zonas
       allow read: if autenticado();
-      // Escritura restringida a usuarios autenticados (la app escribe desde el cliente)
-      // Los campos de estado son calculados internamente, no aceptamos datos arbitrarios
-      allow write: if autenticado()
-        && request.resource.data.keys().hasOnly([
-      'indice_celda','cuidadores_count','demanda_total','paseos_activos',
-      'paseos_total','estado','ratio_cobertura',
-      'ultima_demanda_en','ultima_actividad_en','actualizado_en'
-      ]);
+
+      // Escritura: usuarios autenticados pueden escribir (ambas secciones)
+      // merge: true preserva la otra sección
+      allow write: if autenticado();
     }
 
     // EXCEPCIONES DE DISPONIBILIDAD SEMANAL
@@ -417,10 +436,10 @@ service cloud.firestore {
       // Crear: usuarios autenticados pueden crear exploraciones
       allow create: if puede_crear_valido()
         && request.resource.data.id_explorador == request.auth.uid
-        && request.resource.data.h3_index is string
-        && request.resource.data.h3_index.size() > 0
-        && request.resource.data.h3_observacion is string
-        && request.resource.data.h3_observacion.size() > 0
+        && request.resource.data.h3_r8 is string
+        && request.resource.data.h3_r8.size() > 0
+        && request.resource.data.h3_r9 is string
+        && request.resource.data.h3_r9.size() > 0
         && request.resource.data.tipo_punto in ['parque','calle','comercio','conjunto','otro']
         && request.resource.data.mascotas_visibles is int
         && request.resource.data.mascotas_visibles >= 0
@@ -475,7 +494,7 @@ service cloud.firestore {
     }
 
     // RESUMEN TERRITORIAL AGREGADO
-    // /territorio_resumen/{h3_index}
+    // /territorio_resumen/{h3_r8}
     match /territorio_resumen/{h3Index} {
       // Lectura: cualquier usuario autenticado puede leer datos territoriales agregados
       allow read: if autenticado();
@@ -483,6 +502,17 @@ service cloud.firestore {
       // Escritura: solo Cloud Functions (backend) debe crear/actualizar estos datos
       // Los clientes no deben escribir directamente
       allow write: if false;
+    }
+
+    // AGREGACIÓN TERRITORIAL POR ZONA H3 (Paw-Path)
+    // /territorios/{h3_r9}
+    // Acumula estadísticas de eventos por territorio (zona de ~60m)
+    match /territorios/{h3_r9} {
+      // Lectura: usuarios autenticados pueden leer datos de territorios
+      allow read: if autenticado();
+
+      // Escritura: usuarios autenticados pueden escribir (la app actualiza desde el cliente)
+      allow write: if autenticado();
     }
   }
 }

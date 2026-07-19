@@ -29,16 +29,16 @@ export interface Ubicacion extends BaseModel {
   }
 
   /**
-   * Índice H3 calculado a partir de `coordenadas` en resolución 8.
+   * Índice H3 de resolución 8 (~460m, calculado desde `coordenadas`).
    * Se almacena para evitar recalcular y permitir queries geoespaciales.
    */
-  h3_index?: string
+  h3_r8?: string
 
   /**
-   * Índice H3 para microzoning y clustering (resolución 9, opcional).
-   * Se almacena cuando se requiere precision fina de observaciones.
+   * Índice H3 de resolución 9 (~174m, opcional).
+   * Se almacena cuando se requiere precisión fina para observaciones.
    */
-  h3_observacion?: string
+  h3_r9?: string
 
   /**
    * Componentes parseados (opcional). NO son la fuente de verdad — sólo ayudan a mostrar/filtrar.
@@ -95,8 +95,8 @@ export interface UbicacionRef {
     latitude: number
     longitude: number
   }
-  /** Índice H3 de la ubicación (resolución 8) para matching geoespacial */
-  h3_index?: string
+  /** Índice H3 resolución 8 (~460m) de la ubicación para matching geoespacial */
+  h3_r8?: string
 }
 
 /**

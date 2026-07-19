@@ -19,7 +19,8 @@ export interface AuthContextType {
   registrar: (
     email: string,
     password: string,
-    displayName: string
+    displayName: string,
+    fechaNacimiento?: Date
   ) => Promise<AuthResult>
   cerrarSesion: () => Promise<AuthResult>
   // Extensiones para navegación por roles (perfil en Firestore)

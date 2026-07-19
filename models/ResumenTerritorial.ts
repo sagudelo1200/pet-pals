@@ -2,18 +2,15 @@ import { BaseModel } from './BaseModel'
 
 /** Estado territorial de una celda H3 basado en evidencia acumulada */
 export type EstadoTerritorial =
-  | 'fria'
-  | 'observacion'
-  | 'prometedora'
-  | 'lista_mvp'
+  'fria' | 'observacion' | 'prometedora' | 'lista_mvp'
 
 /**
  * Resumen territorial agregado por celda H3.
  * Se construye automáticamente desde las exploraciones individuales.
  */
 export interface ResumenTerritorial extends BaseModel {
-  /** Índice H3 de la celda (resolución 8) */
-  h3_index: string
+  /** Índice H3 de resolución 8 (~460m) */
+  h3_r8: string
 
   /** Cantidad total de capturas realizadas */
   capturas_count: number

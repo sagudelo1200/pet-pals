@@ -33,6 +33,179 @@ export enum ESTADOS_PASEO {
 export type ModalidadPaseo = 'privado' | 'compartido'
 
 /**
+ * Tipos de eventos que ocurren durante un paseo.
+ * La bitácora es la secuencia cronológica de eventos que cuentan la historia del paseo.
+ */
+export type TipoEventoPaseo =
+  | 'bitacora' // Momento registrado por cuidador (acciones mascota, lugares, recuerdos)
+  | 'incidente' // Alerta/problema durante el paseo
+  | 'estado' // Cambio de estado (CONFIRMADO → EN_CAMINO)
+  | 'gps' // Actualización de ubicación
+  | 'codigo' // Validación de código de recogida
+  | 'sistema' // Otros eventos técnicos
+
+/**
+ * Estructura base para todos los eventos que ocurren en un paseo.
+ * Vive en la subcollection paseos/{id}/eventos
+ *
+ * ARQUITECTURA DE CAPAS:
+ * - Capa 1 (Hecho): Datos automáticos, nunca cambian
+ * - Capa 2 (Contexto): Enriquecimiento automático (Fase 2)
+ * - Capa 3 (Interpretación): IA aprende patrones (Cloud Function)
+ */
+export interface EventoPaseo extends BaseModel {
+  /** Tipo de evento (bitácora, incidente, estado, etc) */
+  tipoEvento: TipoEventoPaseo
+
+  /** Payload específico según el tipo de evento */
+  payload: any
+
+  /** Usuario que generó el evento (cuidador, sistema, etc) */
+  actor?: string
+
+  /** Capa 1 — Hecho Territorial: datos automáticos, nunca cambian */
+  hechoTerritorial?: CapaTerritorialHecho
+
+  /** Capa 2 — Contexto Territorial: enriquecimiento del entorno (Fase 2) */
+  contextoTerritorial?: CapaContextoTerritorial
+
+  /** Capa 3a — Patrón Inferido: detectado en cliente (secuencias simples) */
+  patron_inferido?: string
+}
+
+/**
+ * Payload específico para eventos tipo 'bitacora' (observación pura)
+ * Solo lo que el cuidador observó. Sin interpretación.
+ * Fase 1: Datos simples. El enriquecimiento automático va en hechoTerritorial.
+ */
+export interface PayloadObservacion {
+  /** Acción observada (jugó, corrió, tomo_agua, etc) */
+  accion: string
+  /** Nota adicional del cuidador (máx 200 chars) */
+  nota?: string
+  /** Ubicación GPS donde ocurrió */
+  ubicacion: {
+    lat: number
+    lng: number
+  }
+}
+
+/**
+ * Compatibilidad: alias para migraciones posteriores
+ */
+export type PayloadBitacora = PayloadObservacion
+
+/**
+ * Capa 1 — Hecho Territorial
+ * Datos automáticos, nunca cambian, capturados al momento del evento.
+ * Responden: ¿dónde, cuándo, con qué precisión?
+ */
+export interface CapaTerritorialHecho {
+  /** Indexación geoespacial H3 */
+  h3_r8: string
+  h3_r9: string
+
+  /** Timing absoluto */
+  timestamp: number
+
+  /** Duración desde inicio del paseo (segundos) */
+  duracion_desde_inicio_paseo_segundos: number
+
+  /** Medidas automáticas del GPS */
+  gps_accuracy_metros?: number
+
+  /** Elevación y topografía (null en Fase 1, enriquecerá en Fase 2) */
+  elevacion_metros?: number
+  pendiente_grados?: number
+
+  /** Velocidad promedio reciente (km/h, calculada desde puntos GPS) */
+  velocidad_media_reciente_kmh?: number
+}
+
+/**
+ * Capa 2 — Contexto Territorial
+ * Datos enriquecidos del entorno en el momento del evento.
+ * Fase 2: Con APIs públicas gratuitas (Open-Elevation, Open-Meteo, Nominatim)
+ * Responden: ¿qué había alrededor?
+ */
+export interface CapaContextoTerritorial {
+  /** Hora local derivada del timestamp */
+  hora_local?: string
+
+  /** Tipo de zona según OSM (parque, acera, sendero, agua, comercio, etc) */
+  tipo_zona_osm?:
+    | 'parque'
+    | 'acera'
+    | 'sendero'
+    | 'agua'
+    | 'comercio'
+    | 'residencial'
+    | 'desconocido'
+
+  /** Distancia a punto de interés conocido (metros) */
+  distancia_a_punto_interes_metros?: number
+
+  /** Tipo de superficie donde ocurrió */
+  tipo_superficie?:
+    'pasto' | 'tierra' | 'arena' | 'asfalto' | 'piedra' | 'desconocido'
+
+  /** Nivel de sombra estimado */
+  sombra?: 'soleado' | 'mixto' | 'sombra'
+
+  /** Visibilidad del entorno */
+  visibilidad?: 'abierta' | 'moderada' | 'restringida'
+
+  /** Ruido ambiental en dB (future: sensor de device) */
+  ruido_db?: number
+
+  /** Clima actual (soleado, nublado, lluvia, nieve) — Open-Meteo API */
+  clima_actual?: 'soleado' | 'nublado' | 'lluvia' | 'nieve' | 'desconocido'
+
+  /** Temperatura en Celsius — Open-Meteo API */
+  temperatura_c?: number
+
+  /** Precipitación en mm — Open-Meteo API */
+  precipitacion_mm?: number
+
+  /** Nombre de calle/zona — Nominatim OSM reverse geocoding */
+  nombre_ubicacion?: string
+
+  /** Barrio/localidad — Nominatim OSM */
+  nombre_barrio?: string
+
+  /** Si hay cuerpo de agua cercano (ríos, lagos, parques con agua) */
+  tiene_agua_cercana?: boolean
+
+  /** Elevación en metros — Open-Elevation API */
+  elevacion_metros?: number
+
+  /** Pendiente promedio en grados — Open-Elevation API */
+  pendiente_grados?: number
+}
+
+/**
+ * Payload específico para eventos tipo 'incidente'
+ * Representa un problema o alerta durante el paseo
+ */
+export interface PayloadIncidente {
+  /** Tipo de incidente (asustó, lastimó, pelea, lluvia, etc) */
+  tipo: string
+  /** Nivel de severidad */
+  severidad: 'baja' | 'media' | 'critica'
+  /** Descripción detallada del incidente */
+  descripcion?: string
+  /** Ubicación donde ocurrió */
+  ubicacion?: {
+    lat: number
+    lng: number
+    h3_r8?: string
+    h3_r9?: string
+  }
+  /** Timestamp del evento */
+  timestamp: number
+}
+
+/**
  * Representa un servicio de paseo de mascota.
  * Contiene información sobre quién solicita, quién pasea, duración, precio y localización.
  */

@@ -35,7 +35,7 @@ describe('Sprint 1: H3 Multi-Resolución (R8 + R9)', () => {
 
       // Intentar mutar debería fallar silenciosamente o lanzar en strict mode
       expect(() => {
-        ;(contexto as any).h3_index = 'otro_valor'
+        ;(contexto as any).h3_r8 = 'otro_valor'
       }).toThrow()
     })
 
@@ -47,16 +47,16 @@ describe('Sprint 1: H3 Multi-Resolución (R8 + R9)', () => {
       const contexto = ServicioTerritorio.obtenerContextoTerritorial(lat, lng)
 
       expect(contexto).toBeDefined()
-      expect(contexto.h3_index).toBeDefined()
-      expect(contexto.h3_observacion).toBeDefined()
-      expect(typeof contexto.h3_index).toBe('string')
-      expect(typeof contexto.h3_observacion).toBe('string')
-      expect(contexto.h3_index.length).toBeGreaterThan(0)
-      expect(contexto.h3_observacion.length).toBeGreaterThan(0)
+      expect(contexto.h3_r8).toBeDefined()
+      expect(contexto.h3_r9).toBeDefined()
+      expect(typeof contexto.h3_r8).toBe('string')
+      expect(typeof contexto.h3_r9).toBe('string')
+      expect(contexto.h3_r8.length).toBeGreaterThan(0)
+      expect(contexto.h3_r9.length).toBeGreaterThan(0)
 
       // R9 debe ser más granular que R8 (típicamente sufijo adicional)
-      expect(contexto.h3_observacion.length).toBeGreaterThanOrEqual(
-        contexto.h3_index.length
+      expect(contexto.h3_r9.length).toBeGreaterThanOrEqual(
+        contexto.h3_r8.length
       )
     })
 
@@ -67,8 +67,8 @@ describe('Sprint 1: H3 Multi-Resolución (R8 + R9)', () => {
       )
 
       // ContextoTerritorial type permite campos futuros
-      expect(contexto).toHaveProperty('h3_index')
-      expect(contexto).toHaveProperty('h3_observacion')
+      expect(contexto).toHaveProperty('h3_r8')
+      expect(contexto).toHaveProperty('h3_r9')
 
       // En el futuro tendrá: ciudad, barrio, timezone, clima, precision_gps
       // pero el tipo actual solo valida los dos h3 actuales
@@ -81,7 +81,7 @@ describe('Sprint 1: H3 Multi-Resolución (R8 + R9)', () => {
       const viaContext = ServicioTerritorio.obtenerContextoTerritorial(lat, lng)
       const viaAlias = ServicioTerritorio.coordsAH3(lat, lng, 8)
 
-      expect(viaAlias).toEqual(viaContext.h3_index)
+      expect(viaAlias).toEqual(viaContext.h3_r8)
     })
 
     it('debe calcular H3 para cualquier resolución', () => {
@@ -101,14 +101,14 @@ describe('Sprint 1: H3 Multi-Resolución (R8 + R9)', () => {
   })
 
   describe('Modelos Actualizados', () => {
-    it('ExploracionTerritorial debe tener h3_observacion', () => {
+    it('ExploracionTerritorial debe tener h3_r9', () => {
       // Este test verifica que el tipo tiene el campo
       // En tiempo de compilación, TypeScript lo valida
       const mock: any = {
         id: 'test',
         id_explorador: 'uid123',
-        h3_index: '892834829',
-        h3_observacion: '892834829a', // R9 - NUEVO
+        h3_r8: '892834829',
+        h3_r9: '892834829a', // R9 - NUEVO
         coordenadas: { latitude: 4.7, longitude: -74.0 },
         tipo_punto: 'parque' as const,
         mascotas_visibles: 3,
@@ -117,11 +117,11 @@ describe('Sprint 1: H3 Multi-Resolución (R8 + R9)', () => {
         huellas_inmediatas: 3,
       }
 
-      expect(mock.h3_index).toBeDefined()
-      expect(mock.h3_observacion).toBeDefined()
+      expect(mock.h3_r8).toBeDefined()
+      expect(mock.h3_r9).toBeDefined()
     })
 
-    it('Ubicacion debe tener h3_observacion opcional', () => {
+    it('Ubicacion debe tener h3_r9 opcional', () => {
       // Este test verifica que el tipo tiene el campo opcional
       const mock: any = {
         id: 'test',
@@ -129,12 +129,12 @@ describe('Sprint 1: H3 Multi-Resolución (R8 + R9)', () => {
         proveedor_place_id: 'place123',
         direccion_formateada: 'Cra 5, Bogotá',
         coordenadas: { latitude: 4.7, longitude: -74.0 },
-        h3_index: '892834829',
-        h3_observacion: '892834829a', // R9 - NUEVO (opcional)
+        h3_r8: '892834829',
+        h3_r9: '892834829a', // R9 - NUEVO (opcional)
       }
 
-      expect(mock.h3_index).toBeDefined()
-      expect(mock.h3_observacion).toBeDefined()
+      expect(mock.h3_r8).toBeDefined()
+      expect(mock.h3_r9).toBeDefined()
     })
   })
 
@@ -153,9 +153,9 @@ describe('Sprint 1: H3 Multi-Resolución (R8 + R9)', () => {
         huellas_inmediatas: 3,
       }
 
-      // NO tiene h3_index, NO tiene h3_observacion
-      expect((dataToSave as any).h3_index).toBeUndefined()
-      expect((dataToSave as any).h3_observacion).toBeUndefined()
+      // NO tiene h3_r8, NO tiene h3_r9
+      expect((dataToSave as any).h3_r8).toBeUndefined()
+      expect((dataToSave as any).h3_r9).toBeUndefined()
 
       // El Servicio lo calcula y lo agrega al documento
       const contexto = ServicioTerritorio.obtenerContextoTerritorial(
@@ -164,32 +164,32 @@ describe('Sprint 1: H3 Multi-Resolución (R8 + R9)', () => {
       )
 
       const docData = { ...dataToSave, ...contexto }
-      expect(docData.h3_index).toBeDefined()
-      expect(docData.h3_observacion).toBeDefined()
+      expect(docData.h3_r8).toBeDefined()
+      expect(docData.h3_r9).toBeDefined()
     })
   })
 
   describe('Data Validation (Firestore Rules)', () => {
-    it('h3_observacion debe ser string no-vacío en exploraciones', () => {
+    it('h3_r9 debe ser string no-vacío en exploraciones', () => {
       // Simulación de validación de regla:
-      // && request.resource.data.h3_observacion is string
-      // && request.resource.data.h3_observacion.size() > 0
+      // && request.resource.data.h3_r9 is string
+      // && request.resource.data.h3_r9.size() > 0
 
       const validData = {
-        h3_observacion: '892834829a',
+        h3_r9: '892834829a',
       }
 
       const invalidData = {
-        h3_observacion: '', // vacío
+        h3_r9: '', // vacío
       }
 
-      const noData = {} // falta h3_observacion
+      const noData = {} // falta h3_r9
 
-      expect(typeof validData.h3_observacion).toBe('string')
-      expect(validData.h3_observacion.length).toBeGreaterThan(0)
+      expect(typeof validData.h3_r9).toBe('string')
+      expect(validData.h3_r9.length).toBeGreaterThan(0)
 
-      expect(invalidData.h3_observacion.length).toBe(0) // invalidaría en Firestore
-      expect((noData as any).h3_observacion).toBeUndefined() // invalidaría en Firestore
+      expect(invalidData.h3_r9.length).toBe(0) // invalidaría en Firestore
+      expect((noData as any).h3_r9).toBeUndefined() // invalidaría en Firestore
     })
   })
 
@@ -216,8 +216,8 @@ describe('Sprint 1: H3 Multi-Resolución (R8 + R9)', () => {
       // 3. Documento completo para Firestore
       const docComplete = {
         ...hookPayload,
-        h3_index: contexto.h3_index,
-        h3_observacion: contexto.h3_observacion,
+        h3_r8: contexto.h3_r8,
+        h3_r9: contexto.h3_r9,
         id: 'exp_test_001',
         id_explorador: 'explorer_uid',
         estado: 'pendiente' as const,
@@ -225,16 +225,16 @@ describe('Sprint 1: H3 Multi-Resolución (R8 + R9)', () => {
       }
 
       // Validaciones
-      expect(docComplete.h3_index).toBeTruthy()
-      expect(docComplete.h3_observacion).toBeTruthy()
-      expect(docComplete.h3_index.length).toBeGreaterThan(0)
-      expect(docComplete.h3_observacion.length).toBeGreaterThan(0)
+      expect(docComplete.h3_r8).toBeTruthy()
+      expect(docComplete.h3_r9).toBeTruthy()
+      expect(docComplete.h3_r8.length).toBeGreaterThan(0)
+      expect(docComplete.h3_r9.length).toBeGreaterThan(0)
 
       // Verificar patrón: R8 es menos granular que R9
       console.log(`
         📍 Bogotá, La Candelaria
-        R8 (Primaria): ${docComplete.h3_index}
-        R9 (Micro):    ${docComplete.h3_observacion}
+        R8 (Primaria): ${docComplete.h3_r8}
+        R9 (Micro):    ${docComplete.h3_r9}
       `)
     })
   })

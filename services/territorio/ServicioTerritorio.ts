@@ -34,8 +34,8 @@ const H3_RESOLUTIONS = {
  * const contexto = ServicioTerritorio.obtenerContextoTerritorial(lat, lng)
  * // retorna:
  * // {
- * //   h3_index: "892834829",              // R8 (~460m)
- * //   h3_observacion: "892834829a",       // R9 (~174m)
+ * //   h3_r8: "892834829",              // R8 (~460m)
+ * //   h3_r9: "892834829a",       // R9 (~174m)
  * //   precision_gps: 'alta'               // future
  * //   ciudad: 'Bogotá'                    // future
  * //   barrio: 'La Candelaria'             // future
@@ -46,9 +46,9 @@ const H3_RESOLUTIONS = {
 export interface ContextoTerritorial {
   // H3 actual (Multi-resolución)
   /** Celda H3 resolución 8 (~460m). Indexación primaria, queries de cobertura. */
-  h3_index: string
+  h3_r8: string
   /** Celda H3 resolución 9 (~174m). Microzoning, clustering de observaciones. */
-  h3_observacion: string
+  h3_r9: string
 
   // FUTURO (Expansion fields - comentarios muestran donde crece)
   // precision_gps?: 'alta' | 'media' | 'baja'
@@ -79,12 +79,8 @@ export class ServicioTerritorio {
     longitude: number
   ): Readonly<ContextoTerritorial> {
     return Object.freeze({
-      h3_index: latLngToCell(latitude, longitude, H3_RESOLUTIONS.TERRITORIAL),
-      h3_observacion: latLngToCell(
-        latitude,
-        longitude,
-        H3_RESOLUTIONS.OBSERVACION
-      ),
+      h3_r8: latLngToCell(latitude, longitude, H3_RESOLUTIONS.TERRITORIAL),
+      h3_r9: latLngToCell(latitude, longitude, H3_RESOLUTIONS.OBSERVACION),
       // FUTURE: zona_segura, ciudad, barrio, timezone, clima, precision_gps...
     })
   }

@@ -10,115 +10,118 @@ import {
   onSnapshot,
   serverTimestamp,
 } from 'firebase/firestore'
-import { calcularEstadoZona, type EstadoZona } from '@/services/geo'
+import { calcularEstadoZona } from '@/services/geo'
 import { mapFirebaseError, type CrudResult } from '@/services/firebase/comun'
+import type { ZonaH3, OperativaSección, DeltaOperativa } from '@/models/ZonaH3'
 
 const COLECCION = 'h3_zonas'
 
-/** Representa el estado territorial de una celda H3 */
-export interface ZonaH3 {
-  indice_celda: string
-  cuidadores_count: number
-  demanda_total: number
-  paseos_activos: number
-  paseos_total: number
-  estado: EstadoZona
-  ratio_cobertura: number
-  ultima_demanda_en?: Date
-  ultima_actividad_en?: Date
-  actualizado_en?: Date
-}
-
-export interface DeltaZona {
-  cuidadores_count?: number
-  demanda_total?: number
-  paseos_activos?: number
-  paseos_total?: number
-  /** Si true, escribe `ultima_demanda_en = serverTimestamp()` */
-  marcar_demanda?: boolean
-  /** Si true, escribe `ultima_actividad_en = serverTimestamp()` */
-  marcar_actividad?: boolean
-}
-
 /**
- * Servicio de inteligencia territorial H3.
- * Mantiene el estado operativo de cada celda geográfica en la plataforma.
+ * Servicio de cobertura territorial H3.
+ * Mantiene el estado OPERATIVO de cada celda geográfica (cuidadores, demanda, paseos).
+ *
+ * NOTA: Escribe en la sección `operativa` de la estructura unificada ZonaH3.
+ * La sección `narrativa` es gestionada por ServicioTerritorio.
  */
 export class ServicioZonasH3 {
   /**
-   * Aplica un delta a los contadores de una zona y recalcula su estado.
-   * Usa read-before-write para garantizar consistencia de los contadores.
+   * Aplica un delta a los contadores de cobertura de una zona.
+   * Escribe en la sección `operativa` del documento ZonaH3 unificado.
    */
   static async actualizarZona(
-    indiceCelda: string,
-    delta: DeltaZona
+    h3_r9: string,
+    delta: DeltaOperativa
   ): Promise<void> {
     try {
-      const ref = doc(db, COLECCION, indiceCelda)
+      const ref = doc(db, COLECCION, h3_r9)
       const snap = await getDoc(ref)
-      const actual = snap.data() ?? {}
+      const actual = (snap.data() ?? {}) as any
+
+      // Leer valores actuales de la sección operativa (si existe)
+      const operativaActual = actual.operativa ?? {
+        cuidadores_count: 0,
+        demanda_total: 0,
+        paseos_activos: 0,
+        paseos_total: 0,
+        estado: 'sin_cobertura' as const,
+        ratio_cobertura: 0,
+      }
 
       const cuidadores = Math.max(
         0,
-        (actual.cuidadores_count || 0) + (delta.cuidadores_count || 0)
+        operativaActual.cuidadores_count + (delta.cuidadores_count || 0)
       )
       const demanda = Math.max(
         0,
-        (actual.demanda_total || 0) + (delta.demanda_total || 0)
+        operativaActual.demanda_total + (delta.demanda_total || 0)
       )
       const activos = Math.max(
         0,
-        (actual.paseos_activos || 0) + (delta.paseos_activos || 0)
+        operativaActual.paseos_activos + (delta.paseos_activos || 0)
       )
       const totales = Math.max(
         0,
-        (actual.paseos_total || 0) + (delta.paseos_total || 0)
+        operativaActual.paseos_total + (delta.paseos_total || 0)
       )
 
       const estado = calcularEstadoZona({
         cuidadores_count: cuidadores,
         demanda_total: demanda,
         paseos_activos: activos,
-      })
+      }) as OperativaSección['estado']
 
-      const datos: Record<string, unknown> = {
-        indice_celda: indiceCelda,
+      // Construir nueva sección operativa
+      const operativaActualizada: OperativaSección = {
         cuidadores_count: cuidadores,
         demanda_total: demanda,
         paseos_activos: activos,
         paseos_total: totales,
         estado,
         ratio_cobertura: cuidadores / Math.max(demanda, 1),
-        actualizado_en: serverTimestamp(),
       }
 
-      if (delta.marcar_demanda) datos.ultima_demanda_en = serverTimestamp()
-      if (delta.marcar_actividad) datos.ultima_actividad_en = serverTimestamp()
+      if (delta.marcar_demanda) {
+        operativaActualizada.ultima_demanda_en = serverTimestamp() as any
+      }
+      if (delta.marcar_actividad) {
+        operativaActualizada.ultima_actividad_en = serverTimestamp() as any
+      }
 
-      await setDoc(ref, datos, { merge: true })
-    } catch (err) {
-      console.warn(
-        '[ServicioZonasH3] Error actualizando zona:',
-        indiceCelda,
-        err
+      // Escribir documento con sección operativa actualizada
+      // merge: true preserva sección narrativa
+      await setDoc(
+        ref,
+        {
+          operativa: operativaActualizada,
+          actualizado_en: serverTimestamp(),
+        },
+        { merge: true }
       )
+    } catch (err) {
+      console.warn('[ServicioZonasH3] Error actualizando zona:', h3_r9, err)
     }
   }
 
-  static async obtenerZona(indiceCelda: string): Promise<ZonaH3 | null> {
+  /**
+   * Obtiene una zona con ambas secciones (narrativa + operativa)
+   */
+  static async obtenerZona(h3_r9: string): Promise<ZonaH3 | null> {
     try {
-      const snap = await getDoc(doc(db, COLECCION, indiceCelda))
+      const snap = await getDoc(doc(db, COLECCION, h3_r9))
       return snap.exists() ? (snap.data() as ZonaH3) : null
     } catch {
       return null
     }
   }
 
+  /**
+   * Obtiene todas las zonas sin cobertura
+   */
   static async obtenerZonasSinCobertura(): Promise<CrudResult<ZonaH3[]>> {
     try {
       const q = query(
         collection(db, COLECCION),
-        where('estado', '==', 'sin_cobertura')
+        where('operativa.estado', '==', 'sin_cobertura')
       )
       const snaps = await getDocs(q)
       return { success: true, data: snaps.docs.map(d => d.data() as ZonaH3) }
@@ -127,11 +130,14 @@ export class ServicioZonasH3 {
     }
   }
 
+  /**
+   * Obtiene todas las zonas activas
+   */
   static async obtenerZonasActivas(): Promise<CrudResult<ZonaH3[]>> {
     try {
       const q = query(
         collection(db, COLECCION),
-        where('estado', 'in', ['activa', 'en_operacion'])
+        where('operativa.estado', 'in', ['activa', 'en_operacion'])
       )
       const snaps = await getDocs(q)
       return { success: true, data: snaps.docs.map(d => d.data() as ZonaH3) }
