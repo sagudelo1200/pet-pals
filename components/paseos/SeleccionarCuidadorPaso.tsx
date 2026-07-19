@@ -559,6 +559,7 @@ export const SeleccionarCuidadorPaso = ({
       <ModalPerfilCuidador
         visible={mostrarPerfilModal}
         perfil={perfilSeleccionado}
+        loading={cargandoPerfil}
         onCerrar={handleCerrarPerfil}
       />
     </View>

@@ -266,6 +266,7 @@ const DetallePaseoBottomSheet: React.FC<Props> = ({
         </View>
 
         <InfoCuidadorCard
+          cuidadorId={paseo.id_cuidador}
           uri={paseo.cuidador_foto_visual}
           name={paseo.cuidador_nombre_visual}
           size={64}

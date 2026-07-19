@@ -1,4 +1,12 @@
-import { StyleSheet, View, Text, Alert, Image, ScrollView } from 'react-native'
+import {
+  StyleSheet,
+  View,
+  Text,
+  Alert,
+  Image,
+  ScrollView,
+  TouchableOpacity,
+} from 'react-native'
 import React, { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { COLOR } from '@/constants'
@@ -7,6 +15,8 @@ import Switch from '@/components/ui/Switch'
 import { useConfirmarPaseo } from '@/hooks/paseos/useConfirmarPaseo'
 import { PetAvatar } from '@/components/ui/PetAvatar'
 import { usePedirCelularSiFalta } from '@/hooks/usePedirCelularSiFalta'
+import { useCuidadorPerfilModal } from '@/hooks/useCuidadorPerfilModal'
+import { ModalPerfilCuidador } from '@/components/cuidador/ModalPerfilCuidador'
 import { ModalCompletarCelular } from './ModalCompletarCelular'
 
 interface Props {
@@ -35,7 +45,7 @@ export const ConfirmarPaseoPaso = ({
   onConfirm,
   onBack,
 }: Props) => {
-  const { t } = useTranslation()
+  const { t } = useTranslation(['paseos', 'usuarios', 'comun'])
   const [modalCelularVisible, setModalCelularVisible] = useState(false)
   const {
     mascotas,
@@ -65,6 +75,14 @@ export const ConfirmarPaseoPaso = ({
       confirmarReservaInterno()
     },
   })
+
+  const {
+    perfil,
+    visible,
+    loading: loadingPerfil,
+    cargarPerfil,
+    cerrar,
+  } = useCuidadorPerfilModal()
 
   const COMPARTIDO_DISCOUNT = 0.15 // 15% descuento para paseos compartidos
   const subtotal = total
@@ -184,35 +202,41 @@ export const ConfirmarPaseoPaso = ({
             <Text style={styles.label}>
               {t('paseos:pasos.confirmar.resumen_cuidador')}
             </Text>
-            <View style={styles.row}>
-              {cuidador ? (
-                <>
-                  <Image
-                    source={{ uri: cuidador.imagen }}
-                    style={styles.avatarMini}
-                  />
-                  <Text style={styles.value}>{cuidador.nombre}</Text>
-                </>
-              ) : (
-                <>
-                  <View
-                    style={[
-                      styles.avatarMini,
-                      {
-                        backgroundColor: 'rgba(42, 134, 168, 0.2)',
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                      },
-                    ]}
-                  >
-                    <Icon name="bullhorn" size={10} color={COLOR.INFO} />
-                  </View>
-                  <Text style={styles.value}>
-                    {t('paseos:pasos.confirmar.solicitud_abierta_nombre')}
-                  </Text>
-                </>
-              )}
-            </View>
+            <TouchableOpacity
+              onPress={() => cuidadorId && cargarPerfil(cuidadorId)}
+              disabled={!cuidadorId}
+              activeOpacity={cuidadorId ? 0.7 : 1}
+            >
+              <View style={styles.row}>
+                {cuidador ? (
+                  <>
+                    <Image
+                      source={{ uri: cuidador.imagen }}
+                      style={styles.avatarMini}
+                    />
+                    <Text style={styles.value}>{cuidador.nombre}</Text>
+                  </>
+                ) : (
+                  <>
+                    <View
+                      style={[
+                        styles.avatarMini,
+                        {
+                          backgroundColor: 'rgba(42, 134, 168, 0.2)',
+                          justifyContent: 'center',
+                          alignItems: 'center',
+                        },
+                      ]}
+                    >
+                      <Icon name="bullhorn" size={10} color={COLOR.INFO} />
+                    </View>
+                    <Text style={styles.value}>
+                      {t('paseos:pasos.confirmar.solicitud_abierta_nombre')}
+                    </Text>
+                  </>
+                )}
+              </View>
+            </TouchableOpacity>
           </View>
 
           <View style={styles.divider} />
@@ -296,11 +320,22 @@ export const ConfirmarPaseoPaso = ({
           onCelularConfirmado={async celularIngresado => {
             const res = await guardarCelular(celularIngresado)
             if (!res.success) {
-              Alert.alert('Error', res.error || t('usuarios.errores.generico'))
+              Alert.alert(
+                'Error',
+                res.error || t('errores.generico', { ns: 'usuarios' })
+              )
             }
             // onCompletado callback handle the rest
           }}
           cargando={cargandoCelular}
+        />
+
+        {/* Modal para ver perfil del cuidador */}
+        <ModalPerfilCuidador
+          visible={visible}
+          perfil={perfil}
+          loading={loadingPerfil}
+          onCerrar={cerrar}
         />
       </ScrollView>
     </>

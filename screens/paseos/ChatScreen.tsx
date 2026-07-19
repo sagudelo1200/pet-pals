@@ -20,6 +20,7 @@ import { useMensajesPaseo } from '@/hooks/chat/useMensajesPaseo'
 import { useAuth } from '@/context/AuthContext'
 import { COLOR } from '@/constants'
 import { InputFooter } from './InputFooter'
+import { SystemMessage } from './SystemMessage'
 import type { AuthStackParamList } from '@/navigation/types'
 
 type Nav = StackNavigationProp<AuthStackParamList, 'Chat'>
@@ -86,6 +87,11 @@ export const ChatScreen: React.FC = () => {
   }
 
   const renderMensaje = (item: Mensaje) => {
+    // Si es mensaje del sistema, renderizar con componente especial
+    if (item.tipo_mensaje === 'sistema') {
+      return <SystemMessage mensaje={item} />
+    }
+
     const esDelUsuario = item.autor_uid === user?.uid
     const esDelTutor = item.autor_uid === conversacion?.tutor_id
 
@@ -166,19 +172,14 @@ export const ChatScreen: React.FC = () => {
             />
           )}
 
-          <KeyboardAvoidingView
-            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-            style={styles.keyboardAvoiding}
-          >
-            <InputFooter
-              inputRef={inputRef}
-              contenido={contenido}
-              setContenido={setContenido}
-              handleEnviar={handleEnviar}
-              enviando={enviando}
-              conversacion={conversacion}
-            />
-          </KeyboardAvoidingView>
+          <InputFooter
+            inputRef={inputRef}
+            contenido={contenido}
+            setContenido={setContenido}
+            handleEnviar={handleEnviar}
+            enviando={enviando}
+            conversacion={conversacion}
+          />
         </View>
       )}
     </Screen>
@@ -186,9 +187,6 @@ export const ChatScreen: React.FC = () => {
 }
 
 const styles = StyleSheet.create({
-  keyboardAvoiding: {
-    width: '100%',
-  },
   chatContainer: {
     flex: 1,
     backgroundColor: COLOR.BASE,

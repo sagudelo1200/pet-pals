@@ -23,12 +23,12 @@ export const ModalCompletarCelular: React.FC<Props> = ({
   titulo,
   descripcion,
 }) => {
-  const { t } = useTranslation()
+  const { t } = useTranslation(['usuarios', 'comun'])
   const [celular, setCelular] = useState('')
 
   const errorI18n = obtenerErrorCelularI18n(celular)
   const errorMensaje: string | undefined = errorI18n
-    ? (t(errorI18n.key, errorI18n.params) as string)
+    ? (t(errorI18n.key, { ns: 'usuarios', ...errorI18n.params }) as string)
     : undefined
   const esValido = !errorI18n && celular.length > 0
 
@@ -54,7 +54,7 @@ export const ModalCompletarCelular: React.FC<Props> = ({
         <View style={styles.container}>
           {/* Título */}
           <GalioText bold size={18} color={COLOR.TEXTO}>
-            {titulo || t('usuarios.perfil.celular.titulo_modal')}
+            {titulo || t('perfil.celular.titulo_modal', { ns: 'usuarios' })}
           </GalioText>
 
           {/* Descripción */}
@@ -63,15 +63,16 @@ export const ModalCompletarCelular: React.FC<Props> = ({
             color={COLOR.SUBTEXTO}
             style={styles.descripcion}
           >
-            {descripcion || t('usuarios.perfil.celular.descripcion_modal')}
+            {descripcion ||
+              t('perfil.celular.descripcion_modal', { ns: 'usuarios' })}
           </GalioText>
 
           {/* Input celular */}
           <TextInput
-            label={t('usuarios.perfil.celular.label')}
+            label={t('perfil.celular.label', { ns: 'usuarios' })}
             value={celular}
             onChangeText={setCelular}
-            placeholder={t('usuarios.perfil.celular.placeholder')}
+            placeholder={t('perfil.celular.placeholder', { ns: 'usuarios' })}
             errorText={errorMensaje}
             keyboardType="phone-pad"
             style={styles.input}
@@ -80,7 +81,7 @@ export const ModalCompletarCelular: React.FC<Props> = ({
           {/* Botones */}
           <View style={styles.botones}>
             <Button
-              title={t('comun.cancelar')}
+              title={t('cancelar', { ns: 'comun' })}
               onPress={handleCerrar}
               variant="contorno"
               disabled={cargando}
@@ -88,7 +89,7 @@ export const ModalCompletarCelular: React.FC<Props> = ({
             />
 
             <Button
-              title={cargando ? '...' : t('comun.continuar')}
+              title={cargando ? '...' : t('continuar', { ns: 'comun' })}
               onPress={handleConfirmar}
               variant={esValido ? 'primario' : 'inactivo'}
               disabled={!esValido || cargando}
@@ -109,11 +110,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   container: {
-    backgroundColor: COLOR.HUESO,
+    backgroundColor: COLOR.BLOQUE,
     borderRadius: 12,
     padding: 20,
     width: '85%',
     maxWidth: 400,
+    borderWidth: 1,
+    borderColor: `${COLOR.TEXTO}0D`,
+    shadowColor: COLOR.SOMBRA,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
   },
   descripcion: {
     marginTop: 12,

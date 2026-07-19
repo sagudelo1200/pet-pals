@@ -2,6 +2,7 @@ import React from 'react'
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native'
 import { useTranslation } from 'react-i18next'
 import { Avatar, Icon } from '@/components/ui'
+import { CuidadorAvatarButton } from '@/components/cuidador'
 import { COLOR } from '@/constants'
 
 interface Props {
@@ -11,6 +12,11 @@ interface Props {
   rating?: number | null
   count?: number | null
   onChat?: () => void
+  /**
+   * ID del cuidador en Firestore. Si se proporciona, el avatar será clickeable
+   * y abrirá el perfil completo del cuidador en un modal
+   */
+  cuidadorId?: string
 }
 
 const InfoCuidadorCard: React.FC<Props> = ({
@@ -20,16 +26,26 @@ const InfoCuidadorCard: React.FC<Props> = ({
   rating,
   count,
   onChat,
+  cuidadorId,
 }) => {
   const { t } = useTranslation()
 
   return (
     <View style={styles.container}>
-      <Avatar
-        uri={uri}
-        name={name || t('comun:cuidador_anonimo')}
-        size={size}
-      />
+      {cuidadorId ? (
+        <CuidadorAvatarButton
+          cuidadorId={cuidadorId}
+          foto={uri}
+          nombre={name || t('comun:cuidador_anonimo')}
+          size={size}
+        />
+      ) : (
+        <Avatar
+          uri={uri}
+          name={name || t('comun:cuidador_anonimo')}
+          size={size}
+        />
+      )}
       <View style={styles.info}>
         <Text style={styles.label}>{t('paseos:detalle.cuidador')}</Text>
         <Text style={styles.name}>{name || t('comun:cuidador_anonimo')}</Text>

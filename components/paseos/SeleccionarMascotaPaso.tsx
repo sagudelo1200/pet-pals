@@ -4,11 +4,14 @@ import {
   FlatList,
   TouchableOpacity,
   Text,
+  Alert,
 } from 'react-native'
 import { useTranslation } from 'react-i18next'
 import { COLOR } from '@/constants'
 import { Button, PetAvatar } from '@/components/ui'
 import { useSeleccionarMascota } from '@/hooks/paseos/useSeleccionarMascota'
+import { calcularCompletitud } from '@/logic/mascotas/calcularCompletitud'
+import Icon from '@/components/ui/Icon'
 
 interface Props {
   mascotasInicialesIds?: string[]
@@ -32,26 +35,74 @@ export const SeleccionarMascotaPaso = ({
     }
   }
 
+  const isListaParaPaseo = (mascota: any) => {
+    const completitud = calcularCompletitud(mascota)
+    return completitud.readiness !== 'incompleto'
+  }
+
   const renderItem = ({ item }: { item: any }) => {
     const isSelected = mascotasSeleccionadas.includes(item.id)
+    const esListaParaPaseo = isListaParaPaseo(item)
+    const completitud = calcularCompletitud(item)
+
+    const handlePress = () => {
+      if (!esListaParaPaseo) {
+        Alert.alert(
+          t('paseos:errores.mascota_no_lista_titulo'),
+          t('paseos:errores.mascota_no_lista_msg'),
+          [{ text: t('comun:entendido'), style: 'default' }]
+        )
+        return
+      }
+      toggleMascota(item.id)
+    }
 
     return (
       <TouchableOpacity
-        style={[styles.card, isSelected && styles.cardSelected]}
-        onPress={() => toggleMascota(item.id)}
-        activeOpacity={0.8}
+        style={[
+          styles.card,
+          isSelected && styles.cardSelected,
+          !esListaParaPaseo && styles.cardDisabled,
+        ]}
+        onPress={handlePress}
+        activeOpacity={esListaParaPaseo ? 0.8 : 0.5}
+        disabled={!esListaParaPaseo}
       >
-        <PetAvatar uri={item.foto} size="medium" />
+        {/* Contenedor de avatar con indicador de bloqueo si no está lista */}
+        <View style={styles.avatarContainer}>
+          <PetAvatar uri={item.foto} size="medium" />
+          {!esListaParaPaseo && (
+            <View style={styles.lockOverlay}>
+              <Icon
+                name="lock"
+                size={14}
+                color={COLOR.BASE}
+                style={styles.lockIcon}
+              />
+            </View>
+          )}
+        </View>
         <Text
           style={[
             styles.name,
             isSelected && styles.nameSelected,
+            !esListaParaPaseo && styles.nameDisabled,
             { fontWeight: 'bold' },
           ]}
         >
           {item.nombre}
         </Text>
-        <Text style={styles.breed}>{item.raza}</Text>
+        {esListaParaPaseo ? (
+          <Text
+            style={[styles.breed, !esListaParaPaseo && styles.breedDisabled]}
+          >
+            {item.raza}
+          </Text>
+        ) : (
+          <Text style={styles.notReadyLabel}>
+            {t('paseos:pasos.seleccionar_mascota.no_lista')}
+          </Text>
+        )}
       </TouchableOpacity>
     )
   }
@@ -137,6 +188,30 @@ const styles = StyleSheet.create({
     borderColor: COLOR.PRIMARIO,
     backgroundColor: 'rgba(29, 143, 115, 0.1)',
   },
+  cardDisabled: {
+    borderWidth: 2,
+    borderColor: COLOR.ALERTA,
+    backgroundColor: 'rgba(201, 170, 69, 0.08)',
+  },
+  avatarContainer: {
+    position: 'relative',
+  },
+  lockOverlay: {
+    position: 'absolute',
+    top: 4,
+    right: 4,
+    width: 28,
+    height: 28,
+    backgroundColor: COLOR.ALERTA,
+    borderRadius: 6,
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 10,
+    elevation: 5,
+  },
+  lockIcon: {
+    fontWeight: 'bold',
+  },
   name: {
     fontSize: 16,
     color: COLOR.TEXTO,
@@ -146,11 +221,25 @@ const styles = StyleSheet.create({
   nameSelected: {
     color: COLOR.PRIMARIO,
   },
+  nameDisabled: {
+    color: COLOR.SUBTEXTO,
+  },
   breed: {
     fontSize: 12,
     color: COLOR.SUBTEXTO,
     textAlign: 'center',
     width: '100%',
+  },
+  breedDisabled: {
+    color: COLOR.SUBTEXTO,
+    fontSize: 11,
+  },
+  notReadyLabel: {
+    fontSize: 12,
+    color: COLOR.ALERTA,
+    textAlign: 'center',
+    width: '100%',
+    fontWeight: '600',
   },
   actions: {
     flexDirection: 'row',

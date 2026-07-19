@@ -329,7 +329,7 @@ const styles = StyleSheet.create({
     color: COLOR.HUESO,
   },
   validacionPendiente: {
-    backgroundColor: '#FFF3CD',
+    backgroundColor: 'rgba(201, 170, 69, 0.15)',
     borderRadius: 12,
     padding: 12,
     marginBottom: 32,
@@ -338,10 +338,10 @@ const styles = StyleSheet.create({
   validacionPendienteTexto: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#856404',
+    color: COLOR.ALERTA,
   },
   validacionExitosa: {
-    backgroundColor: '#D4EDDA',
+    backgroundColor: 'rgba(28, 127, 82, 0.15)',
     borderRadius: 12,
     padding: 12,
     marginBottom: 32,
@@ -350,7 +350,7 @@ const styles = StyleSheet.create({
   validacionExitosaTexto: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#155724',
+    color: COLOR.EXITO,
   },
   botonDeshabilitado: {
     backgroundColor: COLOR.INACTIVO,
