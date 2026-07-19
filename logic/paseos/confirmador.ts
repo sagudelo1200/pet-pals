@@ -48,8 +48,8 @@ export async function confirmarReservaPaseo(params: Params) {
         fecha_hora_inicio: fechaInicio,
         duracion_estimada: duracion || 60,
         precio: total,
-        ubicacion_inicio: direccion || undefined,
-        id_cuidador: cuidadorId || undefined,
+        ubicacion_inicio: direccion || null,
+        id_cuidador: cuidadorId || null,
         cuidador_nombre_visual: undefined,
         cuidador_foto_visual: undefined,
         modalidad: esCompartido ? 'compartido' : 'privado',
@@ -57,7 +57,7 @@ export async function confirmarReservaPaseo(params: Params) {
         tutor_ids: tutorUid ? [tutorUid] : [],
       },
       mascotaIds,
-      direccion || undefined
+      direccion || ''
     )
 
     return result

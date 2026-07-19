@@ -7,12 +7,12 @@ import { RADIO_COBERTURA_DEFAULT } from '@/services/geo'
  * Gestiona las celdas H3 de cobertura seleccionadas por el cuidador.
  *
  * - Si el perfil tiene `celdas_cobertura`, las usa como selección inicial.
- * - Si no, usa el gridDisk(h3_home, RADIO_COBERTURA_DEFAULT) automático.
- * - `h3HomeOverride` se usa como fallback si `PerfilPublico.h3_home` no está seteado aún.
+ * - Si no, usa el gridDisk(h3_r8, RADIO_COBERTURA_DEFAULT) automático.
+ * - `h3_r8Override` se usa como fallback si `PerfilPublico.h3_r8` no está seteado aún.
  */
 export function useCoberturaCuidador(
   uid: string | null,
-  h3HomeOverride?: string | null
+  h3_r8Override?: string | null
 ) {
   const [selectedCells, setSelectedCells] = useState<string[]>([])
   const [h3Home, setH3Home] = useState<string | null>(null)
@@ -24,21 +24,21 @@ export function useCoberturaCuidador(
     setLoading(true)
     GestorPerfilPublico.obtenerPorId(uid).then(res => {
       if (res.success && res.data) {
-        const { h3_home, celdas_cobertura } = res.data
-        const efectivoH3 = h3_home ?? h3HomeOverride ?? null
+        const { h3_r8, celdas_cobertura } = res.data
+        const efectivoH3 = h3_r8 ?? h3_r8Override ?? null
         setH3Home(efectivoH3)
         if (celdas_cobertura?.length) {
           setSelectedCells(celdas_cobertura)
         } else if (efectivoH3) {
           setSelectedCells(gridDisk(efectivoH3, RADIO_COBERTURA_DEFAULT))
         }
-      } else if (h3HomeOverride) {
-        setH3Home(h3HomeOverride)
-        setSelectedCells(gridDisk(h3HomeOverride, RADIO_COBERTURA_DEFAULT))
+      } else if (h3_r8Override) {
+        setH3Home(h3_r8Override)
+        setSelectedCells(gridDisk(h3_r8Override, RADIO_COBERTURA_DEFAULT))
       }
       setLoading(false)
     })
-  }, [uid, h3HomeOverride])
+  }, [uid, h3_r8Override])
 
   const toggleCell = (cell: string) => {
     setSelectedCells(prev =>

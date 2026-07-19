@@ -12,7 +12,7 @@ export function agregarUbicacionRef(
   alias?: string,
   coordenadas?: { latitude: number; longitude: number },
   direccion_formateada?: string,
-  h3_index?: string
+  h3_r8?: string
 ): { lista: UbicacionRef[]; idPrincipal: string | undefined } {
   const nuevaRef: UbicacionRef = {
     ubicacion_id: nuevaUbicacionId,
@@ -21,7 +21,7 @@ export function agregarUbicacionRef(
     desde: new Date(),
     coordenadas,
     direccion_formateada,
-    h3_index,
+    h3_r8,
   }
 
   // Evitar duplicados por ID

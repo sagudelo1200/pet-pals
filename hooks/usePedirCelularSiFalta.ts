@@ -23,7 +23,7 @@ export const usePedirCelularSiFalta = (
   options?: UsePedirCelularSiFaltaOptions
 ) => {
   const { user, profile, recargarPerfil } = useAuth()
-  const { t } = useTranslation()
+  const { t } = useTranslation(['usuarios', 'comun'])
   const [cargando, setCargando] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [celularEnModal, setCelularEnModal] = useState('')
@@ -41,9 +41,10 @@ export const usePedirCelularSiFalta = (
   const mostrarModalCelular = useCallback(
     (_respuesta: (_celular: string | null) => void) => {
       const titulo =
-        options?.titulo || t('usuarios.perfil.celular.titulo_modal')
+        options?.titulo || t('perfil.celular.titulo_modal', { ns: 'usuarios' })
       const descripcion =
-        options?.descripcion || t('usuarios.perfil.celular.descripcion_modal')
+        options?.descripcion ||
+        t('perfil.celular.descripcion_modal', { ns: 'usuarios' })
 
       // Para React Native Alert, no hay input directo
       // Usamos los botones para proporcionar flujo de entrada
@@ -52,7 +53,7 @@ export const usePedirCelularSiFalta = (
         descripcion,
         [
           {
-            text: t('comun.cancelar'),
+            text: t('cancelar', { ns: 'comun' }),
             onPress: () => {
               _respuesta(null)
               options?.onCancelado?.()
@@ -60,7 +61,7 @@ export const usePedirCelularSiFalta = (
             style: 'cancel',
           },
           {
-            text: t('comun.continuar'),
+            text: t('continuar', { ns: 'comun' }),
             onPress: () => {
               // Aquí deberemos usar un modal custom (ver PASO B)
               // Por ahora, retornamos null indicando que necesita UI custom
@@ -82,7 +83,9 @@ export const usePedirCelularSiFalta = (
       celularIngresado: string
     ): Promise<{ success: boolean; error?: string }> => {
       if (!user?.uid) {
-        const err = t('usuarios.errores.usuario_no_autenticado') as string
+        const err = t('errores.usuario_no_autenticado', {
+          ns: 'usuarios',
+        }) as string
         setError(err)
         return { success: false, error: err }
       }
@@ -92,8 +95,11 @@ export const usePedirCelularSiFalta = (
       if (!validacion.valido) {
         const errorI18n = obtenerErrorCelularI18n(celularIngresado)
         const mensajeError: string = errorI18n
-          ? (t(errorI18n.key, errorI18n.params) as string)
-          : (t('usuarios.errores.generico') as string)
+          ? (t(errorI18n.key, {
+              ns: 'usuarios',
+              ...errorI18n.params,
+            }) as string)
+          : (t('errores.generico', { ns: 'usuarios' }) as string)
         setError(mensajeError)
         return { success: false, error: mensajeError }
       }
@@ -125,7 +131,7 @@ export const usePedirCelularSiFalta = (
         const mensajeError: string =
           err instanceof Error
             ? err.message
-            : (t('usuarios.errores.generico') as string)
+            : (t('errores.generico', { ns: 'usuarios' }) as string)
         setError(mensajeError)
         return { success: false, error: mensajeError }
       } finally {

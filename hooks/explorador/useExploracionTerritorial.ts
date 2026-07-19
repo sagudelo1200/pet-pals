@@ -55,8 +55,8 @@ export function useExploracionTerritorial() {
           tipo_punto: payload.tipo_punto,
           mascotas_visibles: payload.mascotas_visibles,
           flujo_peatonal: payload.flujo_peatonal,
-          observaciones: payload.observaciones || '',
-          foto_url: payload.foto_url || '',
+          observaciones: payload.observaciones || null,
+          foto_url: payload.foto_url || null,
           estado: ESTADO_INICIAL_EXPLORACION,
           huellas_inmediatas: HUELLAS_INMEDIATAS_POR_CAPTURA,
         }

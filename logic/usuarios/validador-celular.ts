@@ -125,8 +125,11 @@ export function obtenerErrorCelularI18n(
 ): { key: string; params?: Record<string, any> } | null {
   const resultado = validarCelularColombia(celular)
   if (resultado.valido) return null
+  // Remover el prefijo 'usuarios.' si existe para usar con namespace
+  const key = resultado.errorKey || 'errores.generico'
+  const cleanKey = key.replace(/^usuarios\./, '')
   return {
-    key: resultado.errorKey || 'usuarios.errores.generico',
+    key: cleanKey,
     params: resultado.errorParams,
   }
 }

@@ -119,7 +119,7 @@ export const GestorUsuarios = {
     alias?: string,
     coordenadas?: { latitude: number; longitude: number },
     direccion_formateada?: string,
-    h3_index?: string
+    h3_r8?: string
   ): Promise<CrudResult<Usuario>> {
     try {
       const userRes = await ServicioUsuario.obtenerPorId(userId)
@@ -133,7 +133,7 @@ export const GestorUsuarios = {
         alias,
         coordenadas,
         direccion_formateada,
-        h3_index
+        h3_r8
       )
 
       return ServicioUsuario.actualizar(userId, {

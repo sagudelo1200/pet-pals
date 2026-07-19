@@ -91,13 +91,13 @@ export class GestorPerfilPublico {
     if (!uid) return { success: false, error: ERR.COMUN.NO_AUTENTICADO }
 
     if (h3OrigenNuevo) {
-      // Leer el perfil actual para detectar si cambió el h3_home
+      // Leer el perfil actual para detectar si cambió el h3_r8
       const perfilActual = await ServicioCrudBase.obtenerPorId<PerfilPublico>(
         'perfiles_publicos',
         uid
       )
       const h3OrigenAnterior = perfilActual.success
-        ? ((perfilActual.data as any)?.h3_home ?? null)
+        ? ((perfilActual.data as any)?.h3_r8 ?? null)
         : null
 
       if (h3OrigenAnterior && h3OrigenAnterior !== h3OrigenNuevo) {
@@ -136,7 +136,7 @@ export class GestorPerfilPublico {
     }
 
     const datosConH3: Partial<PerfilPublico> = h3OrigenNuevo
-      ? { ...datos, h3_home: h3OrigenNuevo }
+      ? { ...datos, h3_r8: h3OrigenNuevo }
       : datos
 
     return ServicioPerfilPublico.guardarConId(uid, datosConH3)
@@ -161,7 +161,7 @@ export class GestorPerfilPublico {
     }
 
     const perfil = perfilRes.data
-    const h3Origen = perfil.h3_home
+    const h3Origen = perfil.h3_r8
     if (!h3Origen) {
       return {
         success: false,

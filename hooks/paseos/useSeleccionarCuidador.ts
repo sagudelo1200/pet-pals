@@ -25,7 +25,7 @@ interface DebugMatchingData {
   candidatosConDetalle: Array<{
     id: string
     nombre: string
-    h3_home: string | null
+    h3_r8: string | null
     enZonaH3: boolean
     horario: {
       pasa: boolean
@@ -106,7 +106,7 @@ export const useSeleccionarCuidador = (
       // Construir array de detalle para debug
       const candidatosConDetalle = candidatosRaw.map((perfil: any) => {
         const id = perfil.id ?? perfil.uid
-        const h3Perfil = perfil.h3_home ?? perfil.h3_origen
+        const h3Perfil = perfil.h3_r8 ?? perfil.h3_origen
 
         // Check 1: ¿Está en la zona H3?
         const enZonaH3 =
@@ -156,7 +156,7 @@ export const useSeleccionarCuidador = (
         return {
           id,
           nombre: perfil.nombre,
-          h3_home: h3Perfil,
+          h3_r8: h3Perfil,
           enZonaH3,
           horario: horarioCheck,
           disponibilidad: disponibilidadCheck,
@@ -193,8 +193,8 @@ export const useSeleccionarCuidador = (
 
           let distanciaTexto = '—'
           if (indiceCeldaTutor) {
-            // Priorizar h3_home (más preciso), luego h3_origen
-            const h3 = perfil.h3_home ?? perfil.h3_origen
+            // Priorizar h3_r8 (más preciso), luego h3_origen
+            const h3 = perfil.h3_r8 ?? perfil.h3_origen
             if (h3) {
               const km = distanciaKmEntreH3(h3, indiceCeldaTutor)
               distanciaTexto = `${km.toFixed(1)} km`

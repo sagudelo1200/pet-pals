@@ -39,7 +39,12 @@ export function useMensajesPaseo(paseoId: string | undefined) {
           setConversacion(result.data)
           setLoading(false)
         } else if (!result.success && !unmounted) {
-          // Conversación aún no existe (paseo no confirmado, o no ha pasado la Cloud Function)
+          // Conversación aún no existe (paseo no confirmado, o no hay permisos)
+          // Tratamos "PERMISOS_INSUFICIENTES" y "DOCUMENTO_NO_ENCONTRADO" como "conversación no existe aún"
+          const esPermisosONoEncontrado =
+            result.error?.includes('PERMISOS_INSUFICIENTES') ||
+            result.error?.includes('DOCUMENTO_NO_ENCONTRADO')
+
           console.log(
             '[useMensajesPaseo] Conversación no encontrada para paseo:',
             paseoId,
@@ -48,7 +53,9 @@ export function useMensajesPaseo(paseoId: string | undefined) {
           )
           setConversacion(null)
           setError(
-            'Paseo no confirmado aún. El chat se activará cuando sea confirmado.'
+            esPermisosONoEncontrado
+              ? 'Paseo no confirmado aún. El chat se activará cuando sea confirmado.'
+              : result.error
           )
           setLoading(false)
         }

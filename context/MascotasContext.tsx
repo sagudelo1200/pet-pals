@@ -77,7 +77,7 @@ export const MascotasProvider: React.FC<{ children: ReactNode }> = ({
         unsubscribeRef.current()
         unsubscribeRef.current = null
       }
-      return
+      return undefined
     }
 
     setLoading(true)
