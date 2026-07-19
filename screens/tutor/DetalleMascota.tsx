@@ -146,7 +146,44 @@ const DetalleMascota: React.FC = () => {
     }, [])
   )
 
-  const handlePaseo = () => {
+  const handlePaseo = async () => {
+    if (!mascota) return
+
+    // Si estamos en modo edición, guardar cambios primero
+    if (
+      isEditMode &&
+      (cambiosRealizados || Object.keys(editedData).length > 0)
+    ) {
+      // Mostrar alerta para que el usuario confirme guardar antes de ir a paseos
+      Alert.alert(
+        t('comun:atencion'),
+        t('mascotas:mensajes.cambios_no_guardados_paseo'),
+        [
+          {
+            text: t('comun:cancelar'),
+            style: 'cancel',
+          },
+          {
+            text: t('comun:guardar'),
+            onPress: async () => {
+              // Guardar y luego navegar
+              try {
+                await guardarCambios()
+                navegarAPaseos()
+              } catch (e) {
+                console.error('Error guardando cambios:', e)
+              }
+            },
+          },
+        ]
+      )
+    } else {
+      // Si no está en edición o no hay cambios, navegar directamente
+      navegarAPaseos()
+    }
+  }
+
+  const navegarAPaseos = () => {
     if (!mascota) return
 
     const now = Date.now()
@@ -157,13 +194,10 @@ const DetalleMascota: React.FC = () => {
     setTimeout(() => {
       try {
         // Navegar al Tab Paseos y abrir modal con forzado de mascota inicial
-        void (navigation as any).navigate('TutorApp', {
-          screen: 'Paseos',
-          params: {
-            abrirSolicitar: true,
-            mascotaId: mascota.id,
-            forzarMascotaInicial: true,
-          },
+        void (navigation as any).navigate('Paseos', {
+          abrirSolicitar: true,
+          mascotaId: mascota.id,
+          forzarMascotaInicial: true,
         })
       } catch (e) {
         console.warn('Error navegando a Paseos:', e)

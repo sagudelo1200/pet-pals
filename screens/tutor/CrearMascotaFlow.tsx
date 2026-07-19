@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react'
+import React, { useRef, useEffect, useState } from 'react'
 import { View, StyleSheet, Text, Alert, Animated } from 'react-native'
 import { useTranslation } from 'react-i18next'
 import { COLOR } from '@/constants'
@@ -73,8 +73,18 @@ export const CrearMascotaFlow: React.FC<CrearMascotaFlowProps> = ({
     reiniciar,
   } = useFormularioMascota(mascotaInicial)
 
+  // Estado para prevenir múltiples clics
+  const [isSaving, setIsSaving] = useState(false)
+
   // Animation values
   const avatarScale = useRef(new Animated.Value(1)).current
+
+  // Limpiar estado cuando el modal se cierra
+  useEffect(() => {
+    if (!visible) {
+      setIsSaving(false)
+    }
+  }, [visible])
 
   // Trigger avatar scaling after a photo is selected
   const triggerAvatarScale = () => {
@@ -103,6 +113,10 @@ export const CrearMascotaFlow: React.FC<CrearMascotaFlowProps> = ({
   }
 
   const handleGuardar = async () => {
+    // Prevenir múltiples clics mientras se está guardando
+    if (isSaving) return
+
+    setIsSaving(true)
     try {
       // Esperar a que onGuardar se complete
       await onGuardar(datosMascota)
@@ -114,6 +128,8 @@ export const CrearMascotaFlow: React.FC<CrearMascotaFlowProps> = ({
         t('errores:titulo'),
         error.message || t('mascotas:errores.error_crear')
       )
+    } finally {
+      setIsSaving(false)
     }
   }
 
@@ -293,6 +309,7 @@ export const CrearMascotaFlow: React.FC<CrearMascotaFlowProps> = ({
               <Button
                 title={t('mascotas:crear.confirmacion.guardar')}
                 onPress={handleGuardar}
+                disabled={isSaving}
                 style={styles.boton}
               />
             </View>

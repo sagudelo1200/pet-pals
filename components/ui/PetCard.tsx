@@ -40,13 +40,6 @@ const PetCard: React.FC<PetCardProps> = ({
 
   const completitud = useMemo(() => calcularCompletitud(pet), [pet])
 
-  // Determinar color del badge según completitud
-  const badgeColor = useMemo(() => {
-    if (completitud.porcentaje >= 80) return '#22c55e' // Verde
-    if (completitud.porcentaje >= 40) return '#eab308' // Amarillo
-    return '#ef4444' // Rojo
-  }, [completitud.porcentaje])
-
   useEffect(() => {
     // Animación de entrada con escala y opacidad
     Animated.parallel([
@@ -89,13 +82,6 @@ const PetCard: React.FC<PetCardProps> = ({
         ]}
         android_ripple={{ color: 'rgba(54, 199, 161, 0.1)' }}
       >
-        {/* Badge de completitud en esquina superior derecha */}
-        <View style={styles.badgeContainer}>
-          <View style={[styles.badge, { backgroundColor: badgeColor }]}>
-            <Text style={styles.badgeText}>{completitud.porcentaje}%</Text>
-          </View>
-        </View>
-
         {/* Contenido principal */}
         <View style={styles.content}>
           {/* Avatar */}
@@ -127,6 +113,18 @@ const PetCard: React.FC<PetCardProps> = ({
                 <Chip label={pet.tamano} size="sm" style={styles.chip} />
               )}
             </View>
+          </View>
+        </View>
+
+        {/* Barra de progreso de completitud */}
+        <View style={styles.progressBarContainer}>
+          <View style={styles.progressBarBackground}>
+            <View
+              style={[
+                styles.progressBarFill,
+                { width: `${completitud.porcentaje}%` },
+              ]}
+            />
           </View>
         </View>
 
@@ -179,35 +177,10 @@ const styles = StyleSheet.create({
   cardInactive: {
     opacity: 0.5,
   },
-  badgeContainer: {
-    position: 'absolute',
-    top: 12,
-    right: 12,
-    zIndex: 10,
-  },
-  badge: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOpacity: 0.15,
-    shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 6,
-    elevation: 5,
-  },
-  badgeText: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#fff',
-    textAlign: 'center',
-  },
   content: {
     flexDirection: 'row',
     alignItems: 'center',
     padding: 16,
-    paddingRight: 70, // Espacio para el badge
   },
   avatar: {
     marginRight: 14,
@@ -245,6 +218,21 @@ const styles = StyleSheet.create({
   },
   chip: {
     marginLeft: 0,
+  },
+  progressBarContainer: {
+    paddingHorizontal: 16,
+    paddingBottom: 12,
+  },
+  progressBarBackground: {
+    height: 4,
+    backgroundColor: `${COLOR.PRIMARIO}20`,
+    borderRadius: 2,
+    overflow: 'hidden',
+  },
+  progressBarFill: {
+    height: '100%',
+    backgroundColor: COLOR.PRIMARIO,
+    borderRadius: 2,
   },
   footer: {
     borderTopWidth: 1,

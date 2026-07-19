@@ -9,7 +9,7 @@ import { Input } from 'galio-framework'
 interface Props {
   label?: string
   value: string
-  onChangeText: React.ComponentProps<typeof Input>['onChangeText']
+  onChangeText?: React.ComponentProps<typeof Input>['onChangeText']
   placeholder?: string
   secureTextEntry?: boolean
   iconName?: string // FontAwesome5 icon name
@@ -22,6 +22,8 @@ interface Props {
   returnKeyType?: 'done' | 'go' | 'next' | 'search' | 'send'
   onSubmitEditing?: () => void
   onBlur?: () => void
+  onFocus?: () => void
+  editable?: boolean
   multiline?: boolean
   numberOfLines?: number
 }
@@ -46,6 +48,8 @@ const TextInput: React.FC<Props> = ({
   returnKeyType,
   onSubmitEditing,
   onBlur,
+  onFocus,
+  editable,
   multiline,
   numberOfLines,
 }) => {
@@ -82,6 +86,11 @@ const TextInput: React.FC<Props> = ({
     onBlur?.()
   }
 
+  const handleFocus = () => {
+    setFocused(true)
+    onFocus?.()
+  }
+
   return (
     <View style={containerStyle} testID={testID}>
       {label ? <Text style={styles.label}>{label}</Text> : null}
@@ -96,7 +105,7 @@ const TextInput: React.FC<Props> = ({
         autoFocus={autoFocus}
         returnKeyType={returnKeyType}
         onSubmitEditing={onSubmitEditing}
-        onFocus={() => setFocused(true)}
+        onFocus={handleFocus}
         onBlur={handleBlur}
         color={inputColor}
         icon={iconName}
@@ -109,6 +118,7 @@ const TextInput: React.FC<Props> = ({
         style={inputStyle as any}
         multiline={multiline}
         numberOfLines={numberOfLines}
+        editable={editable}
       />
       {errorText ? <Text style={styles.error}>{errorText}</Text> : null}
     </View>

@@ -141,8 +141,8 @@ export const CrearDireccionSheet: React.FC<CrearDireccionSheetProps> = ({
           (seleccion as any).place_id || (seleccion as any).placeId,
         direccion_formateada: direccionMostrada,
         coordenadas: coordenadasFinales,
-        alias: alias || undefined,
-        instrucciones: referencia || undefined,
+        alias: alias || '',
+        instrucciones: referencia || '',
       }
 
       await onGuardar(payload)

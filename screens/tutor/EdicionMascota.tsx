@@ -265,16 +265,41 @@ export const EdicionMascota = () => {
             </View>
             <TouchableOpacity
               style={styles.requestWalkButton}
-              onPress={() => {
-                navigation.goBack()
-                // Navegar a Paseos tab
-                ;(navigation as any).navigate('TutorApp', {
-                  screen: 'PaseosTab',
-                  params: {
-                    abrirSolicitar: true,
-                    mascotaId: mascotaId,
-                  },
-                })
+              onPress={async () => {
+                // Preguntar si desea guardar cambios antes de ir a paseos
+                Alert.alert(
+                  t('comun:atencion'),
+                  t('mascotas:mensajes.cambios_no_guardados_paseo'),
+                  [
+                    {
+                      text: t('comun:cancelar'),
+                      style: 'cancel',
+                    },
+                    {
+                      text: t('comun:guardar'),
+                      onPress: async () => {
+                        // Guardar cambios
+                        try {
+                          await guardarCambios()
+                          // Después de guardar, navegar a Paseos con mascota preseleccionada
+                          setTimeout(() => {
+                            ;(navigation as any).navigate('Paseos', {
+                              abrirSolicitar: true,
+                              mascotaId: mascotaId,
+                              forzarMascotaInicial: true,
+                            })
+                          }, 500)
+                        } catch (e) {
+                          console.error('Error guardando cambios:', e)
+                          Alert.alert(
+                            t('comun:error'),
+                            t('mascotas:errores.error_guardar')
+                          )
+                        }
+                      },
+                    },
+                  ]
+                )
               }}
               activeOpacity={0.7}
             >

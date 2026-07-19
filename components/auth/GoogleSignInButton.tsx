@@ -90,11 +90,11 @@ const styles = StyleSheet.create({
   separatorLine: {
     flex: 1,
     height: 1,
-    backgroundColor: '#E0E0E0',
+    backgroundColor: COLOR.BORDE,
   },
   separatorText: {
     marginHorizontal: 12,
-    color: '#757575',
+    color: COLOR.SUBTEXTO,
     fontSize: 13,
     fontWeight: '500',
   },

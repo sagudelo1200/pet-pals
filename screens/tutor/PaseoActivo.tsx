@@ -17,6 +17,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
 import { BlurView } from 'expo-blur'
 import { Mapa, Icon, Spacer, Button } from '@/components/ui'
+import { TerritorialCard } from '@/components/comun/TerritorialCard'
 import PerroTristeSvg from '@/assets/imgs/undraw/perro_triste_come_periodico.svg'
 import InfoCuidadorCard from '@/components/paseos/InfoCuidadorCard'
 import { ModalCodigoRecogidaTutor } from '@/components/paseos/ModalCodigoRecogidaTutor'
@@ -526,6 +527,7 @@ export default function PaseoActivo({ route, navigation }: Props) {
         <View style={styles.sheetContent}>
           {/* Tarjeta de Identidad síncrona con el cuidador */}
           <InfoCuidadorCard
+            cuidadorId={paseo.id_cuidador}
             uri={paseo.cuidador_foto_visual}
             name={paseo.cuidador_nombre_visual}
             size={48}
@@ -625,6 +627,14 @@ export default function PaseoActivo({ route, navigation }: Props) {
               </Text>
             )}
           </View>
+
+          {/* TERRITORIAL CARD: Inteligencia de Zona en Progreso */}
+          {paseo?.estado === ESTADOS_PASEO.EN_PROGRESO && paseo?.h3_r9 && (
+            <>
+              <Spacer size={16} />
+              <TerritorialCard h3_r9={paseo.h3_r9} />
+            </>
+          )}
         </View>
       </Animated.View>
 

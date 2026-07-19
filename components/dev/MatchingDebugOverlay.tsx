@@ -16,7 +16,7 @@ interface DebugMatchingData {
   candidatosConDetalle: Array<{
     id: string
     nombre: string
-    h3_home: string | null
+    h3_r8: string | null
     enZonaH3: boolean
     horario: {
       pasa: boolean
@@ -202,7 +202,7 @@ export const MatchingDebugOverlay: React.FC<MatchingDebugOverlayProps> = ({
                       <View style={styles.detailRow}>
                         <Text style={styles.detailLabel}>H3:</Text>
                         <Text style={styles.detailValue}>
-                          {cuidador.h3_home || 'N/A'}
+                          {cuidador.h3_r8 || 'N/A'}
                         </Text>
                       </View>
 

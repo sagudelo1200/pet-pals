@@ -2,7 +2,6 @@ import React, { useRef, useEffect, useState } from 'react'
 import {
   View,
   StyleSheet,
-  ScrollView,
   TextInput,
   TouchableOpacity,
   ActivityIndicator,
@@ -10,6 +9,7 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native'
+import { FlashList, type FlashListRef } from '@shopify/flash-list'
 import { useTranslation } from 'react-i18next'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { BottomSheet } from '@/components/ui/BottomSheet'
@@ -41,6 +41,7 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
   const insets = useSafeAreaInsets()
   const { user } = useAuth()
   const inputRef = useRef<TextInput>(null)
+  const flashListRef = useRef<FlashListRef<Mensaje>>(null)
   const [contenido, setContenido] = useState('')
 
   const {
@@ -63,6 +64,17 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
     }
   }, [visible, conversacion, mensajes, user?.uid, marcarComoLeido])
 
+  // Auto-scroll al final cuando llegan nuevos mensajes
+  useEffect(() => {
+    if (mensajes.length > 0) {
+      const timer = setTimeout(() => {
+        flashListRef.current?.scrollToEnd({ animated: false })
+      }, 50)
+      return () => clearTimeout(timer)
+    }
+    return undefined
+  }, [mensajes.length])
+
   const handleEnviar = async () => {
     if (!contenido.trim() || enviando) return
 
@@ -84,7 +96,6 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
           esDelUsuario && styles.mensajeDelUsuario,
         ]}
       >
-        {/* Indicador de rol del autor (encima del mensaje) */}
         {!esDelUsuario && (
           <View style={styles.autorBadgeWrapper}>
             <Text style={styles.autorLabel}>
@@ -95,18 +106,15 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
           </View>
         )}
 
-        {/* Burbuja de mensaje */}
         <View
           style={[
             styles.burbuja,
             esDelUsuario ? styles.burbujaDelUsuario : styles.burbujaDelOtro,
-            // Estilos especiales por tipo
             item.tipo_mensaje === 'sistema' && styles.burbujaDelSistema,
             item.tipo_mensaje === 'notificacion' &&
               styles.burbujaDelNotificacion,
           ]}
         >
-          {/* Contenido */}
           <Text
             style={[
               styles.contenido,
@@ -118,7 +126,6 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
             {item.contenido}
           </Text>
 
-          {/* Timestamp + indicador de leído */}
           <View style={styles.footer}>
             <Text
               style={[
@@ -136,7 +143,6 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
                 : ''}
             </Text>
 
-            {/* Indicador de leído (solo para mensajes del usuario) */}
             {esDelUsuario &&
               item.leidos_por?.[conversacion?.cuidador_id || ''] && (
                 <Icon
@@ -178,7 +184,6 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
             </TouchableOpacity>
           </View>
 
-          {/* Contenedor principal de mensajes - con flex */}
           <View style={styles.listaWrapper}>
             {loading && (
               <View style={styles.centerContent}>
@@ -203,17 +208,15 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
             )}
 
             {!loading && !error && mensajes.length > 0 && (
-              <ScrollView
-                style={{ flex: 1 }}
+              <FlashList
+                ref={flashListRef}
+                data={mensajes}
+                renderItem={renderMensaje}
+                keyExtractor={item => item.id}
                 contentContainerStyle={styles.listaContentPadding}
                 scrollEnabled={true}
-              >
-                {mensajes.map(mensaje => (
-                  <View key={mensaje.id}>
-                    {renderMensaje({ item: mensaje })}
-                  </View>
-                ))}
-              </ScrollView>
+                keyboardDismissMode="on-drag"
+              />
             )}
           </View>
 

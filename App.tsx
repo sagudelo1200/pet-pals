@@ -8,6 +8,7 @@ import { RootNavigator } from './navigation'
 import { COLOR } from './constants'
 import { StatusBar } from 'react-native'
 import './services/i18n'
+import { TerritorialAggregator } from '@/services/firebase/firestore/agregadores/territorial.aggregator'
 
 import { MascotasProvider } from './context/MascotasContext'
 // Registro de tareas de segundo plano para ubicación
@@ -15,6 +16,9 @@ import '@/logic/paseos/backgroundTask'
 
 // Componente principal - Solo configuración global
 export default function App(): React.ReactElement {
+  React.useEffect(() => {
+    TerritorialAggregator.initialize()
+  }, [])
   const navTheme: Theme = {
     ...DarkTheme,
     colors: {
