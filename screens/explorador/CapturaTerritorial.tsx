@@ -169,7 +169,7 @@ const CapturaTerritorial: React.FC<CapturaTerritorialProps> = ({
         tipo_punto: tipoPunto,
         mascotas_visibles: mascotasVisibles,
         flujo_peatonal: flujoPeatonal,
-        observaciones: observaciones || undefined,
+        observaciones: observaciones || null,
       })
 
       if (resultado) {

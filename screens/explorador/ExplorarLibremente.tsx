@@ -81,14 +81,14 @@ const ModalMascotas = React.memo(
 
           <View style={styles.modalFooter}>
             <Pressable style={styles.btnCancel} onPress={onClose}>
-              <Text style={styles.btnText}>{t('cancelar')}</Text>
+              <Text style={styles.btnText}>{t('comun:cancelar')}</Text>
             </Pressable>
             <Pressable
               style={[styles.btnConfirm, !count && styles.btnDisabled]}
               onPress={onConfirm}
               disabled={!count}
             >
-              <Text style={styles.btnTextConfirm}>{t('guardar')}</Text>
+              <Text style={styles.btnTextConfirm}>{t('comun:guardar')}</Text>
             </Pressable>
           </View>
         </View>
@@ -405,7 +405,7 @@ const ModalSeguridad = React.memo(
 // ============================================================================
 
 const ExplorarLibremente = ({ navigation }: any) => {
-  const { t } = useTranslation('explorador')
+  const { t } = useTranslation(['explorador', 'comun'])
   const { capturar, loading: captureLoading } = useExploracionTerritorial()
   const { showLoading, hideLoading } = useGlobalLoading()
 

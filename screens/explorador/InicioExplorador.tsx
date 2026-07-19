@@ -20,7 +20,7 @@ const InicioExplorador = () => {
 
   // Calcular estadísticas
   const capturas = exploraciones.length
-  const celdas = new Set(exploraciones.map(e => e.h3_index)).size
+  const celdas = new Set(exploraciones.map(e => e.h3_r8)).size
 
   // Simular zonas por explorar (este número será dinámico en FASE 2+)
   const zonasProximas = 4

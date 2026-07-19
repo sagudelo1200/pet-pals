@@ -7,5 +7,12 @@ export {
   ESTADO_INICIAL_EXPLORACION,
   EXPLORACION_H3_RESOLUTIONS,
 } from './exploraciones'
+export {
+  H3_RESOLUTIONS,
+  H3_RESOLUTION_LABELS,
+  H3_FIELD_NAMES,
+  type H3Resolution,
+  type H3FieldName,
+} from './h3'
 
 export { utils, COLOR }

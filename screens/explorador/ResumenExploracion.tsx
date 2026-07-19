@@ -19,7 +19,7 @@ import { LinearGradient } from 'expo-linear-gradient'
  */
 
 const ResumenExploracion = ({ route, navigation }: any) => {
-  const { t } = useTranslation('explorador')
+  const { t } = useTranslation(['explorador', 'comun'])
   const [animationValue] = useState(new Animated.Value(0))
 
   const { eventos, tiempoTotal, mascotasObservadas, huellas } =
@@ -102,7 +102,7 @@ const ResumenExploracion = ({ route, navigation }: any) => {
             <View style={styles.summaryCard}>
               <Text style={styles.summaryEmoji}>⏱️</Text>
               <Text style={styles.summaryValue}>{tiempoTotal}</Text>
-              <Text style={styles.summaryLabel}>{t('tiempo')}</Text>
+              <Text style={styles.summaryLabel}>{t('comun:tiempo')}</Text>
             </View>
 
             <View style={styles.summaryCard}>
