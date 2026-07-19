@@ -24,14 +24,14 @@ export default function CoberturaCuidador() {
   const insets = useSafeAreaInsets()
   const webViewRef = useRef<WebView>(null)
 
-  // Fallback: calcular h3 desde la dirección principal si PerfilPublico.h3_home aún no fue guardado
+  // Fallback: calcular h3 desde la dirección principal si PerfilPublico.h3_r8 aún no fue guardado
   const h3HomeDesdeAuth = useMemo(() => {
     const principal = profile?.ubicaciones?.find(u => u.es_principal)
-    // Primero intenta usar h3_index guardado en la referencia
-    if (principal?.h3_index) {
-      return principal.h3_index
+    // Primero intenta usar h3_r8 guardado en la referencia
+    if (principal?.h3_r8) {
+      return principal.h3_r8
     }
-    // Fallback: recalcular desde coordenadas si h3_index no está disponible
+    // Fallback: recalcular desde coordenadas si h3_r8 no está disponible
     if (!principal?.coordenadas) return null
     return coordsAH3(
       principal.coordenadas.latitude,

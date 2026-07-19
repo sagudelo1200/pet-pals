@@ -30,6 +30,8 @@ import { useRutaARecogida } from '@/hooks/paseos/useRutaARecogida'
 import { Button, Mapa, Icon } from '@/components/ui'
 import { BannerUbicacion } from '@/components/comun/BannerUbicacion'
 import { ModalIngresarCodigo } from '@/components/paseos/ModalIngresarCodigo'
+import RegistrarMomentoPaseo from '@/components/paseos/RegistrarMomentoPaseo'
+import { useBitacoraPaseo } from '@/hooks/useBitacoraPaseo'
 import type { AuthStackParamList } from '@/navigation/types'
 import { densificarRuta } from '@/services/geo'
 import { GestorPaseos } from '@/logic/paseos'
@@ -93,6 +95,12 @@ const ControlPaseo: React.FC = () => {
   // Estados para modal de validación de código
   const [mostrarModalCodigo, setMostrarModalCodigo] = useState(false)
   const [validandoCodigo, setValidandoCodigo] = useState(false)
+
+  // Estado para modal de registrar momento (bitácora)
+  const [mostrarRegistrarMomento, setMostrarRegistrarMomento] = useState(false)
+
+  // Hook para obtener bitácoras en tiempo real
+  const { cargando: _cargandoBitacoras } = useBitacoraPaseo(paseoId)
 
   // Referencia al mapa para centrado
   const mapRef = useRef<MapView>(null)
@@ -896,6 +904,29 @@ const ControlPaseo: React.FC = () => {
         esUnicoTutor={mascotasPorTutor.length === 1}
       />
 
+      {/* Modal para registrar momento del paseo (bitácora) */}
+      <RegistrarMomentoPaseo
+        visible={mostrarRegistrarMomento}
+        paseoId={paseoId}
+        ubicacionActual={ubicacionActual}
+        onClose={() => setMostrarRegistrarMomento(false)}
+        onGuardado={() => {
+          // Recargar bitácoras después de guardar
+          console.log('[ControlPaseo] Momento registrado')
+        }}
+      />
+
+      {/* Botón flotante para registrar momento (visible durante EN_PROGRESO) */}
+      {paseo?.estado === ESTADOS_PASEO.EN_PROGRESO && (
+        <TouchableOpacity
+          style={styles.floatingButton}
+          onPress={() => setMostrarRegistrarMomento(true)}
+          activeOpacity={0.8}
+        >
+          <Text style={styles.floatingButtonText}>➕</Text>
+        </TouchableOpacity>
+      )}
+
       {/* Chat Panel: Bottom Sheet */}
     </View>
   )
@@ -1391,6 +1422,25 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: COLOR.BASE,
     zIndex: 2,
+  },
+  floatingButton: {
+    position: 'absolute',
+    right: 20,
+    bottom: 350,
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: COLOR.PRIMARIO,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: COLOR.PRIMARIO,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.4,
+    shadowRadius: 12,
+    elevation: 8,
+  },
+  floatingButtonText: {
+    fontSize: 28,
   },
 })
 

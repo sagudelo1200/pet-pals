@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   ScrollView,
   Modal,
+  ActivityIndicator,
 } from 'react-native'
 import { BlurView } from 'expo-blur'
 import { useTranslation } from 'react-i18next'
@@ -16,6 +17,7 @@ import type { PerfilPublico } from '@/models/PerfilPublico'
 interface ModalPerfilCuidadorProps {
   visible: boolean
   perfil: PerfilPublico | null
+  loading?: boolean
   onCerrar: () => void
 }
 
@@ -26,15 +28,32 @@ interface ModalPerfilCuidadorProps {
 export function ModalPerfilCuidador({
   visible,
   perfil,
+  loading = false,
   onCerrar,
 }: ModalPerfilCuidadorProps) {
   const { t } = useTranslation()
 
-  if (!visible || !perfil) return null
+  // No renderizar nada si no es visible
+  if (!visible) return null
 
-  const esVerificado = perfil.verificacion === 'verificado'
-  const rating = perfil.rating_promedio || 0
-  const paseos = perfil.cantidad_paseos_realizados || 0
+  // Mostrar contenido del perfil o loading
+  // NOTA: Si perfil ya existe, mostralo sin esperar a que loading sea false
+  // porque puede haber desincronización entre estados
+  const showLoading = loading && !perfil
+
+  console.log(
+    '[ModalPerfilCuidador] Estado:',
+    JSON.stringify({
+      visible,
+      loading,
+      perfil: perfil ? `${perfil.nombre} (id: ${perfil.id})` : null,
+      showLoading,
+    })
+  )
+
+  const esVerificado = perfil?.verificacion === 'verificado'
+  const rating = perfil?.rating_promedio || 0
+  const paseos = perfil?.cantidad_paseos_realizados || 0
 
   // Calcular estrellas del rating
   const renderEstrellas = () => {
@@ -77,120 +96,144 @@ export function ModalPerfilCuidador({
               <Icon name="times" size={24} color={COLOR.SUBTEXTO} />
             </TouchableOpacity>
 
-            <ScrollView
-              style={styles.scrollView}
-              contentContainerStyle={styles.scrollContent}
-              showsVerticalScrollIndicator={false}
-            >
-              {/* Header: Foto, nombre, verificación */}
-              <View style={styles.header}>
-                <Avatar
-                  uri={perfil.foto}
-                  name={perfil.nombre}
-                  size={80}
-                  rounded
-                />
-                <View style={styles.headerInfo}>
-                  <View style={styles.nombreContainer}>
-                    <Text style={styles.nombre}>{perfil.nombre}</Text>
-                    {esVerificado && (
-                      <Icon
-                        name="check-circle"
-                        size={18}
-                        color={COLOR.EXITO}
-                        style={{ marginLeft: 6 }}
-                      />
+            {/* Mostrar loading o contenido */}
+            {showLoading ? (
+              <View style={styles.loadingContainer}>
+                <ActivityIndicator size="large" color={COLOR.PRIMARIO} />
+                <Text style={styles.loadingText}>{t('comun:cargando')}</Text>
+              </View>
+            ) : perfil ? (
+              <ScrollView
+                style={styles.scrollView}
+                contentContainerStyle={styles.scrollContent}
+                showsVerticalScrollIndicator={false}
+              >
+                {/* DEBUG */}
+                <Text
+                  style={{
+                    fontSize: 11,
+                    color: COLOR.SUBTEXTO,
+                    marginBottom: 12,
+                  }}
+                >
+                  [DEBUG] perfil.nombre={perfil.nombre}, foto=
+                  {perfil.foto ? 'sí' : 'no'}
+                </Text>
+
+                {/* Header: Foto, nombre, verificación */}
+                <View style={styles.header}>
+                  <Avatar
+                    uri={perfil.foto}
+                    name={perfil.nombre}
+                    size={80}
+                    rounded
+                  />
+                  <View style={styles.headerInfo}>
+                    <View style={styles.nombreContainer}>
+                      <Text style={styles.nombre}>{perfil.nombre}</Text>
+                      {esVerificado && (
+                        <Icon
+                          name="check-circle"
+                          size={18}
+                          color={COLOR.EXITO}
+                          style={{ marginLeft: 6 }}
+                        />
+                      )}
+                    </View>
+
+                    {/* Rating */}
+                    {rating > 0 && (
+                      <View style={styles.ratingContainer}>
+                        <View style={styles.estrellas}>
+                          {renderEstrellas()}
+                        </View>
+                        <Text style={styles.ratingTexto}>
+                          {rating.toFixed(1)} ({paseos}{' '}
+                          {paseos === 1
+                            ? t('cuidador:perfil.paseo')
+                            : t('cuidador:perfil.paseos')}
+                          )
+                        </Text>
+                      </View>
                     )}
                   </View>
-
-                  {/* Rating */}
-                  {rating > 0 && (
-                    <View style={styles.ratingContainer}>
-                      <View style={styles.estrellas}>{renderEstrellas()}</View>
-                      <Text style={styles.ratingTexto}>
-                        {rating.toFixed(1)} ({paseos}{' '}
-                        {paseos === 1
-                          ? t('cuidador:perfil.paseo')
-                          : t('cuidador:perfil.paseos')}
-                        )
-                      </Text>
-                    </View>
-                  )}
                 </View>
-              </View>
 
-              {/* Biografía */}
-              {perfil.biografia && (
-                <View style={styles.seccion}>
-                  <Text style={styles.seccionTitulo}>
-                    {t('cuidador:perfil.biografia')}
-                  </Text>
-                  <Text style={styles.seccionTexto}>{perfil.biografia}</Text>
-                </View>
-              )}
-
-              {/* Experiencia */}
-              {perfil.experiencia && (
-                <View style={styles.seccion}>
-                  <Text style={styles.seccionTitulo}>
-                    {t('cuidador:perfil.experiencia')}
-                  </Text>
-                  <Text style={styles.seccionTexto}>{perfil.experiencia}</Text>
-                </View>
-              )}
-
-              {/* Estadísticas */}
-              <View style={styles.estadisticas}>
-                {/* Mascotas aceptadas */}
-                {perfil.mascotas_aceptadas &&
-                  perfil.mascotas_aceptadas.length > 0 && (
-                    <View style={styles.estadItem}>
-                      <Icon name="paw" size={20} color={COLOR.PRIMARIO} />
-                      <Text style={styles.estadLabel}>
-                        {t('cuidador:perfil.acepta')}
-                      </Text>
-                      <Text style={styles.estadValor}>
-                        {perfil.mascotas_aceptadas.join(', ')}
-                      </Text>
-                    </View>
-                  )}
-
-                {/* Máximo de mascotas */}
-                {perfil.max_mascotas && (
-                  <View style={styles.estadItem}>
-                    <Icon name="users" size={20} color={COLOR.PRIMARIO} />
-                    <Text style={styles.estadLabel}>
-                      {t('cuidador:perfil.max_mascotas')}
+                {/* Biografía */}
+                {perfil.biografia && (
+                  <View style={styles.seccion}>
+                    <Text style={styles.seccionTitulo}>
+                      {t('cuidador:perfil.biografia')}
                     </Text>
-                    <Text style={styles.estadValor}>
-                      {perfil.max_mascotas}{' '}
-                      {perfil.max_mascotas === 1
-                        ? t('cuidador:perfil.mascota')
-                        : t('cuidador:perfil.mascotas')}
+                    <Text style={styles.seccionTexto}>{perfil.biografia}</Text>
+                  </View>
+                )}
+
+                {/* Experiencia */}
+                {perfil.experiencia && (
+                  <View style={styles.seccion}>
+                    <Text style={styles.seccionTitulo}>
+                      {t('cuidador:perfil.experiencia')}
+                    </Text>
+                    <Text style={styles.seccionTexto}>
+                      {perfil.experiencia}
                     </Text>
                   </View>
                 )}
-              </View>
 
-              {/* Tarifa */}
-              {perfil.tarifa_por_hora && (
-                <View style={styles.tarifaContainer}>
-                  <Icon
-                    name="dollar-sign"
-                    size={20}
-                    color={COLOR.EXITO}
-                    style={{ marginRight: 8 }}
-                  />
-                  <Text style={styles.tarifaTexto}>
-                    ${perfil.tarifa_por_hora.toLocaleString('es-CO')}
-                  </Text>
-                  <Text style={styles.tarifaLabel}>
-                    {' '}
-                    / {t('cuidador:perfil.hora')}
-                  </Text>
+                {/* Estadísticas */}
+                <View style={styles.estadisticas}>
+                  {/* Mascotas aceptadas */}
+                  {perfil.mascotas_aceptadas &&
+                    perfil.mascotas_aceptadas.length > 0 && (
+                      <View style={styles.estadItem}>
+                        <Icon name="paw" size={20} color={COLOR.PRIMARIO} />
+                        <Text style={styles.estadLabel}>
+                          {t('cuidador:perfil.acepta')}
+                        </Text>
+                        <Text style={styles.estadValor}>
+                          {perfil.mascotas_aceptadas.join(', ')}
+                        </Text>
+                      </View>
+                    )}
+
+                  {/* Máximo de mascotas */}
+                  {perfil.max_mascotas && (
+                    <View style={styles.estadItem}>
+                      <Icon name="users" size={20} color={COLOR.PRIMARIO} />
+                      <Text style={styles.estadLabel}>
+                        {t('cuidador:perfil.max_mascotas')}
+                      </Text>
+                      <Text style={styles.estadValor}>
+                        {perfil.max_mascotas}{' '}
+                        {perfil.max_mascotas === 1
+                          ? t('cuidador:perfil.mascota')
+                          : t('cuidador:perfil.mascotas')}
+                      </Text>
+                    </View>
+                  )}
                 </View>
-              )}
-            </ScrollView>
+
+                {/* Tarifa */}
+                {perfil.tarifa_por_hora && (
+                  <View style={styles.tarifaContainer}>
+                    <Icon
+                      name="dollar-sign"
+                      size={20}
+                      color={COLOR.EXITO}
+                      style={{ marginRight: 8 }}
+                    />
+                    <Text style={styles.tarifaTexto}>
+                      ${perfil.tarifa_por_hora.toLocaleString('es-CO')}
+                    </Text>
+                    <Text style={styles.tarifaLabel}>
+                      {' '}
+                      / {t('cuidador:perfil.hora')}
+                    </Text>
+                  </View>
+                )}
+              </ScrollView>
+            ) : null}
           </View>
         </View>
       </BlurView>
@@ -332,6 +375,17 @@ const styles = StyleSheet.create({
   },
   tarifaLabel: {
     fontSize: 16,
+    color: COLOR.SUBTEXTO,
+    fontWeight: '500',
+  },
+  loadingContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 60,
+    gap: 16,
+  },
+  loadingText: {
+    fontSize: 14,
     color: COLOR.SUBTEXTO,
     fontWeight: '500',
   },

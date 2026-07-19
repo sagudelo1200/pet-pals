@@ -317,8 +317,10 @@ const SolicitudModal: React.FC<Props> = ({ visible, paseo, onClose }) => {
         onClose={() => setModalCelularVisible(false)}
         onCelularConfirmado={guardarCelular}
         cargando={cargandoCelular}
-        titulo={t('usuarios.perfil.celular.titulo_modal_cuidador')}
-        descripcion={t('usuarios.perfil.celular.descripcion_modal_cuidador')}
+        titulo={t('perfil.celular.titulo_modal_cuidador', { ns: 'usuarios' })}
+        descripcion={t('perfil.celular.descripcion_modal_cuidador', {
+          ns: 'usuarios',
+        })}
       />
     </BottomSheet>
   )

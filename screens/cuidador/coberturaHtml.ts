@@ -92,7 +92,7 @@ export function construirHTMLCobertura(
   </div>
 
   <script>
-    var H3_HOME    = ${h3HomeJSON};
+    var H3_R8      = ${h3HomeJSON};
     var INIT_CELLS = ${selectedJSON};
     var RADIO_MAPA = 3;   // gridDisk k=3 → 37 celdas visibles alrededor del centro
 
@@ -105,7 +105,7 @@ export function construirHTMLCobertura(
     var selectedCells = new Set(INIT_CELLS);
 
     // ── Mapa ─────────────────────────────────────────────────────────────────
-    var homeLL = h3.cellToLatLng(H3_HOME);
+    var homeLL = h3.cellToLatLng(H3_R8);
 
     var map = L.map('map', {
       center: homeLL,
@@ -264,7 +264,7 @@ export function construirHTMLCobertura(
     }
 
     // Carga inicial: vecindad del home + celdas ya seleccionadas
-    var initVisible = h3.gridDisk(H3_HOME, RADIO_MAPA);
+    var initVisible = h3.gridDisk(H3_R8, RADIO_MAPA);
     INIT_CELLS.forEach(function (id) { initVisible.push(id); });
     addCells(initVisible);
     updateCount();
