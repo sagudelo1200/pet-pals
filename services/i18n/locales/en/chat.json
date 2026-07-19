@@ -12,5 +12,55 @@
   "escribiendo": "typing...",
   "tutor_label": "Tutor",
   "cuidador_label": "Caregiver",
-  "en_linea": "Online"
+  "en_linea": "Online",
+  "time_just_now": "Just now",
+  "time_minutes_ago": {
+    "one": "A minute ago",
+    "other": "{{count}} minutes ago"
+  },
+  "time_hours_ago": {
+    "one": "An hour ago",
+    "other": "{{count}} hours ago"
+  },
+  "time_recently": "Recently",
+  "_notice": "System bitácora messages - generated automatically when caregiver records events",
+  "sistema": {
+    "acciones_mascota": {
+      "necesidades": "🐕 The dog went to the bathroom",
+      "corrio": "🏃 The dog ran a lot",
+      "juego": "🦴 The dog played",
+      "agua": "💧 The dog drank water",
+      "descanso": "😴 The dog rested",
+      "socializacion_perros": "🐕 The dog greeted other dogs",
+      "socializacion_personas": "👶 The dog greeted people",
+      "exploró": "🌱 The dog explored",
+      "comio": "🍖 The dog ate something"
+    },
+    "lugares": {
+      "parque": "🌳 We arrived at the park",
+      "sendero": "🌲 We entered a trail",
+      "zona_residencial": "🏡 We walked through the residential area",
+      "zona_perros": "🐕 We entered a dog zone",
+      "pet_friendly": "☕ We visited a pet-friendly place",
+      "rio": "🌊 We visited a river or lake",
+      "vehiculo": "🚗 We got in the car",
+      "otro_lugar": "📍 We visited another place"
+    },
+    "recuerdos": {
+      "foto": "📸 They took a photo",
+      "video": "🎥 They recorded a video",
+      "voz": "🎤 They recorded a voice note",
+      "nota": "✍️ They wrote a note"
+    },
+    "novedades": {
+      "asustó": "😨 The dog got scared",
+      "lesion": "🤕 The dog got hurt",
+      "pelea": "🐕 The dog fought with another dog",
+      "lluvia": "🌧 They sheltered from the rain",
+      "acceso_cerrado": "🚫 The access was closed",
+      "contacto": "📞 They needed to contact the tutor",
+      "emergencia": "🚨 Emergency during the walk"
+    },
+    "generico": "📝 Event recorded during the walk"
+  }
 }

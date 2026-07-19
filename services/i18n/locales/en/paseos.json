@@ -271,5 +271,67 @@
     "todos_validados": "All validated",
     "copiar_codigo": "Copy code",
     "copiado": "Copied"
+  },
+  "momentos": {
+    "registrar": "What just happened?",
+    "acciones": {
+      "guardando": "Saving...",
+      "cerrar": "Close"
+    },
+    "mascota": {
+      "titulo": "🐶 The pet did something",
+      "subtitulo": "What happened with your dog?",
+      "opciones": {
+        "necesidades": "💩 Went to the bathroom",
+        "corrio": "🏃 Ran",
+        "juego": "🦴 Played",
+        "agua": "💧 Drank water",
+        "descanso": "😴 Rested",
+        "socializacion_perros": "🐕 Greeted other dogs",
+        "socializacion_personas": "👶 Greeted people",
+        "exploró": "🌱 Explored",
+        "comio": "🍖 Ate something"
+      }
+    },
+    "lugar": {
+      "titulo": "📍 We arrived at a place",
+      "subtitulo": "Where did you go?",
+      "opciones": {
+        "parque": "🌳 Park",
+        "sendero": "🌲 Trail",
+        "zona_residencial": "🏡 Residential area",
+        "zona_perros": "🐕 Dog zone",
+        "pet_friendly": "☕ Pet-friendly place",
+        "rio": "💧 River or lake",
+        "vehiculo": "🚗 In the car",
+        "otro_lugar": "📍 Other place"
+      }
+    },
+    "recuerdo": {
+      "titulo": "❤️ I want to save this moment",
+      "subtitulo": "Save a photo, video, note or voice",
+      "opciones": {
+        "foto": "📷 Photo",
+        "video": "🎥 Video",
+        "voz": "🎙️ Voice note",
+        "nota": "✍️ Write a note"
+      }
+    },
+    "novedad": {
+      "titulo": "⚠️ Something happened",
+      "subtitulo": "What went on?",
+      "opciones": {
+        "asustó": "😨 Got scared",
+        "lesion": "🤕 Minor injury",
+        "pelea": "🐕 Conflict with another dog",
+        "lluvia": "🌧️ Rain",
+        "acceso_cerrado": "🚧 Path closed",
+        "contacto": "📞 Contacted tutor",
+        "emergencia": "🚨 Emergency"
+      }
+    }
+  },
+  "timeline": {
+    "titulo": "How the walk went"
   }
 }

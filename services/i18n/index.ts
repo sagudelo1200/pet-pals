@@ -13,6 +13,8 @@ import esCuidador from './locales/es/cuidador.json'
 import esTutor from './locales/es/tutor.json'
 import esUbicaciones from './locales/es/ubicaciones.json'
 import esExplorador from './locales/es/explorador.json'
+import esUsuarios from './locales/es/usuarios.json'
+import esChat from './locales/es/chat.json'
 
 // English resources
 import enComun from './locales/en/comun.json'
@@ -26,6 +28,8 @@ import enCuidador from './locales/en/cuidador.json'
 import enTutor from './locales/en/tutor.json'
 import enUbicaciones from './locales/en/ubicaciones.json'
 import enExplorador from './locales/en/explorador.json'
+import enUsuarios from './locales/en/usuarios.json'
+import enChat from './locales/en/chat.json'
 
 import { ERR, type ErrorCode } from '@/constants/errors'
 
@@ -57,6 +61,8 @@ if (!i18n.isInitialized) {
         tutor: esTutor as any,
         ubicaciones: esUbicaciones as any,
         explorador: esExplorador as any,
+        usuarios: esUsuarios as any,
+        chat: esChat as any,
       },
       en: {
         comun: enComun,
@@ -69,6 +75,8 @@ if (!i18n.isInitialized) {
         tutor: enTutor as any,
         ubicaciones: enUbicaciones as any,
         explorador: enExplorador as any,
+        usuarios: enUsuarios as any,
+        chat: enChat as any,
       },
     },
     ns: [
@@ -80,12 +88,17 @@ if (!i18n.isInitialized) {
       'perfil',
       'cuidador',
       'tutor',
+      'ubicaciones',
       'explorador',
+      'usuarios',
+      'chat',
     ],
     defaultNS: 'comun',
     fallbackLng: 'es',
     lng: detectDeviceLanguage() || 'es',
     supportedLngs: ['es', 'en'],
+    nsSeparator: ':',
+    keySeparator: '.',
     interpolation: { escapeValue: false },
     returnNull: false,
     returnEmptyString: false,

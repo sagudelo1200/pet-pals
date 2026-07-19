@@ -115,6 +115,8 @@
       "jueves": "Jue",
       "viernes": "Vie",
       "sabado": "Sáb"
-    }
+    },
+    "mes": "Mes",
+    "año": "Año"
   }
 }

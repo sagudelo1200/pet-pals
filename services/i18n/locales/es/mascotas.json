@@ -156,7 +156,8 @@
     "error": "Ocurrió un error. Intenta nuevamente.",
     "permisos_galeria": "Necesitamos permisos para acceder a tu galería",
     "permisos_camara": "Necesitamos permisos para acceder a tu cámara",
-    "rollback_realizado": "No se pudieron guardar los cambios. Se han revertido a la versión anterior."
+    "rollback_realizado": "No se pudieron guardar los cambios. Se han revertido a la versión anterior.",
+    "cambios_no_guardados_paseo": "Tienes cambios sin guardar. ¿Deseas guardarlos antes de solicitar un paseo?"
   },
   "completitud": {
     "nivel_1": "Perfil Básico",

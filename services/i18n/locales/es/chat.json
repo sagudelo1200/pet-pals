@@ -12,5 +12,55 @@
   "escribiendo": "escribiendo...",
   "tutor_label": "Tutor",
   "cuidador_label": "Cuidador",
-  "en_linea": "En línea"
+  "en_linea": "En línea",
+  "time_just_now": "Hace un momento",
+  "time_minutes_ago": {
+    "one": "Hace un minuto",
+    "other": "Hace {{count}} minutos"
+  },
+  "time_hours_ago": {
+    "one": "Hace una hora",
+    "other": "Hace {{count}} horas"
+  },
+  "time_recently": "Hace poco",
+  "_notice": "Mensajes del sistema de bitácora - generados automáticamente cuando el cuidador registra eventos",
+  "sistema": {
+    "acciones_mascota": {
+      "necesidades": "🐕 La mascota hizo sus necesidades",
+      "corrio": "🏃 La mascota corrió mucho",
+      "juego": "🦴 La mascota jugó",
+      "agua": "💧 La mascota tomó agua",
+      "descanso": "😴 La mascota descansó",
+      "socializacion_perros": "🐕 La mascota saludó otros perros",
+      "socializacion_personas": "👶 La mascota saludó personas",
+      "exploró": "🌱 La mascota exploró",
+      "comio": "🍖 La mascota comió"
+    },
+    "lugares": {
+      "parque": "🌳 Llegamos al parque",
+      "sendero": "🌲 Entramos a un sendero",
+      "zona_residencial": "🏡 Caminamos por la zona residencial",
+      "zona_perros": "🐕 Entramos a una zona de perros",
+      "pet_friendly": "☕ Visitamos un lugar pet friendly",
+      "rio": "🌊 Visitamos un río o lago",
+      "vehiculo": "🚗 Subimos al carro",
+      "otro_lugar": "📍 Visitamos otro lugar"
+    },
+    "recuerdos": {
+      "foto": "📸 Capturaron una foto",
+      "video": "🎥 Grabaron un video",
+      "voz": "🎤 Grabaron una nota de voz",
+      "nota": "✍️ Escribieron una nota"
+    },
+    "novedades": {
+      "asustó": "😨 La mascota se asustó",
+      "lesion": "🤕 La mascota se lastimó",
+      "pelea": "🐕 La mascota peleó con otro perro",
+      "lluvia": "🌧 Se refugiaron de la lluvia",
+      "acceso_cerrado": "🚫 El acceso estaba cerrado",
+      "contacto": "📞 Necesitaron contactar al tutor",
+      "emergencia": "🚨 Emergencia durante el paseo"
+    },
+    "generico": "📝 Evento registrado en el paseo"
+  }
 }

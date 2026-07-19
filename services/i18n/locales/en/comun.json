@@ -115,6 +115,8 @@
       "jueves": "Thu",
       "viernes": "Fri",
       "sabado": "Sat"
-    }
+    },
+    "mes": "Month",
+    "año": "Year"
   }
 }

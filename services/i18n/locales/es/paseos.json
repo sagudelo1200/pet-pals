@@ -98,7 +98,9 @@
     "seleccionar_mascota": {
       "emocional": "Tu amigo merece el mejor paseo",
       "titulo": "¿Con quién vamos?",
-      "placeholder": "Selecciona una mascota"
+      "placeholder": "Selecciona una mascota",
+      "incompleta": "incompleta",
+      "no_lista": "mascota no lista"
     },
     "fecha_hora": {
       "titulo": "¿Cuándo lo hacemos?",
@@ -273,5 +275,67 @@
     "todos_validados": "Todos validados",
     "copiar_codigo": "Copiar código",
     "copiado": "Copiado"
+  },
+  "momentos": {
+    "registrar": "¿Qué pasó?",
+    "acciones": {
+      "guardando": "Guardando...",
+      "cerrar": "Cerrar"
+    },
+    "mascota": {
+      "titulo": "🐶 La mascota hizo algo",
+      "subtitulo": "¿Qué pasó con tu perro?",
+      "opciones": {
+        "necesidades": "💩 Hizo necesidades",
+        "corrio": "🏃 Corrió",
+        "juego": "🦴 Jugó",
+        "agua": "💧 Tomó agua",
+        "descanso": "😴 Descansó",
+        "socializacion_perros": "🐕 Saludó otros perros",
+        "socializacion_personas": "👶 Saludó personas",
+        "exploró": "🌱 Exploró",
+        "comio": "🍖 Comió algo"
+      }
+    },
+    "lugar": {
+      "titulo": "📍 Llegamos a un lugar",
+      "subtitulo": "¿A dónde fueron?",
+      "opciones": {
+        "parque": "🌳 Parque",
+        "sendero": "🌲 Sendero",
+        "zona_residencial": "🏡 Zona residencial",
+        "zona_perros": "🐕 Zona de perros",
+        "pet_friendly": "☕ Lugar pet-friendly",
+        "rio": "💧 Río o lago",
+        "vehiculo": "🚗 En el carro",
+        "otro_lugar": "📍 Otro lugar"
+      }
+    },
+    "recuerdo": {
+      "titulo": "❤️ Quiero recordar este momento",
+      "subtitulo": "Guarda una foto, video, nota o voz",
+      "opciones": {
+        "foto": "📷 Foto",
+        "video": "🎥 Video",
+        "voz": "🎙️ Nota de voz",
+        "nota": "✍️ Escribir algo"
+      }
+    },
+    "novedad": {
+      "titulo": "⚠️ Ocurrió una novedad",
+      "subtitulo": "¿Qué pasó?",
+      "opciones": {
+        "asustó": "😨 Se asustó",
+        "lesion": "🤕 Pequeña lesión",
+        "pelea": "🐕 Conflicto con otro perro",
+        "lluvia": "🌧️ Lluvia",
+        "acceso_cerrado": "🚧 Camino cerrado",
+        "contacto": "📞 Contacté al tutor",
+        "emergencia": "🚨 Emergencia"
+      }
+    }
+  },
+  "timeline": {
+    "titulo": "Así fue el paseo"
   }
 }
