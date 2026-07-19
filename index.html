@@ -1,0 +1,2824 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description"
+        content="Paw-Path: Cada paseo cuenta una historia. Confianza verificada entre tutores, cuidadores y territorio. Seguimiento en vivo, bitácora de recuerdos y comunidad territorial." />
+    <meta name="keywords"
+        content="paseos de perros, cuidador confiable, GPS mascotas, seguimiento en vivo, bienestar animal, comunidad mascotas, Colombia" />
+    <meta property="og:title" content="Paw-Path — Confía. Mira. Vuelve. Recuerda." />
+    <meta property="og:description"
+        content="Cada paseo cuenta una historia. Confianza verificada entre tutores, cuidadores y territorio." />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Paw-Path — Confía. Mira. Vuelve. Recuerda." />
+    <meta name="theme-color" content="#1D8F73" />
+    <title>Paw-Path — Confía. Mira. Vuelve. Recuerda.</title>
+
+    <!-- Preload de fuentes -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+        rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+
+    <style>
+        /* ============================================================
+       TOKENS — extraídos directamente de constants/Theme.ts
+    ============================================================ */
+        :root {
+            --c-base: #0A0F0E;
+            --c-bloque: #121918;
+            --c-secundario: #182422;
+            --c-borde: #1F2D2A;
+            --c-primario: #1D8F73;
+            --c-enfasis: #2DB391;
+            --c-texto: #EBF4F2;
+            --c-subtexto: #98A7A4;
+            --c-exito: #1C7F52;
+            --c-error: #C96B67;
+            --c-info: #2A86A8;
+            --c-alerta: #C9AA45;
+            --c-inactivo: #2C3432;
+            --c-oro: #FFD700;
+            --c-hueso: #F5F5DC;
+
+            /* Estados del paseo */
+            --estado-pendiente: #6B7280;
+            --estado-confirmado: #3B82F6;
+            --estado-en-camino: #F59E0B;
+            --estado-recogida: #A855F7;
+            --estado-progreso: #10B981;
+            --estado-finalizado: #6366F1;
+
+            /* Espaciados */
+            --sp-xs: 4px;
+            --sp-sm: 8px;
+            --sp-md: 16px;
+            --sp-lg: 24px;
+            --sp-xl: 40px;
+            --sp-2xl: 64px;
+            --sp-3xl: 96px;
+
+            /* Radios */
+            --r-sm: 6px;
+            --r-md: 10px;
+            --r-lg: 16px;
+            --r-xl: 24px;
+            --r-full: 9999px;
+
+            /* Sombras */
+            --shadow-card: 0 1px 3px rgba(0, 0, 0, .35), 0 4px 12px rgba(0, 0, 0, .2);
+            --shadow-glow: 0 0 24px rgba(45, 179, 145, .15);
+            --shadow-glow-lg: 0 0 48px rgba(45, 179, 145, .2);
+
+            --transition: .25s cubic-bezier(.4, 0, .2, 1);
+        }
+
+        /* ============================================================
+       RESET Y BASE
+    ============================================================ */
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            scroll-behavior: smooth;
+            -webkit-text-size-adjust: 100%;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--c-base);
+            color: var(--c-texto);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--c-bloque);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--c-primario);
+            border-radius: 3px;
+        }
+
+        /* Skip link accesibilidad */
+        .skip-link {
+            position: absolute;
+            top: -40px;
+            left: 0;
+            background: var(--c-enfasis);
+            color: var(--c-base);
+            padding: 8px 16px;
+            z-index: 9999;
+            border-radius: 0 0 var(--r-sm) 0;
+            font-weight: 600;
+            text-decoration: none;
+            transition: top var(--transition);
+        }
+
+        .skip-link:focus {
+            top: 0;
+        }
+
+        /* ============================================================
+       UTILIDADES
+    ============================================================ */
+        .u-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 var(--sp-lg);
+        }
+
+        .u-text-enfasis {
+            color: var(--c-enfasis);
+        }
+
+        .u-text-sub {
+            color: var(--c-subtexto);
+        }
+
+        .u-label {
+            display: inline-block;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: .08em;
+            text-transform: uppercase;
+            color: var(--c-enfasis);
+            margin-bottom: var(--sp-md);
+        }
+
+        .u-label::before {
+            content: '— ';
+            opacity: .5;
+        }
+
+        /* ============================================================
+       BOTONES
+    ============================================================ */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 14px 28px;
+            border: none;
+            border-radius: var(--r-md);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            font-family: inherit;
+            transition: var(--transition);
+            white-space: nowrap;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: rgba(255, 255, 255, 0);
+            transition: background var(--transition);
+        }
+
+        .btn:hover::before {
+            background: rgba(255, 255, 255, .06);
+        }
+
+        .btn:focus-visible {
+            outline: 2px solid var(--c-enfasis);
+            outline-offset: 3px;
+        }
+
+        .btn-primario {
+            background: var(--c-primario);
+            color: var(--c-texto);
+            box-shadow: 0 4px 16px rgba(29, 143, 115, .3);
+        }
+
+        .btn-primario:hover {
+            background: var(--c-enfasis);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(45, 179, 145, .35);
+        }
+
+        .btn-ghost {
+            background: transparent;
+            color: var(--c-subtexto);
+            border: 1.5px solid var(--c-borde);
+        }
+
+        .btn-ghost:hover {
+            border-color: var(--c-enfasis);
+            color: var(--c-enfasis);
+            transform: translateY(-2px);
+        }
+
+        .btn-texto {
+            background: transparent;
+            color: var(--c-enfasis);
+            padding: 0;
+            font-weight: 500;
+        }
+
+        .btn-texto:hover {
+            color: var(--c-primario);
+        }
+
+        .btn-texto .icon-arrow {
+            transition: transform var(--transition);
+        }
+
+        .btn-texto:hover .icon-arrow {
+            transform: translateX(4px);
+        }
+
+        /* ============================================================
+       HEADER / NAV
+    ============================================================ */
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            height: 68px;
+            display: flex;
+            align-items: center;
+            background: rgba(10, 15, 14, .85);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-bottom: 1px solid var(--c-borde);
+            transition: background var(--transition);
+        }
+
+        .header__inner {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 var(--sp-lg);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+            font-size: 20px;
+            font-weight: 800;
+            color: var(--c-texto);
+            letter-spacing: -.5px;
+        }
+
+        .logo__mark {
+            width: 34px;
+            height: 34px;
+            background: linear-gradient(135deg, var(--c-primario), var(--c-enfasis));
+            border-radius: var(--r-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 17px;
+            color: #fff;
+        }
+
+        .logo__path {
+            color: var(--c-enfasis);
+        }
+
+        .nav__links {
+            display: flex;
+            gap: var(--sp-xl);
+            list-style: none;
+        }
+
+        .nav__links a {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--c-subtexto);
+            text-decoration: none;
+            transition: color var(--transition);
+            position: relative;
+        }
+
+        .nav__links a:hover {
+            color: var(--c-texto);
+        }
+
+        .nav__links a.active {
+            color: var(--c-enfasis);
+        }
+
+        .nav__links a.active::after {
+            content: '';
+            position: absolute;
+            bottom: -6px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--c-enfasis);
+            border-radius: var(--r-full);
+        }
+
+        .nav__actions {
+            display: flex;
+            align-items: center;
+            gap: var(--sp-md);
+        }
+
+        .btn-menu {
+            display: none;
+            background: none;
+            border: none;
+            color: var(--c-texto);
+            font-size: 20px;
+            cursor: pointer;
+            padding: 4px;
+        }
+
+        /* ============================================================
+       HERO
+    ============================================================ */
+        .hero {
+            min-height: 100svh;
+            display: flex;
+            align-items: center;
+            padding: calc(68px + var(--sp-3xl)) var(--sp-lg) var(--sp-3xl);
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Fondo ambiental */
+        .hero__bg {
+            position: absolute;
+            inset: 0;
+            z-index: 0;
+            background:
+                radial-gradient(ellipse 70% 50% at 80% 30%, rgba(45, 179, 145, .09) 0%, transparent 60%),
+                radial-gradient(ellipse 50% 60% at 10% 80%, rgba(29, 143, 115, .07) 0%, transparent 55%),
+                var(--c-bloque);
+        }
+
+        .hero__inner {
+            position: relative;
+            z-index: 1;
+            max-width: 1200px;
+            margin: 0 auto;
+            width: 100%;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: var(--sp-3xl);
+            align-items: center;
+        }
+
+        .hero__tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--c-enfasis);
+            background: rgba(45, 179, 145, .1);
+            border: 1px solid rgba(45, 179, 145, .2);
+            border-radius: var(--r-full);
+            padding: 6px 14px;
+            margin-bottom: var(--sp-lg);
+            width: fit-content;
+            letter-spacing: .04em;
+        }
+
+        .hero__tag-dot {
+            width: 6px;
+            height: 6px;
+            background: var(--c-enfasis);
+            border-radius: 50%;
+            animation: pulse-dot 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse-dot {
+
+            0%,
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+
+            50% {
+                opacity: .5;
+                transform: scale(.7);
+            }
+        }
+
+        .hero__heading {
+            font-size: clamp(38px, 5.5vw, 64px);
+            font-weight: 900;
+            line-height: 1.1;
+            letter-spacing: -.03em;
+            margin-bottom: var(--sp-lg);
+            color: var(--c-texto);
+        }
+
+        .hero__heading em {
+            font-style: normal;
+            background: linear-gradient(120deg, var(--c-enfasis), var(--c-primario));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero__sub {
+            font-size: 17px;
+            color: var(--c-subtexto);
+            line-height: 1.75;
+            margin-bottom: var(--sp-xl);
+            max-width: 480px;
+        }
+
+        .hero__ctas {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--sp-md);
+            margin-bottom: var(--sp-xl);
+        }
+
+        .hero__trust {
+            display: flex;
+            gap: var(--sp-xl);
+            flex-wrap: wrap;
+        }
+
+        .trust-stat {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .trust-stat__num {
+            font-size: 22px;
+            font-weight: 800;
+            color: var(--c-enfasis);
+            letter-spacing: -.03em;
+        }
+
+        .trust-stat__label {
+            font-size: 12px;
+            color: var(--c-subtexto);
+        }
+
+        /* TELÉFONO MOCKUP */
+        .hero__visual {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .phone-mockup {
+            position: relative;
+            width: 280px;
+            z-index: 1;
+        }
+
+        .phone-mockup__frame {
+            background: var(--c-bloque);
+            border: 1.5px solid var(--c-borde);
+            border-radius: 36px;
+            overflow: hidden;
+            box-shadow:
+                0 0 0 8px var(--c-secundario),
+                0 0 0 9px var(--c-borde),
+                0 32px 64px rgba(0, 0, 0, .6),
+                var(--shadow-glow-lg);
+            aspect-ratio: 9/19;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Pantalla de paseo activo en mockup */
+        .phone-screen {
+            flex: 1;
+            background: var(--c-secundario);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .phone-bar {
+            height: 40px;
+            background: var(--c-bloque);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-bottom: 1px solid var(--c-borde);
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--c-texto);
+            gap: 6px;
+        }
+
+        .phone-bar-dot {
+            width: 6px;
+            height: 6px;
+            background: var(--estado-progreso);
+            border-radius: 50%;
+            animation: pulse-dot 1.5s ease-in-out infinite;
+        }
+
+        .phone-map {
+            flex: 1;
+            position: relative;
+            background:
+                radial-gradient(ellipse at 30% 40%, rgba(45, 179, 145, .08) 0%, transparent 45%),
+                radial-gradient(ellipse at 70% 60%, rgba(29, 143, 115, .06) 0%, transparent 50%),
+                linear-gradient(135deg, rgba(29, 143, 115, .04) 0%, rgba(45, 179, 145, .02) 100%),
+                var(--c-secundario);
+            overflow: hidden;
+        }
+
+        .phone-route {
+            position: absolute;
+            top: 15%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 3px;
+            height: 65%;
+            background: linear-gradient(180deg, var(--c-primario) 0%, transparent 25%, var(--c-enfasis) 50%, transparent 75%, rgba(45, 179, 145, .3) 100%);
+            border-radius: 2px;
+            box-shadow:
+                2px 0 0 rgba(45, 179, 145, .2),
+                -2px 8px 0 rgba(45, 179, 145, .15),
+                4px 16px 0 rgba(45, 179, 145, .1);
+            animation: route-flow 3s ease-in-out infinite;
+        }
+
+        @keyframes route-flow {
+
+            0%,
+            100% {
+                opacity: .8;
+            }
+
+            50% {
+                opacity: 1;
+            }
+        }
+
+        .phone-route-line {
+            position: absolute;
+            top: 22%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 2px;
+            height: 8%;
+            background: var(--c-primario);
+            border-radius: 1px;
+            box-shadow: 0 0 8px rgba(29, 143, 115, .4);
+        }
+
+        .phone-marker {
+            position: absolute;
+            top: 18%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 28px;
+            height: 28px;
+            background: var(--c-primario);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 12px;
+            box-shadow: 0 0 0 4px rgba(29, 143, 115, .3), 0 2px 8px rgba(0, 0, 0, .2);
+            z-index: 5;
+        }
+
+        .phone-origin {
+            position: absolute;
+            top: 78%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 24px;
+            height: 28px;
+            background: var(--c-alerta);
+            border-radius: 50% 50% 50% 0;
+            transform: translate(-50%, -50%) rotate(-45deg);
+            box-shadow: 0 0 0 3px rgba(201, 170, 69, .25), 0 2px 6px rgba(0, 0, 0, .15);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 5;
+        }
+
+        .phone-origin::before {
+            content: '📍';
+            font-size: 10px;
+            transform: rotate(45deg);
+            display: flex;
+        }
+
+        .phone-card {
+            margin: var(--sp-sm);
+            background: var(--c-bloque);
+            border: 1px solid var(--c-borde);
+            border-radius: var(--r-lg);
+            padding: var(--sp-md);
+        }
+
+        .phone-card__estado {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 10px;
+            font-weight: 700;
+            color: var(--estado-progreso);
+            text-transform: uppercase;
+            letter-spacing: .06em;
+            margin-bottom: var(--sp-sm);
+        }
+
+        .phone-card__avatar-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .avatar-circle {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--c-primario), var(--c-enfasis));
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+        }
+
+        .phone-card__name {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--c-texto);
+        }
+
+        .phone-card__detail {
+            font-size: 10px;
+            color: var(--c-subtexto);
+        }
+
+        .phone-bottom-bar {
+            height: 52px;
+            background: var(--c-bloque);
+            border-top: 1px solid var(--c-borde);
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            padding: 0 var(--sp-sm);
+        }
+
+        .tab-icon {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 3px;
+            font-size: 16px;
+            color: var(--c-inactivo);
+        }
+
+        .tab-icon span {
+            font-size: 9px;
+        }
+
+        .tab-icon.active {
+            color: var(--c-enfasis);
+        }
+
+        /* Burbujas flotantes sobre el mockup */
+        .float-chip {
+            position: absolute;
+            background: var(--c-bloque);
+            border: 1px solid var(--c-borde);
+            border-radius: var(--r-lg);
+            padding: 10px 14px;
+            font-size: 12px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            white-space: nowrap;
+            box-shadow: var(--shadow-card);
+            animation: float-chip 4s ease-in-out infinite;
+            z-index: 10;
+        }
+
+        .float-chip:nth-child(2) {
+            animation-delay: -2s;
+        }
+
+        @keyframes float-chip {
+
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-6px);
+            }
+        }
+
+        .float-chip.left {
+            left: -48px;
+            top: 25%;
+        }
+
+        .float-chip.right {
+            right: -44px;
+            bottom: 30%;
+        }
+
+        .chip-icon {
+            width: 26px;
+            height: 26px;
+            border-radius: var(--r-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            flex-shrink: 0;
+        }
+
+        .chip-icon.verde {
+            background: rgba(16, 185, 129, .15);
+            color: var(--estado-progreso);
+        }
+
+        .chip-icon.azul {
+            background: rgba(59, 130, 246, .15);
+            color: var(--estado-confirmado);
+        }
+
+        /* ============================================================
+       SECCIÓN — LA HISTORIA DE UN PASEO
+    ============================================================ */
+        .story {
+            padding: var(--sp-3xl) var(--sp-lg);
+            background: var(--c-base);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .story::before {
+            content: '';
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            top: 0;
+            width: 1px;
+            height: 100%;
+            background: linear-gradient(to bottom, transparent, var(--c-borde), transparent);
+        }
+
+        .story__intro {
+            text-align: center;
+            margin-bottom: var(--sp-3xl);
+        }
+
+        .story__intro h2 {
+            font-size: clamp(28px, 4vw, 44px);
+            font-weight: 800;
+            letter-spacing: -.03em;
+            margin-bottom: var(--sp-md);
+        }
+
+        .story__intro p {
+            font-size: 16px;
+            color: var(--c-subtexto);
+            max-width: 520px;
+            margin: 0 auto;
+            line-height: 1.75;
+        }
+
+        .story__steps {
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .story-step {
+            display: grid;
+            grid-template-columns: 1fr 60px 1fr;
+            gap: var(--sp-lg);
+            align-items: center;
+            min-height: 160px;
+            padding: var(--sp-lg) 0;
+            border-bottom: 1px solid rgba(31, 45, 42, .3);
+        }
+
+        .story-step:last-child {
+            border-bottom: none;
+        }
+
+        .story-step:nth-child(even) .step-content {
+            order: 3;
+            text-align: right;
+        }
+
+        .story-step:nth-child(even) .step-visual {
+            order: 1;
+            justify-content: flex-end;
+        }
+
+        .story-step:nth-child(even) .step-spine {
+            order: 2;
+        }
+
+        .step-content {
+            padding: var(--sp-lg);
+        }
+
+        .step-num {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--c-enfasis);
+            letter-spacing: .08em;
+            text-transform: uppercase;
+            margin-bottom: var(--sp-sm);
+        }
+
+        .step-content h3 {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--c-texto);
+            margin-bottom: var(--sp-sm);
+            letter-spacing: -.02em;
+        }
+
+        .step-content p {
+            font-size: 14px;
+            color: var(--c-subtexto);
+            line-height: 1.7;
+        }
+
+        .step-spine {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0;
+            height: 100%;
+        }
+
+        .spine-line {
+            width: 2px;
+            flex: 1;
+            background: var(--c-borde);
+        }
+
+        .spine-node {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: var(--c-secundario);
+            border: 2px solid var(--c-borde);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            flex-shrink: 0;
+            transition: var(--transition);
+            color: var(--c-enfasis);
+        }
+
+        .story-step:hover .spine-node {
+            border-color: var(--c-enfasis);
+            background: rgba(45, 179, 145, .1);
+            box-shadow: var(--shadow-glow);
+        }
+
+        .step-visual {
+            display: flex;
+            justify-content: flex-start;
+            align-items: center;
+        }
+
+        .step-card {
+            background: var(--c-bloque);
+            border: 1px solid var(--c-borde);
+            border-radius: var(--r-lg);
+            padding: var(--sp-md) var(--sp-lg);
+            width: 100%;
+            max-width: 320px;
+            transition: var(--transition);
+        }
+
+        .story-step:hover .step-card {
+            border-color: rgba(45, 179, 145, .3);
+            box-shadow: var(--shadow-glow);
+        }
+
+        .estado-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: .05em;
+            text-transform: uppercase;
+            padding: 4px 10px;
+            border-radius: var(--r-full);
+            margin-bottom: var(--sp-sm);
+        }
+
+        .estado-badge-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+        }
+
+        .badge-pendiente {
+            background: rgba(107, 114, 128, .12);
+            color: #9CA3AF;
+        }
+
+        .badge-pendiente .estado-badge-dot {
+            background: var(--estado-pendiente);
+        }
+
+        .badge-confirmado {
+            background: rgba(59, 130, 246, .12);
+            color: #93C5FD;
+        }
+
+        .badge-confirmado .estado-badge-dot {
+            background: var(--estado-confirmado);
+        }
+
+        .badge-encamino {
+            background: rgba(245, 158, 11, .12);
+            color: #FCD34D;
+        }
+
+        .badge-encamino .estado-badge-dot {
+            background: var(--estado-en-camino);
+        }
+
+        .badge-progreso {
+            background: rgba(16, 185, 129, .12);
+            color: #6EE7B7;
+        }
+
+        .badge-progreso .estado-badge-dot {
+            background: var(--estado-progreso);
+        }
+
+        .badge-finalizado {
+            background: rgba(99, 102, 241, .12);
+            color: #A5B4FC;
+        }
+
+        .badge-finalizado .estado-badge-dot {
+            background: var(--estado-finalizado);
+        }
+
+        .step-card__title {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--c-texto);
+            margin-bottom: 4px;
+        }
+
+        .step-card__sub {
+            font-size: 12px;
+            color: var(--c-subtexto);
+        }
+
+        /* Bitácora visual en el paso 4 */
+        .bitacora-preview {
+            background: var(--c-bloque);
+            border: 1px solid var(--c-borde);
+            border-radius: var(--r-lg);
+            overflow: hidden;
+            width: 100%;
+            max-width: 320px;
+        }
+
+        .bitacora-img {
+            width: 100%;
+            height: 120px;
+            background:
+                radial-gradient(circle at 30% 60%, rgba(29, 143, 115, .25) 0%, transparent 50%),
+                radial-gradient(circle at 70% 30%, rgba(45, 179, 145, .2) 0%, transparent 40%),
+                linear-gradient(135deg, var(--c-secundario), var(--c-inactivo));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 42px;
+            position: relative;
+        }
+
+        .bitacora-img-badge {
+            position: absolute;
+            bottom: 8px;
+            right: 8px;
+            background: rgba(10, 15, 14, .8);
+            border: 1px solid var(--c-borde);
+            border-radius: var(--r-sm);
+            padding: 3px 8px;
+            font-size: 10px;
+            color: var(--c-subtexto);
+        }
+
+        .bitacora-body {
+            padding: var(--sp-md);
+        }
+
+        .bitacora-body__note {
+            font-size: 12px;
+            color: var(--c-texto);
+            line-height: 1.6;
+            margin-bottom: var(--sp-sm);
+            font-style: italic;
+        }
+
+        .bitacora-body__meta {
+            display: flex;
+            gap: var(--sp-sm);
+            align-items: center;
+        }
+
+        .bitacora-tag {
+            font-size: 10px;
+            background: rgba(45, 179, 145, .1);
+            color: var(--c-enfasis);
+            border-radius: var(--r-full);
+            padding: 2px 8px;
+            font-weight: 600;
+        }
+
+        /* ============================================================
+       SECCIÓN — EL ECOSISTEMA
+    ============================================================ */
+        .ecosystem {
+            padding: var(--sp-3xl) var(--sp-lg);
+            background: var(--c-bloque);
+            border-top: 1px solid var(--c-borde);
+            border-bottom: 1px solid var(--c-borde);
+        }
+
+        .ecosystem__header {
+            text-align: center;
+            margin-bottom: var(--sp-2xl);
+        }
+
+        .ecosystem__header h2 {
+            font-size: clamp(28px, 4vw, 44px);
+            font-weight: 800;
+            letter-spacing: -.03em;
+            margin-bottom: var(--sp-md);
+        }
+
+        .ecosystem__header p {
+            font-size: 16px;
+            color: var(--c-subtexto);
+            max-width: 520px;
+            margin: 0 auto;
+            line-height: 1.75;
+        }
+
+        .ecosystem__diagram {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: var(--sp-lg);
+            align-items: stretch;
+            max-width: 960px;
+            margin: 0 auto;
+        }
+
+        .eco-col {
+            display: flex;
+            flex-direction: column;
+            gap: var(--sp-md);
+        }
+
+        .eco-col--right {
+            align-items: flex-end;
+        }
+
+        .eco-card {
+            background: var(--c-secundario);
+            border: 1px solid var(--c-borde);
+            border-radius: var(--r-lg);
+            padding: var(--sp-lg) var(--sp-xl);
+            transition: var(--transition);
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .eco-card:hover {
+            border-color: rgba(45, 179, 145, .3);
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-glow);
+        }
+
+        .eco-card__icon {
+            width: 48px;
+            height: 48px;
+            border-radius: var(--r-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            margin-bottom: var(--sp-md);
+        }
+
+        .ico-verde {
+            background: rgba(29, 143, 115, .12);
+            color: var(--c-primario);
+        }
+
+        .ico-azul {
+            background: rgba(42, 134, 168, .12);
+            color: var(--c-info);
+        }
+
+        .ico-dorado {
+            background: rgba(201, 170, 69, .12);
+            color: var(--c-alerta);
+        }
+
+        .ico-indigo {
+            background: rgba(99, 102, 241, .12);
+            color: #818CF8;
+        }
+
+        .ico-teal {
+            background: rgba(45, 179, 145, .12);
+            color: var(--c-enfasis);
+        }
+
+        .eco-card__title {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--c-texto);
+            margin-bottom: 6px;
+        }
+
+        .eco-card__desc {
+            font-size: 13px;
+            color: var(--c-subtexto);
+            line-height: 1.6;
+            flex: 1;
+        }
+
+        .eco-center {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-top: var(--sp-xl);
+            gap: var(--sp-sm);
+            min-width: 120px;
+        }
+
+        .eco-center__hub {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--c-primario), var(--c-enfasis));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 36px;
+            box-shadow: var(--shadow-glow-lg);
+            color: #fff;
+            animation: hub-breathe 4s ease-in-out infinite;
+        }
+
+        @keyframes hub-breathe {
+
+            0%,
+            100% {
+                box-shadow: var(--shadow-glow);
+            }
+
+            50% {
+                box-shadow: 0 0 40px rgba(45, 179, 145, .35);
+            }
+        }
+
+        .eco-center__label {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--c-enfasis);
+            text-align: center;
+            letter-spacing: .04em;
+            text-transform: uppercase;
+        }
+
+        .eco-arrows {
+            display: flex;
+            gap: var(--sp-sm);
+            font-size: 18px;
+            color: var(--c-borde);
+        }
+
+        .eco-arrows .active-arrow {
+            color: rgba(45, 179, 145, .4);
+        }
+
+        /* ============================================================
+       SECCIÓN — BITÁCORA
+    ============================================================ */
+        .bitacora-section {
+            padding: var(--sp-3xl) var(--sp-lg);
+            background: var(--c-base);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .bitacora-section::before {
+            content: '';
+            position: absolute;
+            right: -10%;
+            top: 10%;
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, rgba(45, 179, 145, .06) 0%, transparent 65%);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        .bitacora-section__inner {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: var(--sp-3xl);
+            align-items: center;
+        }
+
+        .bitacora-section__copy h2 {
+            font-size: clamp(28px, 4vw, 44px);
+            font-weight: 800;
+            letter-spacing: -.03em;
+            margin-bottom: var(--sp-md);
+        }
+
+        .bitacora-section__copy p {
+            font-size: 16px;
+            color: var(--c-subtexto);
+            line-height: 1.8;
+            margin-bottom: var(--sp-lg);
+        }
+
+        .bitacora-items {
+            display: flex;
+            flex-direction: column;
+            gap: var(--sp-md);
+            margin-bottom: var(--sp-xl);
+        }
+
+        .bitacora-item {
+            display: flex;
+            gap: var(--sp-md);
+            align-items: flex-start;
+        }
+
+        .bitacora-item__ico {
+            width: 36px;
+            height: 36px;
+            border-radius: var(--r-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            flex-shrink: 0;
+        }
+
+        .bitacora-item__text strong {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--c-texto);
+            margin-bottom: 2px;
+        }
+
+        .bitacora-item__text span {
+            font-size: 13px;
+            color: var(--c-subtexto);
+        }
+
+        /* Panel de bitácora interactiva */
+        .bitacora-panel {
+            background: var(--c-bloque);
+            border: 1px solid var(--c-borde);
+            border-radius: var(--r-xl);
+            overflow: hidden;
+            box-shadow: var(--shadow-card);
+        }
+
+        .bitacora-panel__header {
+            display: flex;
+            align-items: center;
+            gap: var(--sp-md);
+            padding: var(--sp-lg);
+            border-bottom: 1px solid var(--c-borde);
+        }
+
+        .bitacora-panel__title {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--c-texto);
+        }
+
+        .bitacora-panel__sub {
+            font-size: 12px;
+            color: var(--c-subtexto);
+        }
+
+        .bitacora-panel__photo {
+            width: 100%;
+            height: 180px;
+            background:
+                radial-gradient(ellipse at 40% 70%, rgba(29, 143, 115, .3) 0%, transparent 55%),
+                radial-gradient(ellipse at 80% 20%, rgba(45, 179, 145, .2) 0%, transparent 45%),
+                linear-gradient(160deg, #0d1f1c, var(--c-inactivo));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 64px;
+            position: relative;
+        }
+
+        .photo-location {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            background: rgba(10, 15, 14, .85);
+            border: 1px solid var(--c-borde);
+            border-radius: var(--r-sm);
+            padding: 4px 10px;
+            font-size: 11px;
+            color: var(--c-subtexto);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .bitacora-panel__events {
+            padding: var(--sp-md) var(--sp-lg);
+            display: flex;
+            flex-direction: column;
+            gap: var(--sp-md);
+        }
+
+        .bitacora-event {
+            display: flex;
+            gap: var(--sp-md);
+            align-items: flex-start;
+        }
+
+        .event-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: var(--r-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+
+        .event-content {
+            flex: 1;
+        }
+
+        .event-content__action {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--c-texto);
+        }
+
+        .event-content__note {
+            font-size: 12px;
+            color: var(--c-subtexto);
+            margin-top: 2px;
+            line-height: 1.5;
+        }
+
+        .event-time {
+            font-size: 10px;
+            color: var(--c-inactivo);
+            white-space: nowrap;
+        }
+
+        .bitacora-panel__footer {
+            padding: var(--sp-md) var(--sp-lg);
+            border-top: 1px solid var(--c-borde);
+            display: flex;
+            gap: var(--sp-md);
+        }
+
+        .footer-stat {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            color: var(--c-subtexto);
+        }
+
+        .footer-stat i {
+            color: var(--c-enfasis);
+            font-size: 11px;
+        }
+
+        /* ============================================================
+       SECCIÓN — CONFIANZA
+    ============================================================ */
+        .confianza {
+            padding: var(--sp-3xl) var(--sp-lg);
+            background: var(--c-bloque);
+            border-top: 1px solid var(--c-borde);
+            border-bottom: 1px solid var(--c-borde);
+        }
+
+        .confianza__header {
+            text-align: center;
+            margin-bottom: var(--sp-2xl);
+        }
+
+        .confianza__header h2 {
+            font-size: clamp(28px, 4vw, 44px);
+            font-weight: 800;
+            letter-spacing: -.03em;
+            margin-bottom: var(--sp-md);
+        }
+
+        .confianza__header p {
+            font-size: 16px;
+            color: var(--c-subtexto);
+            max-width: 520px;
+            margin: 0 auto;
+            line-height: 1.75;
+        }
+
+        .confianza__grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: var(--sp-lg);
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        .trust-card {
+            background: var(--c-secundario);
+            border: 1px solid var(--c-borde);
+            border-radius: var(--r-lg);
+            padding: var(--sp-xl);
+            position: relative;
+            overflow: hidden;
+            transition: var(--transition);
+        }
+
+        .trust-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+        }
+
+        .trust-card.t-verde::before {
+            background: linear-gradient(90deg, var(--c-primario), var(--c-enfasis));
+        }
+
+        .trust-card.t-azul::before {
+            background: linear-gradient(90deg, var(--estado-confirmado), #60A5FA);
+        }
+
+        .trust-card.t-indigo::before {
+            background: linear-gradient(90deg, var(--estado-finalizado), #A5B4FC);
+        }
+
+        .trust-card.t-ambar::before {
+            background: linear-gradient(90deg, var(--estado-en-camino), #FDE68A);
+        }
+
+        .trust-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-glow), var(--shadow-card);
+            border-color: rgba(45, 179, 145, .3);
+        }
+
+        .trust-card__icon {
+            width: 48px;
+            height: 48px;
+            border-radius: var(--r-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            margin-bottom: var(--sp-lg);
+        }
+
+        .trust-card__title {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--c-texto);
+            margin-bottom: var(--sp-sm);
+        }
+
+        .trust-card__desc {
+            font-size: 14px;
+            color: var(--c-subtexto);
+            line-height: 1.7;
+        }
+
+        /* ============================================================
+       SECCIÓN — TERRITORIO
+    ============================================================ */
+        .territorio {
+            padding: var(--sp-3xl) var(--sp-lg);
+            background: var(--c-base);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .territorio::after {
+            content: '';
+            position: absolute;
+            left: -10%;
+            bottom: -5%;
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, rgba(29, 143, 115, .07) 0%, transparent 65%);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        .territorio__inner {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: var(--sp-3xl);
+            align-items: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Hexágono H3 visual */
+        .h3-map {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 6px;
+            padding: var(--sp-xl);
+            background: var(--c-bloque);
+            border: 1px solid var(--c-borde);
+            border-radius: var(--r-xl);
+            aspect-ratio: 1;
+        }
+
+        .hex {
+            aspect-ratio: 1;
+            border-radius: var(--r-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 9px;
+            font-weight: 700;
+            cursor: default;
+            transition: var(--transition);
+            opacity: .9;
+        }
+
+        .hex:hover {
+            transform: scale(1.1);
+            opacity: 1;
+        }
+
+        .hex-fria {
+            background: rgba(44, 52, 50, .7);
+            color: var(--c-inactivo);
+        }
+
+        .hex-observacion {
+            background: rgba(245, 158, 11, .12);
+            color: #FBBF24;
+        }
+
+        .hex-prometedora {
+            background: rgba(45, 179, 145, .15);
+            color: var(--c-enfasis);
+        }
+
+        .hex-lista {
+            background: rgba(29, 143, 115, .35);
+            color: #A7F3D0;
+        }
+
+        .hex-activa {
+            background: var(--c-primario);
+            color: #fff;
+            box-shadow: 0 0 8px rgba(29, 143, 115, .5);
+        }
+
+        .territorio__copy h2 {
+            font-size: clamp(28px, 4vw, 44px);
+            font-weight: 800;
+            letter-spacing: -.03em;
+            margin-bottom: var(--sp-md);
+        }
+
+        .territorio__copy p {
+            font-size: 16px;
+            color: var(--c-subtexto);
+            line-height: 1.8;
+            margin-bottom: var(--sp-lg);
+        }
+
+        .leyenda-hex {
+            display: flex;
+            flex-direction: column;
+            gap: var(--sp-sm);
+        }
+
+        .leyenda-item {
+            display: flex;
+            align-items: center;
+            gap: var(--sp-sm);
+            font-size: 13px;
+            color: var(--c-subtexto);
+        }
+
+        .leyenda-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: var(--r-sm);
+            flex-shrink: 0;
+        }
+
+        /* ============================================================
+       SECCIÓN — CTA FINAL
+    ============================================================ */
+        .cta-final {
+            padding: var(--sp-3xl) var(--sp-lg);
+            background: linear-gradient(135deg, var(--c-bloque) 0%, var(--c-secundario) 100%);
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            border-top: 1px solid var(--c-borde);
+        }
+
+        .cta-final::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(45, 179, 145, .08) 0%, transparent 65%);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        .cta-final__inner {
+            position: relative;
+            z-index: 1;
+            max-width: 620px;
+            margin: 0 auto;
+        }
+
+        .cta-final h2 {
+            font-size: clamp(32px, 5vw, 52px);
+            font-weight: 900;
+            letter-spacing: -.04em;
+            margin-bottom: var(--sp-md);
+            color: var(--c-texto);
+        }
+
+        .cta-final h2 em {
+            font-style: normal;
+            background: linear-gradient(120deg, var(--c-enfasis), var(--c-primario));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .cta-final p {
+            font-size: 16px;
+            color: var(--c-subtexto);
+            margin-bottom: var(--sp-xl);
+            line-height: 1.8;
+        }
+
+        .cta-final__btns {
+            display: flex;
+            gap: var(--sp-md);
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: var(--sp-xl);
+        }
+
+        .cta-final__roles {
+            display: flex;
+            gap: var(--sp-xl);
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .role-link {
+            font-size: 13px;
+            color: var(--c-subtexto);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: color var(--transition);
+        }
+
+        .role-link:hover {
+            color: var(--c-enfasis);
+        }
+
+        .role-link i {
+            font-size: 12px;
+        }
+
+        /* ============================================================
+       FOOTER
+    ============================================================ */
+        .footer {
+            background: var(--c-base);
+            border-top: 1px solid var(--c-borde);
+            padding: var(--sp-2xl) var(--sp-lg) var(--sp-xl);
+        }
+
+        .footer__inner {
+            display: grid;
+            grid-template-columns: 1.5fr repeat(3, 1fr);
+            gap: var(--sp-2xl);
+            margin-bottom: var(--sp-2xl);
+        }
+
+        .footer__brand .logo {
+            margin-bottom: var(--sp-md);
+            display: inline-flex;
+        }
+
+        .footer__brand p {
+            font-size: 13px;
+            color: var(--c-subtexto);
+            line-height: 1.7;
+            max-width: 240px;
+        }
+
+        .footer__col h5 {
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: .08em;
+            text-transform: uppercase;
+            color: var(--c-texto);
+            margin-bottom: var(--sp-md);
+        }
+
+        .footer__col ul {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: var(--sp-sm);
+        }
+
+        .footer__col a {
+            font-size: 13px;
+            color: var(--c-subtexto);
+            text-decoration: none;
+            transition: color var(--transition);
+        }
+
+        .footer__col a:hover {
+            color: var(--c-enfasis);
+        }
+
+        .footer__bottom {
+            border-top: 1px solid var(--c-borde);
+            padding-top: var(--sp-lg);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: var(--sp-md);
+        }
+
+        .footer__legal {
+            font-size: 12px;
+            color: var(--c-inactivo);
+        }
+
+        .footer__legal a {
+            color: var(--c-subtexto);
+            text-decoration: none;
+            transition: color var(--transition);
+        }
+
+        .footer__legal a:hover {
+            color: var(--c-enfasis);
+        }
+
+        .footer__socials {
+            display: flex;
+            gap: var(--sp-sm);
+        }
+
+        .social-icon {
+            width: 34px;
+            height: 34px;
+            border-radius: var(--r-sm);
+            background: var(--c-bloque);
+            border: 1px solid var(--c-borde);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--c-subtexto);
+            font-size: 14px;
+            text-decoration: none;
+            transition: var(--transition);
+        }
+
+        .social-icon:hover {
+            border-color: var(--c-enfasis);
+            color: var(--c-enfasis);
+            transform: translateY(-2px);
+        }
+
+        /* ============================================================
+       ANIMACIONES DE ENTRADA (Intersection Observer)
+    ============================================================ */
+        .reveal {
+            opacity: 0;
+            transform: translateY(24px);
+            transition: opacity .55s ease, transform .55s ease;
+        }
+
+        .reveal.visible {
+            opacity: 1;
+            transform: none;
+        }
+
+        .reveal-delay-1 {
+            transition-delay: .1s;
+        }
+
+        .reveal-delay-2 {
+            transition-delay: .2s;
+        }
+
+        .reveal-delay-3 {
+            transition-delay: .3s;
+        }
+
+        .reveal-delay-4 {
+            transition-delay: .4s;
+        }
+
+        /* ============================================================
+       MOBILE MENU
+    ============================================================ */
+        .mobile-nav {
+            display: none;
+            position: fixed;
+            top: 68px;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(10, 15, 14, .97);
+            z-index: 999;
+            flex-direction: column;
+            padding: var(--sp-xl) var(--sp-lg);
+            gap: var(--sp-lg);
+            border-top: 1px solid var(--c-borde);
+        }
+
+        .mobile-nav.open {
+            display: flex;
+        }
+
+        .mobile-nav a {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--c-subtexto);
+            text-decoration: none;
+            padding: var(--sp-md) 0;
+            border-bottom: 1px solid var(--c-borde);
+            transition: color var(--transition);
+        }
+
+        .mobile-nav a:hover {
+            color: var(--c-enfasis);
+        }
+
+        .mobile-nav__ctas {
+            display: flex;
+            flex-direction: column;
+            gap: var(--sp-md);
+            margin-top: var(--sp-lg);
+        }
+
+        /* ============================================================
+       RESPONSIVE
+    ============================================================ */
+        @media (max-width: 900px) {
+            .hero__inner {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+
+            .hero__sub {
+                max-width: none;
+                margin: 0 auto var(--sp-xl);
+            }
+
+            .hero__ctas {
+                justify-content: center;
+            }
+
+            .hero__trust {
+                justify-content: center;
+            }
+
+            .hero__visual {
+                order: -1;
+                margin-bottom: var(--sp-xl);
+            }
+
+            .float-chip.left {
+                display: none;
+            }
+
+            .float-chip.right {
+                display: none;
+            }
+
+            .phone-mockup {
+                width: 220px;
+            }
+
+            .bitacora-section__inner {
+                grid-template-columns: 1fr;
+            }
+
+            .territorio__inner {
+                grid-template-columns: 1fr;
+            }
+
+            .ecosystem__diagram {
+                grid-template-columns: 1fr;
+            }
+
+            .footer__inner {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        @media (max-width: 680px) {
+            .nav__links {
+                display: none;
+            }
+
+            .nav__actions .btn {
+                display: none;
+            }
+
+            .btn-menu {
+                display: block;
+            }
+
+            .story__steps {
+                max-width: 100%;
+            }
+
+            .story-step {
+                grid-template-columns: 1fr;
+                grid-template-rows: auto;
+                min-height: auto;
+                padding: var(--sp-lg) 0;
+                gap: var(--sp-md);
+            }
+
+            .story-step .step-spine {
+                display: none;
+            }
+
+            .story-step:nth-child(even) .step-content {
+                order: unset;
+                text-align: left;
+            }
+
+            .story-step:nth-child(even) .step-visual {
+                order: unset;
+                justify-content: flex-start;
+            }
+
+            .step-card,
+            .bitacora-preview {
+                max-width: 100%;
+            }
+
+            .footer__inner {
+                grid-template-columns: 1fr;
+                gap: var(--sp-xl);
+            }
+
+            .footer__bottom {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .hero__heading {
+                font-size: 34px;
+            }
+
+            .h3-map {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
+
+        @media (max-width: 400px) {
+            .hero__ctas {
+                flex-direction: column;
+            }
+
+            .cta-final__btns {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <a href="#main" class="skip-link">Ir al contenido principal</a>
+
+    <!-- ============================================================
+       HEADER
+  ============================================================ -->
+    <header class="header" role="banner">
+        <div class="header__inner">
+            <a href="#" class="logo" aria-label="Paw-Path inicio">
+                <div class="logo__mark" aria-hidden="true"><i class="fas fa-paw"></i></div>
+                Paw<span class="logo__path">-Path</span>
+            </a>
+
+            <nav aria-label="Navegación principal">
+                <ul class="nav__links" role="list">
+                    <li><a href="#story">La Historia</a></li>
+                    <li><a href="#ecosystem">El Ecosistema</a></li>
+                    <li><a href="#bitacora">Bitácora</a></li>
+                    <li><a href="#territorio">Territorio</a></li>
+                </ul>
+            </nav>
+
+            <div class="nav__actions">
+                <a href="#cta" class="btn btn-ghost" style="padding:10px 20px;">Soy Cuidador</a>
+                <a href="#cta" class="btn btn-primario" style="padding:10px 20px;">Descargar</a>
+                <button class="btn-menu" id="btnMenu" aria-label="Abrir menú" aria-expanded="false">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Menú mobile -->
+    <nav class="mobile-nav" id="mobileNav" aria-label="Menú móvil">
+        <a href="#story" onclick="closeMobileNav()">La Historia</a>
+        <a href="#ecosystem" onclick="closeMobileNav()">El Ecosistema</a>
+        <a href="#bitacora" onclick="closeMobileNav()">Bitácora</a>
+        <a href="#territorio" onclick="closeMobileNav()">Territorio</a>
+        <div class="mobile-nav__ctas">
+            <a href="#cta" class="btn btn-ghost" onclick="closeMobileNav()">Soy Cuidador</a>
+            <a href="#cta" class="btn btn-primario" onclick="closeMobileNav()">Descargar la App</a>
+        </div>
+    </nav>
+
+    <main id="main">
+
+        <!-- ============================================================
+         HERO
+    ============================================================ -->
+        <section class="hero" aria-labelledby="heroHeading">
+            <div class="hero__bg" aria-hidden="true"></div>
+            <div class="hero__inner u-container" style="max-width:1200px;padding:0 var(--sp-lg);">
+
+                <!-- Copy -->
+                <div class="hero__copy">
+                    <div class="hero__tag" aria-label="Estado: Disponible ahora">
+                        <span class="hero__tag-dot" aria-hidden="true"></span>
+                        Disponible ahora · iOS &amp; Android
+                    </div>
+
+                    <h1 class="hero__heading" id="heroHeading">
+                        Confía.<br>
+                        <em>Mira. Vuelve.</em><br>
+                        Recuerda.
+                    </h1>
+
+                    <p class="hero__sub">
+                        Cada paseo cuenta una historia. En Paw-Path, esa historia
+                        la vives en vivo, la guardas en una bitácora y la construyes
+                        con personas que se comprometen contigo.
+                    </p>
+
+                    <div class="hero__ctas">
+                        <a href="#cta" class="btn btn-primario">
+                            <i class="fas fa-paw" aria-hidden="true"></i>
+                            Vive tu primer paseo
+                        </a>
+                        <a href="#story" class="btn btn-ghost">
+                            Cómo funciona
+                        </a>
+                    </div>
+
+                    <div class="hero__trust" role="list">
+                        <div class="trust-stat" role="listitem">
+                            <span class="trust-stat__num">3</span>
+                            <span class="trust-stat__label">Roles conectados</span>
+                        </div>
+                        <div class="trust-stat" role="listitem">
+                            <span class="trust-stat__num">9</span>
+                            <span class="trust-stat__label">Estados de paseo</span>
+                        </div>
+                        <div class="trust-stat" role="listitem">
+                            <span class="trust-stat__num">100%</span>
+                            <span class="trust-stat__label">Seguimiento en vivo</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Visual — teléfono mockup -->
+                <div class="hero__visual" aria-hidden="true">
+                    <div class="phone-mockup">
+
+                        <!-- Chip izquierdo -->
+                        <div class="float-chip left">
+                            <div class="chip-icon azul"><i class="fas fa-check"></i></div>
+                            <div>
+                                <div style="font-size:11px;font-weight:700;color:var(--c-texto)">Cuidador confirmado
+                                </div>
+                                <div style="font-size:10px;color:var(--c-subtexto)">Marco · ⭐ 4.9</div>
+                            </div>
+                        </div>
+
+                        <div class="phone-mockup__frame">
+                            <div class="phone-screen">
+                                <div class="phone-bar">
+                                    <span class="phone-bar-dot"></span>
+                                    Paseo en Vivo 🐾
+                                </div>
+                                <div class="phone-map">
+                                    <div class="phone-route"></div>
+                                    <div class="phone-route-line"></div>
+                                    <div class="phone-origin"></div>
+                                    <div class="phone-marker"><i class="fas fa-paw"></i></div>
+                                </div>
+                                <div class="phone-card">
+                                    <div class="phone-card__estado">
+                                        <span
+                                            style="width:6px;height:6px;background:var(--estado-progreso);border-radius:50%;"></span>
+                                        En Progreso
+                                    </div>
+                                    <div class="phone-card__avatar-row">
+                                        <div class="avatar-circle">🧑</div>
+                                        <div>
+                                            <div class="phone-card__name">Marco Rodríguez</div>
+                                            <div class="phone-card__detail">Paseando a Luna · 28 min</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="phone-bottom-bar">
+                                    <div class="tab-icon"><i class="fas fa-home"></i><span>Inicio</span></div>
+                                    <div class="tab-icon"><i class="fas fa-paw"></i><span>Mascotas</span></div>
+                                    <div class="tab-icon active"><i class="fas fa-walking"></i><span>Paseos</span></div>
+                                    <div class="tab-icon"><i class="fas fa-user"></i><span>Mi Cuenta</span></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Chip derecho -->
+                        <div class="float-chip right">
+                            <div class="chip-icon verde"><i class="fas fa-camera"></i></div>
+                            <div>
+                                <div style="font-size:11px;font-weight:700;color:var(--c-texto)">Nueva bitácora</div>
+                                <div style="font-size:10px;color:var(--c-subtexto)">Luna jugó en el parque</div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- ============================================================
+         LA HISTORIA DE UN PASEO
+    ============================================================ -->
+        <section class="story" id="story" aria-labelledby="storyHeading">
+            <div class="u-container">
+                <div class="story__intro reveal">
+                    <span class="u-label">La Historia</span>
+                    <h2 id="storyHeading">
+                        Un paseo en <em class="u-text-enfasis">cuatro momentos</em>
+                    </h2>
+                    <p>
+                        No es una transacción. Es un recorrido emocional que comienza
+                        con una duda y termina con un recuerdo que se guarda para siempre.
+                    </p>
+                </div>
+
+                <div class="story__steps" role="list">
+
+                    <!-- Paso 1 -->
+                    <article class="story-step reveal" role="listitem">
+                        <div class="step-content">
+                            <div class="step-num">Momento 01</div>
+                            <h3>El salto de fe</h3>
+                            <p>
+                                Dejar a tu mascota con alguien requiere más que disponibilidad.
+                                Requiere confianza. Paw-Path empieza aquí: con perfiles verificados,
+                                reputación construida paseo a paseo, y la certeza de que sabes
+                                exactamente con quién vas.
+                            </p>
+                        </div>
+                        <div class="step-spine" aria-hidden="true">
+                            <div class="spine-line"></div>
+                            <div class="spine-node"><i class="fas fa-handshake"></i></div>
+                            <div class="spine-line"></div>
+                        </div>
+                        <div class="step-visual">
+                            <div class="step-card">
+                                <div class="estado-badge badge-confirmado">
+                                    <span class="estado-badge-dot"></span>Confirmado
+                                </div>
+                                <div class="phone-card__avatar-row" style="gap:10px;">
+                                    <div class="avatar-circle"
+                                        style="background:linear-gradient(135deg,#2A86A8,#60A5FA);">🧑</div>
+                                    <div>
+                                        <div class="step-card__title">Marco Rodríguez</div>
+                                        <div class="step-card__sub">⭐ 4.9 · 42 paseos completados</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </article>
+
+                    <!-- Paso 2 -->
+                    <article class="story-step reveal reveal-delay-1" role="listitem">
+                        <div class="step-visual">
+                            <div class="step-card">
+                                <div class="estado-badge badge-encamino">
+                                    <span class="estado-badge-dot"></span>En Camino
+                                </div>
+                                <div class="step-card__title">Marco está a 4 minutos</div>
+                                <div class="step-card__sub"
+                                    style="margin-top:8px;display:flex;align-items:center;gap:6px;">
+                                    <i class="fas fa-location-dot" style="color:var(--c-enfasis);font-size:12px;"></i>
+                                    <span>Cra. 15 #72 · Bogotá</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="step-spine" aria-hidden="true">
+                            <div class="spine-line"></div>
+                            <div class="spine-node"><i class="fas fa-location-dot"></i></div>
+                            <div class="spine-line"></div>
+                        </div>
+                        <div class="step-content">
+                            <div class="step-num">Momento 02</div>
+                            <h3>Lo ves en vivo</h3>
+                            <p>
+                                Cuando Marco sale hacia ti, lo ves en el mapa. Cuando llega al punto
+                                de recogida, validas el código. No hay incertidumbre. No hay silencio.
+                                Tienes visibilidad total sobre cada metro del trayecto.
+                            </p>
+                        </div>
+                    </article>
+
+                    <!-- Paso 3 -->
+                    <article class="story-step reveal reveal-delay-2" role="listitem">
+                        <div class="step-content">
+                            <div class="step-num">Momento 03</div>
+                            <h3>La aventura sucede</h3>
+                            <p>
+                                Mientras Luna corre, el mapa se actualiza. El punto verde se mueve suave
+                                por las calles del barrio. Puedes cerrar la app o dejarla abierta.
+                                El seguimiento continúa en segundo plano. Siempre estás con tu mascota.
+                            </p>
+                        </div>
+                        <div class="step-spine" aria-hidden="true">
+                            <div class="spine-line"></div>
+                            <div class="spine-node"><i class="fas fa-person-walking"></i></div>
+                            <div class="spine-line"></div>
+                        </div>
+                        <div class="step-visual">
+                            <div class="step-card">
+                                <div class="estado-badge badge-progreso">
+                                    <span class="estado-badge-dot"></span>En Progreso
+                                </div>
+                                <div style="margin-top:8px;">
+                                    <div class="step-card__title">Luna · 28 min</div>
+                                    <div
+                                        style="margin-top:8px;height:6px;background:var(--c-borde);border-radius:var(--r-full);overflow:hidden;">
+                                        <div
+                                            style="width:58%;height:100%;background:linear-gradient(90deg,var(--c-primario),var(--c-enfasis));border-radius:var(--r-full);">
+                                        </div>
+                                    </div>
+                                    <div class="step-card__sub" style="margin-top:4px;">2.3 km recorridos de 4 km</div>
+                                </div>
+                            </div>
+                        </div>
+                    </article>
+
+                    <!-- Paso 4 -->
+                    <article class="story-step reveal reveal-delay-3" role="listitem">
+                        <div class="step-visual">
+                            <div class="bitacora-preview">
+                                <div class="bitacora-img">
+                                    🌳
+                                    <span class="bitacora-img-badge"><i class="fas fa-location-dot"></i> Parque Simón
+                                        Bolívar</span>
+                                </div>
+                                <div class="bitacora-body">
+                                    <p class="bitacora-body__note">"Luna jugó con un golden retriever. Estaba tan feliz.
+                                        Durmió en el camino de vuelta."</p>
+                                    <div class="bitacora-body__meta">
+                                        <span class="bitacora-tag">jugó</span>
+                                        <span class="bitacora-tag">corrió</span>
+                                        <span class="bitacora-tag">descansó</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="step-spine" aria-hidden="true">
+                            <div class="spine-line"></div>
+                            <div class="spine-node"><i class="fas fa-book-open"></i></div>
+                            <div class="spine-line" style="opacity:0;"></div>
+                        </div>
+                        <div class="step-content">
+                            <div class="step-num">Momento 04</div>
+                            <h3>El recuerdo queda</h3>
+                            <p>
+                                Al terminar, la bitácora llega. Fotos, notas, ubicaciones, acciones.
+                                No es un reporte. Es la historia de ese día. De ese parque. De esa carrera.
+                                Guardada para siempre. Tuya.
+                            </p>
+                        </div>
+                    </article>
+
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================================
+         EL ECOSISTEMA
+    ============================================================ -->
+        <section class="ecosystem" id="ecosystem" aria-labelledby="ecoHeading">
+            <div class="u-container">
+                <div class="ecosystem__header reveal">
+                    <span class="u-label">El Ecosistema</span>
+                    <h2 id="ecoHeading">
+                        La confianza no es un acto.<br>Es <em class="u-text-enfasis">un ecosistema</em>.
+                    </h2>
+                    <p>
+                        Tres roles diferentes, una plataforma compartida. Cada uno fortalece a los otros dos.
+                        Juntos construyen territorios donde los animales son más seguros.
+                    </p>
+                </div>
+
+                <div class="ecosystem__diagram">
+
+                    <!-- Tutores -->
+                    <div class="eco-col reveal">
+                        <div class="eco-card" style="height:100%;">
+                            <div class="eco-card__icon ico-verde"><i class="fas fa-home"></i></div>
+                            <div class="eco-card__title">Tutores</div>
+                            <div class="eco-card__desc">Registran a sus mascotas, solicitan paseos y siguen cada momento
+                                en vivo. Ven exactamente dónde está su mascota, quién la cuida y qué hace.</div>
+                        </div>
+                    </div>
+
+                    <!-- Cuidadores -->
+                    <div class="eco-col reveal reveal-delay-1">
+                        <div class="eco-card" style="height:100%;">
+                            <div class="eco-card__icon ico-dorado"><i class="fas fa-person-hiking"></i></div>
+                            <div class="eco-card__title">Cuidadores</div>
+                            <div class="eco-card__desc">Construyen su reputación paseo a paseo. Gestionan su
+                                disponibilidad, zona y agenda. Su trabajo es su marca.</div>
+                        </div>
+                    </div>
+
+                    <!-- Exploradores -->
+                    <div class="eco-col reveal reveal-delay-2">
+                        <div class="eco-card" style="height:100%;">
+                            <div class="eco-card__icon ico-indigo"><i class="fas fa-map"></i></div>
+                            <div class="eco-card__title">Exploradores</div>
+                            <div class="eco-card__desc">Mapean el territorio de forma colaborativa. Sus observaciones
+                                construyen el mapa que todos usan.</div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================================
+         BITÁCORA
+    ============================================================ -->
+        <section class="bitacora-section" id="bitacora" aria-labelledby="bitacoraHeading">
+            <div class="u-container">
+                <div class="bitacora-section__inner">
+
+                    <!-- Panel izquierdo -->
+                    <div class="bitacora-panel reveal">
+                        <div class="bitacora-panel__header">
+                            <div class="avatar-circle"
+                                style="background:linear-gradient(135deg,var(--c-primario),var(--c-enfasis));font-size:20px;">
+                                🐕</div>
+                            <div>
+                                <div class="bitacora-panel__title">Bitácora de Luna</div>
+                                <div class="bitacora-panel__sub">Sábado 28 Jun · Marco Rodríguez</div>
+                            </div>
+                            <div class="estado-badge badge-finalizado" style="margin-left:auto;">
+                                <span class="estado-badge-dot"></span>Finalizado
+                            </div>
+                        </div>
+
+                        <div class="bitacora-panel__photo">
+                            🌳
+                            <div class="photo-location"><i class="fas fa-location-dot"></i> Parque Simón Bolívar</div>
+                        </div>
+
+                        <div class="bitacora-panel__events">
+                            <div class="bitacora-event">
+                                <div class="event-icon ico-teal"><i class="fas fa-running"></i></div>
+                                <div class="event-content">
+                                    <div class="event-content__action">Corrió sin parar</div>
+                                    <div class="event-content__note">Entusiasta desde el comienzo, jalaba la correa
+                                        hacia el campo abierto.</div>
+                                </div>
+                                <div class="event-time">9:14 am</div>
+                            </div>
+                            <div class="bitacora-event">
+                                <div class="event-icon ico-verde"><i class="fas fa-dog"></i></div>
+                                <div class="event-content">
+                                    <div class="event-content__action">Se hizo amiga de Max</div>
+                                    <div class="event-content__note">Jugaron 15 minutos con un golden retriever. Gran
+                                        compatibilidad.</div>
+                                </div>
+                                <div class="event-time">9:31 am</div>
+                            </div>
+                            <div class="bitacora-event">
+                                <div class="event-icon ico-azul"><i class="fas fa-droplet"></i></div>
+                                <div class="event-content">
+                                    <div class="event-content__action">Bebió agua y descansó</div>
+                                    <div class="event-content__note">"Estaba agotada de la mejor manera posible. Durmió
+                                        de vuelta." — Marco</div>
+                                </div>
+                                <div class="event-time">9:52 am</div>
+                            </div>
+                        </div>
+
+                        <div class="bitacora-panel__footer">
+                            <div class="footer-stat"><i class="fas fa-route"></i> 3.1 km</div>
+                            <div class="footer-stat"><i class="fas fa-clock"></i> 58 min</div>
+                            <div class="footer-stat"><i class="fas fa-camera"></i> 3 fotos</div>
+                            <div class="footer-stat"><i class="fas fa-map-location-dot"></i> 2 zonas</div>
+                        </div>
+                    </div>
+
+                    <!-- Copy derecho -->
+                    <div class="bitacora-section__copy reveal reveal-delay-2">
+                        <span class="u-label">Bitácora</span>
+                        <h2 id="bitacoraHeading">
+                            Cada paseo deja<br>
+                            <em class="u-text-enfasis">huellas</em>.
+                        </h2>
+                        <p>
+                            La bitácora no es un reporte técnico. Es la historia de un día.
+                            Registra lo que tu mascota vivió, dónde estuvo, con quién jugó,
+                            cómo se comportó. Un recuerdo que el cuidador escribe para ti.
+                        </p>
+
+                        <div class="bitacora-items">
+                            <div class="bitacora-item">
+                                <div class="bitacora-item__ico ico-verde"><i class="fas fa-camera"></i></div>
+                                <div class="bitacora-item__text">
+                                    <strong>Fotos y videos del paseo</strong>
+                                    <span>El cuidador documenta los mejores momentos en tiempo real.</span>
+                                </div>
+                            </div>
+                            <div class="bitacora-item">
+                                <div class="bitacora-item__ico ico-azul"><i class="fas fa-map-location-dot"></i></div>
+                                <div class="bitacora-item__text">
+                                    <strong>Ubicaciones y zonas visitadas</strong>
+                                    <span>Cada evento queda georeferenciado. Sabes exactamente dónde ocurrió.</span>
+                                </div>
+                            </div>
+                            <div class="bitacora-item">
+                                <div class="bitacora-item__ico ico-dorado"><i class="fas fa-note-sticky"></i></div>
+                                <div class="bitacora-item__text">
+                                    <strong>Notas personales del cuidador</strong>
+                                    <span>Observaciones sobre comportamiento, interacciones y estado de ánimo.</span>
+                                </div>
+                            </div>
+                            <div class="bitacora-item">
+                                <div class="bitacora-item__ico ico-indigo"><i class="fas fa-tags"></i></div>
+                                <div class="bitacora-item__text">
+                                    <strong>Etiquetas de actividad</strong>
+                                    <span>Corrió, jugó, comió, descansó. Un vocabulario compartido del bienestar
+                                        animal.</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <a href="#cta" class="btn btn-texto">
+                            Descúbrelo en vivo <i class="fas fa-arrow-right icon-arrow"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================================
+         CONFIANZA VERIFICADA
+    ============================================================ -->
+        <section class="confianza" id="confianza" aria-labelledby="confianzaHeading">
+            <div class="u-container">
+                <div class="confianza__header reveal">
+                    <span class="u-label">Confianza Verificada</span>
+                    <h2 id="confianzaHeading">
+                        No es confianza <em class="u-text-enfasis">ciega</em>.<br>
+                        Es confianza verificada.
+                    </h2>
+                    <p>
+                        Confiar en alguien con tu mascota es difícil. Paw-Path no te pide que confíes a ciegas.
+                        Te da las herramientas para verificar en cada paso.
+                    </p>
+                </div>
+
+                <div class="confianza__grid">
+                    <div class="trust-card t-verde reveal">
+                        <div class="trust-card__icon ico-verde"><i class="fas fa-fingerprint"></i></div>
+                        <div class="trust-card__title">Identidad verificada</div>
+                        <div class="trust-card__desc">Cada cuidador registra su documento de identidad. Perfiles reales,
+                            personas reales, responsabilidad real.</div>
+                    </div>
+                    <div class="trust-card t-azul reveal reveal-delay-1">
+                        <div class="trust-card__icon ico-azul"><i class="fas fa-qrcode"></i></div>
+                        <div class="trust-card__title">Código de recogida</div>
+                        <div class="trust-card__desc">Un código único valida la entrega de tu mascota. Solo el cuidador
+                            asignado puede activarlo. Sin excepciones.</div>
+                    </div>
+                    <div class="trust-card t-ambar reveal reveal-delay-2">
+                        <div class="trust-card__icon ico-dorado"><i class="fas fa-satellite-dish"></i></div>
+                        <div class="trust-card__title">Tracking en vivo</div>
+                        <div class="trust-card__desc">Ubicación en tiempo real durante el paseo, incluso cuando la app
+                            está en segundo plano. Siempre conectado.</div>
+                    </div>
+                    <div class="trust-card t-indigo reveal reveal-delay-3">
+                        <div class="trust-card__icon ico-indigo"><i class="fas fa-history"></i></div>
+                        <div class="trust-card__title">Historial completo</div>
+                        <div class="trust-card__desc">Cada paseo, cada evento, cada ubicación queda registrado. La
+                            trazabilidad construye confianza a largo plazo.</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================================
+         TERRITORIO
+    ============================================================ -->
+        <section class="territorio" id="territorio" aria-labelledby="territorioHeading">
+            <div class="u-container">
+                <div class="territorio__inner">
+
+                    <!-- Mapa H3 visual -->
+                    <div class="reveal">
+                        <div class="h3-map" role="img"
+                            aria-label="Mapa territorial colaborativo mostrando celdas en diferentes estados de exploración">
+                            <div class="hex hex-fria"></div>
+                            <div class="hex hex-fria"></div>
+                            <div class="hex hex-observacion">👁</div>
+                            <div class="hex hex-fria"></div>
+                            <div class="hex hex-fria"></div>
+
+                            <div class="hex hex-fria"></div>
+                            <div class="hex hex-observacion">👁</div>
+                            <div class="hex hex-prometedora">✦</div>
+                            <div class="hex hex-prometedora">✦</div>
+                            <div class="hex hex-fria"></div>
+
+                            <div class="hex hex-observacion">👁</div>
+                            <div class="hex hex-prometedora">✦</div>
+                            <div class="hex hex-lista">✓</div>
+                            <div class="hex hex-activa">🐾</div>
+                            <div class="hex hex-prometedora">✦</div>
+
+                            <div class="hex hex-fria"></div>
+                            <div class="hex hex-prometedora">✦</div>
+                            <div class="hex hex-lista">✓</div>
+                            <div class="hex hex-prometedora">✦</div>
+                            <div class="hex hex-fria"></div>
+
+                            <div class="hex hex-fria"></div>
+                            <div class="hex hex-fria"></div>
+                            <div class="hex hex-observacion">👁</div>
+                            <div class="hex hex-fria"></div>
+                            <div class="hex hex-fria"></div>
+                        </div>
+
+                        <div class="leyenda-hex" style="margin-top:var(--sp-lg);">
+                            <div class="leyenda-item">
+                                <div class="leyenda-dot"
+                                    style="background:rgba(44,52,50,.7);border:1px solid var(--c-borde);"></div>
+                                Sin explorar
+                            </div>
+                            <div class="leyenda-item">
+                                <div class="leyenda-dot" style="background:rgba(245,158,11,.25);"></div>
+                                En observación
+                            </div>
+                            <div class="leyenda-item">
+                                <div class="leyenda-dot" style="background:rgba(45,179,145,.3);"></div>
+                                Prometedora
+                            </div>
+                            <div class="leyenda-item">
+                                <div class="leyenda-dot" style="background:rgba(29,143,115,.6);"></div>
+                                Lista para paseos
+                            </div>
+                            <div class="leyenda-item">
+                                <div class="leyenda-dot" style="background:var(--c-primario);"></div>
+                                Zona activa
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Copy -->
+                    <div class="territorio__copy reveal reveal-delay-2">
+                        <span class="u-label">Inteligencia Territorial</span>
+                        <h2 id="territorioHeading">
+                            Tu barrio,<br>
+                            <em class="u-text-enfasis">mapeado por todos</em>.
+                        </h2>
+                        <p>
+                            Los Exploradores recorren el territorio y observan: dónde hay parques, cuántos perros
+                            conviven, cómo fluye el tráfico peatonal. Esa información se convierte en inteligencia
+                            que tutores y cuidadores usan para tomar mejores decisiones.
+                        </p>
+                        <p>
+                            No es un mapa estático. Es un mapa vivo, construido colaborativamente, actualizado
+                            por personas que caminan el mismo barrio que tú.
+                        </p>
+                        <a href="#cta" class="btn btn-texto" style="margin-top:var(--sp-sm);">
+                            Explorar el territorio <i class="fas fa-arrow-right icon-arrow"></i>
+                        </a>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================================
+         CTA FINAL
+    ============================================================ -->
+        <section class="cta-final" id="cta" aria-labelledby="ctaHeading">
+            <div class="cta-final__inner reveal">
+                <span class="u-label">Comienza Hoy</span>
+                <h2 id="ctaHeading">
+                    ¿Listo para el<br>
+                    <em>primer paseo</em>?
+                </h2>
+                <p>
+                    El primer paseo siempre es el más difícil. Después de ese,
+                    ya no es desconocido. Ya es confianza.
+                </p>
+                <div class="cta-final__btns">
+                    <a href="#" class="btn btn-primario" aria-label="Descargar para iPhone en App Store">
+                        <i class="fab fa-apple" aria-hidden="true"></i>
+                        App Store
+                    </a>
+                    <a href="#" class="btn btn-primario" aria-label="Descargar para Android en Google Play">
+                        <i class="fab fa-google-play" aria-hidden="true"></i>
+                        Google Play
+                    </a>
+                </div>
+                <div class="cta-final__roles">
+                    <a href="#" class="role-link">
+                        <i class="fas fa-person-hiking"></i> Únete como Cuidador
+                    </a>
+                    <a href="#" class="role-link">
+                        <i class="fas fa-map"></i> Sé un Explorador
+                    </a>
+                    <a href="#" class="role-link">
+                        <i class="fas fa-question-circle"></i> Preguntas frecuentes
+                    </a>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- ============================================================
+       FOOTER
+  ============================================================ -->
+    <footer role="contentinfo"
+        style="background:var(--c-base);border-top:1px solid var(--c-borde);padding:var(--sp-lg) var(--sp-lg);text-align:center;">
+        <span style="font-size:13px;color:var(--c-inactivo);">© 2026 Paw-Path</span>
+    </footer>
+
+    <!-- ============================================================
+       SCRIPTS
+  ============================================================ -->
+    <script>
+        /* ---------- MOBILE MENU ---------- */
+        const btnMenu = document.getElementById('btnMenu');
+        const mobileNav = document.getElementById('mobileNav');
+
+        function closeMobileNav() {
+            mobileNav.classList.remove('open');
+            btnMenu.setAttribute('aria-expanded', 'false');
+            btnMenu.innerHTML = '<i class="fas fa-bars"></i>';
+        }
+
+        btnMenu.addEventListener('click', () => {
+            const isOpen = mobileNav.classList.toggle('open');
+            btnMenu.setAttribute('aria-expanded', String(isOpen));
+            btnMenu.innerHTML = isOpen
+                ? '<i class="fas fa-xmark"></i>'
+                : '<i class="fas fa-bars"></i>';
+        });
+
+        document.addEventListener('keydown', e => {
+            if (e.key === 'Escape') closeMobileNav();
+        });
+
+        /* ---------- INTERSECTION OBSERVER — REVEAL ---------- */
+        const revealEls = document.querySelectorAll('.reveal');
+        const io = new IntersectionObserver(
+            entries => entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                    io.unobserve(entry.target);
+                }
+            }),
+            { threshold: 0.1, rootMargin: '0px 0px -60px 0px' }
+        );
+        revealEls.forEach(el => io.observe(el));
+
+        /* ---------- ACTIVE NAV LINK ON SCROLL ---------- */
+        const navLinks = document.querySelectorAll('.nav__links a');
+        const sections = document.querySelectorAll('section[id]');
+
+        const navObserver = new IntersectionObserver(
+            entries => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const id = entry.target.getAttribute('id');
+                        navLinks.forEach(a => {
+                            a.classList.toggle('active', a.getAttribute('href') === `#${id}`);
+                        });
+                    }
+                });
+            },
+            { threshold: 0.4 }
+        );
+        sections.forEach(s => navObserver.observe(s));
+
+        /* ---------- SMOOTH SCROLL PARA TODOS LOS ANCHOR ---------- */
+        document.querySelectorAll('a[href^="#"]').forEach(a => {
+            a.addEventListener('click', e => {
+                const target = document.querySelector(a.getAttribute('href'));
+                if (target) {
+                    e.preventDefault();
+                    target.scrollIntoView({ behavior: 'smooth' });
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>
