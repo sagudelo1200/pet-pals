@@ -85,6 +85,8 @@ export const ConfirmarPaseoPaso = ({
   } = useCuidadorPerfilModal()
 
   const COMPARTIDO_DISCOUNT = 0.15 // 15% descuento para paseos compartidos
+  // Feature flag temporal: desactivar funcionalidad de paseo compartido en MVP
+  const PASEO_COMPARTIDO_FEATURE = false
   const subtotal = total
   const descuento = esCompartido ? subtotal * COMPARTIDO_DISCOUNT : 0
   const totalConDescuento = subtotal - descuento
@@ -241,22 +243,25 @@ export const ConfirmarPaseoPaso = ({
 
           <View style={styles.divider} />
 
-          {/* Paseo Compartido Compact */}
+          {/* Paseo Compartido Compact (temporalmente desactivado en MVP) */}
           <View style={[styles.section, { marginBottom: 4 }]}>
-            <View style={styles.savingsBannerCompact}>
-              <Icon name="check-circle" size={14} color={COLOR.EXITO} />
-              <Text style={styles.savingsTextCompact}>
-                {t('paseos:pasos.confirmar.ahorro_mensaje', {
-                  descuento: Math.round(COMPARTIDO_DISCOUNT * 100),
-                })}
-              </Text>
-            </View>
+            {PASEO_COMPARTIDO_FEATURE && (
+              <View style={styles.savingsBannerCompact}>
+                <Icon name="check-circle" size={14} color={COLOR.EXITO} />
+                <Text style={styles.savingsTextCompact}>
+                  {t('paseos:pasos.confirmar.ahorro_mensaje', {
+                    descuento: Math.round(COMPARTIDO_DISCOUNT * 100),
+                  })}
+                </Text>
+              </View>
+            )}
             <View style={{ marginTop: 4 }}>
               <Switch
                 value={esCompartido}
                 onValueChange={onCompartidoChange}
                 label={t('paseos:pasos.confirmar.paseo_compartido_label')}
                 style={{ paddingVertical: 4 }}
+                disabled={true}
               />
             </View>
           </View>
@@ -273,7 +278,7 @@ export const ConfirmarPaseoPaso = ({
                 ${subtotal.toLocaleString()}
               </Text>
             </View>
-            {esCompartido && (
+            {esCompartido && PASEO_COMPARTIDO_FEATURE && (
               <View style={styles.priceRowCompact}>
                 <Text style={[styles.priceLabel, styles.discountText]}>
                   {t('paseos:pasos.confirmar.descuento_compartido')}

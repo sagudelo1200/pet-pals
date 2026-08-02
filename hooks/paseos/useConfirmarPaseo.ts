@@ -6,6 +6,11 @@ import { GestorUbicaciones } from '@/logic/ubicaciones'
 import { confirmarReservaPaseo } from '@/logic/paseos/confirmador'
 import { useAuth } from '@/context/AuthContext'
 import type { Ubicacion } from '@/models/Ubicacion'
+import {
+  STANDARD_SERVICE_PRICE,
+  USE_GLOBAL_SERVICE_PRICE,
+  EXTRA_PER_ADDITIONAL_PET,
+} from '@/constants'
 
 interface ConfirmarPaseoProps {
   mascotaIds: string[]
@@ -89,8 +94,11 @@ export const useConfirmarPaseo = ({
   }, [cuidadorId, direccionId])
 
   // Cálculo simple de costos
-  const tarifaBase = cuidador?.tarifa || 15000
-  const tarifaMascotaAdicional = 5000 // Tarifa adicional por mascota extra
+  // Usar precio global temporal si la feature está activada
+  const tarifaBase = USE_GLOBAL_SERVICE_PRICE
+    ? STANDARD_SERVICE_PRICE
+    : cuidador?.tarifa || STANDARD_SERVICE_PRICE
+  const tarifaMascotaAdicional = EXTRA_PER_ADDITIONAL_PET // Tarifa adicional por mascota extra
   const numMascotas = mascotas.length
   const duracionMinutos = duracion || 60
   const factorDuracion = duracionMinutos / 60

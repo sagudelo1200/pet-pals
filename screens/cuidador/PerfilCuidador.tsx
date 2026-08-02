@@ -11,7 +11,7 @@ import {
 } from 'react-native'
 import { useNavigation } from '@react-navigation/native'
 import { useTranslation } from 'react-i18next'
-import { COLOR } from '@/constants'
+import { COLOR, STANDARD_SERVICE_PRICE } from '@/constants'
 import Screen from '@/components/ui/Screen'
 import ScreenHeader from '@/components/ui/ScreenHeader'
 import Button from '@/components/ui/Button'
@@ -56,7 +56,7 @@ const PerfilCuidador: React.FC = () => {
   const [foto, setFoto] = useState('')
   const [biografia, setBiografia] = useState('')
   const [experiencia, setExperiencia] = useState('')
-  const [tarifa, setTarifa] = useState('')
+  // tarifa field removed for MVP (global standard price)
 
   // Horario semanal: Record<diaKey, FranjaHoraria>
   // Solo los días presentes en este objeto están activos
@@ -84,7 +84,7 @@ const PerfilCuidador: React.FC = () => {
       setFoto(data.foto || '')
       setBiografia(data.biografia || '')
       setExperiencia(data.experiencia || '')
-      setTarifa(data.tarifa_por_hora ? data.tarifa_por_hora.toString() : '')
+      // tarifa_por_hora no se usa en MVP
       setHorarioSemanal(data.horario_semanal || {})
     }
     setLoading(false)
@@ -130,10 +130,7 @@ const PerfilCuidador: React.FC = () => {
       Alert.alert(t('comun:error'), 'La biografía es obligatoria')
       return
     }
-    if (!tarifa.trim() || isNaN(Number(tarifa))) {
-      Alert.alert(t('comun:error'), 'Ingresa una tarifa válida')
-      return
-    }
+    // Nota: la asignación de tarifa por cuidador está desactivada en MVP.
 
     // Validar cada día activo
     for (const key of Object.keys(horarioSemanal)) {
@@ -177,7 +174,7 @@ const PerfilCuidador: React.FC = () => {
       foto,
       biografia,
       experiencia,
-      tarifa_por_hora: Number(tarifa),
+      // tarifa_por_hora: No actualizar en MVP (precio global)
       horario_semanal: horarioSemanal,
     }
 
@@ -272,14 +269,21 @@ const PerfilCuidador: React.FC = () => {
               onChangeText={setExperiencia}
               style={[styles.input, styles.flex1, { marginRight: 12 }]}
             />
-            <TextInput
-              label={t('perfil:editar.tarifa_label')}
-              placeholder="0"
-              value={tarifa}
-              onChangeText={setTarifa}
-              keyboardType="numeric"
-              style={[styles.input, styles.flex1]}
-            />
+            <View
+              style={[
+                styles.input,
+                styles.flex1,
+                styles.tarifaDisabledContainer,
+              ]}
+            >
+              <Text style={styles.disabledTarifa}>
+                ${STANDARD_SERVICE_PRICE.toLocaleString('es-CO')} /{' '}
+                {t('cuidador:perfil.hora')}
+              </Text>
+              <Text style={styles.tarifaHint}>
+                {t('perfil:editar.tarifa_estandar_mvp')}
+              </Text>
+            </View>
           </View>
 
           {/* Dirección principal */}
@@ -542,6 +546,22 @@ const styles = StyleSheet.create({
     borderColor: COLOR.BORDE,
     alignItems: 'center',
     backgroundColor: COLOR.BLOQUE,
+  },
+  tarifaDisabledContainer: {
+    justifyContent: 'center',
+    padding: 12,
+    backgroundColor: COLOR.SECUNDARIO,
+    borderRadius: 8,
+  },
+  disabledTarifa: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: COLOR.EXITO,
+  },
+  tarifaHint: {
+    fontSize: 12,
+    color: COLOR.SUBTEXTO,
+    marginTop: 6,
   },
   coberturaBtnText: {
     color: COLOR.SUBTEXTO,

@@ -13,6 +13,11 @@ interface DebugMatchingData {
   h3TutorZona: string | null
   h3CeldasCercanas: string[]
   candidatosRaw: any[]
+  horarioSolicitado?: {
+    fecha?: Date
+    hora?: string
+    duracion?: number
+  }
   candidatosConDetalle: Array<{
     id: string
     nombre: string
@@ -21,10 +26,12 @@ interface DebugMatchingData {
     horario: {
       pasa: boolean
       razon?: string
+      horariosCuidador?: string
     }
     disponibilidad: {
       pasa: boolean
       razon?: string
+      horarioSolicitado?: string
     }
     final: boolean
   }>
@@ -96,6 +103,37 @@ export const MatchingDebugOverlay: React.FC<MatchingDebugOverlayProps> = ({
               <Text style={styles.noData}>Sin coordenadas de búsqueda</Text>
             )}
           </View>
+
+          {/* Horarios Solicitados */}
+          {debugMatching.horarioSolicitado && (
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>⏰ Horario Solicitado</Text>
+              <View style={styles.infoRow}>
+                <Text style={styles.label}>Fecha:</Text>
+                <Text style={styles.value}>
+                  {debugMatching.horarioSolicitado.fecha
+                    ? new Date(
+                        debugMatching.horarioSolicitado.fecha
+                      ).toLocaleDateString()
+                    : 'N/A'}
+                </Text>
+              </View>
+              <View style={styles.infoRow}>
+                <Text style={styles.label}>Hora:</Text>
+                <Text style={styles.value}>
+                  {debugMatching.horarioSolicitado.hora || 'N/A'}
+                </Text>
+              </View>
+              <View style={styles.infoRow}>
+                <Text style={styles.label}>Duración:</Text>
+                <Text style={styles.value}>
+                  {debugMatching.horarioSolicitado.duracion
+                    ? `${debugMatching.horarioSolicitado.duracion} min`
+                    : 'N/A'}
+                </Text>
+              </View>
+            </View>
+          )}
 
           {/* Resumen */}
           <View style={styles.section}>
@@ -241,6 +279,11 @@ export const MatchingDebugOverlay: React.FC<MatchingDebugOverlayProps> = ({
                           </Text>
                         </View>
                       </View>
+                      {cuidador.horario.horariosCuidador && (
+                        <Text style={[styles.detailRazon, { marginBottom: 4 }]}>
+                          Cuidador: {cuidador.horario.horariosCuidador}
+                        </Text>
+                      )}
                       {cuidador.horario.razon && (
                         <Text style={styles.detailRazon}>
                           {cuidador.horario.razon}
@@ -266,6 +309,11 @@ export const MatchingDebugOverlay: React.FC<MatchingDebugOverlayProps> = ({
                           </Text>
                         </View>
                       </View>
+                      {cuidador.disponibilidad.horarioSolicitado && (
+                        <Text style={[styles.detailRazon, { marginBottom: 4 }]}>
+                          Tutor: {cuidador.disponibilidad.horarioSolicitado}
+                        </Text>
+                      )}
                       {cuidador.disponibilidad.razon && (
                         <Text style={styles.detailRazon}>
                           {cuidador.disponibilidad.razon}

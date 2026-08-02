@@ -16,3 +16,8 @@ export {
 } from './h3'
 
 export { utils, COLOR }
+export {
+  STANDARD_SERVICE_PRICE,
+  USE_GLOBAL_SERVICE_PRICE,
+  EXTRA_PER_ADDITIONAL_PET,
+} from './pricing'

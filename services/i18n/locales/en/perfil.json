@@ -51,6 +51,7 @@
       "6": "S"
     },
     "hora_inicio": "Start time",
-    "hora_fin": "End time"
+    "hora_fin": "End time",
+    "tarifa_estandar_mvp": "Paw-Path standard price: $18,000 (MVP)"
   }
 }
