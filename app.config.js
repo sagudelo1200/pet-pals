@@ -4,6 +4,7 @@ module.exports = {
   expo: {
     name: 'Paw-Path',
     slug: 'paw-path',
+    owner: 'sagudelo1200',
     scheme: 'pawpath', // Necesario para Deep Linking y Auth Session
     privacy: 'public',
     platforms: ['ios', 'android'],
