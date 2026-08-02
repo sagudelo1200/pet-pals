@@ -1,7 +1,6 @@
-import { config as dotenvConfig } from 'dotenv'
-dotenvConfig()
+require('dotenv').config()
 
-export default {
+module.exports = {
   expo: {
     name: 'Paw-Path',
     slug: 'paw-path',
@@ -28,9 +27,9 @@ export default {
         CFBundleAllowMixedLocalizations: true,
         UIBackgroundModes: ['location', 'fetch'],
         NSLocationAlwaysAndWhenInUseUsageDescription:
-          'Paw-Path necesita acceder a tu ubicación siempre para que los tutores puedan ver el recorrido de su mascota en tiempo real, incluso con la app cerrada.',
+          'Paw-Path necesita acceder a tu ubicación siempre para que los tutores puedan ver el recorrido de su mascota en tiempo real, solo durante paseos activos.',
         NSLocationAlwaysUsageDescription:
-          'Paw-Path necesita acceder a tu ubicación siempre para que los tutores puedan ver el recorrido de su mascota en tiempo real, incluso con la app cerrada.',
+          'Paw-Path necesita acceder a tu ubicación siempre para que los tutores puedan ver el recorrido de su mascota en tiempo real, solo durante paseos activos.',
         NSLocationWhenInUseUsageDescription:
           'Paw-Path necesita acceder a tu ubicación mientras usas la app para registrar el inicio y progreso de los paseos.',
       },
@@ -92,8 +91,7 @@ export default {
         },
       ],
     ],
-    description:
-      '🐾 Paw-Path - Paseos seguros y felices para tu mascota. Confianza y tranquilidad para ti.',
+    description: '🐾 Paw-Path - Seguridad y Confianza en cada Paseo.',
     extra: {
       brand: {
         primaryColor: '#1B5E20',
