@@ -36,6 +36,27 @@ export async function confirmarReservaPaseo(params: Params) {
     return { success: false, error: 'ubicacion_requerida' }
   }
 
+  // ✅ NUEVA VALIDACIÓN: Verificar que mascotas no tengan paseos simultáneos
+  if (mascotaIds && mascotaIds.length > 0) {
+    const fechaInicio = new Date(fecha)
+    const [hours, minutes] = (hora || '00:00').split(':').map(Number)
+    fechaInicio.setHours(hours, minutes, 0, 0)
+
+    const validacionMascotas = await GestorPaseos.validarDisponibilidadMascotas(
+      mascotaIds,
+      fechaInicio,
+      duracion || 60
+    )
+
+    if (!validacionMascotas.success) {
+      return {
+        success: false,
+        error: validacionMascotas.error || 'mascota_no_disponible',
+        detalles: validacionMascotas.detalles,
+      }
+    }
+  }
+
   try {
     const fechaInicio = new Date(fecha)
     const [hours, minutes] = (hora || '00:00').split(':').map(Number)

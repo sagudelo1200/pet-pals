@@ -14,6 +14,9 @@ import { calcularEstadoZona } from '@/services/geo'
 import { mapFirebaseError, type CrudResult } from '@/services/firebase/comun'
 import type { ZonaH3, OperativaSección, DeltaOperativa } from '@/models/ZonaH3'
 
+// ✅ Re-exportar tipos para disponibilidad pública
+export type { ZonaH3, OperativaSección, DeltaOperativa }
+
 const COLECCION = 'h3_zonas'
 
 /**

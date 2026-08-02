@@ -69,7 +69,7 @@ export function useTerritorio(h3_r9?: string) {
     if (!h3_r9) {
       setTerritorio(undefined)
       setLoading(false)
-      return
+      return undefined
     }
 
     setLoading(true)

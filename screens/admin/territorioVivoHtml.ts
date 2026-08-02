@@ -35,7 +35,7 @@ export function construirHTML(
 ): string {
   const zonasJSON = JSON.stringify(
     zonas.map(z => ({
-      id: z.indice_celda || z.h3_r9,
+      id: z.h3_r9,
       estado: z.operativa?.estado,
       cuidadores: z.operativa?.cuidadores_count || 0,
       demanda: z.operativa?.demanda_total || 0,

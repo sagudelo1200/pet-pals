@@ -83,7 +83,9 @@
     "error_red": "Connection error. Check your internet",
     "error_validacion": "The provided data is not valid",
     "error_cargar": "Error loading walks",
-    "motivo_requerido": "A reason is required for this action"
+    "motivo_requerido": "A reason is required for this action",
+    "mascota_no_disponible": "One or more pets already have a walk scheduled at that time",
+    "MASCOTA_YA_TIENE_PASEO": "A pet already has a walk at this time"
   },
   "boton_solicitar": "Request walk",
   "flujo": {

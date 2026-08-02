@@ -9,9 +9,7 @@ import type { Mascota } from '@/models/Mascota'
 import { MAX_MASCOTAS_POR_PASEO, ERR } from '@/constants'
 import type { Ubicacion } from '@/models/Ubicacion'
 import { crearMaquinaPaseo, EVENTOS } from './maquinaEstados'
-import {
-  generarCodigosRecogidaPorTutor,
-} from './generador'
+import { generarCodigosRecogidaPorTutor } from './generador'
 import {
   collection,
   query,
@@ -61,8 +59,7 @@ export interface PaseoActivo {
 }
 
 export type ResultadoAccion =
-  | { ok: true }
-  | { ok: false; error: CodigoErrorPaseo; detalles?: string }
+  { ok: true } | { ok: false; error: CodigoErrorPaseo; detalles?: string }
 
 // ---------- Errores / i18n map ----------
 export const CODIGOS_ERROR_PASEO: Record<CodigoErrorPaseo, string> = {
@@ -658,6 +655,78 @@ async function validarNoDoubleBooking(
   }
 }
 
+/**
+ * Valida que ninguna mascota tenga un paseo activo en el mismo día/horario
+ * Aplicar ANTES de crear un nuevo paseo
+ *
+ * @param mascotaIds IDs de mascotas que se solicitan
+ * @param fechaInicio Hora de inicio del paseo
+ * @param duracion Duración en minutos
+ * @returns { success: true } o { success: false, error, detalles }
+ */
+async function validarDisponibilidadMascotas(
+  mascotaIds: string[],
+  fechaInicio: Date,
+  duracion: number
+) {
+  try {
+    if (!mascotaIds || mascotaIds.length === 0) {
+      return { success: true } // Sin mascotas, no hay conflicto
+    }
+
+    // Query: paseos que contengan ANY de estas mascotas en estados activos
+    const agendaQuery = query(
+      collection(db, 'paseos'),
+      where('mascota_ids', 'array-contains-any', mascotaIds),
+      where('estado', 'in', [
+        ESTADOS_PASEO.CONFIRMADO,
+        ESTADOS_PASEO.EN_CAMINO,
+        ESTADOS_PASEO.EN_PROGRESO,
+        ESTADOS_PASEO.PENDIENTE, // También validar solicitados recientes
+      ])
+    )
+
+    const docs = await getDocs(agendaQuery)
+    const fechaFin = new Date(fechaInicio.getTime() + duracion * 60000)
+
+    for (const doc of docs.docs) {
+      const paseoExistente = doc.data() as Paseo
+      const finExistente = new Date(
+        paseoExistente.fecha_hora_inicio.getTime() +
+          (paseoExistente.duracion_estimada || 0) * 60000
+      )
+
+      // Verificar overlap de horarios (sin buffer para mascotas, no puede haber overlaps)
+      const overlapDetectado =
+        fechaInicio < finExistente &&
+        fechaFin > paseoExistente.fecha_hora_inicio
+
+      if (overlapDetectado) {
+        // Determinar qué mascota está en conflicto
+        const mascotasEnConflicto = (paseoExistente.mascota_ids || []).filter(
+          id => mascotaIds.includes(id)
+        )
+        const nombreMascotas = mascotasEnConflicto.join(', ')
+
+        return {
+          success: false,
+          error: 'MASCOTA_YA_TIENE_PASEO',
+          detalles: `${nombreMascotas} ya tiene un paseo en ese horario`,
+        }
+      }
+    }
+
+    return { success: true }
+  } catch (error) {
+    console.error('[ValidarDisponibilidadMascotas] Error:', error)
+    return {
+      success: false,
+      error: 'ERROR_VALIDACION',
+      detalles: 'No se pudo verificar disponibilidad de mascotas',
+    }
+  }
+}
+
 // ---------- Funciones públicas del gestor (crearConMascotas) ----------
 export async function crearConMascotas(
   data: Omit<
@@ -1054,12 +1123,10 @@ export async function agregarMascota(paseoId: string, mascotaId: string) {
   // Validaciones de negocio en logic
   if (paseo.modalidad !== 'compartido')
     return { success: false, error: ERR.PASEOS.PASEO_NO_ES_COMPARTIDO }
-  if (
-    !(
-      paseo.estado === ESTADOS_PASEO.PENDIENTE ||
-      paseo.estado === ESTADOS_PASEO.CONFIRMADO
-    )
-  )
+  if (!(
+    paseo.estado === ESTADOS_PASEO.PENDIENTE ||
+    paseo.estado === ESTADOS_PASEO.CONFIRMADO
+  ))
     return {
       success: false,
       error: ERR.PASEOS.ESTADO_DEL_PASEO_NO_ACEPTA_MASCOTAS,
@@ -1367,6 +1434,7 @@ export const GestorPaseos = {
   completarPaseo,
   rechazarPaseo,
   validarCodigoRecogida,
+  validarDisponibilidadMascotas,
   obtenerQueryPaseosTutor,
   obtenerQuerySolicitudesPendientes,
   obtenerQueryAgendaCuidador,

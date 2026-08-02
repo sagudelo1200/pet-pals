@@ -231,7 +231,7 @@ export async function fetchDireccion(
   const cached = cacheDireccion.get(cacheKey)
 
   // Validar cache
-  if (cached && Date.now() - cached.timestamp < CACHE_TTL_MS) {
+  if (cached && Date.now() - cached.timestamp < TTL_CACHE_MS) {
     return {
       nombre_ubicacion: cached.nombre_ubicacion,
       nombre_barrio: cached.nombre_barrio,

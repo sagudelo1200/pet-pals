@@ -253,6 +253,8 @@ export interface Paseo extends BaseModel {
   ubicacion_fin_txt?: string
   /** Referencia al documento de tracking GPS si aplica. */
   tracking_gps?: string
+  /** Celda H3 (R9) donde ocurre el paseo (para inteligencia territorial). */
+  h3_r9?: string
   /** Nombre de la primera mascota para visualización en listas. */
   mascota_nombre_visual?: string
   /** Foto de la primera mascota para visualización en listas. */
