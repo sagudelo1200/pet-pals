@@ -115,6 +115,9 @@ module.exports = {
         androidCert: process.env.ANDROID_CERT_FINGERPRINT,
         androidPackage: 'com.pawpath.app',
       },
+      eas: {
+        projectId: 'd3ca7f25-475f-46bf-a15b-84e90f011599',
+      },
     },
   },
 }
