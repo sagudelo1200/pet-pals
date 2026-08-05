@@ -1,4 +1,5 @@
 import React from 'react'
+import { Text, TextInput, StatusBar } from 'react-native'
 import { SafeAreaProvider } from 'react-native-safe-area-context'
 import { NavigationContainer, DarkTheme, Theme } from '@react-navigation/native'
 import { GalioProvider } from 'galio-framework'
@@ -6,7 +7,6 @@ import { AuthProvider } from './context/AuthContext'
 import { RolProvider } from './context/RolContext'
 import { RootNavigator } from './navigation'
 import { COLOR } from './constants'
-import { StatusBar } from 'react-native'
 import './services/i18n'
 import { TerritorialAggregator } from '@/services/firebase/firestore/agregadores/territorial.aggregator'
 
@@ -16,6 +16,14 @@ import '@/logic/paseos/backgroundTask'
 
 // Componente principal - Solo configuración global
 export default function App(): React.ReactElement {
+  // Desactivar el escalado de fuente por accesibilidad en toda la app
+  // para evitar que cambios globales del dispositivo rompan el layout.
+  if ((Text as any).defaultProps == null) (Text as any).defaultProps = {}
+  ;(Text as any).defaultProps.allowFontScaling = false
+  if ((TextInput as any).defaultProps == null)
+    (TextInput as any).defaultProps = {}
+  ;(TextInput as any).defaultProps.allowFontScaling = false
+
   React.useEffect(() => {
     TerritorialAggregator.initialize()
   }, [])
