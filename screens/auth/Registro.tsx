@@ -130,8 +130,21 @@ const Registro: React.FC = () => {
       return
     }
 
-    await recargarPerfil?.()
-  }, [canSubmit, email, nombre, password, fechaNacimiento, registrar])
+    // ✅ Registro exitoso: navegar a verificación de email
+    // No llamamos a recargarPerfil aquí; el perfil se carga tras validar el OTP
+    navigation.navigate('VerificarEmail', {
+      email: email.trim(),
+      uid: result.user.uid,
+    })
+  }, [
+    canSubmit,
+    email,
+    nombre,
+    password,
+    fechaNacimiento,
+    registrar,
+    navigation,
+  ])
 
   const goToLogin = useCallback(() => {
     navigation.navigate('Ingresar')

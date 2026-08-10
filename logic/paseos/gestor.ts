@@ -674,9 +674,10 @@ async function validarNoSolapamientoPorMascota(
       ESTADOS_PASEO.EN_PROGRESO,
     ]
 
+    // MULTI-TUTOR: Busca TODOS los paseos activos de la mascota, sin importar quién los creó.
+    // Esto previene que múltiples tutores de la misma mascota creen paseos solapados.
     const q = query(
       collection(db, 'paseos'),
-      where('creado_por', '==', uid),
       where('mascota_ids', 'array-contains', mascotaId),
       where('estado', 'in', estadosActivos)
     )

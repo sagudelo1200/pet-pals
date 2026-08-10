@@ -283,7 +283,7 @@ export const EdicionMascota = () => {
                           await guardarCambios()
                           // Después de guardar, navegar a Paseos con mascota preseleccionada
                           setTimeout(() => {
-                            ;(navigation as any).navigate('Paseos', {
+                            (navigation as any).navigate('Paseos', {
                               abrirSolicitar: true,
                               mascotaId: mascotaId,
                               forzarMascotaInicial: true,

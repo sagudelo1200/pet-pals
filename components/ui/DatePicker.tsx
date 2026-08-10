@@ -449,7 +449,10 @@ const DatePicker: React.FC<DatePickerProps> = ({
                     ref={yearScrollRef}
                     data={years}
                     keyExtractor={item => item.toString()}
-                    initialScrollIndex={years.indexOf(currentDate.year)}
+                    initialScrollIndex={Math.max(
+                      0,
+                      years.indexOf(currentDate.year)
+                    )}
                     onScrollToIndexFailed={() => {}}
                     scrollEnabled={true}
                     renderItem={({ item }) => (

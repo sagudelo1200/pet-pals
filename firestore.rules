@@ -219,15 +219,31 @@ service cloud.firestore {
       allow delete: if es_admin();
     }
 
-    // MASCOTAS
+    // MASCOTAS (MULTI-TUTOR)
     match /mascotas/{id} {
-      // Permitir lectura si es tutor (dueño), admin, o si es cuidador (para ver detalles en solicitudes)
-      allow read: if autenticado() && (es_tutor() || es_admin() || tiene_rol_actual('cuidador'));
+      // Helper: Verifica si el usuario es uno de los tutores de la mascota
+      // Tutor principal (creado_por) o tutor compartido (en ids_tutores)
+      function es_tutor_mascota() {
+        return resource.data.creado_por == request.auth.uid ||
+        request.auth.uid in resource.data.ids_tutores;
+      }
+
+      // Permitir lectura si:
+      // - Eres uno de los tutores (principal o compartido)
+      // - Eres admin
+      // - Eres cuidador (para ver detalles en solicitudes)
+      allow read: if autenticado() && (
+      es_tutor_mascota() || es_admin() || tiene_rol_actual('cuidador')
+      );
+
+      // Crear: Solo el usuario autenticado como creador
       allow create: if puede_crear_valido()
         && request.resource.data.creado_por == request.auth.uid
         && request.resource.data.id == id;
+
+      // Actualizar: Cualquier tutor (principal o compartido) puede actualizar
       allow update: if puede_actualizar_valido()
-        && es_tutor()
+        && es_tutor_mascota()
         && request.resource.data.creado_por == resource.data.creado_por
         && request.resource.data.id == resource.data.id
         && solo_campos_permitidos([
@@ -235,9 +251,11 @@ service cloud.firestore {
       'peso', 'tamano', 'nivel_energia', 'fecha_nacimiento', 'esterilizado',
       'vacunas', 'condiciones_salud', 'alergias', 'medicamentos', 'activo',
       'preferencias_paseo', 'socializacion', 'ansiedad', 'reactividad',
-      'compatibilidad_paseo', 'creado_por', 'creado_en', 'actualizado_en', 'actualizado_por'
+      'compatibilidad_paseo', 'ids_tutores', 'creado_por', 'creado_en', 'actualizado_en', 'actualizado_por'
       ]);
-      allow delete: if autenticado() && (es_tutor() || es_admin());
+
+      // Eliminar: Solo el tutor principal (creador) puede eliminar
+      allow delete: if autenticado() && (resource.data.creado_por == request.auth.uid || es_admin());
     }
 
     // UBICACIONES (direcciones geocodificadas)
@@ -513,6 +531,21 @@ service cloud.firestore {
 
       // Escritura: usuarios autenticados pueden escribir (la app actualiza desde el cliente)
       allow write: if autenticado();
+    }
+
+    // OTP_CODES (Códigos de verificación temporal)
+    // Almacena OTPs de 6 dígitos para verificación de email.
+    // Se eliminan automáticamente después de 10 minutos (TTL en Firestore).
+    match /otp_codes/{uid} {
+      // Lectura: Solo el usuario autenticado puede leer su propio OTP
+      allow read: if autenticado() && request.auth.uid == uid;
+
+      // Escritura: Solo Cloud Functions pueden crear/actualizar
+      // (from firebaseRule: request.auth == null OR es_admin)
+      allow write: if request.auth == null || es_admin();
+
+      // Eliminación: Solo Cloud Functions (TTL) o admin
+      allow delete: if request.auth == null || es_admin();
     }
   }
 }

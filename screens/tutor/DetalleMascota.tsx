@@ -132,7 +132,7 @@ const DetalleMascota: React.FC = () => {
 
   const handleEdit = () => {
     // Navegar a pantalla de edición completa
-    ;(navigation as any).navigate('EdicionMascota', {
+    (navigation as any).navigate('EdicionMascota', {
       mascotaId,
     })
   }

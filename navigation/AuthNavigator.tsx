@@ -8,13 +8,14 @@ import { createStackNavigator } from '@react-navigation/stack'
 import Bienvenida from '@/screens/auth/Bienvenida'
 import Ingresar from '@/screens/auth/Ingresar'
 import Registro from '@/screens/auth/Registro'
+import VerificarEmail from '@/screens/auth/VerificarEmail'
 import { AuthFlowParamList } from './types'
 import type { RolUsuario } from '@/models/Usuario'
 
 const Stack = createStackNavigator<AuthFlowParamList>()
 
 const AuthNavigator: React.FC = () => {
-  const { user, cargando, roles, recargarPerfil } = useAuth()
+  const { user, cargando, roles, recargarPerfil, profile } = useAuth()
   const {
     rolActivo,
     cambiarRolActivo,
@@ -46,6 +47,11 @@ const AuthNavigator: React.FC = () => {
   // Efecto para navegar automáticamente cuando hay usuario
   useEffect(() => {
     if (user && !cargando && !cargandoRol) {
+      // ⚠️ Si el usuario NO está verificado (email no confirmado), quedarse en AuthFlow
+      if (!profile?.verificado) {
+        return
+      }
+
       // Esperar a que roles esté cargado
       if (!Array.isArray(roles)) return
 
@@ -93,6 +99,7 @@ const AuthNavigator: React.FC = () => {
     }
   }, [
     user,
+    profile,
     cargando,
     cargandoRol,
     roles,
@@ -100,6 +107,17 @@ const AuthNavigator: React.FC = () => {
     tieneMultiplesRoles,
     mostrarSelectorRol,
   ])
+
+  // Efecto para navegar a VerificarEmail cuando hay usuario pero no verificado
+  useEffect(() => {
+    if (user && profile && !profile.verificado && !cargando && !cargandoRol) {
+      // Navegar a VerificarEmail dentro del AuthStack
+      navigation.navigate('VerificarEmail', {
+        email: user.email || '',
+        uid: user.uid,
+      })
+    }
+  }, [user, profile, cargando, cargandoRol, navigation])
 
   const navegarA = (target: string) => {
     const rootNav = getRootNavigation()
@@ -135,7 +153,7 @@ const AuthNavigator: React.FC = () => {
   const shouldShowLoading =
     cargando ||
     cargandoRol ||
-    user ||
+    (user && profile?.verificado) ||
     (!minDelayPassed && initialDelayRef.current)
 
   if (shouldShowLoading) {
@@ -164,6 +182,7 @@ const AuthNavigator: React.FC = () => {
       <Stack.Screen name="Bienvenida" component={Bienvenida} />
       <Stack.Screen name="Ingresar" component={Ingresar} />
       <Stack.Screen name="Registro" component={Registro} />
+      <Stack.Screen name="VerificarEmail" component={VerificarEmail} />
     </Stack.Navigator>
   )
 }

@@ -160,7 +160,7 @@ const ControlPaseo: React.FC = () => {
     ) {
       try {
         // Usar fitToCoordinates para mostrar toda la polyline
-        ;(mapRef.current as any).fitToCoordinates(rutaARecogida.polyline, {
+        (mapRef.current as any).fitToCoordinates(rutaARecogida.polyline, {
           edgePadding: { top: 100, right: 50, bottom: 150, left: 50 },
           animated: true,
         })

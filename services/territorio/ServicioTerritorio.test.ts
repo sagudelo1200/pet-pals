@@ -35,7 +35,7 @@ describe('Sprint 1: H3 Multi-Resolución (R8 + R9)', () => {
 
       // Intentar mutar debería fallar silenciosamente o lanzar en strict mode
       expect(() => {
-        ;(contexto as any).h3_r8 = 'otro_valor'
+        (contexto as any).h3_r8 = 'otro_valor'
       }).toThrow()
     })
 

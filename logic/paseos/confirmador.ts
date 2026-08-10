@@ -36,9 +36,10 @@ export async function confirmarReservaPaseo(params: Params) {
     return { success: false, error: 'ubicacion_requerida' }
   }
 
-  // ✅ NOTA: Validación de double-booking ocurre en aceptarSolicitud,
-  // no aquí. Un tutor puede solicitar múltiples paseos para la misma mascota,
-  // pero solo uno será aceptado por un cuidador.
+  // ✅ VALIDACIÓN: Prevenir solapamiento por mascota
+  // Cada mascota NO puede tener múltiples paseos simultáneos, sin importar
+  // cuál tutor los solicita (soporte MULTI-TUTOR).
+  // La validación ocurre en crearConMascotas → validarNoSolapamientoPorMascota
 
   try {
     const fechaInicio = new Date(fecha)

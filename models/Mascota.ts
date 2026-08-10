@@ -36,19 +36,13 @@ export type RitmoPaseo = 'adelante' | 'rapido' | 'tranquilo' | 'explorador'
  * Preferencia de compañía durante paseos.
  */
 export type CompaniaPaseo =
-  | 'solo'
-  | 'un_perro'
-  | 'varios_perros'
-  | 'grupo_grande'
+  'solo' | 'un_perro' | 'varios_perros' | 'grupo_grande'
 
 /**
  * Tolerancia a frustración en interacciones sociales.
  */
 export type ToleranciaFrustracion =
-  | 'ignora'
-  | 'intenta_una'
-  | 'insiste'
-  | 'se_altera'
+  'ignora' | 'intenta_una' | 'insiste' | 'se_altera'
 
 /**
  * Compatibilidad de tamaño con otros perros en paseos grupales.
@@ -105,12 +99,18 @@ export interface VacunaMascota {
 /**
  * Representa los datos de una mascota de un usuario.
  * Incluye información de identificación, características físicas, salud, historial médico y preferencias de paseo.
+ *
+ * MULTI-TUTOR: Una mascota puede tener múltiples tutores:
+ * - creado_por: tutor que creó la mascota (propietario principal, nunca cambia)
+ * - ids_tutores: array de UIDs de otros tutores que pueden acceder/editar la mascota
  */
 export interface Mascota extends BaseModel {
   /** Nombre dado a la mascota. */
   nombre: string
   /** URL o ruta de la imagen de la mascota. */
   foto?: string
+  /** IDs de tutores adicionales que comparten acceso a esta mascota. Array de UIDs. */
+  ids_tutores?: string[]
 
   /** Especie de la mascota. */
   especie: EspecieMascota

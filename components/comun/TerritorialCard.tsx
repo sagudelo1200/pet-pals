@@ -238,12 +238,12 @@ function generarNarrativa(narrativaSec: any): Narrativa {
 
 function generarNombre(tipo: string, indices: any): string {
   const nombres = {
-    parque: `Parque de los Encuentros`,
-    calle: `Caminata Urbana`,
-    comercio: `Zona Comercial Vivaz`,
-    conjunto: `Conjunto Residencial`,
-    otro: `Rincón del Barrio`,
-    mixto: `Zona Diversa`,
+    parque: 'Parque de los Encuentros',
+    calle: 'Caminata Urbana',
+    comercio: 'Zona Comercial Vivaz',
+    conjunto: 'Conjunto Residencial',
+    otro: 'Rincón del Barrio',
+    mixto: 'Zona Diversa',
   }
   return nombres[tipo as keyof typeof nombres] || 'Este Lugar'
 }

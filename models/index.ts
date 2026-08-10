@@ -30,3 +30,10 @@ export { type ResumenTerritorial } from './ResumenTerritorial'
 export { type Valoracion } from './Valoracion'
 export { type ExcepcionDisponibilidad } from './ExcepcionDisponibilidad'
 export { type BaseModel } from './BaseModel'
+export {
+  type TipoVerificacion,
+  type EstadoVerificacion,
+  type MetodoVerificacion,
+  type ProveedorVerificacion,
+  type Verificacion,
+} from './Verificacion'

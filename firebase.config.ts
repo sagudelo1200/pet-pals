@@ -3,6 +3,7 @@ import { initializeApp, type FirebaseOptions } from 'firebase/app'
 import { initializeAuth, getReactNativePersistence } from 'firebase/auth'
 import { getFirestore } from 'firebase/firestore'
 import { getDatabase } from 'firebase/database'
+import { getFunctions } from 'firebase/functions'
 import ReactNativeAsyncStorage from '@react-native-async-storage/async-storage'
 import Constants from 'expo-constants'
 
@@ -24,3 +25,4 @@ export const auth = initializeAuth(app, {
 
 export const db = getFirestore(app)
 export const rtdb = getDatabase(app)
+export const functions = getFunctions(app)

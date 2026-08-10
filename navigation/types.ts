@@ -31,6 +31,7 @@ export type AuthFlowParamList = {
   Bienvenida: undefined
   Ingresar: undefined
   Registro: undefined
+  VerificarEmail: { email: string; uid: string }
 }
 
 // Tabs principales de la aplicación
