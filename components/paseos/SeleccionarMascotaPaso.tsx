@@ -26,8 +26,12 @@ export const SeleccionarMascotaPaso = ({
   onCancel,
 }: Props) => {
   const { t } = useTranslation()
-  const { mascotas, mascotasSeleccionadas, toggleMascota } =
-    useSeleccionarMascota(mascotasInicialesIds)
+  const {
+    mascotas,
+    mascotasSeleccionadas,
+    toggleMascota,
+    mascotasConPaseoEnCurso,
+  } = useSeleccionarMascota(mascotasInicialesIds)
 
   const handleContinuar = () => {
     if (mascotasSeleccionadas.length > 0) {
@@ -43,9 +47,19 @@ export const SeleccionarMascotaPaso = ({
   const renderItem = ({ item }: { item: any }) => {
     const isSelected = mascotasSeleccionadas.includes(item.id)
     const esListaParaPaseo = isListaParaPaseo(item)
+    const conPaseoEnCurso = mascotasConPaseoEnCurso.has(item.id)
+    const puedeSeleccionar = esListaParaPaseo && !conPaseoEnCurso
     const completitud = calcularCompletitud(item)
 
     const handlePress = () => {
+      if (conPaseoEnCurso) {
+        Alert.alert(
+          t('paseos:errores.mascota_no_disponible'),
+          t('paseos:errores.MASCOTA_YA_TIENE_PASEO'),
+          [{ text: t('comun:entendido'), style: 'default' }]
+        )
+        return
+      }
       if (!esListaParaPaseo) {
         Alert.alert(
           t('paseos:errores.mascota_no_lista_titulo'),
@@ -62,16 +76,16 @@ export const SeleccionarMascotaPaso = ({
         style={[
           styles.card,
           isSelected && styles.cardSelected,
-          !esListaParaPaseo && styles.cardDisabled,
+          !puedeSeleccionar && styles.cardDisabled,
         ]}
         onPress={handlePress}
-        activeOpacity={esListaParaPaseo ? 0.8 : 0.5}
-        disabled={!esListaParaPaseo}
+        activeOpacity={puedeSeleccionar ? 0.8 : 0.5}
+        disabled={!puedeSeleccionar}
       >
-        {/* Contenedor de avatar con indicador de bloqueo si no está lista */}
+        {/* Contenedor de avatar con indicador de bloqueo */}
         <View style={styles.avatarContainer}>
           <PetAvatar uri={item.foto} size="medium" />
-          {!esListaParaPaseo && (
+          {!puedeSeleccionar && (
             <View style={styles.lockOverlay}>
               <Icon
                 name="lock"
@@ -86,21 +100,23 @@ export const SeleccionarMascotaPaso = ({
           style={[
             styles.name,
             isSelected && styles.nameSelected,
-            !esListaParaPaseo && styles.nameDisabled,
+            !puedeSeleccionar && styles.nameDisabled,
             { fontWeight: 'bold' },
           ]}
         >
           {item.nombre}
         </Text>
-        {esListaParaPaseo ? (
+        {puedeSeleccionar ? (
           <Text
-            style={[styles.breed, !esListaParaPaseo && styles.breedDisabled]}
+            style={[styles.breed, !puedeSeleccionar && styles.breedDisabled]}
           >
             {item.raza}
           </Text>
         ) : (
           <Text style={styles.notReadyLabel}>
-            {t('paseos:pasos.seleccionar_mascota.no_lista')}
+            {conPaseoEnCurso
+              ? t('paseos:pasos.seleccionar_mascota.paseo_en_curso')
+              : t('paseos:pasos.seleccionar_mascota.no_lista')}
           </Text>
         )}
       </TouchableOpacity>

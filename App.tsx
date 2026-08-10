@@ -16,13 +16,10 @@ import '@/logic/paseos/backgroundTask'
 
 // Componente principal - Solo configuración global
 export default function App(): React.ReactElement {
-  // Desactivar el escalado de fuente por accesibilidad en toda la app
-  // para evitar que cambios globales del dispositivo rompan el layout.
-  if ((Text as any).defaultProps == null) (Text as any).defaultProps = {}
-  ;(Text as any).defaultProps.allowFontScaling = false
-  if ((TextInput as any).defaultProps == null)
-    (TextInput as any).defaultProps = {}
-  ;(TextInput as any).defaultProps.allowFontScaling = false
+  // Control del escalado de fuentes: usar componentes `AppText` y `AppTextInput`
+  // para aplicar un escalado con tope razonable. Evitamos desactivar globalmente
+  // el escalado porque perjudica la accesibilidad. Migrar textos críticos a
+  // `components/ui/AppText` para proteger los CTA si es necesario.
 
   React.useEffect(() => {
     TerritorialAggregator.initialize()

@@ -29,14 +29,24 @@ export function mapFirebaseError(err: unknown): ErrorCode {
 
   const anyErr = err as any
   const code: string | undefined = anyErr?.code
+  const message: string = anyErr?.message ?? ''
   // Normalizar códigos de Firebase
   // Evitar imprimir 'undefined' cuando no exista `message`. Mostrar JSON del error como fallback.
-  const mensajeLog = anyErr?.message ?? JSON.stringify(anyErr)
+  const mensajeLog = message ?? JSON.stringify(anyErr)
   // Si se ejecuta desde los __test__, evitar el console.warn
   if (typeof jest === 'undefined') {
     console.warn(
       `mapFirebaseError: mapeando error Firebase: [${code}] ${mensajeLog}`
     )
+  }
+
+  // Detectar error específico de imagen demasiado grande
+  if (
+    code === 'invalid-argument' &&
+    message.includes('foto') &&
+    message.includes('longer than')
+  ) {
+    return ERR.COMUN.DATOS_INVALIDOS
   }
 
   switch (code) {
@@ -79,7 +89,6 @@ export function mapFirebaseError(err: unknown): ErrorCode {
   }
 
   // Si el mensaje ya es un código ERR, respétalo
-  const message: string | undefined = anyErr?.message
   if (message) {
     const values = collectErrorLeafValues(ERR)
     if (values.includes(message)) return message as ErrorCode

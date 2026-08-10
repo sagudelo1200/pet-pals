@@ -14,7 +14,6 @@ import {
   AuthResult,
 } from '@/services/firebase'
 import { GestorAuth } from '@/logic/auth'
-import { asegurarRolExplorador } from '@/logic/auth/migracionRolExplorador'
 import { RolUsuario, Usuario } from '@/models/Usuario'
 
 /** Contexto de autenticación (provee user, roles y helpers). */
@@ -66,22 +65,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           if (res.success && res.data) {
             setProfile(res.data)
             setRoles(res.data.roles)
-
-            // MIGRACIÓN: Asegurar que el usuario tiene rol 'explorador'
-            // Si no lo tiene, agregarlo automáticamente
-            if (!res.data.roles?.includes('explorador')) {
-              const migracionOk = await asegurarRolExplorador(firebaseUser.uid)
-              if (migracionOk) {
-                // Recargar perfil para obtener los roles actualizados
-                const resActualizado = await ServicioUsuario.obtenerPorId(
-                  firebaseUser.uid
-                )
-                if (resActualizado.success && resActualizado.data) {
-                  setProfile(resActualizado.data)
-                  setRoles(resActualizado.data.roles)
-                }
-              }
-            }
           } else {
             setProfile(null)
             setRoles([])

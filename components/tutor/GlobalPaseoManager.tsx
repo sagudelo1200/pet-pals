@@ -4,12 +4,14 @@ import { BlurView } from 'expo-blur'
 import { PaseoFinalizadoCard } from '@/components/paseos/PaseoFinalizadoCard'
 import { useMonitorPaseoGlobal } from '@/hooks/paseos/useMonitorPaseoGlobal'
 import { useNavigation } from '@react-navigation/native'
+import { useRol } from '@/context/RolContext'
 import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs'
 import type { TutorTabParamList } from '@/navigation/types'
 
 export const GlobalPaseoManager = () => {
   const { showFinishedModal, paseo, handleClose } = useMonitorPaseoGlobal()
   const navigation = useNavigation<BottomTabNavigationProp<TutorTabParamList>>()
+  const { rolActivo } = useRol()
 
   const onClose = async () => {
     try {
@@ -25,7 +27,7 @@ export const GlobalPaseoManager = () => {
     }
   }
 
-  if (!showFinishedModal || !paseo) return null
+  if (!showFinishedModal || !paseo || !rolActivo) return null
 
   return (
     <Modal
@@ -46,12 +48,26 @@ export const GlobalPaseoManager = () => {
         )}
 
         <View style={styles.modalContent}>
-          <PaseoFinalizadoCard
-            mascotaNombre={paseo.tutor?.nombre || 'Tu mascota'}
-            cuidadorNombre={paseo.cuidador?.nombre || 'El cuidador'}
-            onClose={onClose}
-            onRate={r => console.log('Rating:', r)}
-          />
+          {/* Tutor: Calificar al cuidador */}
+          {rolActivo === 'tutor' && (
+            <PaseoFinalizadoCard
+              mascotaNombre={paseo.tutor?.nombre || 'Tu mascota'}
+              cuidadorNombre={paseo.cuidador?.nombre || 'El cuidador'}
+              onClose={onClose}
+              onRate={r => console.log('Rating:', r)}
+            />
+          )}
+
+          {/* Cuidador: Mostrar resumen diferente */}
+          {rolActivo === 'cuidador' && (
+            <PaseoFinalizadoCard
+              mascotaNombre={paseo.tutor?.nombre || 'Tu mascota'}
+              cuidadorNombre={paseo.cuidador?.nombre || 'El cuidador'}
+              onClose={onClose}
+              onRate={r => console.log('Rating:', r)}
+            />
+          )}
+          {/* TODO: Reemplazar con componente para cuidador cuando esté disponible */}
         </View>
       </View>
     </Modal>

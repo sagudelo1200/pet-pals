@@ -83,9 +83,7 @@
     "error_red": "Error de conexión. Verifica tu internet",
     "error_validacion": "Los datos proporcionados no son válidos",
     "error_cargar": "Error al cargar los paseos",
-    "motivo_requerido": "Se requiere un motivo para esta acción",
-    "mascota_no_disponible": "Una o más mascotas ya tienen un paseo en ese horario",
-    "MASCOTA_YA_TIENE_PASEO": "Una mascota ya tiene un paseo en este horario"
+    "motivo_requerido": "Se requiere un motivo para esta acción"
   },
   "boton_solicitar": "Solicitar paseo",
   "flujo": {
@@ -102,7 +100,8 @@
       "titulo": "¿Con quién vamos?",
       "placeholder": "Selecciona una mascota",
       "incompleta": "incompleta",
-      "no_lista": "mascota no lista"
+      "no_lista": "mascota no lista",
+      "paseo_en_curso": "paseo en curso"
     },
     "fecha_hora": {
       "titulo": "¿Cuándo lo hacemos?",

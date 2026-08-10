@@ -15,6 +15,7 @@
     "error_cargar": "No pudimos cargar tus mascotas. Intenta nuevamente",
     "error_cargar_imagen": "No pudimos cargar la imagen seleccionada.",
     "imagen_demasiado_grande": "La imagen es demasiado grande. Máximo permitido: {{tamaño_maximo}}",
+    "foto_muy_grande": "Foto demasiado grande",
     "sincronizacion_fallida": "Error de sincronización"
   },
   "lista": {

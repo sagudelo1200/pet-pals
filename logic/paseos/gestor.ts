@@ -656,73 +656,63 @@ async function validarNoDoubleBooking(
 }
 
 /**
- * Valida que ninguna mascota tenga un paseo activo en el mismo día/horario
- * Aplicar ANTES de crear un nuevo paseo
- *
- * @param mascotaIds IDs de mascotas que se solicitan
- * @param fechaInicio Hora de inicio del paseo
- * @param duracion Duración en minutos
- * @returns { success: true } o { success: false, error, detalles }
+ * Valida que una mascota no tenga otro paseo solapado en la misma franja horaria.
+ * Similar a validarNoDoubleBooking pero por `mascotaId`.
+ * Solo valida paseos propios (creado_por == uid) para cumplir permisos de Firestore.
  */
-async function validarDisponibilidadMascotas(
-  mascotaIds: string[],
+async function validarNoSolapamientoPorMascota(
+  mascotaId: string,
   fechaInicio: Date,
-  duracion: number
+  duracion: number,
+  uid: string
 ) {
   try {
-    if (!mascotaIds || mascotaIds.length === 0) {
-      return { success: true } // Sin mascotas, no hay conflicto
-    }
+    const estadosActivos = [
+      ESTADOS_PASEO.PENDIENTE,
+      ESTADOS_PASEO.CONFIRMADO,
+      ESTADOS_PASEO.EN_CAMINO,
+      ESTADOS_PASEO.EN_PROGRESO,
+    ]
 
-    // Query: paseos que contengan ANY de estas mascotas en estados activos
-    const agendaQuery = query(
+    const q = query(
       collection(db, 'paseos'),
-      where('mascota_ids', 'array-contains-any', mascotaIds),
-      where('estado', 'in', [
-        ESTADOS_PASEO.CONFIRMADO,
-        ESTADOS_PASEO.EN_CAMINO,
-        ESTADOS_PASEO.EN_PROGRESO,
-        ESTADOS_PASEO.PENDIENTE, // También validar solicitados recientes
-      ])
+      where('creado_por', '==', uid),
+      where('mascota_ids', 'array-contains', mascotaId),
+      where('estado', 'in', estadosActivos)
     )
 
-    const docs = await getDocs(agendaQuery)
+    const docs = await getDocs(q)
     const fechaFin = new Date(fechaInicio.getTime() + duracion * 60000)
 
     for (const doc of docs.docs) {
       const paseoExistente = doc.data() as Paseo
+      const inicioExistente = new Date(paseoExistente.fecha_hora_inicio)
       const finExistente = new Date(
-        paseoExistente.fecha_hora_inicio.getTime() +
+        inicioExistente.getTime() +
           (paseoExistente.duracion_estimada || 0) * 60000
       )
 
-      // Verificar overlap de horarios (sin buffer para mascotas, no puede haber overlaps)
+      const bufferMs = 5 * 60 * 1000
       const overlapDetectado =
-        fechaInicio < finExistente &&
-        fechaFin > paseoExistente.fecha_hora_inicio
+        fechaInicio < new Date(finExistente.getTime() + bufferMs) &&
+        fechaFin > new Date(inicioExistente.getTime() - bufferMs)
 
       if (overlapDetectado) {
-        // Determinar qué mascota está en conflicto
-        const mascotasEnConflicto = (paseoExistente.mascota_ids || []).filter(
-          id => mascotaIds.includes(id)
-        )
-        const nombreMascotas = mascotasEnConflicto.join(', ')
-
         return {
           success: false,
-          error: 'MASCOTA_YA_TIENE_PASEO',
-          detalles: `${nombreMascotas} ya tiene un paseo en ese horario`,
+          error: 'DOBLE_BOOKING_MASCOTA',
+          detalles: `Mascota ${mascotaId} tiene otro paseo de ${paseoExistente.duracion_estimada}min a las ${inicioExistente.toLocaleTimeString()}`,
         }
       }
     }
 
     return { success: true }
   } catch (error) {
-    console.error('[ValidarDisponibilidadMascotas] Error:', error)
+    console.error('[Tier1.3] Error validando solapamiento por mascota:', error)
     return {
       success: false,
       error: 'ERROR_VALIDACION',
-      detalles: 'No se pudo verificar disponibilidad de mascotas',
+      detalles: 'No se pudo verificar disponibilidad de la mascota',
     }
   }
 }
@@ -771,6 +761,23 @@ export async function crearConMascotas(
           error: ERR.MASCOTAS.MASCOTA_NO_PERTENECE_AL_USUARIO,
         }
       mascotasData.push(m)
+    }
+  }
+
+  // Validación adicional: asegurar que ninguna mascota seleccionada tenga
+  // otro paseo solapado en la misma franja horaria.
+  const fechaInicioRaw = (data as any).fecha_hora_inicio
+  const duracionPropuesta = (data as any).duracion_estimada || 60
+  if (fechaInicioRaw) {
+    const fechaInicio = new Date(fechaInicioRaw)
+    for (const mid of unique) {
+      const validMasc = await validarNoSolapamientoPorMascota(
+        mid,
+        fechaInicio,
+        duracionPropuesta,
+        uid
+      )
+      if (!validMasc.success) return validMasc
     }
   }
 
@@ -1434,7 +1441,6 @@ export const GestorPaseos = {
   completarPaseo,
   rechazarPaseo,
   validarCodigoRecogida,
-  validarDisponibilidadMascotas,
   obtenerQueryPaseosTutor,
   obtenerQuerySolicitudesPendientes,
   obtenerQueryAgendaCuidador,

@@ -12,6 +12,10 @@ import {
 import { useFormularioMascota } from '@/hooks/useFormularioMascota'
 import type { Mascota } from '@/models/Mascota'
 import * as ImagePicker from 'expo-image-picker'
+import {
+  validarTamañoImagen,
+  obtenerMensajeErrorTamaño,
+} from '@/services/imagen/compresion'
 import AcariciandoMascotaSvg from '@/assets/imgs/undraw/acariciando_mascota.svg'
 
 // Componente para animar la entrada de cada paso
@@ -147,10 +151,18 @@ export const CrearMascotaFlow: React.FC<CrearMascotaFlowProps> = ({
       base64: true,
     })
     if (!result.canceled && result.assets[0].base64) {
-      actualizarCampo(
-        'foto',
-        `data:image/jpeg;base64,${result.assets[0].base64}`
-      )
+      const fotoBase64 = `data:image/jpeg;base64,${result.assets[0].base64}`
+      const validacion = validarTamañoImagen(fotoBase64)
+
+      if (!validacion.valido) {
+        Alert.alert(
+          t('mascotas:errores.foto_muy_grande'),
+          obtenerMensajeErrorTamaño(validacion.tamaño, 'es')
+        )
+        return
+      }
+
+      actualizarCampo('foto', fotoBase64)
       triggerAvatarScale()
     }
   }
@@ -168,10 +180,18 @@ export const CrearMascotaFlow: React.FC<CrearMascotaFlowProps> = ({
       base64: true,
     })
     if (!result.canceled && result.assets[0].base64) {
-      actualizarCampo(
-        'foto',
-        `data:image/jpeg;base64,${result.assets[0].base64}`
-      )
+      const fotoBase64 = `data:image/jpeg;base64,${result.assets[0].base64}`
+      const validacion = validarTamañoImagen(fotoBase64)
+
+      if (!validacion.valido) {
+        Alert.alert(
+          t('mascotas:errores.foto_muy_grande'),
+          obtenerMensajeErrorTamaño(validacion.tamaño, 'es')
+        )
+        return
+      }
+
+      actualizarCampo('foto', fotoBase64)
       triggerAvatarScale()
     }
   }

@@ -13,9 +13,10 @@ yarn.lock
 OAuth.secrets.json
 credentials.json
 android/*
+android_old/*
 
 google-services.json
 firebaseCredentials.json
 
 
-landing_page
+landing_page/*

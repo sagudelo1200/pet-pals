@@ -83,9 +83,7 @@
     "error_red": "Connection error. Check your internet",
     "error_validacion": "The provided data is not valid",
     "error_cargar": "Error loading walks",
-    "motivo_requerido": "A reason is required for this action",
-    "mascota_no_disponible": "One or more pets already have a walk scheduled at that time",
-    "MASCOTA_YA_TIENE_PASEO": "A pet already has a walk at this time"
+    "motivo_requerido": "A reason is required for this action"
   },
   "boton_solicitar": "Request walk",
   "flujo": {
@@ -100,7 +98,10 @@
     "seleccionar_mascota": {
       "emocional": "Your friend deserves the best walk",
       "titulo": "Who's coming?",
-      "placeholder": "Select a pet"
+      "placeholder": "Select a pet",
+      "incompleta": "incomplete",
+      "no_lista": "pet not ready",
+      "paseo_en_curso": "walk in progress"
     },
     "fecha_hora": {
       "titulo": "When should we do it?",

@@ -3,10 +3,13 @@ import { Alert } from 'react-native'
 import { useTranslation } from 'react-i18next'
 import { useMascotas } from '@/hooks/useMascotas'
 import { MAX_MASCOTAS_POR_PASEO } from '@/constants/limits'
+import { useMascotasConPaseoEnCurso } from '@/hooks/paseos/useMascotasConPaseoEnCurso'
 
 export const useSeleccionarMascota = (mascotasInicialesIds: string[] = []) => {
   const { t } = useTranslation()
   const { mascotas, loading } = useMascotas()
+  const { mascotasConPaseo, loading: cargandoPaseos } =
+    useMascotasConPaseoEnCurso()
 
   const [mascotasSeleccionadas, setMascotasSeleccionadas] =
     useState<string[]>(mascotasInicialesIds)
@@ -27,6 +30,16 @@ export const useSeleccionarMascota = (mascotasInicialesIds: string[] = []) => {
 
   const toggleMascota = useCallback(
     (id: string) => {
+      // Si la mascota tiene un paseo en curso, no permitir seleccionar
+      if (mascotasConPaseo.has(id)) {
+        Alert.alert(
+          t('paseos:errores.mascota_no_disponible'),
+          t('paseos:errores.MASCOTA_YA_TIENE_PASEO'),
+          [{ text: 'OK' }]
+        )
+        return
+      }
+
       setMascotasSeleccionadas(prev => {
         if (prev.includes(id)) {
           return prev.filter(p => p !== id)
@@ -40,7 +53,7 @@ export const useSeleccionarMascota = (mascotasInicialesIds: string[] = []) => {
         return [...prev, id]
       })
     },
-    [t]
+    [t, mascotasConPaseo]
   )
 
   return {
@@ -48,5 +61,7 @@ export const useSeleccionarMascota = (mascotasInicialesIds: string[] = []) => {
     loading,
     mascotasSeleccionadas,
     toggleMascota,
+    mascotasConPaseoEnCurso: mascotasConPaseo,
+    cargandoPaseos,
   }
 }

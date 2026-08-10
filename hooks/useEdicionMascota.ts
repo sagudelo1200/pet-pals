@@ -7,6 +7,10 @@ import {
   calcularCompletitud,
   type CompletitudMascota,
 } from '@/logic/mascotas/calcularCompletitud'
+import {
+  validarTamañoImagen,
+  obtenerMensajeErrorTamaño,
+} from '@/services/imagen/compresion'
 import type { Mascota } from '@/models/Mascota'
 import { useMascotaRealtime } from './useMascotaRealtime'
 
@@ -160,7 +164,7 @@ export const useEdicionMascota = (
         mediaTypes: 'images',
         allowsEditing: true,
         aspect: [1, 1],
-        quality: 0.5,
+        quality: 0.7,
         // base64: true, // Deprecated en versiones recientes de Expo
       })
 
@@ -171,39 +175,45 @@ export const useEdicionMascota = (
         try {
           const response = await fetch(asset.uri)
           const blob = await response.blob()
-
-          // Validar tamaño de la imagen (máximo 5 MB)
-          const maxSizeInBytes = 5 * 1024 * 1024 // 5 MB
-          if (blob.size > maxSizeInBytes) {
-            Alert.alert(
-              t('comun:error'),
-              t('mascotas:errores.imagen_demasiado_grande', {
-                tamaño_maximo: '5 MB',
-              })
-            )
-            return
-          }
-
           const reader = new FileReader()
+
           reader.onload = () => {
             const base64data = reader.result as string
+
+            // Validar tamaño usando el servicio centralizado
+            const validacion = validarTamañoImagen(base64data)
+            if (!validacion.valido) {
+              Alert.alert(
+                t('mascotas:errores.foto_muy_grande'),
+                obtenerMensajeErrorTamaño(validacion.tamaño, 'es')
+              )
+              return
+            }
+
             setEditedData(prev => ({
               ...prev,
               foto: base64data,
             }))
           }
+
+          reader.onerror = () => {
+            Alert.alert(
+              t('comun:error'),
+              t('mascotas:errores.error_cargar_imagen')
+            )
+          }
+
           reader.readAsDataURL(blob)
         } catch (e) {
           console.error('Error convirtiendo imagen a base64:', e)
-          // Fallback a URI local si falla la conversión (aunque no persistirá en nube)
-          setEditedData(prev => ({
-            ...prev,
-            foto: asset.uri,
-          }))
+          Alert.alert(
+            t('comun:error'),
+            t('mascotas:errores.error_cargar_imagen')
+          )
         }
       }
-    } catch (error) {
-      console.error('Error al seleccionar imagen:', error)
+    } catch (e) {
+      console.error('Error al cambiar foto:', e)
       Alert.alert(t('comun:error'), t('mascotas:errores.error_cargar_imagen'))
     }
   }
