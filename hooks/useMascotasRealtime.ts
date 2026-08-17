@@ -12,6 +12,9 @@ interface UseMascotasRealtimeResult {
  * Hook para suscribirse a mascotas de un usuario en tiempo real desde Firestore.
  * Maneja automáticamente el ciclo de vida de la suscripción.
  *
+ * Nota: AuthNavigator es la puerta única de entrada. Solo usuarios verificados
+ * via OTP pueden llegar a componentes que usan este hook.
+ *
  * @param userId - ID del usuario propietario de las mascotas
  * @returns Objeto con mascotas, loading y error
  *

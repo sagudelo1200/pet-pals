@@ -1,5 +1,12 @@
 import React, { useCallback, useMemo, useState, useRef, useEffect } from 'react'
-import { StyleSheet, View, Alert, Animated, Dimensions } from 'react-native'
+import {
+  StyleSheet,
+  View,
+  Alert,
+  Animated,
+  Dimensions,
+  Keyboard,
+} from 'react-native'
 import { Block, Text } from 'galio-framework'
 import { COLOR } from '@/constants'
 import { Button, TextInput } from '@/components/ui'
@@ -7,7 +14,6 @@ import { GoogleSignInButton } from '@/components/auth/GoogleSignInButton'
 import { BirthDatePicker } from '@/components/auth/BirthDatePicker'
 import Screen from '@/components/ui/Screen'
 import { useAuth } from '@/context/AuthContext'
-import { tErrorMaybe } from '@/services/i18n'
 import { useTranslation } from 'react-i18next'
 import { useNavigation } from '@react-navigation/native'
 import type { StackNavigationProp } from '@react-navigation/stack'
@@ -17,9 +23,39 @@ type Nav = StackNavigationProp<AuthFlowParamList>
 
 const { height } = Dimensions.get('window')
 
+// Mapeo de códigos de error de autenticación a mensajes user-friendly
+const getAuthErrorMessage = (
+  errorCode: string | undefined,
+  t: any
+): { titulo: string; mensaje: string } => {
+  if (!errorCode) {
+    return {
+      titulo: t('auth:registro.errores.registroFallido.titulo'),
+      mensaje: t('comun:intenta_nuevamente'),
+    }
+  }
+
+  const mensajeMap: Record<string, string> = {
+    CORREO_EN_USO: 'auth:errores.CORREO_EN_USO',
+    PASSWORD_DEBIL: 'auth:errores.PASSWORD_DEBIL',
+    CORREO_INVALIDO: 'auth:errores.CORREO_INVALIDO',
+    OPERACION_NO_PERMITIDA: 'auth:errores.OPERACION_NO_PERMITIDA',
+    ERROR_RED: 'auth:errores.ERROR_RED',
+  }
+
+  const mensajeTraduccido = mensajeMap[errorCode]
+    ? t(mensajeMap[errorCode])
+    : t('comun:intenta_nuevamente')
+
+  return {
+    titulo: t('auth:registro.errores.registroFallido.titulo'),
+    mensaje: mensajeTraduccido,
+  }
+}
+
 const Registro: React.FC = () => {
   const navigation = useNavigation<Nav>()
-  const { registrar, cargando, recargarPerfil } = useAuth()
+  const { registrar, cargando } = useAuth()
   const { t } = useTranslation()
   const [nombre, setNombre] = useState('')
   const [email, setEmail] = useState('')
@@ -28,11 +64,25 @@ const Registro: React.FC = () => {
   const [emailTouched, setEmailTouched] = useState(false)
   const [passwordTouched, setPasswordTouched] = useState(false)
 
+  // Control de montaje para evitar setState en componentes desmontados
+  const isMountedRef = useRef(true)
+
+  // Refs para controlar foco entre inputs
+  const nombreInputRef = useRef<any>(null)
+  const emailInputRef = useRef<any>(null)
+  const passwordInputRef = useRef<any>(null)
+
   // Animaciones
   const messageOpacity = useRef(new Animated.Value(0)).current
   const messageTranslateY = useRef(new Animated.Value(20)).current
   const formOpacity = useRef(new Animated.Value(0)).current
   const formTranslateY = useRef(new Animated.Value(30)).current
+
+  useEffect(() => {
+    return () => {
+      isMountedRef.current = false
+    }
+  }, [])
 
   useEffect(() => {
     // Secuencia de animaciones de entrada
@@ -94,7 +144,23 @@ const Registro: React.FC = () => {
   }, [password, passwordTouched, passwordValid, t])
 
   const fechaNacimientoError = useMemo(() => {
-    if (!fechaNacimiento) return t('auth:registro.errores.edad.minimo')
+    // Solo mostrar error si el usuario seleccionó una fecha pero es menor de edad
+    // (El DatePicker ya previene seleccionar fechas que hagan menor de edad)
+    if (!fechaNacimiento) return ''
+
+    const hoy = new Date()
+    const edad = hoy.getFullYear() - fechaNacimiento.getFullYear()
+    const mesActual = hoy.getMonth()
+    const mesNacimiento = fechaNacimiento.getMonth()
+    const diaActual = hoy.getDate()
+    const diaNacimiento = fechaNacimiento.getDate()
+
+    const tieneCumplios =
+      mesActual > mesNacimiento ||
+      (mesActual === mesNacimiento && diaActual >= diaNacimiento)
+    const edadReal = tieneCumplios ? edad : edad - 1
+
+    if (edadReal < 18) return t('auth:registro.errores.edad.minimo')
     return ''
   }, [fechaNacimiento, t])
 
@@ -108,46 +174,93 @@ const Registro: React.FC = () => {
   }, [nombre, emailValid, passwordValid, fechaNacimiento])
 
   const onSubmit = useCallback(async () => {
+    // Cerrar teclado inmediatamente al enviar
+    Keyboard.dismiss()
+
     if (!canSubmit) {
-      Alert.alert(
-        t('auth:compartido.errores.camposIncompletos.titulo'),
-        t('auth:compartido.errores.camposIncompletos.mensaje')
-      )
+      if (isMountedRef.current) {
+        Alert.alert(
+          t('auth:compartido.errores.camposIncompletos.titulo'),
+          t('auth:compartido.errores.camposIncompletos.mensaje')
+        )
+      }
       return
     }
 
+    console.log('[Registro] Llamando a registrar...', { email, nombre })
     const result = await registrar(
       email.trim(),
       password,
       nombre.trim(),
       fechaNacimiento
     )
+    console.log('[Registro] Resultado de registrar:', {
+      success: result.success,
+      user: result.user
+        ? {
+            uid: result.user.uid,
+            email: result.user.email,
+            emailVerified: result.user.emailVerified,
+          }
+        : null,
+      error: result.error,
+    })
+
     if (!result.success || !result.user) {
-      Alert.alert(
-        t('auth:registro.errores.registroFallido.titulo'),
-        tErrorMaybe(result.error, t('comun:intenta_nuevamente'))
-      )
+      if (isMountedRef.current) {
+        const { titulo, mensaje } = getAuthErrorMessage(result.error, t)
+        Alert.alert(titulo, mensaje)
+      }
       return
     }
 
-    // ✅ Registro exitoso: navegar a verificación de email
-    // No llamamos a recargarPerfil aquí; el perfil se carga tras validar el OTP
-    navigation.navigate('VerificarEmail', {
-      email: email.trim(),
-      uid: result.user.uid,
-    })
-  }, [
-    canSubmit,
-    email,
-    nombre,
-    password,
-    fechaNacimiento,
-    registrar,
-    navigation,
-  ])
+    // ✅ Registro exitoso: NO navegar aquí
+    // AuthNavigator detectará emailVerified=false y navegará automáticamente
+    // Esto evita conflictos de navegación simultánea
+    console.log(
+      '[Registro] ✅ Registro exitoso, esperando navegación de AuthNavigator...'
+    )
+  }, [canSubmit, email, nombre, password, fechaNacimiento, registrar, t])
+
+  // Validar nombre
+  const nombreValido = useCallback(() => nombre.trim().length > 0, [nombre])
+
+  // Validar email
+  const emailValido = useCallback(() => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    return emailRegex.test(email.trim())
+  }, [email])
+
+  // Validar password
+  const passwordValido = useCallback(() => password.length >= 6, [password])
+
+  // Avanzar de nombre a email
+  const handleNombreSubmit = useCallback(() => {
+    if (nombreValido()) {
+      emailInputRef.current?.focus?.()
+    }
+  }, [nombreValido])
+
+  // Avanzar de email a password
+  const handleEmailSubmit = useCallback(() => {
+    if (emailValido()) {
+      setEmailTouched(true)
+      passwordInputRef.current?.focus?.()
+    }
+  }, [emailValido])
+
+  // Avanzar de password a fecha de nacimiento
+  const handlePasswordSubmit = useCallback(() => {
+    if (passwordValido()) {
+      setPasswordTouched(true)
+      // No hay ref para BirthDatePicker, así que solo marcamos como tocado
+    }
+  }, [passwordValido])
 
   const goToLogin = useCallback(() => {
-    navigation.navigate('Ingresar')
+    if (isMountedRef.current) {
+      navigation.navigate('Ingresar')
+    }
   }, [navigation])
 
   return (
@@ -190,14 +303,18 @@ const Registro: React.FC = () => {
           ]}
         >
           <TextInput
+            ref={nombreInputRef}
             label={t('auth:registro.formulario.nombre.label')}
             value={nombre}
             onChangeText={setNombre}
             placeholder={t('auth:registro.formulario.nombre.placeholder')}
             iconName="user"
+            returnKeyType="next"
+            onSubmitEditing={handleNombreSubmit}
           />
 
           <TextInput
+            ref={emailInputRef}
             label={t('auth:registro.formulario.correo.label')}
             value={email}
             onChangeText={tVal => {
@@ -209,9 +326,12 @@ const Registro: React.FC = () => {
             autoCapitalize="none"
             iconName="envelope"
             errorText={emailError}
+            returnKeyType="next"
+            onSubmitEditing={handleEmailSubmit}
           />
 
           <TextInput
+            ref={passwordInputRef}
             label={t('auth:registro.formulario.password.label')}
             value={password}
             onChangeText={tVal => {
@@ -223,6 +343,8 @@ const Registro: React.FC = () => {
             autoCapitalize="none"
             iconName="lock"
             errorText={passwordError}
+            returnKeyType="next"
+            onSubmitEditing={handlePasswordSubmit}
           />
 
           <BirthDatePicker

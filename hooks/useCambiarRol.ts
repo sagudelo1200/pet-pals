@@ -1,12 +1,10 @@
 import { useState } from 'react'
 import { useAuth } from '@/context/AuthContext'
-import { useRol } from '@/context/RolContext'
 import { GestorUsuarios } from '@/logic/usuarios'
 import type { RolUsuario } from '@/models/Usuario'
 
 export const useCambiarRol = () => {
-  const { user, profile, recargarPerfil } = useAuth()
-  const { cambiarRolActivo } = useRol()
+  const { user, profile, recargarPerfil, cambiarRolActivo } = useAuth()
   const [cargando, setCargando] = useState(false)
   const [error, setError] = useState<string | null>(null)
 

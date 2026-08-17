@@ -29,6 +29,7 @@ export default function Mascotas({ navigation }: any) {
   const { t } = useTranslation()
   const { user } = useAuth()
   const { mascotas: mascotasContext, crear, refrescar } = useMascotas()
+
   const {
     mascotas: mascotasRealtime,
     loading,

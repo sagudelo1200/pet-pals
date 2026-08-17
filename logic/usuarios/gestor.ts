@@ -136,10 +136,19 @@ export const GestorUsuarios = {
         h3_r8
       )
 
-      return ServicioUsuario.actualizar(userId, {
+      const resUsuario = await ServicioUsuario.actualizar(userId, {
         ubicaciones: lista,
         id_ubicacion_principal: idPrincipal,
       })
+
+      if (!resUsuario.success) return resUsuario
+
+      // Si es la primera ubicación o es principal y tiene h3_r8, sincronizar al PerfilPublico
+      if (h3_r8 && idPrincipal === ubicacionId) {
+        await GestorPerfilPublico.actualizar(userId, { h3_r8 })
+      }
+
+      return resUsuario
     } catch (e: any) {
       return { success: false, error: String(e) }
     }
@@ -160,10 +169,22 @@ export const GestorUsuarios = {
         ubicacionId
       )
 
-      return ServicioUsuario.actualizar(userId, {
+      const resUsuario = await ServicioUsuario.actualizar(userId, {
         ubicaciones: lista,
         id_ubicacion_principal: idPrincipal,
       })
+
+      if (!resUsuario.success) return resUsuario
+
+      // Sincronizar h3_r8 de la nueva ubicación principal al PerfilPublico
+      const ubicacionPrincipal = lista.find(u => u.ubicacion_id === idPrincipal)
+      if (ubicacionPrincipal?.h3_r8) {
+        await GestorPerfilPublico.actualizar(userId, {
+          h3_r8: ubicacionPrincipal.h3_r8,
+        })
+      }
+
+      return resUsuario
     } catch (e: any) {
       return { success: false, error: String(e) }
     }

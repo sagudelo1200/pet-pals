@@ -1,17 +1,21 @@
-import * as functions from "firebase-functions";
-import {defineSecret} from "firebase-functions/params";
-import * as sgMail from "@sendgrid/mail";
-import * as admin from "firebase-admin";
+import * as functions from 'firebase-functions'
+import sgMail from '@sendgrid/mail'
+import * as admin from 'firebase-admin'
 
 if (!admin.apps || admin.apps.length === 0) {
-  admin.initializeApp();
+  admin.initializeApp()
 }
 
-const db = admin.firestore();
-const SENDGRID_API_KEY = defineSecret("SENDGRID_API_KEY");
-const MINUTOS_EXPIRACION = 10;
+const db = admin.firestore()
+const MINUTOS_EXPIRACION = 10
 
-// Interfaces para tipado (copiadas de models/OTPCode.ts)
+// Inicializar SendGrid con API key (del secreto de Firebase Functions)
+const sendgridApiKey = process.env.SENDGRID_API_KEY
+if (sendgridApiKey) {
+  sgMail.setApiKey(sendgridApiKey)
+}
+
+// Interfaces para tipado
 interface EnviarOTPRequest {
   email: string
   uid: string
@@ -25,73 +29,53 @@ interface EnviarOTPResponse {
 }
 
 /**
- * Cloud Function: Genera y envía OTP por email via SendGrid
- *
- * FLOW:
- * 1. Cliente llama con email + uid
- * 2. Función genera OTP de 6 dígitos aleatorio
- * 3. Envía email via SendGrid
- * 4. Guarda OTP en Firestore/otp_codes/{uid} con TTL de 10 minutos
- * 5. Responde al cliente con éxito
- *
- * @param data {EnviarOTPRequest}
- * @param context Firebase context
- * @returns {EnviarOTPResponse}
+ * Genera OTP de 6 dígitos y lo envía por email. No retorna código en respuesta.
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const enviarOTP = functions.https.onCall(
-  {secrets: [SENDGRID_API_KEY]},
+  { secrets: ['SENDGRID_API_KEY'] },
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async (request: any): Promise<EnviarOTPResponse> => {
     try {
-      // 1. VALIDACIONES
       if (!request.auth) {
         return {
           success: false,
-          error: "Usuario no autenticado",
-        } as EnviarOTPResponse;
+          error: 'Usuario no autenticado',
+        } as EnviarOTPResponse
       }
 
-      const {email, uid} = request.data as EnviarOTPRequest;
+      const { email, uid } = request.data as EnviarOTPRequest
 
       if (!email || !uid) {
         return {
           success: false,
-          error: "Email y UID son requeridos",
-        } as EnviarOTPResponse;
+          error: 'Email y UID son requeridos',
+        } as EnviarOTPResponse
       }
 
       if (request.auth.uid !== uid) {
         return {
           success: false,
-          error: "El UID no coincide con el usuario autenticado",
-        } as EnviarOTPResponse;
+          error: 'El UID no coincide con el usuario autenticado',
+        } as EnviarOTPResponse
       }
 
-      // 2. GENERAR OTP (6 dígitos aleatorio)
-      const otp = String(Math.floor(Math.random() * 999999)).padStart(6, "0");
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+      if (!emailRegex.test(email)) {
+        return {
+          success: false,
+          error: 'Formato de email inválido',
+        } as EnviarOTPResponse
+      }
 
-      // 3. PREPARAR EMAIL
-      sgMail.setApiKey(SENDGRID_API_KEY.value());
-
-      const emailContent = {
-        to: email,
-        from: "noreply@paw-path.com.co",
-        subject: "🔐 Tu código de verificación - Paw-Path",
-        html: buildEmailHTML(otp),
-      };
-
-      // 4. ENVIAR EMAIL
-      await sgMail.send(emailContent);
-
-      // 5. GUARDAR OTP EN FIRESTORE CON TTL
-      const ahora = admin.firestore.Timestamp.now();
+      const otp = String(Math.floor(Math.random() * 999999)).padStart(6, '0')
+      const ahora = admin.firestore.Timestamp.now()
       const expiraEn = new Date(
         ahora.toDate().getTime() + MINUTOS_EXPIRACION * 60000
-      );
+      )
 
       await db
-        .collection("otp_codes")
+        .collection('otp_codes')
         .doc(uid)
         .set({
           id: uid,
@@ -102,40 +86,50 @@ export const enviarOTP = functions.https.onCall(
           creado_en: ahora,
           expira_en: admin.firestore.Timestamp.fromDate(expiraEn),
           ttl: admin.firestore.Timestamp.fromDate(expiraEn),
-        });
+        })
 
-      // 6. RESPUESTA EXITOSA
+      /* Siempre enviar desde noreply */
+      const emailContent = {
+        to: email,
+        from: 'noreply@paw-path.com.co',
+        subject: '🔐 Tu código de verificación - Paw - Path',
+        html: buildEmailHTML(otp),
+      }
+
+      await sgMail.send(emailContent)
+      functions.logger.info(`[enviarOTP] OTP enviado a ${email} (UID: ${uid})`)
       return {
         success: true,
-        mensaje: "OTP enviado exitosamente",
+        mensaje: 'Código enviado a tu email. Revisa tu bandeja de entrada.',
         minutosExpiracion: MINUTOS_EXPIRACION,
-      } as EnviarOTPResponse;
+      } as EnviarOTPResponse
     } catch (error: unknown) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const err = error as Record<string, any>;
-      functions.logger.error("Error en enviarOTP:", error);
+      const err = error as Record<string, any>
+      functions.logger.error('[enviarOTP] Error:', error)
 
       // Detectar errores específicos de SendGrid
       if (err?.response?.body?.errors) {
         const sgError =
-          err.response.body.errors[0]?.message || "Error SendGrid desconocido";
+          err.response.body.errors[0]?.message || 'Error SendGrid desconocido'
         return {
           success: false,
           error: `Error de email: ${sgError}`,
-        } as EnviarOTPResponse;
+        } as EnviarOTPResponse
       }
 
       return {
         success: false,
-        error: (err?.message as string) || "Error desconocido al enviar OTP",
-      } as EnviarOTPResponse;
+        error:
+          (err?.message as string) || 'Error desconocido al enviar el código',
+      } as EnviarOTPResponse
     }
   }
-);
+)
 
 /**
- * Construye el HTML del email con diseño Paw-Path
- * Rompe líneas para cumplir con ESLint max-len (90 caracteres)
+ * Construye HTML profesional del email OTP
+ * Diseño limpio y responsive para móviles
  */
 function buildEmailHTML(otp: string): string {
   return `
@@ -147,229 +141,152 @@ function buildEmailHTML(otp: string): string {
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI',
-        Roboto, 'Helvetica Neue', Arial, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 
+                   'Helvetica Neue', Arial, sans-serif;
+      line-height: 1.6;
+      color: #333;
     }
-    .container { max-width: 600px; margin: 0 auto; background: #0A0F0E; }
-    .wrapper { background: #0A0F0E; padding: 0; }
-    .header {
-      background: linear-gradient(135deg, #1D8F73 0%, #2DB391 100%);
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      background: #f9f9f9;
+      padding: 20px;
+    }
+    .email-content {
+      background: white;
+      border-radius: 8px;
       padding: 40px 20px;
       text-align: center;
-      position: relative;
-      overflow: hidden;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
-    .header::before {
-      content: '';
-      position: absolute;
-      top: -20px;
-      right: -20px;
-      font-size: 120px;
-      opacity: 0.1;
+    .header {
+      margin-bottom: 30px;
     }
-    .logo { font-size: 42px; margin-bottom: 8px; }
-    .logo-text {
-      color: #EBF4F2;
-      font-size: 28px;
-      font-weight: 600;
-      letter-spacing: 1px;
-      margin: 0;
-    }
-    .tagline {
-      color: #98A7A4;
-      font-size: 13px;
-      margin-top: 4px;
-      font-weight: 300;
-    }
-    .content {
-      background: #121918;
-      padding: 40px 30px;
-      color: #EBF4F2;
-    }
-    .greeting {
-      font-size: 18px;
-      margin-bottom: 24px;
-      color: #EBF4F2;
-      line-height: 1.6;
-    }
-    .message {
-      font-size: 15px;
-      color: #98A7A4;
-      margin-bottom: 32px;
-      line-height: 1.8;
-    }
-    .otp-section {
-      background: linear-gradient(135deg, #1D8F73 0%, #2DB391 100%);
-      border-radius: 12px;
-      padding: 32px;
-      text-align: center;
-      margin: 32px 0;
-      box-shadow: 0 8px 24px rgba(29, 143, 115, 0.2);
-    }
-    .otp-label {
-      color: #98A7A4;
-      font-size: 13px;
-      text-transform: uppercase;
-      letter-spacing: 2px;
-      margin-bottom: 12px;
-      opacity: 0.9;
-    }
-    .otp-code {
+    .emoji {
       font-size: 48px;
-      font-weight: 700;
-      color: #F5F5DC;
-      letter-spacing: 8px;
-      font-family: 'Courier New', monospace;
-      margin: 0;
+      margin-bottom: 10px;
     }
-    .otp-timer {
-      color: #98A7A4;
-      font-size: 13px;
-      margin-top: 12px;
-      opacity: 0.8;
-    }
-    .features {
-      background: #182422;
-      border-left: 4px solid #2DB391;
-      padding: 20px;
-      margin: 28px 0;
-      border-radius: 4px;
-    }
-    .feature-item {
-      display: flex;
-      align-items: flex-start;
-      margin-bottom: 12px;
-      font-size: 14px;
-    }
-    .feature-item:last-child { margin-bottom: 0; }
-    .feature-icon {
-      margin-right: 12px;
-      font-size: 18px;
-      flex-shrink: 0;
-    }
-    .feature-text {
-      color: #EBF4F2;
-      line-height: 1.5;
-    }
-    .security-notice {
-      background: rgba(29, 143, 115, 0.1);
-      border: 1px solid #2DB391;
-      border-radius: 8px;
-      padding: 16px;
-      margin: 24px 0;
-      font-size: 13px;
-      color: #98A7A4;
-      line-height: 1.6;
-    }
-    .security-notice strong { color: #2DB391; }
-    .footer {
-      background: #0A0F0E;
-      padding: 24px 30px;
-      text-align: center;
-      border-top: 1px solid #1F2D2A;
-    }
-    .footer-text {
-      font-size: 12px;
-      color: #98A7A4;
-      line-height: 1.6;
+    h1 {
+      font-size: 24px;
+      color: #2C3E50;
       margin-bottom: 8px;
     }
-    .footer-links {
-      font-size: 11px;
-      color: #1D8F73;
+    .subtitle {
+      color: #7F8C8D;
+      font-size: 14px;
+      margin-bottom: 30px;
+    }
+    .otp-section {
+      background: #F0F7FF;
+      border: 2px solid #3498DB;
+      border-radius: 8px;
+      padding: 30px;
+      margin: 30px 0;
+    }
+    .otp-label {
+      color: #7F8C8D;
+      font-size: 14px;
+      margin-bottom: 12px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .otp-code {
+      font-size: 36px;
+      font-weight: bold;
+      color: #2C3E50;
+      font-family: 'Courier New', monospace;
+      letter-spacing: 4px;
+      background: white;
+      padding: 16px;
+      border-radius: 4px;
+    }
+    .otp-note {
+      color: #E74C3C;
+      font-size: 12px;
+      margin-top: 12px;
+      font-weight: 600;
+    }
+    .timer {
+      background: #FFE5E5;
+      border-left: 4px solid #E74C3C;
+      padding: 12px 16px;
+      border-radius: 4px;
+      margin: 20px 0;
+      text-align: left;
+      font-size: 13px;
+      color: #C0392B;
+    }
+    .footer {
+      color: #95A5A6;
+      font-size: 12px;
+      margin-top: 30px;
+      padding-top: 20px;
+      border-top: 1px solid #ECF0F1;
+    }
+    .footer-link {
+      color: #3498DB;
       text-decoration: none;
     }
-    .paw-print { font-size: 24px; margin: 16px 0; }
-    .divider { height: 1px; background: #1F2D2A; margin: 24px 0; }
+    .security-note {
+      background: #E8F8F5;
+      border-left: 4px solid #27AE60;
+      padding: 12px 16px;
+      border-radius: 4px;
+      margin-top: 20px;
+      font-size: 12px;
+      color: #27AE60;
+    }
   </style>
 </head>
 <body>
   <div class="container">
-    <div class="wrapper">
-      <!-- HEADER CON GRADIENTE -->
+    <div class="email-content">
       <div class="header">
-        <div class="logo">🐾</div>
-        <h1 class="logo-text">Paw-Path</h1>
-        <p class="tagline">Tu mascota merece un paseo con propósito</p>
+        <div class="emoji">🔐</div>
+        <h1>Verifica tu Email</h1>
+        <p class="subtitle">Paw-Path - Tu compañero en el cuidado de mascotas</p>
       </div>
 
-      <!-- CONTENIDO PRINCIPAL -->
-      <div class="content">
-        <h2 class="greeting">Bienvenido a Paw-Path 🎉</h2>
+      <p style="color: #555; font-size: 15px; margin-bottom: 20px;">
+        Hemos recibido una solicitud para verificar tu email. Usa el siguiente código:
+      </p>
 
-        <p class="message">
-          Bienvenido a Paw-Path. Para completar tu registro y acceder
-          a todas las características de seguridad y bienestar para tu
-          mascota, necesitamos verificar tu email.
-        </p>
-
-        <!-- SECCIÓN OTP -->
-        <div class="otp-section">
-          <p class="otp-label">Tu código de verificación</p>
-          <p class="otp-code">${otp}</p>
-          <p class="otp-timer">Válido por ${MINUTOS_EXPIRACION} minutos</p>
-        </div>
-
-        <!-- CARACTERÍSTICAS -->
-        <div class="features">
-          <div class="feature-item">
-            <div class="feature-icon">🛡️</div>
-            <div class="feature-text">
-              <strong>Verificación segura:</strong> Tu email ha sido
-              verificado correctamente.
-            </div>
-          </div>
-          <div class="feature-item">
-            <div class="feature-icon">📍</div>
-            <div class="feature-text">
-              <strong>Localización en tiempo real:</strong> Sigue cada
-              paseo de tu mascota.
-            </div>
-          </div>
-          <div class="feature-item">
-            <div class="feature-icon">🤝</div>
-            <div class="feature-text">
-              <strong>Red de confianza:</strong> Conecta con
-              cuidadores verificados.
-            </div>
-          </div>
-        </div>
-
-        <!-- NOTICIA DE SEGURIDAD -->
-        <div class="security-notice">
-          <strong>🔒 Por tu seguridad:</strong> Nunca compartimos
-          este código. Si no solicitaste este email, puedes
-          ignorarlo sin riesgo.
-        </div>
-
-        <div class="divider"></div>
-
-        <p class="message" style="font-size: 13px; text-align: center;">
-          ¿Preguntas? Estamos aquí para ayudarte. Responde este
-          email o visita nuestro centro de ayuda.
-        </p>
+      <div class="otp-section">
+        <div class="otp-label">Código de Verificación</div>
+        <div class="otp-code">${otp}</div>
+        <div class="otp-note">⚠️ No compartas este código con nadie</div>
       </div>
 
-      <!-- FOOTER -->
+      <div class="timer">
+        ⏱️ Este código <strong>expira en ${MINUTOS_EXPIRACION} minutos</strong>
+      </div>
+
+      <p style="color: #7F8C8D; font-size: 14px;">
+        Ingresa este código en la aplicación para completar tu verificación.
+      </p>
+
+      <div class="security-note">
+        <strong>🛡️ Seguridad:</strong> Si no solicitaste este código, ignora 
+        este email y tu cuenta estará segura.
+      </div>
+
       <div class="footer">
-        <div class="paw-print">🐾 🐾 🐾</div>
-        <p class="footer-text">
-          © 2024 Paw-Path. Todos los derechos reservados.
+        <p>© 2026 Paw-Path. Todos los derechos reservados.</p>
+        <p>
+          <a href="https://pawpath.co/privacidad" class="footer-link">
+            Política de Privacidad
+          </a> | 
+          <a href="https://pawpath.co/terminos" class="footer-link">
+            Términos de Servicio
+          </a>
         </p>
-        <p class="footer-text" style="font-size: 11px; margin-top: 12px;">
-          <a href="https://paw-path.com.co/privacy"
-            style="color: #1D8F73; text-decoration: none;">Privacidad</a>
-          •
-          <a href="https://paw-path.com.co/terms"
-            style="color: #1D8F73; text-decoration: none;">Términos</a>
-          •
-          <a href="https://paw-path.com.co/contact"
-            style="color: #1D8F73; text-decoration: none;">Contacto</a>
+        <p style="margin-top: 10px;">
+          Si tienes preguntas, contáctanos a support@pawpath.co
         </p>
       </div>
     </div>
   </div>
 </body>
 </html>
-  `.trim();
+  `
 }

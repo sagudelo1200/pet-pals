@@ -13,6 +13,7 @@ import {
 import { calcularEstadoZona } from '@/services/geo'
 import { mapFirebaseError, type CrudResult } from '@/services/firebase/comun'
 import type { ZonaH3, OperativaSección, DeltaOperativa } from '@/models/ZonaH3'
+import { cellToParent } from 'h3-js'
 
 // ✅ Re-exportar tipos para disponibilidad pública
 export type { ZonaH3, OperativaSección, DeltaOperativa }
@@ -30,6 +31,7 @@ export class ServicioZonasH3 {
   /**
    * Aplica un delta a los contadores de cobertura de una zona.
    * Escribe en la sección `operativa` del documento ZonaH3 unificado.
+   * Si la zona no existe, la crea inicializando con los IDs H3.
    */
   static async actualizarZona(
     h3_r9: string,
@@ -39,6 +41,7 @@ export class ServicioZonasH3 {
       const ref = doc(db, COLECCION, h3_r9)
       const snap = await getDoc(ref)
       const actual = (snap.data() ?? {}) as any
+      const esNuevo = !snap.exists()
 
       // Leer valores actuales de la sección operativa (si existe)
       const operativaActual = actual.operativa ?? {
@@ -90,16 +93,38 @@ export class ServicioZonasH3 {
         operativaActualizada.ultima_actividad_en = serverTimestamp() as any
       }
 
+      // Construir documento con IDs H3 cuando se crea por primera vez
+      const docData: any = {
+        operativa: operativaActualizada,
+        actualizado_en: serverTimestamp(),
+      }
+
+      // Si es nueva, guardar también los IDs H3
+      if (esNuevo) {
+        const h3_r8 = cellToParent(h3_r9, 8) // Convertir R9 a R8
+        docData.id = h3_r9
+        docData.h3_r9 = h3_r9
+        docData.h3_r8 = h3_r8
+        docData.creado_en = serverTimestamp()
+        // Inicializar narrativa vacía si es nueva
+        if (!docData.narrativa) {
+          docData.narrativa = {
+            identidad: { tipo: 'otro', confianza: 30 },
+            indices: {
+              bienestar: 50,
+              seguridad: 50,
+              actividad: 50,
+              socializacion: 50,
+            },
+            total_eventos: 0,
+            eventos_por_tipo: {},
+          }
+        }
+      }
+
       // Escribir documento con sección operativa actualizada
-      // merge: true preserva sección narrativa
-      await setDoc(
-        ref,
-        {
-          operativa: operativaActualizada,
-          actualizado_en: serverTimestamp(),
-        },
-        { merge: true }
-      )
+      // merge: true preserva sección narrativa cuando se actualiza
+      await setDoc(ref, docData, { merge: !esNuevo })
     } catch (err) {
       console.warn('[ServicioZonasH3] Error actualizando zona:', h3_r9, err)
     }
@@ -157,12 +182,26 @@ export class ServicioZonasH3 {
     callback: (_zonas: ZonaH3[]) => void,
     onError?: (_err: Error) => void
   ): () => void {
+    console.log(
+      '[ServicioZonasH3] 🔄 Abriendo suscripción a colección:',
+      COLECCION
+    )
     const q = collection(db, COLECCION)
     return onSnapshot(
       q,
-      snap => callback(snap.docs.map(d => d.data() as ZonaH3)),
+      snap => {
+        console.log(
+          '[ServicioZonasH3] 📦 Snapshot recibido:',
+          snap.docs.length,
+          'documentos'
+        )
+        if (snap.docs.length === 0) {
+          console.warn('[ServicioZonasH3] ⚠️ La colección está vacía')
+        }
+        callback(snap.docs.map(d => d.data() as ZonaH3))
+      },
       err => {
-        console.warn('[ServicioZonasH3] Error en suscripción:', err)
+        console.error('[ServicioZonasH3] ❌ Error en suscripción:', err)
         onError?.(err)
       }
     )

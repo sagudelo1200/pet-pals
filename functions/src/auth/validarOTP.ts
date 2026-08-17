@@ -20,24 +20,15 @@ interface ValidarOTPResponse {
 }
 
 /**
- * Cloud Function: Valida OTP enviado por email
- *
- * FLOW:
- * 1. Cliente llama con uid + código de 6 dígitos
- * 2. Función busca el OTP en Firestore/otp_codes/{uid}
- * 3. Verifica: no expirado, no utilizado, código coincide
- * 4. Si válido: Marca como utilizado + actualiza usuarios.verificado = true
- * 5. Responde al cliente con éxito/error
- *
- * @param data {ValidarOTPRequest}
- * @returns {ValidarOTPResponse}
+ * Valida OTP, crea registro de verificación
+ * y establece emailVerified = true.
+ * Trigger actualizarInsignias cachea las insignias automáticamente.
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const validarOTP = functions.https.onCall(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async (request: any): Promise<ValidarOTPResponse> => {
     try {
-      // 1. VALIDACIONES DE SEGURIDAD
       if (!request.auth) {
         return {
           success: false,
@@ -68,7 +59,6 @@ export const validarOTP = functions.https.onCall(
         } as ValidarOTPResponse;
       }
 
-      // 2. CONSULTAR OTP EN FIRESTORE
       const otpDocRef = db.collection("otp_codes").doc(uid);
       const otpDocSnap = await otpDocRef.get();
 
@@ -88,7 +78,6 @@ export const validarOTP = functions.https.onCall(
         } as ValidarOTPResponse;
       }
 
-      // 3. VERIFICAR QUE EL OTP NO ESTÉ EXPIRADO
       const ahora = admin.firestore.Timestamp.now();
       if (otpData.expira_en && ahora > otpData.expira_en) {
         return {
@@ -97,7 +86,6 @@ export const validarOTP = functions.https.onCall(
         } as ValidarOTPResponse;
       }
 
-      // 4. VERIFICAR QUE NO HAYA SIDO UTILIZADO
       if (otpData.utilizado) {
         return {
           success: false,
@@ -105,9 +93,7 @@ export const validarOTP = functions.https.onCall(
         } as ValidarOTPResponse;
       }
 
-      // 5. VERIFICAR QUE EL CÓDIGO COINCIDA
       if (otpData.codigo !== codigo) {
-        // Incrementar intentos fallidos
         const intentosFallidos = (otpData.intentos_fallidos || 0) + 1;
         await otpDocRef.update({
           intentos_fallidos: intentosFallidos,
@@ -119,24 +105,44 @@ export const validarOTP = functions.https.onCall(
         } as ValidarOTPResponse;
       }
 
-      // 6. OPERACIÓN TRANSACCIONAL: Marcar OTP como usado + actualizar usuario
+      // 6. OPERACIÓN TRANSACCIONAL: Marcar OTP como usado + crear verificación EMAIL
       await db.runTransaction(async (transaction) => {
-        // Actualizar OTP a utilizado
         transaction.update(otpDocRef, {
           utilizado: true,
           validado_en: ahora,
         });
 
-        // Actualizar usuario a verificado
-        const usuarioRef = db.collection("usuarios").doc(uid);
-        transaction.update(usuarioRef, {
-          verificado: true,
-          email_verificado_en: ahora,
+        // Crear documento de verificación EMAIL en la colección 'verificaciones'
+        // Fuente de verdad: verificaciones/{id} es el registro oficial de verificación
+        const verificacionRef = db.collection("verificaciones").doc();
+        transaction.set(verificacionRef, {
+          id: verificacionRef.id,
+          usuario_id: uid,
+          tipo: "EMAIL",
+          estado: "VERIFICADO",
+          metodo: "AUTOMATICO",
+          version: 1,
+          resultado: {email: "OK"},
+          evidencias: {email: true},
+          creado_en: ahora,
+          actualizado_en: ahora,
+          verificado_en: ahora,
+          creado_por: uid,
+          actualizado_por: uid,
+          razon_transicion: "inicio_verificacion",
         });
       });
 
-      // 7. RESPUESTA EXITOSA
-      functions.logger.info(`[validarOTP] Email verificado para UID: ${uid}`);
+      // 7. ACTUALIZAR FIREBASE AUTH: Marcar email como verificado
+      // ✅ Esto hace que user.emailVerified = true en el cliente
+      // AuthNavigator lo leerá directamente sin queries adicionales
+      await admin.auth().updateUser(uid, {
+        emailVerified: true,
+      });
+
+      functions.logger.info(
+        `[validarOTP] Email verificado: ${uid} (insignias cacheadas)`
+      );
       return {
         success: true,
         mensaje: "Email verificado correctamente",

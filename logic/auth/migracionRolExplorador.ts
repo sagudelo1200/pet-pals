@@ -32,7 +32,7 @@ export async function asegurarRolExplorador(uid: string): Promise<boolean> {
     })
 
     return updateRes.success
-  } catch (err) {
+  } catch (_err) {
     return false
   }
 }

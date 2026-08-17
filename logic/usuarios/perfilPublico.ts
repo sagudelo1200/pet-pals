@@ -15,26 +15,42 @@ import { celdasDeCobertura } from '@/services/geo'
  */
 export class GestorPerfilPublico {
   /**
-   * Obtiene la lista de cuidadores verificados ordenados por rating.
+   * Obtiene la lista de paseadores verificados (con IDENTIDAD verificada), ordenados por rating.
+   * VALIDACIÓN: insignias_verificacion debe contener 'IDENTIDAD' (no solo EMAIL).
+   * Ejemplo: Un tutor solo puede solicitar paseos a cuidadores con identidad verificada.
    */
   static async obtenerCuidadoresDestacados(
     limite: number = 20
   ): Promise<CrudResult<PerfilPublico[]>> {
     return ServicioPerfilPublico.buscarPerfiles(
-      [{ campo: 'verificacion', op: '==', valor: 'verificado' }],
+      [
+        {
+          campo: 'insignias_verificacion',
+          op: 'array-contains',
+          valor: 'IDENTIDAD',
+        },
+      ],
       { campo: 'rating_promedio', dir: 'desc' },
       limite
     )
   }
 
   /**
-   * Obtiene cuidadores que tienen disponibilidad configurada.
+   * Obtiene cuidadores disponibles y verificados (con IDENTIDAD verificada).
+   * VALIDACIÓN: insignias_verificacion debe contener 'IDENTIDAD'.
+   * Usado para filtrado de disponibilidad en búsqueda de paseos.
    */
   static async obtenerCuidadoresDisponibles(): Promise<
     CrudResult<PerfilPublico[]>
   > {
     return ServicioPerfilPublico.buscarPerfiles(
-      [{ campo: 'verificacion', op: '==', valor: 'verificado' }],
+      [
+        {
+          campo: 'insignias_verificacion',
+          op: 'array-contains',
+          valor: 'IDENTIDAD',
+        },
+      ],
       { campo: 'rating_promedio', dir: 'desc' },
       21
     )
@@ -60,7 +76,6 @@ export class GestorPerfilPublico {
     // Lógica: si no tiene nombre, usar un fallback
     const payload: Partial<PerfilPublico> = {
       ...datos,
-      verificacion: datos.verificacion || 'pendiente',
       rating_promedio: datos.rating_promedio || 0,
       cantidad_paseos_realizados: datos.cantidad_paseos_realizados || 0,
     }
@@ -114,23 +129,38 @@ export class GestorPerfilPublico {
       if (h3OrigenNuevo !== h3OrigenAnterior) {
         const perfil = perfilActual.data
 
+        // Construir datos sin undefined (solo incluir campos si existen)
+        const datosEntrada: Omit<
+          EntradaCuidadorCobertura,
+          'uid' | 'h3_origen' | 'actualizado_en'
+        > = {
+          nombre: (datos as any).nombre ?? perfil?.nombre ?? '',
+          rating_promedio:
+            (datos as any).rating_promedio ?? perfil?.rating_promedio ?? 0,
+          tarifa_por_hora:
+            (datos as any).tarifa_por_hora ?? perfil?.tarifa_por_hora ?? 0,
+        }
+
+        // Agregar campos opcionales solo si existen
+        const fotoParaGuardar = (datos as any).foto ?? perfil?.foto
+        if (fotoParaGuardar) {
+          datosEntrada.foto = fotoParaGuardar
+        }
+
+        if (perfil?.insignias_verificacion) {
+          datosEntrada.insignias_verificacion = perfil.insignias_verificacion
+        }
+
+        const horarioParaGuardar =
+          (datos as any).horario_semanal ?? perfil?.horario_semanal
+        if (horarioParaGuardar) {
+          datosEntrada.horario_semanal = horarioParaGuardar
+        }
+
         await ServicioIndiceCobertura.escribirCoberturaWalker(
           uid,
           h3OrigenNuevo,
-          {
-            nombre: (datos as any).nombre ?? perfil?.nombre ?? '',
-            foto: (datos as any).foto ?? perfil?.foto,
-            rating_promedio:
-              (datos as any).rating_promedio ?? perfil?.rating_promedio ?? 0,
-            tarifa_por_hora:
-              (datos as any).tarifa_por_hora ?? perfil?.tarifa_por_hora ?? 0,
-            verificacion:
-              (datos as any).verificacion ??
-              perfil?.verificacion ??
-              'pendiente',
-            horario_semanal:
-              (datos as any).horario_semanal ?? perfil?.horario_semanal,
-          }
+          datosEntrada
         )
       }
     }
@@ -145,10 +175,14 @@ export class GestorPerfilPublico {
   /**
    * Actualiza las celdas de cobertura seleccionadas manualmente por el cuidador.
    * Migra el índice H3 eliminando celdas anteriores y escribiendo las nuevas.
+   * @param uid ID del cuidador
+   * @param celdasNuevas Array de celdas H3 seleccionadas
+   * @param h3OrigenFallback Fallback de h3_r8 si el perfil no lo tiene guardado aún (usado cuando se acaba de crear la ubicación)
    */
   static async actualizarCeldasCobertura(
     uid: string,
-    celdasNuevas: string[]
+    celdasNuevas: string[],
+    h3OrigenFallback?: string | null
   ): Promise<CrudResult<PerfilPublico>> {
     if (!uid) return { success: false, error: ERR.COMUN.NO_AUTENTICADO }
 
@@ -161,11 +195,13 @@ export class GestorPerfilPublico {
     }
 
     const perfil = perfilRes.data
-    const h3Origen = perfil.h3_r8
+    // Usar h3_r8 del perfil, o fallback si se proporciona
+    const h3Origen = perfil.h3_r8 ?? h3OrigenFallback ?? null
     if (!h3Origen) {
       return {
         success: false,
-        error: 'El cuidador no tiene ubicación configurada',
+        error:
+          'El cuidador no tiene ubicación configurada. Agrega una dirección principal en tu perfil.',
       }
     }
 
@@ -174,19 +210,33 @@ export class GestorPerfilPublico {
       ? perfil.celdas_cobertura
       : celdasDeCobertura(h3Origen)
 
+    // Construir datos sin undefined (solo incluir campos si existen)
+    const datosEntrada: Omit<
+      EntradaCuidadorCobertura,
+      'uid' | 'h3_origen' | 'actualizado_en'
+    > = {
+      nombre: perfil.nombre,
+      rating_promedio: perfil.rating_promedio ?? 0,
+      tarifa_por_hora: perfil.tarifa_por_hora ?? 0,
+    }
+
+    // Agregar campos opcionales solo si existen
+    if (perfil.foto) {
+      datosEntrada.foto = perfil.foto
+    }
+    if (perfil.insignias_verificacion) {
+      datosEntrada.insignias_verificacion = perfil.insignias_verificacion
+    }
+    if (perfil.horario_semanal) {
+      datosEntrada.horario_semanal = perfil.horario_semanal
+    }
+
     await ServicioIndiceCobertura.escribirCeldasManuales(
       uid,
       h3Origen,
       celdasNuevas,
       celdasAnteriores,
-      {
-        nombre: perfil.nombre,
-        foto: perfil.foto,
-        rating_promedio: perfil.rating_promedio ?? 0,
-        tarifa_por_hora: perfil.tarifa_por_hora ?? 0,
-        verificacion: perfil.verificacion,
-        horario_semanal: perfil.horario_semanal,
-      }
+      datosEntrada
     )
 
     return ServicioPerfilPublico.guardarConId(uid, {

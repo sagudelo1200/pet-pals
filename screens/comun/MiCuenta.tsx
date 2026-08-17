@@ -5,7 +5,6 @@ import { Button, Card, Icon, Avatar } from '@/components/ui'
 import Screen from '@/components/ui/Screen'
 import { tErrorMaybe } from '@/services/i18n'
 import { useAuth } from '@/context/AuthContext'
-import { useRol } from '@/context/RolContext'
 import { useCambiarRol } from '@/hooks/useCambiarRol'
 import { useNavigation } from '@react-navigation/native'
 import { COLOR } from '@/constants'
@@ -15,9 +14,16 @@ import { LinearGradient } from 'expo-linear-gradient'
 const MiCuenta = () => {
   const navigation = useNavigation<any>()
   const insets = useSafeAreaInsets()
-  const { cerrarSesion, cargando: cargandoAuth, user, profile } = useAuth()
-  const { rolActivo, cambiarRolActivo, tieneMultiplesRoles, rolesDisponibles } =
-    useRol()
+  const {
+    cerrarSesion,
+    cargando: cargandoAuth,
+    user,
+    profile,
+    rolActivo,
+    cambiarRolActivo,
+    tieneMultiplesRoles,
+    rolesDisponibles,
+  } = useAuth()
   const { cambiarRol, cargando: cargandoRol } = useCambiarRol()
   const { t } = useTranslation()
   const correo = user?.email ?? (profile as any)?.correo ?? '—'
@@ -114,6 +120,7 @@ const MiCuenta = () => {
 
   return (
     <Screen style={[styles.container, { paddingBottom: TAB_BAR_HEIGHT }]}>
+      {/* Contenido scrolleable */}
       <View style={styles.scrollContent}>
         {/* Header Grande con Gradiente */}
         <LinearGradient
@@ -271,18 +278,25 @@ const MiCuenta = () => {
               )}
             </View>
           </View>
-
-          {/* Botón Cerrar Sesión */}
-          <Button
-            title={t('perfil:cerrar_sesion')}
-            variant="ghost"
-            textStyle={{ color: COLOR.ERROR }}
-            style={styles.logoutButton}
-            onPress={handleLogout}
-            loading={cargandoAuth}
-            icon="sign-out-alt"
-          />
         </View>
+      </View>
+
+      {/* Botón Cerrar Sesión - FIJO en la parte inferior */}
+      <View
+        style={[
+          styles.logoutButtonContainer,
+          { paddingBottom: Math.max(insets.bottom, 8) },
+        ]}
+      >
+        <Button
+          title={t('perfil:cerrar_sesion')}
+          variant="ghost"
+          textStyle={{ color: COLOR.ERROR }}
+          style={styles.logoutButton}
+          onPress={handleLogout}
+          loading={cargandoAuth}
+          icon="sign-out-alt"
+        />
       </View>
     </Screen>
   )
@@ -360,6 +374,17 @@ const styles = StyleSheet.create({
   rolesPromoContainer: {
     gap: 8,
   },
+  logoutButtonContainer: {
+    paddingHorizontal: 16,
+    paddingTop: 8,
+    backgroundColor: COLOR.BASE,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(0,0,0,0.05)',
+  },
+  logoutButton: {
+    borderWidth: 1,
+    borderColor: COLOR.ERROR,
+  },
   roleCard: {
     flex: 1,
     padding: 12,
@@ -395,12 +420,6 @@ const styles = StyleSheet.create({
     borderRadius: 9,
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  logoutButton: {
-    marginTop: 'auto',
-    marginBottom: 8,
-    borderWidth: 1,
-    borderColor: COLOR.ERROR,
   },
 })
 

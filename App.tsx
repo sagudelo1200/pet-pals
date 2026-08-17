@@ -1,10 +1,9 @@
 import React from 'react'
-import { Text, TextInput, StatusBar } from 'react-native'
+import { StatusBar } from 'react-native'
 import { SafeAreaProvider } from 'react-native-safe-area-context'
 import { NavigationContainer, DarkTheme, Theme } from '@react-navigation/native'
 import { GalioProvider } from 'galio-framework'
 import { AuthProvider } from './context/AuthContext'
-import { RolProvider } from './context/RolContext'
 import { RootNavigator } from './navigation'
 import { COLOR } from './constants'
 import './services/i18n'
@@ -40,20 +39,18 @@ export default function App(): React.ReactElement {
   return (
     <SafeAreaProvider>
       <AuthProvider>
-        <RolProvider>
-          <MascotasProvider>
-            <GalioProvider>
-              <StatusBar
-                barStyle="light-content"
-                backgroundColor={COLOR.BLOQUE}
-                translucent={false}
-              />
-              <NavigationContainer theme={navTheme}>
-                <RootNavigator />
-              </NavigationContainer>
-            </GalioProvider>
-          </MascotasProvider>
-        </RolProvider>
+        <MascotasProvider>
+          <GalioProvider>
+            <StatusBar
+              barStyle="light-content"
+              backgroundColor={COLOR.BLOQUE}
+              translucent={false}
+            />
+            <NavigationContainer theme={navTheme}>
+              <RootNavigator />
+            </NavigationContainer>
+          </GalioProvider>
+        </MascotasProvider>
       </AuthProvider>
     </SafeAreaProvider>
   )

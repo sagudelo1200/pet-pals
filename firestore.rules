@@ -207,14 +207,20 @@ service cloud.firestore {
 
     // PERFIL PUBLICO
     match /perfiles_publicos/{docId} {
-      // Permitir lectura a cualquier usuario autenticado o si el perfil es verificado (público)
-      allow read: if autenticado() || resource.data.verificacion == 'verificado';
+      // Permitir lectura a cualquier usuario autenticado o si el perfil tiene insignias (públicamente verificado)
+      allow read: if autenticado() || (resource.data.insignias_verificacion != null && resource.data.insignias_verificacion.size() > 0);
 
       allow create: if puede_crear_valido()
         && (request.resource.data.creado_por == request.auth.uid || es_admin());
 
       allow update: if puede_actualizar_valido()
-        && (resource.data.creado_por == request.auth.uid || es_admin());
+        && (
+      // Admin (request.auth == null): acceso total
+      es_admin() ||
+      // Usuario propietario: puede actualizar PERO insignias_verificacion debe quedar igual
+      (resource.data.creado_por == request.auth.uid && 
+      request.resource.data.insignias_verificacion == resource.data.insignias_verificacion)
+      );
 
       allow delete: if es_admin();
     }
@@ -546,6 +552,31 @@ service cloud.firestore {
 
       // Eliminación: Solo Cloud Functions (TTL) o admin
       allow delete: if request.auth == null || es_admin();
+    }
+
+    // VERIFICACIONES (Auditoría y gestión de verificaciones)
+    // Fuente de verdad para toda verificación de usuarios (EMAIL, IDENTIDAD, CERTIFICADO, etc).
+    // Cada verificación es un documento independiente con historial y auditoría completa.
+    match /verificaciones/{docId} {
+      // Lectura:
+      // - El usuario puede leer sus propias verificaciones
+      // - Admin puede leer todas
+      allow read: if autenticado() && (
+      resource.data.usuario_id == request.auth.uid ||
+      es_admin()
+      );
+
+      // Creación: SOLO Cloud Functions
+      // (Nunca desde el cliente directo: cliente llama validarOTP, que crea el doc)
+      allow create: if request.auth == null || es_admin();
+
+      // Actualización: SOLO Cloud Functions o admin
+      // (Transiciones de estado, revalidaciones, rechazos)
+      allow update: if request.auth == null || es_admin();
+
+      // Eliminación: SOLO admin
+      // (Revocación de verificaciones, auditoría)
+      allow delete: if es_admin();
     }
   }
 }

@@ -1,4 +1,4 @@
-import { signOut, onAuthStateChanged, User } from 'firebase/auth'
+import { signOut, onAuthStateChanged, User, reload } from 'firebase/auth'
 import { auth } from '@/firebase.config'
 import { AuthResult } from '@/services/firebase/comun'
 import { ERR } from '@/constants/errors'
@@ -55,5 +55,27 @@ export class ServicioAuth {
   // Escuchar cambios de autenticación
   static escucharEstadoAuth(callback: (user: User | null) => void) {
     return onAuthStateChanged(auth, callback)
+  }
+
+  // Recargar el usuario actual desde Firebase Auth
+  // Útil para sincronizar cambios en emailVerified, etc.
+  static async recargarUsuario(): Promise<AuthResult> {
+    try {
+      const currentUser = auth.currentUser
+      if (!currentUser) {
+        return {
+          success: false,
+          error: 'No hay usuario autenticado',
+        }
+      }
+      await reload(currentUser)
+      return { success: true }
+    } catch (error: any) {
+      console.error('Error en recargarUsuario:', error)
+      return {
+        success: false,
+        error: mapFirebaseAuthError(error),
+      }
+    }
   }
 }

@@ -31,99 +31,109 @@ interface Props {
 /**
  * TextInput: input con label, ícono opcional y estado de error.
  * - Usa `galio-framework/Input` por debajo para mantener consistencia.
+ * - Acepta ref para control de foco desde componentes padres.
  */
-const TextInput: React.FC<Props> = ({
-  label,
-  value,
-  onChangeText,
-  placeholder,
-  secureTextEntry,
-  iconName,
-  errorText,
-  style,
-  testID,
-  keyboardType,
-  autoCapitalize = 'none',
-  autoFocus,
-  returnKeyType,
-  onSubmitEditing,
-  onBlur,
-  onFocus,
-  editable,
-  multiline,
-  numberOfLines,
-}) => {
-  const [focused, setFocused] = useState(false)
-
-  // Cast Input to any to avoid missing prop types in Galio definition
-  const GalioInput: React.ComponentType<any> = Input as any
-
-  const containerStyle: ViewStyle | ViewStyle[] = [
-    styles.container,
-    ...(Array.isArray(style) ? style : style ? [style] : []),
-  ]
-
-  const borderColor = useMemo(() => {
-    if (errorText) return COLOR.ERROR
-    return focused ? COLOR.ENFASIS : COLOR.BORDE
-  }, [errorText, focused])
-
-  const inputColor = errorText ? COLOR.ERROR : COLOR.TEXTO
-
-  const inputStyle = [
-    styles.input,
-    { borderColor },
-    multiline && {
-      height: 'auto',
-      minHeight: 48,
-      textAlignVertical: 'top',
-      paddingTop: 12,
+const TextInput = React.forwardRef<any, Props>(
+  (
+    {
+      label,
+      value,
+      onChangeText,
+      placeholder,
+      secureTextEntry,
+      iconName,
+      errorText,
+      style,
+      testID,
+      keyboardType,
+      autoCapitalize = 'none',
+      autoFocus,
+      returnKeyType,
+      onSubmitEditing,
+      onBlur,
+      onFocus,
+      editable,
+      multiline,
+      numberOfLines,
     },
-  ]
+    ref
+  ) => {
+    const [focused, setFocused] = useState(false)
 
-  const handleBlur = () => {
-    setFocused(false)
-    onBlur?.()
+    // Cast Input to any to avoid missing prop types in Galio definition
+    const GalioInput: React.ComponentType<any> = Input as any
+
+    const containerStyle: ViewStyle | ViewStyle[] = [
+      styles.container,
+      ...(Array.isArray(style) ? style : style ? [style] : []),
+    ]
+
+    const borderColor = useMemo(() => {
+      if (errorText) return COLOR.ERROR
+      return focused ? COLOR.ENFASIS : COLOR.BORDE
+    }, [errorText, focused])
+
+    const inputColor = errorText ? COLOR.ERROR : COLOR.TEXTO
+
+    const inputStyle = [
+      styles.input,
+      { borderColor },
+      multiline && {
+        height: 'auto',
+        minHeight: 48,
+        textAlignVertical: 'top',
+        paddingTop: 12,
+      },
+    ]
+
+    const handleBlur = () => {
+      setFocused(false)
+      onBlur?.()
+    }
+
+    const handleFocus = () => {
+      setFocused(true)
+      onFocus?.()
+    }
+
+    return (
+      <View style={containerStyle} testID={testID}>
+        {label ? <Text style={styles.label}>{label}</Text> : null}
+        <GalioInput
+          ref={ref}
+          value={value}
+          onChangeText={onChangeText}
+          placeholder={placeholder}
+          placeholderTextColor={COLOR.SUBTEXTO}
+          password={secureTextEntry}
+          secureTextEntry={secureTextEntry}
+          keyboardType={keyboardType}
+          autoCapitalize={autoCapitalize}
+          autoFocus={autoFocus}
+          returnKeyType={returnKeyType}
+          onSubmitEditing={onSubmitEditing}
+          onFocus={handleFocus}
+          onBlur={handleBlur}
+          color={inputColor}
+          icon={iconName}
+          family="FontAwesome5"
+          iconProps={{
+            size: 18,
+            color: errorText ? COLOR.ERROR : COLOR.SUBTEXTO,
+            solid: true,
+          }}
+          style={inputStyle as any}
+          multiline={multiline}
+          numberOfLines={numberOfLines}
+          editable={editable}
+        />
+        {errorText ? <Text style={styles.error}>{errorText}</Text> : null}
+      </View>
+    )
   }
+)
 
-  const handleFocus = () => {
-    setFocused(true)
-    onFocus?.()
-  }
-
-  return (
-    <View style={containerStyle} testID={testID}>
-      {label ? <Text style={styles.label}>{label}</Text> : null}
-      <GalioInput
-        value={value}
-        onChangeText={onChangeText}
-        placeholder={placeholder}
-        placeholderTextColor={COLOR.SUBTEXTO}
-        password={secureTextEntry}
-        keyboardType={keyboardType}
-        autoCapitalize={autoCapitalize}
-        autoFocus={autoFocus}
-        returnKeyType={returnKeyType}
-        onSubmitEditing={onSubmitEditing}
-        onFocus={handleFocus}
-        onBlur={handleBlur}
-        color={inputColor}
-        icon={iconName}
-        family="FontAwesome5"
-        iconProps={{
-          size: 18,
-          color: errorText ? COLOR.ERROR : COLOR.SUBTEXTO,
-          solid: true,
-        }}
-        style={inputStyle as any}
-        multiline={multiline}
-        numberOfLines={numberOfLines}
-        editable={editable}
-      />
-      {errorText ? <Text style={styles.error}>{errorText}</Text> : null}
-    </View>
-  )
-}
+TextInput.displayName = 'TextInput'
 
 const styles = StyleSheet.create({
   container: {

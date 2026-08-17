@@ -74,7 +74,6 @@ export class TerritorialAggregator {
     })
 
     this.initialized = true
-    console.log('[TerritorialAggregator] Inicializado')
   }
 
   /**

@@ -1,8 +1,5 @@
 import { BaseModel } from './BaseModel'
 
-/** Estado de verificación del perfil público */
-export type EstadoVerificacion = 'pendiente' | 'verificado' | 'rechazado'
-
 /** Franja horaria con hora de inicio y fin en formato HH:mm */
 export interface FranjaHoraria {
   inicio: string // "08:00"
@@ -51,6 +48,22 @@ export interface PerfilPublico extends BaseModel {
   /** Tarifa por hora en la moneda local */
   tarifa_por_hora?: number
 
-  /** Estado de verificación del perfil para confianza y seguridad */
-  verificacion: EstadoVerificacion
+  /**
+   * Verificaciones completadas y vigentes del usuario.
+   * Array de tipos verificados: 'EMAIL', 'IDENTIDAD', 'CERTIFICADO', 'ANTECEDENTES', etc.
+   * Ejemplo: ['EMAIL', 'IDENTIDAD'] = usuario verificado en estos tipos.
+   *
+   * USOS (ambos válidos):
+   * 1. 🎨 UI: Mostrar badges/insignias en perfil público
+   * 2. ✅ Lógica: Validaciones, autorización, filtros de disponibilidad
+   *
+   * Sincronizado automáticamente por trigger actualizarInsignias en cada cambio.
+   * Fuente de verdad: colección verificaciones (este campo es caché precomputado).
+   *
+   * VALIDACIONES COMUNES:
+   * - Email verificado: insignias_verificacion?.includes('EMAIL')
+   * - Paseador disponible: insignias_verificacion?.includes('IDENTIDAD')
+   * - Premium: insignias_verificacion?.length >= 3
+   */
+  insignias_verificacion?: string[]
 }

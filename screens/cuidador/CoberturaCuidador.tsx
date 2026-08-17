@@ -70,7 +70,8 @@ export default function CoberturaCuidador() {
       setSaving(true)
       const res = await GestorPerfilPublico.actualizarCeldasCobertura(
         user.uid,
-        msg.cells
+        msg.cells,
+        h3Home // Pasar h3Home como fallback para calcular celdas anteriores si es necesario
       )
       setSaving(false)
 
@@ -79,9 +80,13 @@ export default function CoberturaCuidador() {
           { text: 'OK', onPress: () => navigation.goBack() },
         ])
       } else {
+        console.error(
+          '[CoberturaCuidador] Error al guardar cobertura:',
+          res.error
+        )
         Alert.alert(
           'Error',
-          'No se pudo guardar la cobertura. Intenta de nuevo.'
+          res.error || 'No se pudo guardar la cobertura. Intenta de nuevo.'
         )
         // Reactivar el botón en el WebView si el guardado falla
         webViewRef.current?.injectJavaScript(`
@@ -92,7 +97,7 @@ export default function CoberturaCuidador() {
       }
     } catch (e) {
       setSaving(false)
-      console.warn('[CoberturaCuidador] handleMessage error', e)
+      console.error('[CoberturaCuidador] handleMessage exception:', e)
     }
   }
 

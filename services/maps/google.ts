@@ -256,8 +256,11 @@ export class GoogleMapasProvider implements IProveedorMapas {
         duracionFormato,
         distanciaFormato,
       }
-    } catch (error) {
-      throw error
+    } catch (error: any) {
+      console.error('[ServicioMapsGoogle] Error obtenerRuta:', error)
+      throw new Error(
+        `Error obteniendo ruta: ${error?.message || 'Error desconocido'}`
+      )
     }
   }
 

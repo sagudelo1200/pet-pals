@@ -49,7 +49,6 @@ export const SeleccionarMascotaPaso = ({
     const esListaParaPaseo = isListaParaPaseo(item)
     const conPaseoEnCurso = mascotasConPaseoEnCurso.has(item.id)
     const puedeSeleccionar = esListaParaPaseo && !conPaseoEnCurso
-    const completitud = calcularCompletitud(item)
 
     const handlePress = () => {
       if (conPaseoEnCurso) {

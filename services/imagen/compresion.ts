@@ -7,7 +7,7 @@
 const TAMAÑO_MAXIMO_BYTES = 900000 // ~900KB
 
 // Calidad mínima y máxima para compresión
-const QUALITY_STEP = 0.1 // Pasos de 10% en calidad
+const _QUALITY_STEP = 0.1 // Pasos de 10% en calidad
 
 interface ResultadoCompresion {
   success: boolean
@@ -55,7 +55,7 @@ export function validarTamañoImagen(base64: string): {
  */
 export async function comprimirImagen(
   base64: string,
-  calidadInicial: number = 0.7
+  _calidadInicial: number = 0.7
 ): Promise<ResultadoCompresion> {
   const validacion = validarTamañoImagen(base64)
 

@@ -253,7 +253,7 @@ export const SeleccionarCuidadorPaso = ({
               } else {
                 setFranjasCuidador([])
               }
-            } catch (err) {
+            } catch (_err) {
               setFranjasCuidador([])
             }
           } else {

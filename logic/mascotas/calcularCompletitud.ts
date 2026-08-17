@@ -97,10 +97,10 @@ export function calcularCompletitud(mascota: Mascota): CompletitudMascota {
     campos_comportamiento
   )
   const porcentaje_salud = calcularPorcentajeSeccion(campos_salud)
-  const porcentaje_compatibilidad = calcularPorcentajeSeccion(
+  const _porcentaje_compatibilidad = calcularPorcentajeSeccion(
     campos_compatibilidad
   )
-  const porcentaje_notas = calcularPorcentajeSeccion(campos_notas)
+  const _porcentaje_notas = calcularPorcentajeSeccion(campos_notas)
 
   // Pesos por sección para el cálculo ponderado
   // Las primeras 4 secciones son críticas (nivel básico/completo)
@@ -140,12 +140,12 @@ export function calcularCompletitud(mascota: Mascota): CompletitudMascota {
     nivel < 2 ? 'incompleto' : nivel < 4 ? 'basico' : 'completo'
 
   // Verificar completitud por sección (solo para referencia)
-  const basico_completo = Object.values(campos_basico).every(v => v)
-  const fisico_completo = Object.values(campos_fisico).every(v => v)
-  const comportamiento_completo = Object.values(campos_comportamiento).every(
+  const _basico_completo = Object.values(campos_basico).every(v => v)
+  const _fisico_completo = Object.values(campos_fisico).every(v => v)
+  const _comportamiento_completo = Object.values(campos_comportamiento).every(
     v => v
   )
-  const salud_completo = Object.values(campos_salud).every(v => v)
+  const _salud_completo = Object.values(campos_salud).every(v => v)
 
   return {
     nivel,

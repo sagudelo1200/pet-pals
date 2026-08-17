@@ -4,6 +4,7 @@ export interface AuthUser {
   email: string | null
   displayName: string | null
   photoURL: string | null
+  emailVerified: boolean
 }
 
 export interface AuthResult {
@@ -26,9 +27,21 @@ export interface AuthContextType {
   // Extensiones para navegación por roles (perfil en Firestore)
   roles?: import('../../models/Usuario').RolUsuario[]
   profile?: import('../../models/Usuario').Usuario | null
+  perfilPublico?: import('../../models/PerfilPublico').PerfilPublico | null
   hasRole?: (role: import('../../models/Usuario').RolUsuario) => boolean
   recargarPerfil?: () => Promise<void>
+  recargarPerfilPublico?: () => Promise<void>
+  recargarUsuarioAuth?: () => Promise<AuthResult>
   ingresarConGoogle?: (credential: any) => Promise<AuthResult>
+  // Campos para manejo de rol activo
+  rolActivo?: import('../../models/Usuario').RolUsuario | null
+  cambiarRolActivo?: (
+    rol: import('../../models/Usuario').RolUsuario
+  ) => Promise<boolean>
+  tieneMultiplesRoles?: boolean
+  rolesDisponibles?: import('../../models/Usuario').RolUsuario[]
+  activandoRol?: boolean
+  rolProvisional?: import('../../models/Usuario').RolUsuario | null
 }
 
 // Tipos simples para CRUD

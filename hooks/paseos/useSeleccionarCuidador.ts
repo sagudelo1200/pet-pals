@@ -292,8 +292,7 @@ export const useSeleccionarCuidador = (
             calificacion: cal,
             distancia: distanciaTexto,
             tarifa: `$${STANDARD_SERVICE_PRICE.toLocaleString()}/hr`,
-            insignias:
-              perfil.verificacion === 'verificado' ? ['verificado'] : [],
+            insignias: perfil.insignias_verificacion ?? [],
             estado: 'disponible' as const,
             motivo: undefined as undefined,
           }
@@ -323,8 +322,7 @@ export const useSeleccionarCuidador = (
             calificacion: cal,
             distancia: distanciaTexto,
             tarifa: `$${STANDARD_SERVICE_PRICE.toLocaleString()}/hr`,
-            insignias:
-              perfil.verificacion === 'verificado' ? ['verificado'] : [],
+            insignias: perfil.insignias_verificacion ?? [],
             estado: 'otro_horario' as const,
             motivo: generarMotivo(perfil),
           }

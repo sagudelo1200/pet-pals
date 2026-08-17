@@ -48,11 +48,11 @@ export interface ConfiguracionModalAsistente {
   compactSize?: boolean // true para tamaño compacto, false para tamaño grande (default: false)
   /** Función que extrae el valor actual del atributo desde Mascota */
   obtenerValor: (
-    atributo: Atributo,
-    mascota: Partial<Mascota>
+    _atributo: Atributo,
+    _mascota: Partial<Mascota>
   ) => any | undefined
   /** Función que construye el payload para actualizar */
-  construirPayload: (valores: Record<string, any>) => Partial<Mascota>
+  construirPayload: (_valores: Record<string, any>) => Partial<Mascota>
 }
 
 interface ModalAsistenteGenericoProps {

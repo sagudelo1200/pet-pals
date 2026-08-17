@@ -7,6 +7,7 @@ import {
   serverTimestamp,
 } from 'firebase/firestore'
 import { celdasDeCobertura } from '@/services/geo'
+import { cellToChildren } from 'h3-js'
 import { ServicioZonasH3 } from './h3_zonas'
 import type { CrudResult } from '@/services/firebase/comun'
 
@@ -23,7 +24,11 @@ export interface EntradaCuidadorCobertura {
   foto?: string
   rating_promedio: number
   tarifa_por_hora: number
-  verificacion: string
+  /**
+   * Array de tipos de verificación completados (EMAIL, IDENTIDAD, etc).
+   * Calculado por trigger actualizarInsignias desde colección verificaciones.
+   */
+  insignias_verificacion?: string[]
   /**
    * Horario semanal recurrente. Clave: "0"–"6" (0=Dom, 1=Lun…). Solo días presentes = activos.
    */
@@ -40,6 +45,20 @@ export interface EntradaCuidadorCobertura {
  */
 export class ServicioIndiceCobertura {
   /**
+   * Limpia undefined de un objeto para que sea compatible con Firestore
+   * @private
+   */
+  private static limpiarUndefined(obj: any): any {
+    const resultado: any = {}
+    for (const [key, value] of Object.entries(obj)) {
+      if (value !== undefined) {
+        resultado[key] = value
+      }
+    }
+    return resultado
+  }
+
+  /**
    * Registra o actualiza la cobertura de un walker en todas sus celdas H3.
    * Llama primero con `h3OrigenAnterior` distinto para migrar la cobertura.
    */
@@ -54,12 +73,15 @@ export class ServicioIndiceCobertura {
     const celdas = celdasDeCobertura(h3Origen) // 19 celdas en kRing(2)
     const batch = writeBatch(db)
 
+    // Limpiar undefined antes de guardar
+    const datosLimpios = this.limpiarUndefined(datos)
+
     const entrada: EntradaCuidadorCobertura = {
-      ...datos,
+      ...datosLimpios,
       uid,
       h3_origen: h3Origen,
       actualizado_en: serverTimestamp(),
-    }
+    } as EntradaCuidadorCobertura
 
     for (const celda of celdas) {
       const ref = doc(db, COLECCION_BASE, celda, SUBCOLECCION, uid)
@@ -69,11 +91,18 @@ export class ServicioIndiceCobertura {
     await batch.commit()
 
     // Actualizar contador de cuidadores en h3_zonas (fire-and-forget, no bloqueante)
-    Promise.all(
-      celdas.map(celda =>
-        ServicioZonasH3.actualizarZona(celda, { cuidadores_count: 1 })
-      )
-    ).catch(e =>
+    // Convertir cada celda R8 a sus celdas R9 hijas para actualizar zonas
+    const actualizacionesPromesas: Array<Promise<void>> = []
+    for (const celdaR8 of celdas) {
+      const celdasR9 = cellToChildren(celdaR8, 9)
+      for (const celdaR9 of celdasR9) {
+        actualizacionesPromesas.push(
+          ServicioZonasH3.actualizarZona(celdaR9, { cuidadores_count: 1 })
+        )
+      }
+    }
+
+    Promise.all(actualizacionesPromesas).catch(e =>
       console.warn('[ServicioIndiceCobertura] Error actualizando zonas:', e)
     )
   }
@@ -96,11 +125,19 @@ export class ServicioIndiceCobertura {
 
     await batch.commit()
 
-    Promise.all(
-      celdas.map(celda =>
-        ServicioZonasH3.actualizarZona(celda, { cuidadores_count: -1 })
-      )
-    ).catch(e =>
+    // Actualizar contador de cuidadores en h3_zonas (fire-and-forget)
+    // Convertir cada celda R8 a sus celdas R9 hijas para actualizar zonas
+    const actualizacionesPromesas: Array<Promise<void>> = []
+    for (const celdaR8 of celdas) {
+      const celdasR9 = cellToChildren(celdaR8, 9)
+      for (const celdaR9 of celdasR9) {
+        actualizacionesPromesas.push(
+          ServicioZonasH3.actualizarZona(celdaR9, { cuidadores_count: -1 })
+        )
+      }
+    }
+
+    Promise.all(actualizacionesPromesas).catch(e =>
       console.warn('[ServicioIndiceCobertura] Error decrementando zonas:', e)
     )
   }
@@ -120,12 +157,16 @@ export class ServicioIndiceCobertura {
     >
   ): Promise<void> {
     const batch = writeBatch(db)
+
+    // Limpiar undefined antes de guardar
+    const datosLimpios = this.limpiarUndefined(datos)
+
     const entrada: EntradaCuidadorCobertura = {
-      ...datos,
+      ...datosLimpios,
       uid,
       h3_origen: h3Origen,
       actualizado_en: serverTimestamp(),
-    }
+    } as EntradaCuidadorCobertura
 
     const setNuevas = new Set(celdasNuevas)
 
@@ -148,14 +189,27 @@ export class ServicioIndiceCobertura {
     const agregadas = celdasNuevas.filter(c => !setAnteriores.has(c))
     const eliminadas = celdasAnteriores.filter(c => !setNuevas.has(c))
 
-    Promise.all([
-      ...agregadas.map(celda =>
-        ServicioZonasH3.actualizarZona(celda, { cuidadores_count: 1 })
-      ),
-      ...eliminadas.map(celda =>
-        ServicioZonasH3.actualizarZona(celda, { cuidadores_count: -1 })
-      ),
-    ]).catch(e =>
+    const actualizacionesPromesas: Array<Promise<void>> = []
+
+    for (const celdaR8 of agregadas) {
+      const celdasR9 = cellToChildren(celdaR8, 9)
+      for (const celdaR9 of celdasR9) {
+        actualizacionesPromesas.push(
+          ServicioZonasH3.actualizarZona(celdaR9, { cuidadores_count: 1 })
+        )
+      }
+    }
+
+    for (const celdaR8 of eliminadas) {
+      const celdasR9 = cellToChildren(celdaR8, 9)
+      for (const celdaR9 of celdasR9) {
+        actualizacionesPromesas.push(
+          ServicioZonasH3.actualizarZona(celdaR9, { cuidadores_count: -1 })
+        )
+      }
+    }
+
+    Promise.all(actualizacionesPromesas).catch(e =>
       console.warn('[ServicioIndiceCobertura] Error sincronizando h3_zonas:', e)
     )
   }

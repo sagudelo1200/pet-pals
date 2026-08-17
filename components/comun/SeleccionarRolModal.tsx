@@ -1,5 +1,11 @@
 import React from 'react'
-import { StyleSheet, View, Text, TouchableOpacity } from 'react-native'
+import {
+  StyleSheet,
+  View,
+  Text,
+  TouchableOpacity,
+  ActivityIndicator,
+} from 'react-native'
 import { useTranslation } from 'react-i18next'
 import { COLOR } from '@/constants'
 import { BottomSheet, Icon } from '@/components/ui'
@@ -10,6 +16,7 @@ interface Props {
   roles: RolUsuario[]
   onSelectRol: (_rol: RolUsuario) => void
   onClose: () => void
+  processing?: boolean
 }
 
 const ROL_CONFIG = {
@@ -44,11 +51,12 @@ export const SeleccionarRolModal: React.FC<Props> = ({
   roles,
   onSelectRol,
   onClose,
+  processing = false,
 }) => {
   const { t } = useTranslation()
 
   return (
-    <BottomSheet visible={visible} onClose={onClose}>
+    <BottomSheet visible={visible} onClose={onClose} closeable={!processing}>
       <View style={styles.container}>
         <Text style={styles.titulo}>{t('comun:seleccionar_rol_titulo')}</Text>
         <Text style={styles.subtitulo}>
@@ -63,9 +71,10 @@ export const SeleccionarRolModal: React.FC<Props> = ({
             return (
               <TouchableOpacity
                 key={_rol}
-                style={styles.rolCard}
-                onPress={() => onSelectRol(_rol)}
-                activeOpacity={0.7}
+                style={[styles.rolCard, processing && styles.rolCardDisabled]}
+                onPress={() => !processing && onSelectRol(_rol)}
+                activeOpacity={processing ? 1 : 0.7}
+                disabled={processing}
               >
                 <View
                   style={[
@@ -81,7 +90,11 @@ export const SeleccionarRolModal: React.FC<Props> = ({
                     {t(config.descripcionKey)}
                   </Text>
                 </View>
-                <Icon name="chevron-right" size={20} color={COLOR.SUBTEXTO} />
+                {processing ? (
+                  <ActivityIndicator size="small" color={COLOR.PRIMARIO} />
+                ) : (
+                  <Icon name="chevron-right" size={20} color={COLOR.SUBTEXTO} />
+                )}
               </TouchableOpacity>
             )
           })}
@@ -119,6 +132,9 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     borderWidth: 1,
     borderColor: COLOR.BORDE,
+  },
+  rolCardDisabled: {
+    opacity: 0.5,
   },
   iconContainer: {
     width: 56,

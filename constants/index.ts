@@ -1,4 +1,4 @@
-import { COLOR } from './Theme'
+import { COLOR, SPACING } from './Theme'
 import * as utils from './utils'
 export { MAX_MASCOTAS_POR_PASEO } from './limits'
 export { ERR, type ErrorCode } from './errors'
@@ -15,7 +15,7 @@ export {
   type H3FieldName,
 } from './h3'
 
-export { utils, COLOR }
+export { utils, COLOR, SPACING }
 export {
   STANDARD_SERVICE_PRICE,
   USE_GLOBAL_SERVICE_PRICE,

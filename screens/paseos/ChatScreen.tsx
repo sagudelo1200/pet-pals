@@ -5,8 +5,6 @@ import {
   TextInput,
   ActivityIndicator,
   Text,
-  KeyboardAvoidingView,
-  Platform,
 } from 'react-native'
 import { FlashList, type FlashListRef } from '@shopify/flash-list'
 import { useTranslation } from 'react-i18next'

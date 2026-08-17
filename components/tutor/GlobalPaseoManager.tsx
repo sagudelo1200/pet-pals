@@ -4,14 +4,14 @@ import { BlurView } from 'expo-blur'
 import { PaseoFinalizadoCard } from '@/components/paseos/PaseoFinalizadoCard'
 import { useMonitorPaseoGlobal } from '@/hooks/paseos/useMonitorPaseoGlobal'
 import { useNavigation } from '@react-navigation/native'
-import { useRol } from '@/context/RolContext'
+import { useAuth } from '@/context/AuthContext'
 import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs'
 import type { TutorTabParamList } from '@/navigation/types'
 
 export const GlobalPaseoManager = () => {
   const { showFinishedModal, paseo, handleClose } = useMonitorPaseoGlobal()
   const navigation = useNavigation<BottomTabNavigationProp<TutorTabParamList>>()
-  const { rolActivo } = useRol()
+  const { rolActivo } = useAuth()
 
   const onClose = async () => {
     try {

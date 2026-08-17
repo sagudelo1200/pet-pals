@@ -124,7 +124,7 @@ export const TimelineHistoriaPaseo: React.FC<TimelineHistoriaPaseoProps> = ({
   bitacoras,
   cargando = false,
 }) => {
-  const { t } = useTranslation()
+  const { t: _t } = useTranslation()
 
   if (cargando) {
     return (

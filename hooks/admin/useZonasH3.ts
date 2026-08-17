@@ -10,12 +10,19 @@ export function useZonasH3() {
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
+    console.log('[useZonasH3] 🔄 Iniciando suscripción a zonas...')
     const cancelar = ServicioZonasH3.suscribirATodas(
       nuevasZonas => {
+        console.log(
+          '[useZonasH3] ✅ Zonas recibidas:',
+          nuevasZonas.length,
+          nuevasZonas
+        )
         setZonas(nuevasZonas)
         setCargando(false)
       },
       err => {
+        console.error('[useZonasH3] ❌ Error en suscripción:', err)
         setError(err.message)
         setCargando(false)
       }

@@ -9,6 +9,12 @@ export {validarOTP} from "./auth/validarOTP";
 // Usuarios
 export {actualizarPerfilPublico} from "./usuarios/actualizar";
 
+// Verificaciones
+export {
+  actualizarInsignias,
+  actualizarInsigniasOnUpdate,
+} from "./verificaciones/actualizarInsignias";
+
 // Paseos
 export {
   onCrearPaseoDirecto,

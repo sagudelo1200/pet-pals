@@ -50,7 +50,10 @@ export function ModalPerfilCuidador({
     })
   )
 
-  const esVerificado = perfil?.verificacion === 'verificado'
+  // ✅ Paseador verificado: IDENTIDAD debe estar en insignias
+  // Nota: insignias_verificacion sirve tanto para UI (badges) como lógica (validación)
+  const esVerificado =
+    perfil?.insignias_verificacion?.includes('IDENTIDAD') ?? false
   const rating = perfil?.rating_promedio || 0
   const paseos = perfil?.cantidad_paseos_realizados || 0
 
@@ -221,7 +224,9 @@ export function ModalPerfilCuidador({
                   / {t('cuidador:perfil.hora')}
                 </Text>
               </View>
-              <Text style={{ marginTop: 8, color: COLOR.SUBTEXTO, fontSize: 13 }}>
+              <Text
+                style={{ marginTop: 8, color: COLOR.SUBTEXTO, fontSize: 13 }}
+              >
                 {t('perfil:editar.tarifa_estandar_mvp')}
               </Text>
             </View>

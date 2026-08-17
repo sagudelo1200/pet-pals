@@ -21,6 +21,7 @@ import {
 } from 'firebase/firestore'
 import { db } from '@/firebase.config'
 import { coordsAH3 } from '@/services/geo'
+import { cellToChildren } from 'h3-js'
 import { ServicioZonasH3 } from '@/services/firebase/firestore/colecciones/h3_zonas'
 
 // ---------- Types del gestor de paseo activo ----------
@@ -393,12 +394,17 @@ export class GestorPaseoActivo {
 
     if (res.success) {
       // Marcar zona como en operación activa
-      const celdaInicio = extraerCeldaH3DePaseo(this._paseo.original)
-      if (celdaInicio) {
-        ServicioZonasH3.actualizarZona(celdaInicio, {
-          paseos_activos: 1,
-          marcar_actividad: true,
-        }).catch(e => console.warn('[h3] iniciarPaseoAsync:', e))
+      const celdaR8 = extraerCeldaH3DePaseo(this._paseo.original)
+      if (celdaR8) {
+        const celdasR9 = cellToChildren(celdaR8, 9)
+        Promise.all(
+          celdasR9.map(celdaR9 =>
+            ServicioZonasH3.actualizarZona(celdaR9, {
+              paseos_activos: 1,
+              marcar_actividad: true,
+            })
+          )
+        ).catch(e => console.warn('[h3] iniciarPaseoAsync:', e))
       }
 
       if (this.puede(EVENTOS.INICIAR_PASEO)) {
@@ -443,13 +449,18 @@ export class GestorPaseoActivo {
 
     if (res.success) {
       // Paseo terminado: decrementar activos, sumar al total histórico y bajar demanda
-      const celdaFin = extraerCeldaH3DePaseo(this._paseo.original)
-      if (celdaFin) {
-        ServicioZonasH3.actualizarZona(celdaFin, {
-          paseos_activos: -1,
-          paseos_total: 1,
-          demanda_total: -1,
-        }).catch(e => console.warn('[h3] finalizarPaseoAsync:', e))
+      const celdaR8 = extraerCeldaH3DePaseo(this._paseo.original)
+      if (celdaR8) {
+        const celdasR9 = cellToChildren(celdaR8, 9)
+        Promise.all(
+          celdasR9.map(celdaR9 =>
+            ServicioZonasH3.actualizarZona(celdaR9, {
+              paseos_activos: -1,
+              paseos_total: 1,
+              demanda_total: -1,
+            })
+          )
+        ).catch(e => console.warn('[h3] finalizarPaseoAsync:', e))
       }
 
       if (this.puede(EVENTOS.FINALIZAR_PASEO)) {
@@ -498,11 +509,16 @@ export class GestorPaseoActivo {
 
     if (res.success) {
       // Revertir la demanda registrada al crear el paseo
-      const celdaCancelado = extraerCeldaH3DePaseo(this._paseo.original)
-      if (celdaCancelado) {
-        ServicioZonasH3.actualizarZona(celdaCancelado, {
-          demanda_total: -1,
-        }).catch(e => console.warn('[h3] cancelarPaseoAsync:', e))
+      const celdaR8 = extraerCeldaH3DePaseo(this._paseo.original)
+      if (celdaR8) {
+        const celdasR9 = cellToChildren(celdaR8, 9)
+        Promise.all(
+          celdasR9.map(celdaR9 =>
+            ServicioZonasH3.actualizarZona(celdaR9, {
+              demanda_total: -1,
+            })
+          )
+        ).catch(e => console.warn('[h3] cancelarPaseoAsync:', e))
       }
 
       if (this.puede(EVENTOS.CANCELAR)) {
@@ -664,7 +680,7 @@ async function validarNoSolapamientoPorMascota(
   mascotaId: string,
   fechaInicio: Date,
   duracion: number,
-  uid: string
+  _uid: string
 ) {
   try {
     const estadosActivos = [
@@ -884,10 +900,16 @@ export async function crearConMascotas(
   const lat = (locObj as any)?.coordenadas?.latitude
   const lng = (locObj as any)?.coordenadas?.longitude
   if (lat && lng) {
-    ServicioZonasH3.actualizarZona(coordsAH3(lat, lng), {
-      demanda_total: 1,
-      marcar_demanda: true,
-    }).catch(e => console.warn('[h3] crearConMascotas:', e))
+    const celdaR8 = coordsAH3(lat, lng)
+    const celdasR9 = cellToChildren(celdaR8, 9)
+    Promise.all(
+      celdasR9.map(celdaR9 =>
+        ServicioZonasH3.actualizarZona(celdaR9, {
+          demanda_total: 1,
+          marcar_demanda: true,
+        })
+      )
+    ).catch(e => console.warn('[h3] crearConMascotas:', e))
   }
 
   return paseoRes as any

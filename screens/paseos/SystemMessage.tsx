@@ -69,7 +69,7 @@ export const SystemMessage: React.FC<SystemMessageProps> = ({ mensaje }) => {
     const diferencia = ahora.getTime() - fecha.getTime()
     const minutos = Math.floor(diferencia / 60000)
     const horas = Math.floor(minutos / 60)
-    const dias = Math.floor(horas / 24)
+    const _dias = Math.floor(horas / 24)
 
     if (minutos < 1) return t('chat:time_just_now')
     if (minutos < 60) {

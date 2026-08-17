@@ -20,6 +20,7 @@ export { ServicioUbicacion } from './firestore/colecciones/ubicacion'
 export { ServicioPaseoMascota } from './firestore/colecciones/paseo-mascota'
 export { ServicioChat } from './firestore/colecciones/chat'
 export { ServicioExploracionTerritorial } from './firestore/colecciones/exploraciones'
+export { ServicioVerificaciones } from './firestore/colecciones/verificaciones'
 
 // Auth
 export { ServicioAuth } from './auth/auth'

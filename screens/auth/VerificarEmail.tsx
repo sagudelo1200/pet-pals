@@ -2,15 +2,14 @@ import React, { useCallback, useRef, useEffect, useState } from 'react'
 import {
   StyleSheet,
   View,
-  Alert,
-  Animated,
   TouchableOpacity,
   Text,
+  Animated,
 } from 'react-native'
 import { Block } from 'galio-framework'
 import { COLOR } from '@/constants'
-import { Button } from '@/components/ui'
-import { CodeInput } from '@/components/ui/CodeInput'
+import { Icon } from '@/components/ui'
+import { OTPCodeInput } from '@/components/ui/OTPCodeInput'
 import Screen from '@/components/ui/Screen'
 import { useAuth } from '@/context/AuthContext'
 import { tErrorMaybe } from '@/services/i18n'
@@ -20,126 +19,330 @@ import type { StackNavigationProp } from '@react-navigation/stack'
 import type { AuthFlowParamList } from '@/navigation/types'
 import { functions } from '@/firebase.config'
 import { httpsCallable } from 'firebase/functions'
+import MensajeEnviadoSvg from '@/assets/imgs/undraw/mensaje_enviado.svg'
+import { RETRASO_REENVIO_OTP_SEGUNDOS } from '@/constants/limits'
 
 type Nav = StackNavigationProp<AuthFlowParamList>
 
 const TIEMPO_EXPIRACION_OTP = 10 * 60 * 1000 // 10 minutos
-const REINTENTOS_CONFIG = [
-  { numero: 1, cooldownMs: 60000 }, // 60 segundos
-  { numero: 2, cooldownMs: 90000 }, // 90 segundos
-  { numero: 3, cooldownMs: 120000 }, // 120 segundos
-]
+const RETRASO_REENVIO_MS = RETRASO_REENVIO_OTP_SEGUNDOS * 1000 // Convertir a ms
 
 const VerificarEmail: React.FC = () => {
   const navigation = useNavigation<Nav>()
-  const { user, recargarPerfil } = useAuth()
+  const authContext = useAuth()
+  const { user, recargarUsuarioAuth } = authContext
+  const recargarPerfilPublico = (authContext as any).recargarPerfilPublico
   const { t } = useTranslation()
 
-  // Estado del OTP
-  const [otpCode, setOtpCode] = useState('')
+  // Estado mínimo
   const [errorOtp, setErrorOtp] = useState('')
-  const [cargando, setCargando] = useState(false)
-
-  // Estado del timer
   const [tiempoRestante, setTiempoRestante] = useState(TIEMPO_EXPIRACION_OTP)
-  const [otpExpirado, setOtpExpirado] = useState(false)
-
-  // Estado de reintentos
   const [reintentosUsados, setReintentosUsados] = useState(0)
-  const [cooldownActivo, setCooldownActivo] = useState(false)
-  const [tiempoCooldown, setTiempoCooldown] = useState(0)
+  const [enviando, setEnviando] = useState(true)
+  const [retrasoReenvio, setRetrasoReenvio] = useState(0) // ms restantes antes de permitir reenvío
+  const [mensajeEnvio, setMensajeEnvio] = useState<{
+    tipo: 'exito' | 'error'
+    texto: string
+  } | null>(null) // Feedback de envío de OTP
+  const [verificandoOtp, setVerificandoOtp] = useState(false) // Loading mientras se sincroniza verificación
 
   // Animaciones
-  const messageOpacity = useRef(new Animated.Value(0)).current
-  const messageTranslateY = useRef(new Animated.Value(20)).current
-  const formOpacity = useRef(new Animated.Value(0)).current
-  const formTranslateY = useRef(new Animated.Value(30)).current
+  const fadeAnim = useRef(new Animated.Value(0)).current
+  const slideUpAnim = useRef(new Animated.Value(50)).current
 
-  // Timer del OTP
+  // Ref para evitar setState después de desmontaje
+  const isMountedRef = useRef(true)
+
   useEffect(() => {
-    if (otpExpirado || tiempoRestante <= 0) {
-      setOtpExpirado(true)
-      return undefined
+    return () => {
+      isMountedRef.current = false
     }
+  }, [])
 
-    const interval = setInterval(() => {
-      setTiempoRestante((prev: number) => {
-        const nuevoTiempo = prev - 1000
-        if (nuevoTiempo <= 0) {
-          setOtpExpirado(true)
-          return 0
-        }
-        return nuevoTiempo
-      })
-    }, 1000)
-
-    return () => clearInterval(interval)
-  }, [otpExpirado, tiempoRestante])
-
-  // Timer del cooldown
+  // Iniciar animaciones al montar
   useEffect(() => {
-    if (!cooldownActivo || tiempoCooldown <= 0) {
-      setCooldownActivo(false)
-      return undefined
-    }
-
-    const interval = setInterval(() => {
-      setTiempoCooldown((prev: number) => {
-        const nuevoTiempo = prev - 1000
-        if (nuevoTiempo <= 0) {
-          setCooldownActivo(false)
-          return 0
-        }
-        return nuevoTiempo
-      })
-    }, 1000)
-
-    return () => clearInterval(interval)
-  }, [cooldownActivo, tiempoCooldown])
-
-  // Animaciones de entrada
-  useEffect(() => {
-    Animated.sequence([
-      Animated.parallel([
-        Animated.timing(messageOpacity, {
-          toValue: 1,
-          duration: 600,
-          useNativeDriver: true,
-        }),
-        Animated.timing(messageTranslateY, {
-          toValue: 0,
-          duration: 600,
-          useNativeDriver: true,
-        }),
-      ]),
-      Animated.parallel([
-        Animated.timing(formOpacity, {
-          toValue: 1,
-          duration: 500,
-          delay: 100,
-          useNativeDriver: true,
-        }),
-        Animated.timing(formTranslateY, {
-          toValue: 0,
-          duration: 500,
-          delay: 100,
-          useNativeDriver: true,
-        }),
-      ]),
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 500,
+        useNativeDriver: true,
+      }),
+      Animated.timing(slideUpAnim, {
+        toValue: 0,
+        duration: 600,
+        useNativeDriver: true,
+      }),
     ]).start()
   }, [])
 
-  // Validar que tenemos email y uid
+  // Simple effect para detectar cuando el usuario se verifica
   useEffect(() => {
-    if (!user?.email || !user?.uid) {
-      Alert.alert(t('comun:error'), t('comun:algo_salio_mal'), [
-        {
-          text: t('comun:volver'),
-          onPress: () => navigation.goBack(),
-        },
-      ])
+    if (user?.emailVerified) {
+      // Ya verificado, dejar que AuthNavigator maneje la navegación
+      // No hacer nada aquí - el contexto se encargará
     }
-  }, [user, navigation, t])
+  }, [user?.emailVerified])
+
+  // Enviar OTP por email al montar
+  useEffect(() => {
+    const enviarOTPInicial = async () => {
+      if (!user?.email || !user?.uid) {
+        return
+      }
+
+      try {
+        const enviarOTPFn = httpsCallable<
+          { email: string; uid: string },
+          { success: boolean; error?: string }
+        >(functions, 'enviarOTP')
+
+        const result = await enviarOTPFn({
+          email: user.email,
+          uid: user.uid,
+        })
+
+        if (!isMountedRef.current) {
+          return
+        }
+
+        if (result.data.success) {
+          // Mostrar feedback de éxito
+          setMensajeEnvio({
+            tipo: 'exito',
+            texto: `✅ ${t('auth:otp.enviado_exitosamente') || 'Código enviado a tu email'}`,
+          })
+          // Auto-ocultar después de 4 segundos
+          setTimeout(() => {
+            if (isMountedRef.current) {
+              setMensajeEnvio(null)
+            }
+          }, 4000)
+        } else {
+          // Mostrar feedback de error
+          const errorMsg = result.data.error || t('comun:intenta_nuevamente')
+          setErrorOtp(errorMsg)
+          setMensajeEnvio({
+            tipo: 'error',
+            texto: `❌ ${errorMsg}`,
+          })
+        }
+      } catch (err: any) {
+        if (isMountedRef.current) {
+          const errorMsg = tErrorMaybe(
+            err?.message,
+            t('comun:intenta_nuevamente')
+          )
+          setErrorOtp(errorMsg)
+          setMensajeEnvio({
+            tipo: 'error',
+            texto: `❌ ${errorMsg}`,
+          })
+        }
+      } finally {
+        if (isMountedRef.current) {
+          setEnviando(false)
+        }
+      }
+    }
+
+    enviarOTPInicial()
+  }, [user?.email, user?.uid, t])
+
+  // Timer del OTP (countdown de 10 minutos)
+  useEffect(() => {
+    if (tiempoRestante <= 0) {
+      return () => {}
+    }
+
+    const interval = setInterval(() => {
+      if (isMountedRef.current) {
+        setTiempoRestante(prev => {
+          const nuevoTiempo = prev - 1000
+          return nuevoTiempo <= 0 ? 0 : nuevoTiempo
+        })
+      }
+    }, 1000)
+
+    return () => clearInterval(interval)
+  }, [tiempoRestante])
+
+  // Timer del retraso de reenvío (evita spam)
+  useEffect(() => {
+    if (retrasoReenvio <= 0) {
+      return () => {}
+    }
+
+    const interval = setInterval(() => {
+      if (isMountedRef.current) {
+        setRetrasoReenvio(prev => {
+          const nuevoTiempo = prev - 1000
+          return nuevoTiempo <= 0 ? 0 : nuevoTiempo
+        })
+      }
+    }, 1000)
+
+    return () => clearInterval(interval)
+  }, [retrasoReenvio])
+
+  const handleVerificarOtp = useCallback(
+    async (codigo: string): Promise<void> => {
+      if (!user?.uid) {
+        throw new Error(t('comun:algo_salio_mal'))
+      }
+
+      try {
+        if (!isMountedRef.current) {
+          return
+        }
+        setVerificandoOtp(true)
+
+        const validarOTP = httpsCallable<
+          { uid: string; codigo: string },
+          { success: boolean; error?: string; mensaje?: string }
+        >(functions, 'validarOTP')
+
+        const result = await validarOTP({
+          uid: user.uid,
+          codigo,
+        })
+
+        if (!isMountedRef.current) {
+          return
+        }
+
+        if (result.data.success) {
+          // Recargar usuario para sincronizar emailVerified = true
+          if (recargarUsuarioAuth) {
+            await recargarUsuarioAuth()
+          }
+
+          // CRÍTICO: Polling para esperar a que el trigger de Cloud Function
+          // actualice insignias_verificacion en Firestore
+          // El trigger es asincrónico, así que recargarPerfilPublico inicial podría traer datos stale
+          const maxIntentosPolling = 30 // 30 x 200ms = 6 segundos max
+          let intentosPolling = 0
+          let emailVerificadoEnFirestore = false
+
+          while (
+            intentosPolling < maxIntentosPolling &&
+            !emailVerificadoEnFirestore &&
+            isMountedRef.current
+          ) {
+            if (recargarPerfilPublico) {
+              await recargarPerfilPublico()
+            }
+
+            // Pequeño delay antes de verificar (200ms) - permite que el trigger execute
+            await new Promise(resolve => setTimeout(resolve, 200))
+
+            // Verificar si la insignia está presente (acceso directo a authContext)
+            const emailVerificadoAhora =
+              authContext.perfilPublico?.insignias_verificacion?.includes(
+                'EMAIL'
+              )
+            if (emailVerificadoAhora) {
+              emailVerificadoEnFirestore = true
+              break
+            }
+
+            intentosPolling++
+          }
+
+          if (!isMountedRef.current) {
+            return
+          }
+
+          // Si después del polling sigue sin estar verificado, lanzar error
+          if (!emailVerificadoEnFirestore) {
+            throw new Error(
+              t('auth:otp.error_sincronizacion') ||
+                'Error sincronizando verificación. Intenta nuevamente.'
+            )
+          }
+
+          // Dejar que AuthNavigator maneje la navegación
+          // AuthNavigator verá el cambio en perfilPublico?.insignias_verificacion['EMAIL']
+        } else {
+          throw new Error(
+            result.data.error ||
+              t('auth:otp.codigo_incorrecto') ||
+              'Código incorrecto'
+          )
+        }
+      } finally {
+        if (isMountedRef.current) {
+          setVerificandoOtp(false)
+        }
+      }
+    },
+    [user?.uid, recargarUsuarioAuth, recargarPerfilPublico, authContext, t]
+  )
+
+  const handleReenviarOtp = useCallback(async () => {
+    if (!user?.email || !user?.uid) return
+
+    if (isMountedRef.current) {
+      setEnviando(true)
+      setErrorOtp('')
+      setMensajeEnvio(null)
+    }
+
+    try {
+      const enviarOTPFn = httpsCallable<
+        { email: string; uid: string },
+        { success: boolean; error?: string }
+      >(functions, 'enviarOTP')
+
+      const result = await enviarOTPFn({
+        email: user.email,
+        uid: user.uid,
+      })
+
+      if (!isMountedRef.current) {
+        return
+      }
+
+      if (result.data.success) {
+        setTiempoRestante(TIEMPO_EXPIRACION_OTP)
+        setReintentosUsados(0)
+        setRetrasoReenvio(RETRASO_REENVIO_MS) // Aplicar retraso de reenvío
+
+        // Mostrar feedback de éxito
+        setMensajeEnvio({
+          tipo: 'exito',
+          texto: `✅ ${t('auth:otp.enviado_nuevamente') || 'Código reenviado exitosamente'}`,
+        })
+
+        // Auto-ocultar después de 4 segundos
+        setTimeout(() => {
+          if (isMountedRef.current) {
+            setMensajeEnvio(null)
+          }
+        }, 4000)
+      } else {
+        const errorMsg = result.data.error || t('comun:intenta_nuevamente')
+        throw new Error(errorMsg)
+      }
+    } catch (err: any) {
+      if (isMountedRef.current) {
+        const errorMsg = tErrorMaybe(
+          err?.message,
+          t('comun:intenta_nuevamente')
+        )
+        setErrorOtp(errorMsg)
+
+        // Mostrar feedback de error
+        setMensajeEnvio({
+          tipo: 'error',
+          texto: `❌ ${errorMsg}`,
+        })
+      }
+    } finally {
+      if (isMountedRef.current) {
+        setEnviando(false)
+      }
+    }
+  }, [user?.email, user?.uid, t])
 
   const formatearTiempo = (ms: number): string => {
     const totalSegundos = Math.ceil(ms / 1000)
@@ -148,382 +351,285 @@ const VerificarEmail: React.FC = () => {
     return `${minutos}:${segundos.toString().padStart(2, '0')}`
   }
 
-  const handleVerificarOtp = useCallback(async (): Promise<void> => {
-    if (!user?.uid || !user?.email) {
-      Alert.alert(t('comun:error'), t('comun:algo_salio_mal'))
-      return
-    }
+  const formatearSegundos = (ms: number): string => {
+    return Math.ceil(ms / 1000).toString()
+  }
 
-    if (otpCode.length !== 6) {
-      setErrorOtp(
-        t('auth:otp.codigo_debe_tener_6') || 'Código debe tener 6 dígitos'
-      )
-      return
-    }
+  const handleCambiarCorreo = useCallback(() => {
+    if (!isMountedRef.current) return
+    navigation.reset({
+      index: 0,
+      routes: [{ name: 'Registro' as any }],
+    })
+  }, [navigation])
 
-    setCargando(true)
-    setErrorOtp('')
-
-    try {
-      const validarOTP = httpsCallable<
-        { uid: string; codigo: string },
-        { success: boolean; error?: string; mensaje?: string }
-      >(functions, 'validarOTP')
-
-      const result = await validarOTP({
-        uid: user.uid,
-        codigo: otpCode,
-      })
-
-      if (result.data.success) {
-        // ✅ OTP validado
-        // El AuthNavigator detectará automáticamente que el usuario está verificado
-        // y navegará a TutorApp. Por ahora, mostrar confirmación.
-        Alert.alert(
-          t('auth:otp.exito_titulo') || '¡Verificado!',
-          t('auth:otp.exito_mensaje') || 'Email verificado correctamente',
-          [
-            {
-              text: t('comun:continuar'),
-              onPress: () => {
-                // Recargar perfil para forzar actualización en AuthContext
-                // El listener de AuthNavigator se encargará de navegar a TutorApp
-                if (recargarPerfil) {
-                  recargarPerfil()
-                } else {
-                  // Fallback: navegar al padre (AuthNavigator)
-                  navigation.goBack()
-                }
-              },
-            },
-          ]
-        )
-      } else {
-        // ❌ Error del servidor
-        setErrorOtp(
-          result.data.error ||
-            t('auth:otp.error_verificacion') ||
-            'Error verificando código'
-        )
-
-        // Incrementar reintentos y activar cooldown
-        const nuevoIntentos = reintentosUsados + 1
-        setReintentosUsados(nuevoIntentos)
-
-        if (nuevoIntentos < REINTENTOS_CONFIG.length) {
-          const cooldown = REINTENTOS_CONFIG[nuevoIntentos].cooldownMs
-          setCooldownActivo(true)
-          setTiempoCooldown(cooldown)
-        } else {
-          // Máximo reintentos alcanzado
-          Alert.alert(
-            t('auth:otp.maximos_reintentos_titulo') || 'Máximo de intentos',
-            t('auth:otp.maximos_reintentos_msg') ||
-              'Debes solicitar un nuevo código',
-            [
-              {
-                text: t('comun:volver'),
-                onPress: () => navigation.goBack(),
-              },
-            ]
-          )
-        }
-      }
-    } catch (err: any) {
-      console.error('[VerificarEmail] Error validando OTP:', err)
-      setErrorOtp(tErrorMaybe(err?.message, t('comun:intenta_nuevamente')))
-
-      // Incrementar reintentos
-      const nuevoIntentos = reintentosUsados + 1
-      setReintentosUsados(nuevoIntentos)
-
-      if (nuevoIntentos < REINTENTOS_CONFIG.length) {
-        const cooldown = REINTENTOS_CONFIG[nuevoIntentos].cooldownMs
-        setCooldownActivo(true)
-        setTiempoCooldown(cooldown)
-      }
-    } finally {
-      setCargando(false)
-    }
-  }, [user, otpCode, reintentosUsados, t, navigation])
-
-  const handleReenviarCodigo = useCallback(async (): Promise<void> => {
-    if (!user?.uid || !user?.email) {
-      Alert.alert(t('comun:error'), t('comun:algo_salio_mal'))
-      return
-    }
-
-    setCargando(true)
-    setErrorOtp('')
-
-    try {
-      const enviarOTP = httpsCallable<
-        { email: string; uid: string },
-        { success: boolean; error?: string; mensaje?: string }
-      >(functions, 'enviarOTP')
-
-      const result = await enviarOTP({
-        email: user.email,
-        uid: user.uid,
-      })
-
-      if (result.data.success) {
-        // ✅ Código reenviado
-        setOtpCode('')
-        setTiempoRestante(TIEMPO_EXPIRACION_OTP)
-        setOtpExpirado(false)
-        setCooldownActivo(false)
-
-        Alert.alert(
-          t('auth:otp.codigo_reenviado_titulo') || 'Código reenviado',
-          t('auth:otp.codigo_reenviado_msg') || 'Revisa tu email'
-        )
-      } else {
-        // Error del servidor
-        setErrorOtp(
-          result.data.error ||
-            t('auth:otp.error_reenvio') ||
-            'Error reenviando código'
-        )
-      }
-    } catch (err: any) {
-      console.error('[VerificarEmail] Error reenviando OTP:', err)
-      setErrorOtp(tErrorMaybe(err?.message, t('comun:intenta_nuevamente')))
-    } finally {
-      setCargando(false)
-    }
-  }, [user, t])
-
-  const puedeReenviar =
-    !cooldownActivo && !cargando && reintentosUsados < REINTENTOS_CONFIG.length
-  const mostrarCooldown =
-    cooldownActivo && reintentosUsados < REINTENTOS_CONFIG.length
+  if (!user?.email) {
+    return (
+      <Screen>
+        <Block flex center middle>
+          <Text>{t('comun:cargando')}</Text>
+        </Block>
+      </Screen>
+    )
+  }
 
   return (
-    <Screen contentContainerStyle={styles.content} style={styles.container}>
-      <Block>
-        {/* Mensaje emocional */}
-        <Animated.View
-          style={{
-            opacity: messageOpacity,
-            transform: [{ translateY: messageTranslateY }],
-          }}
+    <Screen contentContainerStyle={styles.screenContent}>
+      {/* Banner de feedback de envío */}
+      {mensajeEnvio && (
+        <View
+          style={[
+            styles.bannerFeedback,
+            mensajeEnvio.tipo === 'exito'
+              ? styles.bannerExito
+              : styles.bannerError,
+          ]}
         >
-          <Text style={styles.emotionalMessage}>
-            🔐 {t('auth:otp.seguridad')}
+          <Text
+            style={[
+              styles.bannerText,
+              mensajeEnvio.tipo === 'exito'
+                ? styles.bannerTextExito
+                : styles.bannerTextError,
+            ]}
+          >
+            {mensajeEnvio.texto}
           </Text>
-          <Text style={styles.title}>
-            {t('auth:otp.titulo') || 'Verifica tu Email'}
-          </Text>
-          <Text style={styles.subtitle}>
-            {t('auth:otp.subtitulo') ||
-              'Enviamos un código de 6 dígitos a tu correo'}
-          </Text>
+        </View>
+      )}
+
+      <View style={styles.container}>
+        {/* Encabezado con SVG y mensaje */}
+        <Animated.View style={[styles.headerSection, { opacity: fadeAnim }]}>
+          <MensajeEnviadoSvg width={80} height={80} style={styles.svgMessage} />
+          <Text style={styles.message}>{t('auth:otp.mensaje_inicial')}</Text>
+          <View style={styles.emailContainer}>
+            <Text style={styles.email}>{user.email}</Text>
+            <TouchableOpacity onPress={handleCambiarCorreo}>
+              <Icon name="edit" size={16} color={COLOR.PRIMARIO} />
+            </TouchableOpacity>
+          </View>
         </Animated.View>
 
-        {/* Contenido principal */}
+        {/* Contenido principal (OTP y controles) */}
         <Animated.View
           style={[
-            styles.form,
+            styles.mainSection,
             {
-              opacity: formOpacity,
-              transform: [{ translateY: formTranslateY }],
+              opacity: slideUpAnim.interpolate({
+                inputRange: [0, 50],
+                outputRange: [1, 0],
+              }),
+              transform: [
+                {
+                  translateY: slideUpAnim.interpolate({
+                    inputRange: [0, 50],
+                    outputRange: [0, 50],
+                  }),
+                },
+              ],
             },
           ]}
         >
-          {/* Timer y estado */}
-          <View style={styles.statusContainer}>
-            {!otpExpirado && (
-              <>
-                <Text style={styles.statusLabel}>
-                  {t('auth:otp.tiempo_restante') || 'Tiempo restante'}:
-                </Text>
-                <Text style={styles.timerText}>
-                  {formatearTiempo(tiempoRestante)}
-                </Text>
-              </>
-            )}
-            {otpExpirado && (
-              <Text style={styles.expiradoText}>
-                {t('auth:otp.codigo_expirado') || 'El código ha expirado'}
-              </Text>
-            )}
-          </View>
+          {!enviando ? (
+            <>
+              {/* Entrada OTP */}
+              <OTPCodeInput
+                onComplete={handleVerificarOtp}
+                isLoading={verificandoOtp}
+                error={errorOtp}
+                title={t('auth:otp.ingresa_codigo')}
+                subtitle={t('auth:otp.ingresa_codigo_instrucciones')}
+                intentosFallidos={reintentosUsados}
+                intentosMaximos={3}
+                timeoutSeconds={Math.ceil(tiempoRestante / 1000)}
+                onTimeoutChange={() => {}}
+              />
 
-          {/* Input de código */}
-          <CodeInput
-            length={6}
-            value={otpCode}
-            onChangeText={setOtpCode}
-            errorText={errorOtp}
-            disabled={cargando || otpExpirado}
-            isLoading={cargando}
-            displayType="digits"
-            label={t('auth:otp.ingresa_codigo') || 'Código de verificación'}
-            placeholder="000000"
-            autoFocus
-          />
-
-          {/* Botón verificar */}
-          <Button
-            style={styles.botonVerificar}
-            disabled={
-              otpCode.length !== 6 || cargando || otpExpirado || cooldownActivo
-            }
-            loading={cargando}
-            onPress={handleVerificarOtp}
-            title={t('auth:otp.verificar') || 'Verificar'}
-          />
-
-          {/* Sección reenvío */}
-          <View style={styles.reenvioContainer}>
-            {!mostrarCooldown && (
-              <>
-                <Text style={styles.reenvioLabel}>
-                  {t('auth:otp.no_recibiste_codigo') ||
-                    '¿No recibiste el código?'}
-                </Text>
-                <TouchableOpacity
-                  disabled={!puedeReenviar}
-                  onPress={handleReenviarCodigo}
-                >
+              {/* Fila: Timer + Botón Reenvío */}
+              <View style={styles.footerRow}>
+                <View style={styles.timerBlock}>
+                  <Text style={styles.timerLabel}>
+                    {t('auth:otp.tiempo_restante')}
+                  </Text>
                   <Text
                     style={[
-                      styles.reenvioLink,
-                      !puedeReenviar && styles.reenvioLinkDisabled,
+                      styles.timerValor,
+                      tiempoRestante < 60000 && styles.timerCritico,
                     ]}
                   >
-                    {t('auth:otp.reenviar') || 'Reenviar código'}
+                    {formatearTiempo(tiempoRestante)}
+                  </Text>
+                </View>
+
+                <TouchableOpacity
+                  onPress={handleReenviarOtp}
+                  disabled={enviando || retrasoReenvio > 0}
+                  style={[
+                    styles.reenvioButton,
+                    (enviando || retrasoReenvio > 0) &&
+                      styles.reenvioButtonDisabled,
+                  ]}
+                >
+                  <Icon
+                    name="sync"
+                    size={14}
+                    color={
+                      enviando || retrasoReenvio > 0
+                        ? COLOR.INACTIVO
+                        : COLOR.PRIMARIO
+                    }
+                  />
+                  <Text
+                    style={[
+                      styles.reenvioText,
+                      (enviando || retrasoReenvio > 0) &&
+                        styles.reenvioTextDisabled,
+                    ]}
+                  >
+                    {retrasoReenvio > 0
+                      ? `${formatearSegundos(retrasoReenvio)}s`
+                      : t('auth:otp.reenviar_codigo')}
                   </Text>
                 </TouchableOpacity>
-              </>
-            )}
-
-            {mostrarCooldown && (
-              <Text style={styles.cooldownText}>
-                {t('auth:otp.espera_antes_reenviar', {
-                  tiempo: formatearTiempo(tiempoCooldown),
-                }) || `Espera ${formatearTiempo(tiempoCooldown)} para reenviar`}
-              </Text>
-            )}
-          </View>
-
-          {/* Info de intentos */}
-          {reintentosUsados > 0 && (
-            <View style={styles.infoIntentos}>
-              <Text style={styles.infoIntentosText}>
-                {t('auth:otp.intentos_restantes', {
-                  restantes: REINTENTOS_CONFIG.length - reintentosUsados,
-                }) ||
-                  `Intentos restantes: ${REINTENTOS_CONFIG.length - reintentosUsados}`}
-              </Text>
+              </View>
+            </>
+          ) : (
+            <View style={styles.cargandoContainer}>
+              <Text style={styles.cargandoText}>{t('comun:enviando')}...</Text>
             </View>
           )}
         </Animated.View>
-      </Block>
+      </View>
     </Screen>
   )
 }
 
+export default VerificarEmail
+
 const styles = StyleSheet.create({
+  screenContent: {
+    flex: 1,
+  },
+  /* Banner de feedback (éxito/error) */
+  bannerFeedback: {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    marginBottom: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  bannerExito: {
+    backgroundColor: '#D4EDDA',
+    borderLeftWidth: 4,
+    borderLeftColor: '#28A745',
+  },
+  bannerError: {
+    backgroundColor: '#F8D7DA',
+    borderLeftWidth: 4,
+    borderLeftColor: '#DC3545',
+  },
+  bannerText: {
+    fontSize: 13,
+    fontWeight: '500',
+    textAlign: 'center',
+  },
+  bannerTextExito: {
+    color: '#155724',
+  },
+  bannerTextError: {
+    color: '#721C24',
+  },
   container: {
     flex: 1,
-    backgroundColor: COLOR.BASE,
-  },
-  content: {
-    flexGrow: 1,
-    justifyContent: 'center',
     paddingHorizontal: 20,
-    paddingVertical: 40,
+    paddingVertical: 16,
+    justifyContent: 'space-between',
   },
-  emotionalMessage: {
-    fontSize: 16,
-    color: COLOR.PRIMARIO,
-    marginBottom: 8,
-    fontWeight: '600',
-    textAlign: 'center',
+  headerSection: {
+    alignItems: 'center',
+    marginBottom: 20,
   },
-  title: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: COLOR.TEXTO,
-    marginBottom: 8,
-    textAlign: 'center',
+  svgMessage: {
+    marginBottom: 12,
   },
-  subtitle: {
+  message: {
     fontSize: 14,
-    color: COLOR.INACTIVO,
-    marginBottom: 40,
+    color: COLOR.TEXTO,
     textAlign: 'center',
     lineHeight: 20,
-  },
-  form: {
-    gap: 20,
-  },
-  statusContainer: {
-    alignItems: 'center',
-    paddingVertical: 12,
-    backgroundColor: `${COLOR.PRIMARIO}10`,
-    borderRadius: 8,
     marginBottom: 8,
   },
-  statusLabel: {
+  emailContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+  },
+  email: {
+    fontWeight: '600',
+    color: COLOR.PRIMARIO,
+    fontSize: 14,
+  },
+  mainSection: {
+    flex: 1,
+    justifyContent: 'center',
+  },
+  footerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: 16,
+    gap: 12,
+  },
+  timerBlock: {
+    alignItems: 'center',
+    flex: 1,
+  },
+  timerLabel: {
     fontSize: 12,
-    color: COLOR.INACTIVO,
+    color: COLOR.SUBTEXTO,
     marginBottom: 4,
   },
-  timerText: {
-    fontSize: 20,
+  timerValor: {
+    fontSize: 18,
     fontWeight: '700',
     color: COLOR.PRIMARIO,
-    fontFamily: 'monospace',
   },
-  expiradoText: {
-    fontSize: 14,
-    color: COLOR.ERROR,
-    fontWeight: '600',
+  timerCritico: {
+    color: COLOR.ALERTA,
   },
-  botonVerificar: {
-    marginTop: 12,
-  },
-  reenvioContainer: {
+  reenvioButton: {
+    flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 8,
-  },
-  reenvioLabel: {
-    fontSize: 13,
-    color: COLOR.INACTIVO,
-    marginBottom: 8,
-  },
-  reenvioLink: {
-    fontSize: 13,
-    color: COLOR.PRIMARIO,
-    fontWeight: '600',
-    textDecorationLine: 'underline',
-  },
-  reenvioLinkDisabled: {
-    color: COLOR.INACTIVO,
-    opacity: 0.5,
-  },
-  cooldownText: {
-    fontSize: 13,
-    color: COLOR.ENFASIS,
-    fontWeight: '600',
-    marginTop: 8,
-  },
-  infoIntentos: {
+    justifyContent: 'center',
     paddingHorizontal: 12,
     paddingVertical: 10,
-    backgroundColor: `${COLOR.ENFASIS}15`,
     borderRadius: 6,
-    borderLeftWidth: 3,
-    borderLeftColor: COLOR.ENFASIS,
+    borderWidth: 1,
+    borderColor: COLOR.PRIMARIO,
+    gap: 6,
+    flex: 1,
   },
-  infoIntentosText: {
+  reenvioButtonDisabled: {
+    borderColor: COLOR.INACTIVO,
+    opacity: 0.6,
+  },
+  reenvioText: {
     fontSize: 12,
-    color: COLOR.ENFASIS,
     fontWeight: '600',
+    color: COLOR.PRIMARIO,
+  },
+  reenvioTextDisabled: {
+    color: COLOR.INACTIVO,
+  },
+  cargandoContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    flex: 1,
+  },
+  cargandoText: {
+    fontSize: 14,
+    color: COLOR.SUBTEXTO,
   },
 })
-
-export default VerificarEmail

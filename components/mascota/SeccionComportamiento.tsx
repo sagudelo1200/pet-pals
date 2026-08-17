@@ -1,7 +1,6 @@
 import React from 'react'
 import { View, StyleSheet } from 'react-native'
 import { useTranslation } from 'react-i18next'
-import { COLOR } from '@/constants'
 import Card from '@/components/ui/Card'
 import { SectionHeaderWithAssistant } from '@/components/mascota/SectionHeaderWithAssistant'
 import { CardAtributo } from '@/components/mascota/CardAtributo'

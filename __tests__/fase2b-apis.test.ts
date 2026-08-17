@@ -1,3 +1,4 @@
+/* eslint-disable no-undef */
 /**
  * TEST: Enriquecimiento territorial con APIs públicas
  *

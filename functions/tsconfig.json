@@ -6,6 +6,7 @@
     "rootDir": "src",
     "outDir": "lib",
     "moduleResolution": "node",
+    "types": ["node"],
     "esModuleInterop": true,
     "resolveJsonModule": true,
     "skipLibCheck": true,

@@ -36,7 +36,7 @@ export const MascotasProvider: React.FC<{ children: ReactNode }> = ({
   children,
 }) => {
   const { t } = useTranslation()
-  const { user } = useAuth()
+  const { user, perfilPublico } = useAuth()
   const [mascotas, setMascotas] = useState<Mascota[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -67,47 +67,83 @@ export const MascotasProvider: React.FC<{ children: ReactNode }> = ({
     }
   }, [t, user])
 
-  // Sincronización inicial + escucha en tiempo real
+  // Escucha en tiempo real para cambios en mascotas del usuario
+  // CRÍTICO: Solo se suscribe si user?.uid existe Y usuario está verificado
+  // AuthNavigator es la única puerta de entrada, garantizando verificación
+  // Pero este guard adicional previene listeners si usuario cambia durante OTP
   useEffect(() => {
+    // Guard 1: Usuario debe existir
     if (!user?.uid) {
       setMascotas([])
       setLoading(false)
       // Limpiar suscripción anterior si existe
       if (unsubscribeRef.current) {
-        unsubscribeRef.current()
+        try {
+          unsubscribeRef.current()
+        } catch (_err) {
+          // Error al desuscribirse
+        }
         unsubscribeRef.current = null
       }
-      return undefined
+      return () => {
+        // No-op cleanup
+      }
+    }
+
+    // Guard 2: Usuario debe estar verificado (verificar insignia)
+    const emailVerificado =
+      perfilPublico?.insignias_verificacion?.includes('EMAIL') ?? false
+    if (!emailVerificado) {
+      setMascotas([])
+      setLoading(false)
+      // Limpiar suscripción anterior si existe (user cambió sin estar verificado)
+      if (unsubscribeRef.current) {
+        try {
+          unsubscribeRef.current()
+        } catch (_err) {
+          // Error al desuscribirse
+        }
+        unsubscribeRef.current = null
+      }
+      return () => {
+        // No-op cleanup
+      }
     }
 
     setLoading(true)
     setError(null)
 
-    // Establecer listener en tiempo real para cambios en cualquier mascota del usuario
-    const unsubscribe = ServicioMascota.escucharPorUsuario(
-      user.uid,
-      (mascotasData: Mascota[]) => {
-        setMascotas(mascotasData)
-        setLoading(false)
-        setError(null)
-      },
-      (mensajeError: string) => {
-        console.error('Error en listener de mascotas:', mensajeError)
-        setError(mensajeError)
-        setLoading(false)
-      }
-    )
+    try {
+      const unsubscribe = ServicioMascota.escucharPorUsuario(
+        user.uid,
+        (mascotasData: Mascota[]) => {
+          setMascotas(mascotasData)
+          setLoading(false)
+          setError(null)
+        },
+        (mensajeError: string) => {
+          setError(mensajeError)
+          setLoading(false)
+        }
+      )
+      unsubscribeRef.current = unsubscribe
+    } catch (_err) {
+      setError((_err as any)?.message || 'Error')
+      setLoading(false)
+    }
 
-    unsubscribeRef.current = unsubscribe
-
-    // Limpieza al cambiar usuario
+    // Limpieza al cambiar usuario o desmontar
     return () => {
       if (unsubscribeRef.current) {
-        unsubscribeRef.current()
+        try {
+          unsubscribeRef.current()
+        } catch (_err) {
+          // Error al desuscribirse en cleanup
+        }
         unsubscribeRef.current = null
       }
     }
-  }, [user?.uid])
+  }, [user?.uid, perfilPublico?.insignias_verificacion])
 
   const refrescar = useCallback(async () => {
     await cargarMascotas()

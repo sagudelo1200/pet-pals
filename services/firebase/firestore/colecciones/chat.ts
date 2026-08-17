@@ -10,7 +10,6 @@ import { ERR } from '@/constants'
 import {
   collection,
   query,
-  where,
   orderBy,
   limit,
   doc,
@@ -134,7 +133,7 @@ export class ServicioChat {
     >
   ): Promise<CrudResult<Mensaje>> {
     try {
-      const colRef = collection(
+      const _colRef = collection(
         db,
         this.COLLECTION_CONVERSACIONES,
         conversacionId,

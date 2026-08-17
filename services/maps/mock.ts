@@ -118,7 +118,7 @@ export class MockMapasProvider implements IProveedorMapas {
   async obtenerRuta(
     origen: { latitude: number; longitude: number },
     destino: { latitude: number; longitude: number },
-    modo: 'walking' | 'driving' = 'walking'
+    _modo: 'walking' | 'driving' = 'walking'
   ): Promise<any> {
     console.log(
       '[MockMapasProvider] Obteniendo ruta de:',

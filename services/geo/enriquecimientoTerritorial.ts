@@ -138,7 +138,7 @@ export async function fetchClima(
       ) {
         const times: string[] = data.hourly.time
         const prec: number[] = data.hourly.precipitation
-        const currentTime = (
+        const _currentTime = (
           current.time ||
           current.datetime ||
           new Date().toISOString()

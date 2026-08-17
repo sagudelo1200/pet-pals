@@ -1,5 +1,5 @@
 import React from 'react'
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native'
+import { Text, StyleSheet, TouchableOpacity } from 'react-native'
 import { useZonaH3 } from '@/hooks/useZonaH3'
 import { COLOR } from '@/constants'
 

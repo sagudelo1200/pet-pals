@@ -1,11 +1,5 @@
 import React, { useMemo } from 'react'
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-} from 'react-native'
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native'
 import { useZonaH3 } from '@/hooks/useZonaH3'
 import { COLOR } from '@/constants'
 
@@ -236,7 +230,7 @@ function generarNarrativa(narrativaSec: any): Narrativa {
   }
 }
 
-function generarNombre(tipo: string, indices: any): string {
+function generarNombre(tipo: string, _indices: any): string {
   const nombres = {
     parque: 'Parque de los Encuentros',
     calle: 'Caminata Urbana',
@@ -248,7 +242,7 @@ function generarNombre(tipo: string, indices: any): string {
   return nombres[tipo as keyof typeof nombres] || 'Este Lugar'
 }
 
-function generarPersonalidad(indices: any, tipo: string): string {
+function generarPersonalidad(indices: any, _tipo: string): string {
   const activo = indices.actividad >= 70
   const social = indices.socializacion >= 70
   const seguro = indices.seguridad >= 70

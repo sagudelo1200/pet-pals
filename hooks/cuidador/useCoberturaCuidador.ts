@@ -51,7 +51,8 @@ export function useCoberturaCuidador(
     setSaving(true)
     const res = await GestorPerfilPublico.actualizarCeldasCobertura(
       uid,
-      selectedCells
+      selectedCells,
+      h3Home
     )
     setSaving(false)
     return res.success

@@ -35,5 +35,9 @@ export {
   type EstadoVerificacion,
   type MetodoVerificacion,
   type ProveedorVerificacion,
+  type RazonTransicion,
   type Verificacion,
+  TRANSICIONES_VALIDAS,
+  transicionValida,
+  revalidacionValida,
 } from './Verificacion'

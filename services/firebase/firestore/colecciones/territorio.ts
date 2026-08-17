@@ -87,6 +87,9 @@ export class ServicioTerritorio {
 
       if (!zonaSnap.exists()) {
         // Nuevo documento: inicializar estructura unificada
+        // NOTA: No almacenamos h3_r8 redundantemente
+        // Se calcula siempre desde h3_r9 en lectura si es necesario
+        // Esto garantiza que R8 y R9 siempre sean consistentes
         const identidad: Identidad = {
           tipo: evento.contextoTerritorial?.tipo_ubicacion || 'otro',
           confianza: evento.contextoTerritorial ? 75 : 30,
@@ -98,10 +101,14 @@ export class ServicioTerritorio {
           identidad.tipo
         )
 
+        // Derivamos h3_r8 desde h3_r9 (no lo almacenamos redundantemente)
+        const { cellToParent } = await import('h3-js')
+        const h3_r8 = cellToParent(evento.h3_r9, 8)
+
         zonaData = {
           id: evento.h3_r9,
           h3_r9: evento.h3_r9,
-          h3_r8: evento.h3_r8,
+          h3_r8: h3_r8, // Calculado, NO redundante
           narrativa: {
             identidad,
             indices,

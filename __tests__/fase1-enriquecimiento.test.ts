@@ -1,3 +1,4 @@
+/* eslint-disable no-undef */
 /**
  * TEST: Validar Fase 1 + Fase 2 + Fase 2b — Enriquecimiento Territorial
  *

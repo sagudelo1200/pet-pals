@@ -44,8 +44,6 @@ export interface Usuario extends BaseModel {
   roles: RolUsuario[]
   /** Documento de identidad (opcional) */
   documento_identidad?: DocumentoIdentidad
-  /** Indicador de verificación del perfil */
-  verificado: boolean
 
   /** Estado del usuario (activo/inactivo/baneado) */
   estado: EstadoUsuario

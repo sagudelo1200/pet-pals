@@ -51,12 +51,21 @@ export const GestorAuth = {
     displayName: string,
     fechaNacimiento?: Date
   ): Promise<AuthResult> {
+    console.log('[GestorAuth] INICIO registrarConCorreo', {
+      email,
+      displayName,
+    })
     try {
+      console.log('[GestorAuth] Creando usuario en Firebase Auth...')
       const userCredential = await createUserWithEmailAndPassword(
         auth,
         email,
         password
       )
+      console.log('[GestorAuth] Usuario creado en Auth:', {
+        uid: userCredential.user.uid,
+        emailVerified: userCredential.user.emailVerified,
+      })
 
       if (userCredential.user && displayName) {
         await updateProfile(userCredential.user, { displayName })
@@ -64,17 +73,20 @@ export const GestorAuth = {
 
       try {
         const uid = userCredential.user.uid
+        console.log('[GestorAuth] Creando documento usuario en Firestore...', {
+          uid,
+        })
         const res = await ServicioUsuario.crearConUid(uid, {
           nombre: displayName,
           correo: email,
           celular: '',
           fecha_nacimiento: fechaNacimiento || null,
           roles: ['tutor'],
-          verificado: false,
           estado: 'activo',
         } as any)
 
         if (!res.success) {
+          console.error('[GestorAuth] Error creando doc usuario:', res.error)
           try {
             await deleteUser(userCredential.user)
           } catch (delErr) {
@@ -85,13 +97,15 @@ export const GestorAuth = {
             error: res.error || ERR.COMUN.ERROR_DESCONOCIDO,
           }
         }
+        console.log('[GestorAuth] Documento usuario creado exitosamente')
 
         try {
+          console.log('[GestorAuth] Creando perfil público...')
           await ServicioPerfilPublico.guardarConId(uid, {
             nombre: displayName ?? null,
             foto: null,
-            verificacion: 'pendiente',
           })
+          console.log('[GestorAuth] Perfil público creado exitosamente')
         } catch (e) {
           console.error(
             'Error creando perfil público inicial tras registro:',
@@ -131,11 +145,12 @@ export const GestorAuth = {
           uid: userCredential.user.uid,
           email: userCredential.user.email,
           displayName: displayName,
-          photoURL: userCredential.user.photoURL,
+          photoURL: userCredential.user.photoURL ?? null,
+          emailVerified: userCredential.user.emailVerified,
         },
       }
     } catch (error: any) {
-      console.error('Error en registro:', error)
+      console.error('[GestorAuth] ❌ Error en registro:', error)
       return { success: false, error: mapFirebaseAuthError(error) }
     }
   },
@@ -163,7 +178,8 @@ export const GestorAuth = {
           uid: userCredential.user.uid,
           email: userCredential.user.email,
           displayName: userCredential.user.displayName,
-          photoURL: userCredential.user.photoURL,
+          photoURL: userCredential.user.photoURL ?? null,
+          emailVerified: userCredential.user.emailVerified,
         },
       }
     } catch (error: any) {
@@ -184,7 +200,6 @@ export const GestorAuth = {
           correo: user.email || '',
           celular: '',
           roles: ['tutor'],
-          verificado: true,
           estado: 'activo',
           foto: user.photoURL || null,
         }
@@ -203,7 +218,6 @@ export const GestorAuth = {
             await ServicioPerfilPublico.guardarConId(user.uid, {
               nombre: nuevoUsuario.nombre ?? null,
               foto: nuevoUsuario.foto ?? null,
-              verificacion: 'pendiente',
             })
           } catch (e) {
             console.error(
@@ -237,7 +251,8 @@ export const GestorAuth = {
           uid: user.uid,
           email: user.email,
           displayName: user.displayName,
-          photoURL: user.photoURL,
+          photoURL: user.photoURL ?? null,
+          emailVerified: user.emailVerified,
         },
       }
     } catch (error: any) {

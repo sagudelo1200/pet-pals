@@ -159,9 +159,9 @@ export class ServicioMascota {
         datos1 = normalizarMascotas(snapshot.docs)
         emitirDatos()
       },
-      err => {
-        console.error('Error en listener de mascotas (creadas):', err)
-        onError(err.message || 'Error desconocido')
+      _err => {
+        console.error('Error en listener de mascotas (creadas):', _err)
+        onError(_err.message || 'Error desconocido')
       }
     )
 
@@ -171,9 +171,9 @@ export class ServicioMascota {
         datos2 = normalizarMascotas(snapshot.docs)
         emitirDatos()
       },
-      err => {
-        console.error('Error en listener de mascotas (compartidas):', err)
-        onError(err.message || 'Error desconocido')
+      _err => {
+        console.error('Error en listener de mascotas (compartidas):', _err)
+        onError(_err.message || 'Error desconocido')
       }
     )
 

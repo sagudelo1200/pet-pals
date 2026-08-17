@@ -1,5 +1,12 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react'
-import { StyleSheet, Alert, View, Animated, Dimensions } from 'react-native'
+import {
+  StyleSheet,
+  Alert,
+  View,
+  Animated,
+  Dimensions,
+  Keyboard,
+} from 'react-native'
 import { Block, Text } from 'galio-framework'
 import { COLOR } from '@/constants'
 import { Button, TextInput } from '@/components/ui'
@@ -10,11 +17,40 @@ import { useNavigation } from '@react-navigation/native'
 import type { AuthFlowParamList } from '@/navigation/types'
 import type { StackNavigationProp } from '@react-navigation/stack'
 import { useTranslation } from 'react-i18next'
-import { tErrorMaybe } from '@/services/i18n'
 
 type Nav = StackNavigationProp<AuthFlowParamList>
 
 const { height } = Dimensions.get('window')
+
+// Mapeo de códigos de error de autenticación a mensajes user-friendly
+const getAuthErrorMessage = (
+  errorCode: string | undefined,
+  t: any
+): { titulo: string; mensaje: string } => {
+  if (!errorCode) {
+    return {
+      titulo: t('auth:ingresar.errores.loginFallido.titulo'),
+      mensaje: t('comun:intenta_nuevamente'),
+    }
+  }
+
+  const mensajeMap: Record<string, string> = {
+    CREDENCIALES_INVALIDAS: 'auth:errores.CREDENCIALES_INVALIDAS',
+    USUARIO_NO_ENCONTRADO: 'auth:errores.USUARIO_NO_ENCONTRADO',
+    USUARIO_DESHABILITADO: 'auth:errores.USUARIO_DESHABILITADO',
+    DEMASIADOS_INTENTOS: 'auth:errores.DEMASIADOS_INTENTOS',
+    ERROR_RED: 'auth:errores.ERROR_RED',
+  }
+
+  const mensajeTraduccido = mensajeMap[errorCode]
+    ? t(mensajeMap[errorCode])
+    : t('comun:intenta_nuevamente')
+
+  return {
+    titulo: t('auth:ingresar.errores.loginFallido.titulo'),
+    mensaje: mensajeTraduccido,
+  }
+}
 
 const Ingresar: React.FC = () => {
   const [email, setEmail] = useState('')
@@ -22,6 +58,10 @@ const Ingresar: React.FC = () => {
   const navigation = useNavigation<Nav>()
   const { ingresar, cargando } = useAuth()
   const { t } = useTranslation()
+
+  // Refs para controlar foco entre inputs
+  const emailInputRef = useRef<any>(null)
+  const passwordInputRef = useRef<any>(null)
 
   // Animaciones
   const messageOpacity = useRef(new Animated.Value(0)).current
@@ -64,6 +104,9 @@ const Ingresar: React.FC = () => {
   }, [])
 
   const handleSubmit = useCallback(async () => {
+    // Cerrar teclado inmediatamente al enviar
+    Keyboard.dismiss()
+
     if (!email || !password) {
       Alert.alert(
         t('auth:compartido.errores.camposIncompletos.titulo'),
@@ -73,12 +116,30 @@ const Ingresar: React.FC = () => {
     }
     const result = await ingresar(email.trim(), password)
     if (!result.success) {
-      Alert.alert(
-        t('auth:ingresar.errores.loginFallido.titulo'),
-        tErrorMaybe(result.error, t('comun:intenta_nuevamente'))
-      )
+      const { titulo, mensaje } = getAuthErrorMessage(result.error, t)
+      Alert.alert(titulo, mensaje)
     }
-  }, [email, password, ingresar])
+  }, [email, password, ingresar, t])
+
+  // Validar email
+  const emailValido = useCallback(() => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    return emailRegex.test(email.trim())
+  }, [email])
+
+  // Avanzar del email al password
+  const handleEmailSubmit = useCallback(() => {
+    if (emailValido()) {
+      passwordInputRef.current?.focus?.()
+    }
+  }, [emailValido])
+
+  // Si password es válido y presiona Enter/Confirmar, enviar
+  const handlePasswordSubmit = useCallback(() => {
+    if (password.length > 0) {
+      handleSubmit()
+    }
+  }, [password, handleSubmit])
 
   const goToRegistro = useCallback(() => {
     navigation.navigate('Registro')
@@ -124,6 +185,7 @@ const Ingresar: React.FC = () => {
           ]}
         >
           <TextInput
+            ref={emailInputRef}
             label={t('auth:ingresar.formulario.correo.label')}
             value={email}
             onChangeText={setEmail}
@@ -131,9 +193,12 @@ const Ingresar: React.FC = () => {
             keyboardType="email-address"
             autoCapitalize="none"
             iconName="envelope"
+            returnKeyType="next"
+            onSubmitEditing={handleEmailSubmit}
           />
 
           <TextInput
+            ref={passwordInputRef}
             label={t('auth:ingresar.formulario.password.label')}
             value={password}
             onChangeText={setPassword}
@@ -141,6 +206,8 @@ const Ingresar: React.FC = () => {
             secureTextEntry
             autoCapitalize="none"
             iconName="lock"
+            returnKeyType="send"
+            onSubmitEditing={handlePasswordSubmit}
           />
 
           <Button
