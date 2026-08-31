@@ -4,7 +4,7 @@
  * H3 es un índice hexagonal jerárquico que divide la Tierra en celdas hexagonales.
  * Cada resolución (0-15) tiene un tamaño diferente.
  *
- * Pet Pals usa dos resoluciones primarias:
+ * Paw-Path usa dos resoluciones primarias:
  * - R8 (~460m): Resolución predeterminada para paseos, cobertura, territorios
  * - R9 (~174m): Microzoning, clustering, observaciones detalladas
  *

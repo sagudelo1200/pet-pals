@@ -68,6 +68,7 @@ export interface ZonaH3 {
   id: string
   h3_r8: string // Nivel regional (~5-15km)
   h3_r9: string // Nivel detalle (~1-5km)
+  ciudad?: string // Ciudad donde se ubica la zona (ej: "medellin", "bogota")
 
   // === SECCIÓN 1: NARRATIVA (inteligencia territorial) ===
   narrativa: NarrativaSección

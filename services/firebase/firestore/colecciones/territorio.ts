@@ -2,15 +2,12 @@
  * Servicio de territorios: Agregación de eventos por H3 R9
  *
  * Responsabilidades:
- * 1. Incrementar contadores de eventos en sección NARRATIVA
- * 2. Inferir identidad de ubicación (tipo + confianza) desde exploración
- * 3. Calcular índices de inteligencia (bienestar, seguridad, actividad, socialización)
+ * 1. Procesar eventos territoriales mediante orquestador centralizado
+ * 2. Coordinar narrativa + operativa de zonas
  *
  * Filosofía:
- * - Escribe en sección `narrativa` de ZonaH3 unificada
- * - Identidad se infiere del primer evento/exploración
- * - Índices se calculan por lectura (no en almacenamiento)
- * - Procesar eventos, NO guardarlos
+ * - Delega lógica de eventos a H3TerritorialOrchestrator
+ * - Mantiene calcularIndices para lectura de datos
  * - No interfiere con sección `operativa` (gestión de cuidadores)
  */
 
@@ -18,6 +15,7 @@ import { CrudResult, mapFirebaseError } from '@/services/firebase/comun'
 import { db } from '@/firebase.config'
 import type { EventoTerritorial } from '@/services/firebase/firestore/agregadores/territorial.aggregator'
 import type { ZonaH3, Identidad, Índices } from '@/models/ZonaH3'
+import { H3TerritorialOrchestrator } from '@/services/h3'
 
 export class ServicioTerritorio {
   private static readonly COLLECTION = 'h3_zonas'
@@ -65,122 +63,22 @@ export class ServicioTerritorio {
 
   /**
    * Procesa evento territorial desde el agregador
-   * Actualiza sección NARRATIVA en h3_zonas/{h3_r9}
-   * El evento se procesa y descarta (no se persiste)
+   * Delega al orquestador centralizado con retry automático
    */
   static async procesarEvento(
     evento: EventoTerritorial
   ): Promise<CrudResult<void>> {
     try {
-      const { doc: docFn, getDoc, setDoc } = await import('firebase/firestore')
-      const { camposSistemaCrear, camposSistemaActualizar } =
-        await import('@/services/firebase/comun/camposSistema')
-      const { ServicioAuth } = await import('@/services/firebase/auth/auth')
+      const exito = await H3TerritorialOrchestrator.procesarEventoExploracion(
+        evento.h3_r9,
+        evento.accion
+      )
 
-      const currentUser = ServicioAuth.obtenerUsuarioActual()
-      if (!currentUser) return { success: false, error: 'No autenticado' }
-
-      const zonaRef = docFn(db, this.COLLECTION, evento.h3_r9)
-      const zonaSnap = await getDoc(zonaRef)
-
-      let zonaData: Partial<ZonaH3>
-
-      if (!zonaSnap.exists()) {
-        // Nuevo documento: inicializar estructura unificada
-        // NOTA: No almacenamos h3_r8 redundantemente
-        // Se calcula siempre desde h3_r9 en lectura si es necesario
-        // Esto garantiza que R8 y R9 siempre sean consistentes
-        const identidad: Identidad = {
-          tipo: evento.contextoTerritorial?.tipo_ubicacion || 'otro',
-          confianza: evento.contextoTerritorial ? 75 : 30,
-          fuente: 'paseo', // Siempre 'paseo' porque viene de un evento de paseo
-        }
-
-        const indices = ServicioTerritorio.calcularIndices(
-          { [evento.accion]: 1 },
-          identidad.tipo
+      if (!exito) {
+        console.warn(
+          `[territorio] Fallo procesar evento ${evento.accion} en zona ${evento.h3_r9}`
         )
-
-        // Derivamos h3_r8 desde h3_r9 (no lo almacenamos redundantemente)
-        const { cellToParent } = await import('h3-js')
-        const h3_r8 = cellToParent(evento.h3_r9, 8)
-
-        zonaData = {
-          id: evento.h3_r9,
-          h3_r9: evento.h3_r9,
-          h3_r8: h3_r8, // Calculado, NO redundante
-          narrativa: {
-            identidad,
-            indices,
-            total_eventos: 1,
-            eventos_por_tipo: { [evento.accion]: 1 },
-            ultima_actualizacion: Date.now(),
-          },
-          // Inicializar sección operativa vacía (será llenada por ServicioZonasH3)
-          operativa: {
-            cuidadores_count: 0,
-            demanda_total: 0,
-            paseos_activos: 0,
-            paseos_total: 0,
-            estado: 'sin_cobertura' as const,
-            ratio_cobertura: 0,
-          },
-          ...camposSistemaCrear(currentUser.uid),
-        }
-      } else {
-        // Documento existente: actualizar sección narrativa
-        zonaData = zonaSnap.data() as ZonaH3
-
-        if (!zonaData.narrativa) {
-          zonaData.narrativa = {
-            identidad: { tipo: 'otro', confianza: 30 },
-            indices: {
-              bienestar: 50,
-              seguridad: 50,
-              actividad: 50,
-              socializacion: 50,
-            },
-            total_eventos: 0,
-            eventos_por_tipo: {},
-          }
-        }
-
-        zonaData.narrativa.total_eventos += 1
-
-        if (!zonaData.narrativa.eventos_por_tipo[evento.accion]) {
-          zonaData.narrativa.eventos_por_tipo[evento.accion] = 0
-        }
-        zonaData.narrativa.eventos_por_tipo[evento.accion] += 1
-
-        // Actualizar identidad si hay nuevo contexto y confianza es baja
-        if (
-          evento.contextoTerritorial &&
-          zonaData.narrativa.identidad.confianza < 70
-        ) {
-          zonaData.narrativa.identidad = {
-            tipo:
-              evento.contextoTerritorial.tipo_ubicacion ||
-              zonaData.narrativa.identidad.tipo,
-            confianza: Math.min(
-              100,
-              zonaData.narrativa.identidad.confianza + 5
-            ),
-            fuente: 'paseo', // Mantiene 'paseo' porque el enriquecimiento viene de APIs del paseo
-          }
-        }
-
-        // Recalcular índices
-        zonaData.narrativa.indices = ServicioTerritorio.calcularIndices(
-          zonaData.narrativa.eventos_por_tipo,
-          zonaData.narrativa.identidad.tipo
-        )
-
-        zonaData.narrativa.ultima_actualizacion = Date.now()
-        Object.assign(zonaData, camposSistemaActualizar(currentUser.uid))
       }
-
-      // Escribir documento unificado
-      await setDoc(zonaRef, zonaData, { merge: true })
 
       return { success: true }
     } catch (error) {

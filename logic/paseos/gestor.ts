@@ -21,8 +21,7 @@ import {
 } from 'firebase/firestore'
 import { db } from '@/firebase.config'
 import { coordsAH3 } from '@/services/geo'
-import { cellToChildren } from 'h3-js'
-import { ServicioZonasH3 } from '@/services/firebase/firestore/colecciones/h3_zonas'
+import { H3TerritorialOrchestrator } from '@/services/h3'
 
 // ---------- Types del gestor de paseo activo ----------
 export type CodigoErrorPaseo =
@@ -393,18 +392,30 @@ export class GestorPaseoActivo {
     )
 
     if (res.success) {
-      // Marcar zona como en operación activa
+      // Marcar zona como en operación activa (con retry automático)
       const celdaR8 = extraerCeldaH3DePaseo(this._paseo.original)
       if (celdaR8) {
-        const celdasR9 = cellToChildren(celdaR8, 9)
-        Promise.all(
-          celdasR9.map(celdaR9 =>
-            ServicioZonasH3.actualizarZona(celdaR9, {
-              paseos_activos: 1,
-              marcar_actividad: true,
-            })
+        const celdaR9 = coordsAH3(
+          (this._paseo.original as any)?.ubicacion_inicio?.lat || 0,
+          (this._paseo.original as any)?.ubicacion_inicio?.lng || 0,
+          9
+        )
+
+        if (celdaR9) {
+          const exito = await H3TerritorialOrchestrator.procesarEventoPaseo(
+            celdaR9,
+            'EN_PROGRESO',
+            {
+              paseo_uid: this._paseo.id,
+              cuidador_uid: (this._paseo.original as any)?.id_cuidador,
+              tutor_uid: (this._paseo.original as any)?.tutor_uid,
+            }
           )
-        ).catch(e => console.warn('[h3] iniciarPaseoAsync:', e))
+
+          if (!exito) {
+            console.warn('[h3] Fallo registrar inicio paseo:', this._paseo.id)
+          }
+        }
       }
 
       if (this.puede(EVENTOS.INICIAR_PASEO)) {
@@ -448,19 +459,30 @@ export class GestorPaseoActivo {
     )
 
     if (res.success) {
-      // Paseo terminado: decrementar activos, sumar al total histórico y bajar demanda
+      // Paseo terminado: actualizar zona (con retry automático)
       const celdaR8 = extraerCeldaH3DePaseo(this._paseo.original)
       if (celdaR8) {
-        const celdasR9 = cellToChildren(celdaR8, 9)
-        Promise.all(
-          celdasR9.map(celdaR9 =>
-            ServicioZonasH3.actualizarZona(celdaR9, {
-              paseos_activos: -1,
-              paseos_total: 1,
-              demanda_total: -1,
-            })
+        const celdaR9 = coordsAH3(
+          (this._paseo.original as any)?.ubicacion_inicio?.lat || 0,
+          (this._paseo.original as any)?.ubicacion_inicio?.lng || 0,
+          9
+        )
+
+        if (celdaR9) {
+          const exito = await H3TerritorialOrchestrator.procesarEventoPaseo(
+            celdaR9,
+            'COMPLETADO',
+            {
+              paseo_uid: this._paseo.id,
+              cuidador_uid: (this._paseo.original as any)?.id_cuidador,
+              tutor_uid: (this._paseo.original as any)?.tutor_uid,
+            }
           )
-        ).catch(e => console.warn('[h3] finalizarPaseoAsync:', e))
+
+          if (!exito) {
+            console.warn('[h3] Fallo registrar fin paseo:', this._paseo.id)
+          }
+        }
       }
 
       if (this.puede(EVENTOS.FINALIZAR_PASEO)) {
@@ -508,17 +530,33 @@ export class GestorPaseoActivo {
     } as any)
 
     if (res.success) {
-      // Revertir la demanda registrada al crear el paseo
+      // Paseo cancelado: revertir demanda (con retry automático)
       const celdaR8 = extraerCeldaH3DePaseo(this._paseo.original)
       if (celdaR8) {
-        const celdasR9 = cellToChildren(celdaR8, 9)
-        Promise.all(
-          celdasR9.map(celdaR9 =>
-            ServicioZonasH3.actualizarZona(celdaR9, {
-              demanda_total: -1,
-            })
+        const celdaR9 = coordsAH3(
+          (this._paseo.original as any)?.ubicacion_inicio?.lat || 0,
+          (this._paseo.original as any)?.ubicacion_inicio?.lng || 0,
+          9
+        )
+
+        if (celdaR9) {
+          const exito = await H3TerritorialOrchestrator.procesarEventoPaseo(
+            celdaR9,
+            'CANCELADO',
+            {
+              paseo_uid: this._paseo.id,
+              cuidador_uid: (this._paseo.original as any)?.id_cuidador,
+              tutor_uid: (this._paseo.original as any)?.tutor_uid,
+            }
           )
-        ).catch(e => console.warn('[h3] cancelarPaseoAsync:', e))
+
+          if (!exito) {
+            console.warn(
+              '[h3] Fallo registrar cancelación paseo:',
+              this._paseo.id
+            )
+          }
+        }
       }
 
       if (this.puede(EVENTOS.CANCELAR)) {
@@ -896,20 +934,30 @@ export async function crearConMascotas(
     if (!addRes.success) return { success: false, error: (addRes as any).error }
   }
 
-  // Registrar demanda en la zona H3 de inicio (fire-and-forget)
+  // Registrar demanda en la zona H3 de inicio (con retry automático)
   const lat = (locObj as any)?.coordenadas?.latitude
   const lng = (locObj as any)?.coordenadas?.longitude
   if (lat && lng) {
-    const celdaR8 = coordsAH3(lat, lng)
-    const celdasR9 = cellToChildren(celdaR8, 9)
-    Promise.all(
-      celdasR9.map(celdaR9 =>
-        ServicioZonasH3.actualizarZona(celdaR9, {
-          demanda_total: 1,
-          marcar_demanda: true,
-        })
+    const celdaR9 = coordsAH3(lat, lng, 9)
+
+    if (celdaR9) {
+      const exito = await H3TerritorialOrchestrator.procesarEventoPaseo(
+        celdaR9,
+        'EN_PROGRESO',
+        {
+          paseo_uid: paseoRes.data?.id,
+          tutor_uid: uid,
+          mascota_ids: mascotasData?.map(m => m.id),
+        }
       )
-    ).catch(e => console.warn('[h3] crearConMascotas:', e))
+
+      if (!exito) {
+        console.warn(
+          '[h3] Fallo registrar demanda al crear paseo:',
+          paseoRes.data?.id
+        )
+      }
+    }
   }
 
   return paseoRes as any

@@ -8,6 +8,7 @@ import { PerfilPublico } from '@/models/PerfilPublico'
 import { CrudResult } from '@/services/firebase/comun'
 import { ERR } from '@/constants'
 import { celdasDeCobertura } from '@/services/geo'
+import { H3TerritorialOrchestrator } from '@/services/h3'
 
 /**
  * Gestor de Perfiles Públicos (Cuidadores).
@@ -96,7 +97,7 @@ export class GestorPerfilPublico {
 
   /**
    * Actualiza el perfil del cuidador y sincroniza su cobertura geoespacial en el índice H3.
-   * Si `h3OrigenNuevo` cambió respecto al anterior, migra las 19 celdas de cobertura.
+   * Si `h3OrigenNuevo` cambió respecto al anterior, migra las celdas de cobertura (atómicamente).
    */
   static async actualizarCoberturaYPerfil(
     uid: string,
@@ -115,31 +116,18 @@ export class GestorPerfilPublico {
         ? ((perfilActual.data as any)?.h3_r8 ?? null)
         : null
 
+      // Solo procesar cambio si h3 cambió
       if (h3OrigenAnterior && h3OrigenAnterior !== h3OrigenNuevo) {
-        // Migrar: eliminar cobertura antigua antes de escribir la nueva
-        await ServicioIndiceCobertura.eliminarCoberturaWalker(
-          h3OrigenAnterior,
-          uid
-        )
-      }
-
-      // Solo escribir cobertura si el origen cambió (o si es la primera vez)
-      // Evita double-counting de cuidadores_count cuando el perfil se actualiza
-      // sin cambiar de dirección.
-      if (h3OrigenNuevo !== h3OrigenAnterior) {
         const perfil = perfilActual.data
 
         // Construir datos sin undefined (solo incluir campos si existen)
-        const datosEntrada: Omit<
-          EntradaCuidadorCobertura,
-          'uid' | 'h3_origen' | 'actualizado_en'
-        > = {
+        const datosEntrada = {
           nombre: (datos as any).nombre ?? perfil?.nombre ?? '',
           rating_promedio:
             (datos as any).rating_promedio ?? perfil?.rating_promedio ?? 0,
           tarifa_por_hora:
             (datos as any).tarifa_por_hora ?? perfil?.tarifa_por_hora ?? 0,
-        }
+        } as any
 
         // Agregar campos opcionales solo si existen
         const fotoParaGuardar = (datos as any).foto ?? perfil?.foto
@@ -157,11 +145,19 @@ export class GestorPerfilPublico {
           datosEntrada.horario_semanal = horarioParaGuardar
         }
 
-        await ServicioIndiceCobertura.escribirCoberturaWalker(
+        // Usar orquestador: operación atómica con retry automático
+        const exito = await H3TerritorialOrchestrator.procesarCambioCobertura(
           uid,
           h3OrigenNuevo,
+          h3OrigenAnterior,
           datosEntrada
         )
+
+        if (!exito) {
+          console.warn(
+            `[h3] Fallo migrar cobertura para ${uid}: ${h3OrigenAnterior} → ${h3OrigenNuevo}`
+          )
+        }
       }
     }
 
@@ -174,10 +170,9 @@ export class GestorPerfilPublico {
 
   /**
    * Actualiza las celdas de cobertura seleccionadas manualmente por el cuidador.
-   * Migra el índice H3 eliminando celdas anteriores y escribiendo las nuevas.
    * @param uid ID del cuidador
    * @param celdasNuevas Array de celdas H3 seleccionadas
-   * @param h3OrigenFallback Fallback de h3_r8 si el perfil no lo tiene guardado aún (usado cuando se acaba de crear la ubicación)
+   * @param h3OrigenFallback Fallback de h3_r8 si el perfil no lo tiene guardado aún
    */
   static async actualizarCeldasCobertura(
     uid: string,
@@ -195,7 +190,6 @@ export class GestorPerfilPublico {
     }
 
     const perfil = perfilRes.data
-    // Usar h3_r8 del perfil, o fallback si se proporciona
     const h3Origen = perfil.h3_r8 ?? h3OrigenFallback ?? null
     if (!h3Origen) {
       return {
@@ -210,17 +204,14 @@ export class GestorPerfilPublico {
       ? perfil.celdas_cobertura
       : celdasDeCobertura(h3Origen)
 
-    // Construir datos sin undefined (solo incluir campos si existen)
-    const datosEntrada: Omit<
-      EntradaCuidadorCobertura,
-      'uid' | 'h3_origen' | 'actualizado_en'
-    > = {
+    // Construir datos sin undefined
+    const datosEntrada = {
       nombre: perfil.nombre,
       rating_promedio: perfil.rating_promedio ?? 0,
       tarifa_por_hora: perfil.tarifa_por_hora ?? 0,
-    }
+    } as any
 
-    // Agregar campos opcionales solo si existen
+    // Agregar campos opcionales
     if (perfil.foto) {
       datosEntrada.foto = perfil.foto
     }
@@ -231,13 +222,19 @@ export class GestorPerfilPublico {
       datosEntrada.horario_semanal = perfil.horario_semanal
     }
 
-    await ServicioIndiceCobertura.escribirCeldasManuales(
-      uid,
-      h3Origen,
-      celdasNuevas,
-      celdasAnteriores,
-      datosEntrada
-    )
+    // Usar orquestador con retry automático
+    const exito =
+      await H3TerritorialOrchestrator.procesarCambioCoberturaManuales(
+        uid,
+        h3Origen,
+        celdasNuevas,
+        celdasAnteriores,
+        datosEntrada
+      )
+
+    if (!exito) {
+      console.warn(`[h3] Fallo actualizar celdas manuales para ${uid}`)
+    }
 
     return ServicioPerfilPublico.guardarConId(uid, {
       celdas_cobertura: celdasNuevas,

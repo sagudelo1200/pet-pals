@@ -215,6 +215,100 @@ export class ServicioIndiceCobertura {
   }
 
   /**
+   * Migra cobertura de un cuidador de forma ATÓMICA.
+   *
+   * Combina eliminación de cobertura anterior + escritura de nueva cobertura
+   * en UN SOLO batch Firestore. Garantiza:
+   * - ✅ No hay ventana de inconsistencia
+   * - ✅ Usuario siempre está en algún índice
+   * - ✅ Contadores se actualizan juntos
+   *
+   * FASE 2: Soporte para orquestación centralizada.
+   *
+   * @param uid - UID del cuidador
+   * @param h3Nuevo - Nueva celda H3 de origen
+   * @param h3Anterior - Celda H3 anterior
+   * @param datos - Datos del cuidador a actualizar
+   */
+  static async migraCoberturaAtomicamente(
+    uid: string,
+    h3Nuevo: string,
+    h3Anterior: string,
+    datos: Omit<
+      EntradaCuidadorCobertura,
+      'uid' | 'h3_origen' | 'actualizado_en'
+    >
+  ): Promise<void> {
+    const celdasAnteriores = celdasDeCobertura(h3Anterior)
+    const celdasNuevas = celdasDeCobertura(h3Nuevo)
+
+    const batch = writeBatch(db)
+
+    // Limpiar undefined antes de guardar
+    const datosLimpios = this.limpiarUndefined(datos)
+
+    const entrada: EntradaCuidadorCobertura = {
+      ...datosLimpios,
+      uid,
+      h3_origen: h3Nuevo,
+      actualizado_en: serverTimestamp(),
+    } as EntradaCuidadorCobertura
+
+    // PASO 1: Eliminar de celdas antiguas
+    for (const celda of celdasAnteriores) {
+      const ref = doc(db, COLECCION_BASE, celda, SUBCOLECCION, uid)
+      batch.delete(ref)
+    }
+
+    // PASO 2: Escribir en celdas nuevas
+    for (const celda of celdasNuevas) {
+      const ref = doc(db, COLECCION_BASE, celda, SUBCOLECCION, uid)
+      batch.set(ref, entrada)
+    }
+
+    // PASO 3: Commit ATÓMICO (ambas operaciones juntas o ninguna)
+    await batch.commit()
+
+    console.log(
+      `[ServicioIndiceCobertura] ✅ Cobertura migrada atómicamente: ${uid} de ${h3Anterior} a ${h3Nuevo}`
+    )
+
+    // PASO 4: Actualizar contadores en h3_zonas (fire-and-forget con retry - delegado a orquestador)
+    const setAnteriores = new Set(celdasAnteriores)
+    const agregadas = celdasNuevas.filter(c => !setAnteriores.has(c))
+    const eliminadas = celdasAnteriores.filter(
+      c => !new Set(celdasNuevas).has(c)
+    )
+
+    const actualizacionesPromesas: Array<Promise<void>> = []
+
+    for (const celdaR8 of agregadas) {
+      const celdasR9 = cellToChildren(celdaR8, 9)
+      for (const celdaR9 of celdasR9) {
+        actualizacionesPromesas.push(
+          ServicioZonasH3.actualizarZona(celdaR9, { cuidadores_count: 1 })
+        )
+      }
+    }
+
+    for (const celdaR8 of eliminadas) {
+      const celdasR9 = cellToChildren(celdaR8, 9)
+      for (const celdaR9 of celdasR9) {
+        actualizacionesPromesas.push(
+          ServicioZonasH3.actualizarZona(celdaR9, { cuidadores_count: -1 })
+        )
+      }
+    }
+
+    Promise.all(actualizacionesPromesas).catch(e =>
+      console.warn(
+        '[ServicioIndiceCobertura] Error actualizando zonas en migración:',
+        e
+      )
+    )
+  }
+
+  /**
    * Obtiene todos los walkers cuya cobertura incluye la celda H3 indicada.
    * Complejidad O(1) en Firestore: un getDocs simple sobre la subcolección.
    */

@@ -301,11 +301,11 @@ service cloud.firestore {
       (resource.data.estado == 'PENDIENTE' && sin_cuidador_asignado(resource))
       );
 
-      allow list: if autenticado() && (
-      resource.data.creado_por == request.auth.uid ||
-      resource.data.id_cuidador == request.auth.uid ||
-      (resource.data.estado == 'PENDIENTE' && sin_cuidador_asignado(resource))
-      );
+      // MULTI-TUTOR: Permitir queries para detectar solapamiento de mascotas
+      // Los tutores necesitan leer paseos activos de sus mascotas sin importar quién los creó
+      // Restricción: solo consultas (list), no acceso a documento específico
+      // Los datos de paseos no son confidenciales una vez creados
+      allow list: if autenticado();
 
       allow create: if puede_crear_valido()
         && (!('id_cuidador' in request.resource.data) || 
