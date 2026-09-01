@@ -1,45 +1,32 @@
-import {
-  doc,
-  getDoc,
-  setDoc,
-  collection,
-  query,
-  where,
-  getDocs,
-} from 'firebase/firestore'
-import { db } from '@/firebase.config'
+import { collection, query, where, getDocs } from 'firebase/firestore'
+import { ServicioCrudBase } from '@/services/firebase/firestore/base'
 import { ServicioTerritorio } from '@/services/territorio'
-import {
-  toDomain,
-  toDb,
-  mapFirebaseError,
-  camposSistemaCrear,
-  type CrudResult,
-} from '@/services/firebase/comun'
+import { mapFirebaseError, type CrudResult } from '@/services/firebase/comun'
 import { Ubicacion } from '@/models/Ubicacion'
+import { db } from '@/firebase.config'
 
+/**
+ * ServicioUbicacion: CRUD de ubicaciones + enriquecimiento territorial
+ *
+ * Delega operaciones CRUD básicas a ServicioCrudBase y añade:
+ * - Enriquecimiento automático con contexto territorial (H3 R8, R9)
+ * - Búsqueda especializada por proveedor de mapas
+ */
 export class ServicioUbicacion {
   private static readonly COLLECTION = 'ubicaciones'
 
-  // Conversión simplificada: toDomain ya maneja GeoPoint automáticamente
-  private static mapSnapshotToDomain(id: string, data: any): Ubicacion {
-    return { id, ...toDomain<Ubicacion>(data) }
-  }
-
+  /**
+   * Obtener ubicación por ID
+   * Delegado a ServicioCrudBase (sin cambios de negocio)
+   */
   static async obtenerPorId(id: string): Promise<CrudResult<Ubicacion>> {
-    try {
-      const ref = doc(db, this.COLLECTION, id)
-      const snap = await getDoc(ref)
-      if (!snap.exists())
-        return { success: false, error: 'DOCUMENTO_NO_ENCONTRADO' }
-      const data = snap.data()
-      const domain = this.mapSnapshotToDomain(snap.id, data)
-      return { success: true, data: domain }
-    } catch (err: any) {
-      return { success: false, error: mapFirebaseError(err) }
-    }
+    return ServicioCrudBase.obtenerPorId<Ubicacion>(this.COLLECTION, id)
   }
 
+  /**
+   * Obtener múltiples ubicaciones por IDs
+   * Delega cada obtención a obtenerPorId
+   */
   static async obtenerPorIds(ids: string[]): Promise<CrudResult<Ubicacion[]>> {
     try {
       const results = await Promise.all(ids.map(id => this.obtenerPorId(id)))
@@ -53,6 +40,10 @@ export class ServicioUbicacion {
     }
   }
 
+  /**
+   * Buscar ubicación por proveedor de mapas (Google Places, etc.)
+   * Método especializado: no se generaliza en base CRUD
+   */
   static async buscarPorProveedorPlaceId(
     proveedor: Ubicacion['proveedor'],
     proveedor_place_id: string
@@ -66,14 +57,21 @@ export class ServicioUbicacion {
       )
       const snaps = await getDocs(q)
       if (snaps.empty) return { success: true, data: null }
+
       const snap = snaps.docs[0]
-      const domain = this.mapSnapshotToDomain(snap.id, snap.data())
+      const domain = { id: snap.id, ...snap.data() } as Ubicacion
       return { success: true, data: domain }
     } catch (err: any) {
       return { success: false, error: mapFirebaseError(err) }
     }
   }
 
+  /**
+   * Crear ubicación con enriquecimiento automático de contexto territorial
+   *
+   * Enriquece el payload con H3 R8 y R9 antes de delegar a ServicioCrudBase.crear()
+   * Esto garantiza que TODA ubicación tenga contexto territorial inyectado.
+   */
   static async crear(
     payload: Omit<
       Ubicacion,
@@ -81,28 +79,15 @@ export class ServicioUbicacion {
     >
   ): Promise<CrudResult<Ubicacion>> {
     try {
-      const colRef = collection(db, this.COLLECTION)
-      const docRef = doc(colRef)
-      const id = docRef.id
-
-      // Generar campos de sistema desde auth.currentUser
-      const base = camposSistemaCrear()
-
-      // Validar que tenemos un usuario autenticado
-      if (!base.creado_por) {
-        return { success: false, error: 'NO_AUTENTICADO' }
-      }
-
-      // Obtener contexto territorial (H3 R8 + R9 desde Servicio)
+      // 1. Obtener contexto territorial desde coordenadas
       const contexto = ServicioTerritorio.obtenerContextoTerritorial(
         payload.coordenadas.latitude,
         payload.coordenadas.longitude
       )
 
-      // toDb() convierte automáticamente:
-      // - Dates → Timestamps
-      // - {latitude, longitude} → GeoPoint
-      const dataToSave = toDb({
+      // 2. Enriquecer payload con H3 automático
+      // Esto es transparente para el caller: la ubicación siempre quedará geotaggeada
+      const payloadEnriquecido = {
         proveedor: payload.proveedor,
         proveedor_place_id: payload.proveedor_place_id,
         direccion_formateada: payload.direccion_formateada,
@@ -116,19 +101,15 @@ export class ServicioUbicacion {
         alias: payload.alias,
         instrucciones: payload.instrucciones,
         metadata: (payload as any).metadata,
-        h3_r8: contexto.h3_r8, // del Servicio
-        h3_r9: contexto.h3_r9, // del Servicio
-      })
-
-      const finalData = {
-        id,
-        ...dataToSave,
-        ...base, // campos de sistema con serverTimestamp intacto
+        h3_r8: contexto.h3_r8, // ← Inyectado automáticamente
+        h3_r9: contexto.h3_r9, // ← Inyectado automáticamente
       }
 
-      await setDoc(docRef, finalData)
-
-      return this.obtenerPorId(id)
+      // 3. Delegar a base CRUD (maneja timestamps, auth, etc.)
+      return ServicioCrudBase.crear<Ubicacion>(
+        this.COLLECTION,
+        payloadEnriquecido
+      )
     } catch (err: any) {
       return { success: false, error: mapFirebaseError(err) }
     }
