@@ -1,0 +1,31 @@
+{
+  "titulo_evaluar": "How was your experience?",
+  "evaluacion_cuidador": "Caregiver Evaluation",
+  "evaluacion_tutor": "Tutor Evaluation",
+  "evaluacion_mascota": "Pet Observation",
+  "evaluacion_sistema": "System Metric",
+  "rating_label": "Rating",
+  "rating_placeholder": "Select a rating (1-5)",
+  "comentario_label": "Comment",
+  "comentario_placeholder": "Share your feedback (optional)",
+  "boton_enviar": "Submit Evaluation",
+  "boton_cancelar": "Cancel",
+  "exito_titulo": "Evaluation Submitted!",
+  "exito_mensaje": "Your {{rating}} ⭐ rating was recorded successfully",
+  "error_datos_incompletos": "Incomplete data to register evaluation",
+  "error_creando": "An error occurred while recording your evaluation. Please try again.",
+  "error_generico": "{{error}}",
+  "rating_invalido": "Rating must be between 1 and 5",
+  "evaluacion_existe": "You already have an evaluation in this walk",
+  "paseo_invalido": "The walk must be completed",
+  "registrando": "Recording evaluation...",
+  "errores": {
+    "EVAL_001": "Evaluation type is invalid",
+    "EVAL_002": "Actor must be authenticated",
+    "EVAL_003": "Cannot evaluate (impersonation check)",
+    "EVAL_004": "Rating must be between 1 and 5",
+    "EVAL_005": "The walk must be completed",
+    "EVAL_006": "An evaluation already exists in this context",
+    "EVAL_007": "Failed to retrieve evaluation data"
+  }
+}

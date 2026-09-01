@@ -12,23 +12,31 @@ import { useDoc } from '@/hooks/useDoc'
 import { Paseo } from '@/models/Paseo'
 import { Button, Spacer } from '@/components/ui'
 import type { AuthStackParamList } from '@/navigation/types'
-import { PaseoFinalizadoCard } from '@/components/paseos/PaseoFinalizadoCard'
 import { functions } from '@/firebase.config'
 import { useAuth } from '@/context/AuthContext'
 
-type RouteProps = RouteProp<AuthStackParamList, 'PaseoFinalizado'>
+type RouteProps = RouteProp<AuthStackParamList, 'CuidadorEvaluaTutor'>
 
-export default function PaseoFinalizado() {
+/**
+ * Pantalla: Cuidador evalúa Tutor después de completar paseo
+ *
+ * Caso: evaluacion_tutor
+ * - El Cuidador (actor) evalúa al Tutor (objetivo)
+ * - Ocurre post-paseo COMPLETADO/FINALIZADO
+ * - Mismos criterios que evaluacion_cuidador (overall + opcionales)
+ * - Cloud Function auto-agrega en ResumenEvaluacion/{tutor_id}
+ */
+export default function CuidadorEvaluaTutor() {
   const route = useRoute<RouteProps>()
   const navigation = useNavigation<any>()
   const { user } = useAuth()
   const { t } = useTranslation('evaluaciones')
   const { paseoId } = route.params
   const { data: paseo, cargando: loading } = useDoc<Paseo>('paseos', paseoId)
-  const [evaluando, setEvaluando] = useState(false)
+  const [_evaluando, setEvaluando] = useState(false)
 
   const handleRate = async (rating: number) => {
-    if (!paseo || !user?.uid || !paseo.id_cuidador) {
+    if (!paseo || !user?.uid || !paseo.creado_por) {
       Alert.alert('Error', t('error_datos_incompletos'))
       return
     }
@@ -36,15 +44,14 @@ export default function PaseoFinalizado() {
     setEvaluando(true)
     try {
       // Llamar Callable Function: crearEvaluacion
-      // Validación server-side: participación, estado paseo, relación actor/objetivo
       const crearEvaluacionCallable = httpsCallable(
         functions,
         'crearEvaluacion'
       )
 
       const resultado = (await crearEvaluacionCallable({
-        tipo: 'evaluacion_cuidador',
-        objetivo: paseo.id_cuidador, // Cuidador del paseo
+        tipo: 'evaluacion_tutor', // ← Tipo diferente
+        objetivo: paseo.creado_por, // Tutor del paseo
         contextoId: paseoId,
         rating: rating,
         comentario: '',
@@ -54,7 +61,7 @@ export default function PaseoFinalizado() {
         Alert.alert(t('exito_titulo'), t('exito_mensaje', { rating }), [
           {
             text: t('comun:boton.volver'),
-            onPress: () => navigation.navigate('TutorApp'),
+            onPress: () => navigation.navigate('CuidadorApp'),
           },
         ])
       } else {
@@ -68,7 +75,7 @@ export default function PaseoFinalizado() {
       const errorObj = error as { code?: string; message?: string }
 
       if (errorObj?.code === 'already-exists') {
-        mensajeError = 'Ya has evaluado a este cuidador en este paseo'
+        mensajeError = 'Ya has evaluado a este tutor en este paseo'
       } else if (errorObj?.code === 'failed-precondition') {
         mensajeError = 'El paseo debe estar completado'
       } else if (errorObj?.code === 'permission-denied') {
@@ -87,9 +94,8 @@ export default function PaseoFinalizado() {
     return (
       <View style={styles.center}>
         <ActivityIndicator size="large" color={COLOR.PRIMARIO} />
-        <Text style={{ color: COLOR.TEXTO, marginTop: 20 }}>
-          Cargando resumen...
-        </Text>
+        <Spacer size={20} />
+        <Text style={{ color: COLOR.TEXTO }}>Cargando paseo...</Text>
       </View>
     )
   }
@@ -97,31 +103,68 @@ export default function PaseoFinalizado() {
   if (!paseo) {
     return (
       <View style={styles.center}>
-        <Text style={styles.subtitle}>
-          No se encontró la información del paseo.
-        </Text>
-        <Spacer size={20} />
-        <Button title="Volver" onPress={() => navigation.goBack()} />
+        <Text style={{ color: COLOR.TEXTO }}>Paseo no encontrado</Text>
       </View>
     )
   }
 
   return (
-    <View style={styles.container}>
-      <View style={styles.contentContainer}>
-        <PaseoFinalizadoCard
-          mascotaNombre={paseo.mascota_nombre_visual}
-          cuidadorNombre={paseo.cuidador_nombre_visual}
-          onClose={() => navigation.navigate('TutorApp')}
-          onRate={handleRate}
-        />
-        {evaluando && (
-          <View style={styles.loadingOverlay}>
-            <ActivityIndicator size="large" color={COLOR.PRIMARIO} />
-            <Text style={styles.loadingText}>{t('registrando')}</Text>
-          </View>
-        )}
+    <View style={[styles.container, { backgroundColor: COLOR.BASE }]}>
+      <Spacer size={20} />
+      <Text style={[styles.titulo, { color: COLOR.TEXTO }]}>
+        {t('evaluacion_tutor')}
+      </Text>
+
+      <Spacer size={16} />
+      <Text style={{ color: COLOR.TEXTO, textAlign: 'center' }}>
+        Por favor, evalúa al tutor de este paseo
+      </Text>
+
+      <Spacer size={20} />
+      <View
+        style={[
+          styles.card,
+          { backgroundColor: COLOR.SECUNDARIO, borderColor: COLOR.BORDE },
+        ]}
+      >
+        <Text style={{ color: COLOR.TEXTO, fontWeight: 'bold' }}>
+          Mascotas del paseo
+        </Text>
+        <Text style={{ color: COLOR.TEXTO, fontSize: 12, marginTop: 4 }}>
+          Tutor: {paseo.creado_por}
+        </Text>
       </View>
+
+      <Spacer size={20} />
+      <Text
+        style={{ color: COLOR.TEXTO, textAlign: 'center', marginBottom: 16 }}
+      >
+        ¿Cómo fue tu experiencia con este tutor?
+      </Text>
+      <View style={{ flexDirection: 'row', justifyContent: 'center', gap: 8 }}>
+        {[1, 2, 3, 4, 5].map(rating => (
+          <Text
+            key={rating}
+            onPress={() => handleRate(rating)}
+            style={[
+              styles.starButton,
+              {
+                color: COLOR.PRIMARIO,
+                fontSize: 28,
+              },
+            ]}
+          >
+            ⭐
+          </Text>
+        ))}
+      </View>
+
+      <Spacer size={20} />
+      <Button
+        title={t('comun:boton.cancelar')}
+        onPress={() => navigation.goBack()}
+        variant="secundario"
+      />
     </View>
   )
 }
@@ -129,41 +172,23 @@ export default function PaseoFinalizado() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLOR.BASE,
-  },
-  contentContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 24,
+    padding: 16,
   },
   center: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  subtitle: {
-    fontSize: 16,
-    color: COLOR.SUBTEXTO,
-    textAlign: 'center',
-    lineHeight: 24,
-    marginBottom: 24,
+  titulo: {
+    fontSize: 20,
+    fontWeight: 'bold',
   },
-  loadingOverlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
+  card: {
     borderRadius: 12,
+    padding: 16,
+    borderWidth: 1,
   },
-  loadingText: {
-    color: COLOR.TEXTO,
-    fontSize: 14,
-    marginTop: 12,
-    textAlign: 'center',
+  starButton: {
+    padding: 8,
   },
 })

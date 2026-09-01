@@ -578,5 +578,77 @@ service cloud.firestore {
       // (Revocación de verificaciones, auditoría)
       allow delete: if es_admin();
     }
+
+    // EVALUACIONES - SISTEMA DE CONFIANZA Y REPUTACIÓN
+    // /evaluaciones/{docId}
+    // Evaluaciones individuales de confianza entre actores
+    // Tipos: evaluacion_cuidador, evaluacion_tutor, evaluacion_mascota, evaluacion_sistema
+    match /evaluaciones/{docId} {
+      // LECTURA: Solo participantes (actor u objetivo)
+      allow read: if autenticado() && 
+      (request.auth.uid == resource.data.actor.id ||
+      request.auth.uid == resource.data.objetivo.id ||
+      es_admin());
+
+      // CREACIÓN: Validaciones exhaustivas contra suplantación y datos inválidos
+      allow create: if 
+      // 1. Usuario autenticado
+      autenticado() &&
+
+      // 2. CRÍTICO: Anti-suplantación
+      // El actor DEBE ser el usuario autenticado
+      request.auth.uid == request.resource.data.actor.id &&
+
+      // 3. Tipo válido
+      request.resource.data.tipo in [
+      'evaluacion_cuidador', 'evaluacion_tutor',
+      'evaluacion_mascota', 'evaluacion_sistema'
+      ] &&
+
+      // 4. Estructura requerida (CRITICAL: request.resource.data para create)
+      // request.resource.data = documento NUEVO que estamos creando
+      // resource.data = documento EXISTENTE (no aplica en create)
+      request.resource.data.actor.tipo == 'usuario' &&
+      request.resource.data.actor.id != null &&
+      request.resource.data.objetivo.tipo in ['usuario', 'mascota'] &&
+      request.resource.data.objetivo.id != null &&
+      request.resource.data.contexto.tipo == 'paseo' &&
+      request.resource.data.contexto.id != null &&
+
+      // 5. Datos existen y tienen contenido
+      request.resource.data.datos != null &&
+
+      // 6. Rating validado (1-5) para evaluaciones que lo requieren
+      (request.resource.data.tipo == 'evaluacion_mascota' ||
+      (request.resource.data.datos.rating is number &&
+      request.resource.data.datos.rating >= 1 &&
+      request.resource.data.datos.rating <= 5)) &&
+
+      // 7. Campos de sistema válidos
+      tiene_campos_sistema_basicos() &&
+      campos_sistema_validos_crear() &&
+
+      // 8. Prevenir sobrescrituras (documento nuevo)
+      !exists(/databases/$(database)/documents/evaluaciones/$(docId));
+
+      // ACTUALIZACIÓN: NO permitir en MVP1 (inmutable)
+      allow update: if false;
+
+      // ELIMINACIÓN: NO permitir en MVP1 (auditoría)
+      allow delete: if es_admin();
+    }
+
+    // RESUMEN DE EVALUACIONES (Agregado por tipo, FUENTE DE VERDAD)
+    // /resumenes_evaluacion/{userId}
+    // Agregaciones de evaluaciones separadas por tipo
+    // Se actualiza automáticamente por Cloud Function al crear evaluaciones
+    match /resumenes_evaluacion/{userId} {
+      // LECTURA: Público (para perfiles, matching, reputación)
+      allow read: if autenticado();
+
+      // ESCRITURA: SOLO Cloud Functions
+      // Los clientes NO deben escribir directamente
+      allow write: if false;
+    }
   }
 }

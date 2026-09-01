@@ -31,6 +31,15 @@ export { type Valoracion } from './Valoracion'
 export { type ExcepcionDisponibilidad } from './ExcepcionDisponibilidad'
 export { type BaseModel } from './BaseModel'
 export {
+  type TipoEvaluacion,
+  type ReferenciaSistema,
+  type Evaluacion,
+} from './Evaluacion'
+export {
+  type DesglosePorTipo,
+  type ResumenEvaluacion,
+} from './ResumenEvaluacion'
+export {
   type TipoVerificacion,
   type EstadoVerificacion,
   type MetodoVerificacion,

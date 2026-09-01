@@ -1,0 +1,31 @@
+{
+  "titulo_evaluar": "¿Cómo fue tu experiencia?",
+  "evaluacion_cuidador": "Evaluación del Cuidador",
+  "evaluacion_tutor": "Evaluación del Tutor",
+  "evaluacion_mascota": "Observación de la Mascota",
+  "evaluacion_sistema": "Métrica del Sistema",
+  "rating_label": "Calificación",
+  "rating_placeholder": "Selecciona una puntuación (1-5)",
+  "comentario_label": "Comentario",
+  "comentario_placeholder": "Comparte tu feedback (opcional)",
+  "boton_enviar": "Enviar Evaluación",
+  "boton_cancelar": "Cancelar",
+  "exito_titulo": "¡Evaluación Registrada!",
+  "exito_mensaje": "Tu evaluación de {{rating}} ⭐ se registró correctamente",
+  "error_datos_incompletos": "Datos incompletos para registrar evaluación",
+  "error_creando": "Ocurrió un error al registrar tu evaluación. Intenta nuevamente.",
+  "error_generico": "{{error}}",
+  "rating_invalido": "El rating debe estar entre 1 y 5",
+  "evaluacion_existe": "Ya existe una evaluación tuya en este paseo",
+  "paseo_invalido": "El paseo debe estar completado",
+  "registrando": "Registrando evaluación...",
+  "errores": {
+    "EVAL_001": "El tipo de evaluación no es válido",
+    "EVAL_002": "El actor debe estar autenticado",
+    "EVAL_003": "No se puede evaluar (anti-suplantación)",
+    "EVAL_004": "Rating debe estar entre 1 y 5",
+    "EVAL_005": "El paseo debe estar completado",
+    "EVAL_006": "Ya existe una evaluación en este contexto",
+    "EVAL_007": "Fallo al obtener datos de evaluación"
+  }
+}

@@ -15,6 +15,7 @@ import esUbicaciones from './locales/es/ubicaciones.json'
 import esExplorador from './locales/es/explorador.json'
 import esUsuarios from './locales/es/usuarios.json'
 import esChat from './locales/es/chat.json'
+import esEvaluaciones from './locales/es/evaluaciones.json'
 
 // English resources
 import enComun from './locales/en/comun.json'
@@ -30,6 +31,7 @@ import enUbicaciones from './locales/en/ubicaciones.json'
 import enExplorador from './locales/en/explorador.json'
 import enUsuarios from './locales/en/usuarios.json'
 import enChat from './locales/en/chat.json'
+import enEvaluaciones from './locales/en/evaluaciones.json'
 
 import { ERR, type ErrorCode } from '@/constants/errors'
 
@@ -63,6 +65,7 @@ if (!i18n.isInitialized) {
         explorador: esExplorador as any,
         usuarios: esUsuarios as any,
         chat: esChat as any,
+        evaluaciones: esEvaluaciones as any,
       },
       en: {
         comun: enComun,
@@ -77,6 +80,7 @@ if (!i18n.isInitialized) {
         explorador: enExplorador as any,
         usuarios: enUsuarios as any,
         chat: enChat as any,
+        evaluaciones: enEvaluaciones as any,
       },
     },
     ns: [
@@ -92,6 +96,7 @@ if (!i18n.isInitialized) {
       'explorador',
       'usuarios',
       'chat',
+      'evaluaciones',
     ],
     defaultNS: 'comun',
     fallbackLng: 'es',
