@@ -30,7 +30,7 @@ export const useCambiarRol = () => {
       // Refrescar perfil
       await recargarPerfil()
 
-      // Si todo salió bien y tenemos acceso al RolContext, activar el nuevo rol
+      // Refrescar el rol activo en AuthContext
       try {
         if (typeof cambiarRolActivo === 'function') {
           await cambiarRolActivo(nuevoRol)
