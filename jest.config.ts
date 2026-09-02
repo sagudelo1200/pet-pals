@@ -3,6 +3,8 @@ import type { Config } from 'jest'
 const config: Config = {
   preset: 'ts-jest',
   testEnvironment: 'node',
+  // Restaurar spies (jest.spyOn) entre tests para evitar estado acumulado
+  restoreMocks: true,
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json'],
   transform: {
     '^.+\\.(ts|tsx)$': 'ts-jest',

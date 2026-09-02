@@ -23,10 +23,11 @@ describe('Enriquecimiento Territorial con APIs', () => {
   })
 
   describe('fetchElevacion', () => {
-    it('debe retornar null si las coordenadas son inválidas', async () => {
+    it('debe retornar null o elevación 0 si la API no resuelve', async () => {
       const resultado = await fetchElevacion(0, 0)
-      // Dependiendo de la API, puede retornar null o 0
-      expect(resultado).toBeNull()
+      // (0,0) es el "null island": si la API responde devuelve {elevacion: 0};
+      // si la API falla, devuelve null. Ambos son el contrato válido de la función.
+      expect(resultado === null || resultado?.elevacion === 0).toBe(true)
     })
 
     it('debe cachear resultados', async () => {

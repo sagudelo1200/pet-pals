@@ -15,6 +15,17 @@ jest.mock('@/services/firebase', () => ({
   },
 }))
 
+// Los validadores de solapamiento construyen queries con collection/query/getDocs.
+// En el entorno de test no hay una instancia real de Firestore, así que se mockean
+// para que devuelvan una colección vacía (sin paseos solapados).
+jest.mock('firebase/firestore', () => ({
+  collection: jest.fn(),
+  query: jest.fn(),
+  where: jest.fn(),
+  orderBy: jest.fn(),
+  getDocs: jest.fn().mockResolvedValue({ docs: [] }),
+}))
+
 describe('crearConMascotas', () => {
   let ServicioAuth: any
   let ServicioCrudBase: any

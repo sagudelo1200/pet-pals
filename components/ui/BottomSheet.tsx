@@ -19,6 +19,7 @@ interface BottomSheetProps {
   children: React.ReactNode
   height?: number | string
   showBackdrop?: boolean
+  closeable?: boolean
 }
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window')
@@ -29,6 +30,7 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
   children,
   height = 'auto',
   showBackdrop = true,
+  closeable = true,
 }) => {
   const slideAnim = useRef(new Animated.Value(SCREEN_HEIGHT)).current
   const opacityAnim = useRef(new Animated.Value(0)).current
@@ -68,6 +70,10 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
     }
   }, [visible])
 
+  const handleClose = () => {
+    if (closeable) onClose()
+  }
+
   const dynamicSheetStyle: ViewStyle = {
     transform: [{ translateY: slideAnim as any }],
   }
@@ -83,7 +89,7 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
       visible={showModal}
       transparent
       animationType="none"
-      onRequestClose={onClose}
+      onRequestClose={handleClose}
       statusBarTranslucent
     >
       <View style={styles.container}>
@@ -95,7 +101,7 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
           ]}
           pointerEvents={showBackdrop ? 'auto' : 'none'}
         >
-          <Pressable style={styles.backdropPress} onPress={onClose} />
+          <Pressable style={styles.backdropPress} onPress={handleClose} />
         </Animated.View>
 
         <KeyboardAvoidingView
