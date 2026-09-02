@@ -56,12 +56,58 @@ export class ServicioChat {
 
   /**
    * Obtener conversación por paseo_id (ahora conversacion.id === paseo_id)
+   *
+   * Incluye reintentos automáticos para esperar a que la Cloud Function
+   * cree la conversación cuando el paseo entra en CONFIRMADO.
+   * La CF puede tardar 1-3 segundos, así que reintentamos hasta que esté disponible.
+   *
+   * @param paseoId ID del paseo (= ID de conversación)
+   * @param maxReintentos Máximo de intentos (default: 3)
+   * @param delayMs Delay entre reintentos en ms (default: 500)
    */
   static async obtenerPorPaseoId(
-    paseoId: string
+    paseoId: string,
+    maxReintentos: number = 3,
+    delayMs: number = 666
   ): Promise<CrudResult<Conversacion>> {
-    // La conversación ahora tiene ID = paseoId
-    return this.obtenerConversacion(paseoId)
+    let ultimoError: string | null = null
+
+    for (let intento = 0; intento <= maxReintentos; intento++) {
+      try {
+        const result = await this.obtenerConversacion(paseoId)
+
+        // Si está disponible, retornar inmediatamente
+        if (result.success && result.data) {
+          return result
+        }
+
+        // Si falla por permisos/no existe y hay reintentos disponibles, esperar y reintentar
+        if (
+          intento < maxReintentos &&
+          result.error?.includes('PERMISOS_INSUFICIENTES')
+        ) {
+          ultimoError = result.error
+          await new Promise(r => setTimeout(r, delayMs))
+          continue
+        }
+
+        // Otro tipo de error: no reintentar, retornar inmediatamente
+        return result
+      } catch (err) {
+        ultimoError = String(err)
+        if (intento < maxReintentos) {
+          await new Promise(r => setTimeout(r, delayMs))
+        }
+      }
+    }
+
+    // Si llegamos aquí, agotamos los reintentos
+    return {
+      success: false,
+      error:
+        ultimoError ||
+        'Conversación no disponible tras reintentos. El chat se activará cuando el paseo sea confirmado.',
+    }
   }
 
   /**
