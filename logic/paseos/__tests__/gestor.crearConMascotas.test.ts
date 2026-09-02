@@ -31,7 +31,7 @@ describe('crearConMascotas', () => {
     ServicioPaseo = sv.ServicioPaseo
     ServicioPaseoMascota = sv.ServicioPaseoMascota
 
-    const gestor = require('@/logic/paseos/gestor')
+    const gestor = require('@/logic/paseos/casosDeUso')
     crearConMascotas = gestor.crearConMascotas
     ERR = require('@/constants').ERR
 
