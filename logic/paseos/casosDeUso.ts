@@ -7,6 +7,7 @@ import {
   ServicioPaseo,
   ServicioCrudBase,
   ServicioPaseoMascota,
+  ServicioResumenEvaluacion,
 } from '@/services/firebase'
 import { ESTADOS_PASEO, type Paseo } from '@/models/Paseo'
 import type { Mascota } from '@/models/Mascota'
@@ -708,25 +709,30 @@ export async function agregarMascota(paseoId: string, mascotaId: string) {
 // ---------- Consultas de dominio ----------
 
 export async function obtenerEstadisticasCuidador(cuidadorId: string) {
+  // Consultas en paralelo:
   // 1. Solicitudes pendientes globales (sin cuidador)
-  const solicitudesRes = await ServicioPaseo.buscarPaseos([
-    { campo: 'estado', op: '==', valor: ESTADOS_PASEO.PENDIENTE },
-  ])
-
   // 2. Paseos vinculados al cuidador
-  const misPaseosRes = await ServicioPaseo.buscarPaseos([
-    { campo: 'id_cuidador', op: '==', valor: cuidadorId },
-    {
-      campo: 'estado',
-      op: 'in',
-      valor: [
-        ESTADOS_PASEO.CONFIRMADO,
-        ESTADOS_PASEO.EN_CAMINO,
-        ESTADOS_PASEO.EN_PROGRESO,
-        ESTADOS_PASEO.FINALIZADO,
-        ESTADOS_PASEO.COMPLETADO,
-      ],
-    },
+  // 3. Valoración promedio desde ResumenEvaluacion (cache actualizado por
+  //    la Cloud Function alCrearEvaluacion; fuente de verdad del rating)
+  const [solicitudesRes, misPaseosRes, resumenRes] = await Promise.all([
+    ServicioPaseo.buscarPaseos([
+      { campo: 'estado', op: '==', valor: ESTADOS_PASEO.PENDIENTE },
+    ]),
+    ServicioPaseo.buscarPaseos([
+      { campo: 'id_cuidador', op: '==', valor: cuidadorId },
+      {
+        campo: 'estado',
+        op: 'in',
+        valor: [
+          ESTADOS_PASEO.CONFIRMADO,
+          ESTADOS_PASEO.EN_CAMINO,
+          ESTADOS_PASEO.EN_PROGRESO,
+          ESTADOS_PASEO.FINALIZADO,
+          ESTADOS_PASEO.COMPLETADO,
+        ],
+      },
+    ]),
+    ServicioResumenEvaluacion.obtenerPorObjetivo(cuidadorId),
   ])
 
   if (!solicitudesRes.success || !misPaseosRes.success) {
@@ -751,13 +757,22 @@ export async function obtenerEstadisticasCuidador(cuidadorId: string) {
     [ESTADOS_PASEO.FINALIZADO, ESTADOS_PASEO.COMPLETADO].includes(p.estado)
   )
 
+  // Rating público del cuidador (evaluaciones_cuidador); 0 si aún no hay
+  const desgloseCuidador = resumenRes.success
+    ? resumenRes.data?.evaluaciones_cuidador
+    : undefined
+  const valoracionPromedio =
+    desgloseCuidador && desgloseCuidador.cantidad > 0
+      ? desgloseCuidador.promedio
+      : 0
+
   return {
     success: true,
     data: {
       solicitudesPendientes: solicitudes.length,
       paseosActivos: activos.length,
       paseosCompletados: completados.length,
-      valoracionPromedio: 0, // TODO: Integrar con logic/valoraciones
+      valoracionPromedio,
     },
   }
 }

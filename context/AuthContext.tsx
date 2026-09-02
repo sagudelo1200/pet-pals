@@ -192,7 +192,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                     setRolActivo(roles_data[0])
                   }
                 }
-              } catch (error) {
+              } catch (_error) {
                 // Silencioso en errores
                 if (!isMountedRef.current) return
                 if (roles_data.length === 1) {
@@ -278,7 +278,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         if (res.success && res.data && isMountedRef.current) {
           setPerfilPublico(res.data)
         }
-      } catch (err) {
+      } catch (_err) {
         // Silencioso en errores
       }
     }
@@ -360,13 +360,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
               setRolActivo(nuevoRol)
             }
             return true
-          } catch (error) {
+          } catch (_error) {
             return false
           }
         } else {
           return false
         }
-      } catch (err) {
+      } catch (_err) {
         return false
       } finally {
         cambiarRolEnProgreso.current = null

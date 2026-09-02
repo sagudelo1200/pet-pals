@@ -22,3 +22,5 @@ firebaseCredentials.json
 landing_page/*
 
 docs/*
+
+functions/npm-cache/*

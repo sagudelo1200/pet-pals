@@ -59,8 +59,9 @@ export interface ResumenEvaluacion extends BaseModel {
    * Responde: ¿Cómo se comporta esta mascota?
    *
    * Ejemplo: {promedio: 0, cantidad: 5}
-   * Significado: 5 observaciones registradas (no hay rating numérico, es cualitativo)
-   * Datos en Evaluacion.datos: ritmo, compania, tolerancia, etc.
+   * Significado: 5 observaciones registradas. `promedio` SIEMPRE es 0 porque
+   * las observaciones no usan rating (la CF `crearEvaluacion` las rechaza).
+   * Datos en Evaluacion.datos: ritmo, compania, tolerancia, comentario.
    */
   evaluaciones_mascota?: DesglosePorTipo
 
@@ -77,6 +78,13 @@ export interface ResumenEvaluacion extends BaseModel {
 
   /** Timestamp de la última actualización (calculada por Cloud Function) */
   actualizado_en: Date
+
+  /**
+   * Cantidad de paseos realizados (solo para objetivos tipo usuario/cuidador).
+   * Mantenida por la Cloud Function `alCompletarPaseo` al terminar un paseo;
+   * cacheada en `perfiles_publicos.cantidad_paseos_realizados` para la UI.
+   */
+  cantidad_paseos_realizados?: number
 }
 
 /**

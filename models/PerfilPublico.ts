@@ -40,7 +40,11 @@ export interface PerfilPublico extends BaseModel {
   mascotas_aceptadas?: string[]
   /** Número máximo de mascotas que acepta simultáneamente */
   max_mascotas?: number
-  /** Calificación promedio calculada a partir de valoraciones */
+  /**
+   * Calificación promedio (1-5) calculada por la Cloud Function
+   * `alCrearEvaluacion` a partir de evaluaciones de cuidador
+   * (evaluacion_cuidador). Cache de `resumenes_evaluacion`.
+   */
   rating_promedio?: number
   /** Cantidad total de paseos realizados */
   cantidad_paseos_realizados?: number

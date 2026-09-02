@@ -77,7 +77,6 @@ export const GestorUsuarios = {
             foto: datosBase?.foto || usuario.foto || '',
             verificacion: 'pendiente',
             rating_promedio: 0,
-            total_valoraciones: 0,
             tarifa_por_hora: 15000,
           } as any)
         }

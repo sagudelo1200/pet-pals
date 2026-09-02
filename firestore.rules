@@ -581,60 +581,25 @@ service cloud.firestore {
 
     // EVALUACIONES - SISTEMA DE CONFIANZA Y REPUTACIÓN
     // /evaluaciones/{docId}
-    // Evaluaciones individuales de confianza entre actores
-    // Tipos: evaluacion_cuidador, evaluacion_tutor, evaluacion_mascota, evaluacion_sistema
+    // Evaluaciones individuales de confianza entre actores.
+    // La ESCRITURA la realiza SOLO la callable `crearEvaluacion` (Admin SDK).
+    // Los clientes NUNCA escriben aquí directamente.
     match /evaluaciones/{docId} {
       // LECTURA: Solo participantes (actor u objetivo)
-      allow read: if autenticado() && 
+      allow read: if autenticado() &&
       (request.auth.uid == resource.data.actor.id ||
       request.auth.uid == resource.data.objetivo.id ||
       es_admin());
 
-      // CREACIÓN: Validaciones exhaustivas contra suplantación y datos inválidos
-      allow create: if 
-      // 1. Usuario autenticado
-      autenticado() &&
-
-      // 2. CRÍTICO: Anti-suplantación
-      // El actor DEBE ser el usuario autenticado
-      request.auth.uid == request.resource.data.actor.id &&
-
-      // 3. Tipo válido
-      request.resource.data.tipo in [
-      'evaluacion_cuidador', 'evaluacion_tutor',
-      'evaluacion_mascota', 'evaluacion_sistema'
-      ] &&
-
-      // 4. Estructura requerida (CRITICAL: request.resource.data para create)
-      // request.resource.data = documento NUEVO que estamos creando
-      // resource.data = documento EXISTENTE (no aplica en create)
-      request.resource.data.actor.tipo == 'usuario' &&
-      request.resource.data.actor.id != null &&
-      request.resource.data.objetivo.tipo in ['usuario', 'mascota'] &&
-      request.resource.data.objetivo.id != null &&
-      request.resource.data.contexto.tipo == 'paseo' &&
-      request.resource.data.contexto.id != null &&
-
-      // 5. Datos existen y tienen contenido
-      request.resource.data.datos != null &&
-
-      // 6. Rating validado (1-5) para evaluaciones que lo requieren
-      (request.resource.data.tipo == 'evaluacion_mascota' ||
-      (request.resource.data.datos.rating is number &&
-      request.resource.data.datos.rating >= 1 &&
-      request.resource.data.datos.rating <= 5)) &&
-
-      // 7. Campos de sistema válidos
-      tiene_campos_sistema_basicos() &&
-      campos_sistema_validos_crear() &&
-
-      // 8. Prevenir sobrescrituras (documento nuevo)
-      !exists(/databases/$(database)/documents/evaluaciones/$(docId));
+      // CREACIÓN: SOLO la callable `crearEvaluacion` (Admin SDK, ignora rules).
+      // Las validaciones de participación y relación actor→objetivo viven en
+      // el servidor; un cliente que escriba directo podría falsear el objetivo.
+      allow create: if false;
 
       // ACTUALIZACIÓN: NO permitir en MVP1 (inmutable)
       allow update: if false;
 
-      // ELIMINACIÓN: NO permitir en MVP1 (auditoría)
+      // ELIMINACIÓN: solo admin
       allow delete: if es_admin();
     }
 

@@ -8,11 +8,14 @@
  * ✅ Reglas de negocio para estado de zona
  */
 
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
+/* eslint-env jest */
+
 import { H3TerritorialOrchestrator } from '@/services/h3/H3TerritorialOrchestrator'
-import { ServicioIndiceCobertura } from '@/services/firebase/firestore/colecciones/indice_cobertura'
+import {
+  ServicioIndiceCobertura,
+  type EntradaCuidadorCobertura,
+} from '@/services/firebase/firestore/colecciones/indice_cobertura'
 import { ServicioZonasH3 } from '@/services/firebase/firestore/colecciones/h3_zonas'
-import type { EntradaCuidadorCobertura } from '@/services/firebase/firestore/colecciones/indice_cobertura'
 
 /**
  * Mocks simplificados para testing
@@ -41,10 +44,9 @@ describe('H3TerritorialOrchestrator - FASE 2', () => {
       const h3Anterior = '894cc6537ffffff'
       const h3Nuevo = '894cc6537000001'
 
-      vi.spyOn(
-        ServicioIndiceCobertura,
-        'migraCoberturaAtomicamente'
-      ).mockResolvedValueOnce(undefined)
+      jest
+        .spyOn(ServicioIndiceCobertura, 'migraCoberturaAtomicamente')
+        .mockResolvedValueOnce(undefined)
 
       // Cuando
       const resultado = await H3TerritorialOrchestrator.procesarCambioCobertura(
@@ -71,7 +73,7 @@ describe('H3TerritorialOrchestrator - FASE 2', () => {
       const h3Anterior = '894cc6537ffffff'
       const h3Nuevo = '894cc6537000001'
 
-      const spyMigracion = vi
+      const spyMigracion = jest
         .spyOn(ServicioIndiceCobertura, 'migraCoberturaAtomicamente')
         .mockResolvedValueOnce(undefined)
 
@@ -95,19 +97,20 @@ describe('H3TerritorialOrchestrator - FASE 2', () => {
     it('Debe registrar error en audit log cuando falla', async () => {
       // Dado
       const uid = 'test-uid-003'
+      const h3Anterior = '894cc6537ffffff'
       const h3Nuevo = '894cc6537000001'
       const errorEsperado = new Error('Firestore write failed')
 
-      vi.spyOn(
-        ServicioIndiceCobertura,
-        'migraCoberturaAtomicamente'
-      ).mockRejectedValueOnce(errorEsperado)
+      // Con h3Anterior definido y distinto, el flujo pasa por migraCoberturaAtomicamente
+      jest
+        .spyOn(ServicioIndiceCobertura, 'migraCoberturaAtomicamente')
+        .mockRejectedValueOnce(errorEsperado)
 
       // Cuando
       const resultado = await H3TerritorialOrchestrator.procesarCambioCobertura(
         uid,
         h3Nuevo,
-        undefined,
+        h3Anterior,
         mockCuidador
       )
 
@@ -124,9 +127,9 @@ describe('H3TerritorialOrchestrator - FASE 2', () => {
       // Dado
       const h3_r9 = '894cc6537ffffff'
 
-      vi.spyOn(ServicioZonasH3, 'actualizarZona').mockResolvedValueOnce(
-        undefined
-      )
+      jest
+        .spyOn(ServicioZonasH3, 'actualizarZona')
+        .mockResolvedValueOnce(undefined)
 
       // Cuando
       const resultado = await H3TerritorialOrchestrator.procesarEventoPaseo(
@@ -148,15 +151,15 @@ describe('H3TerritorialOrchestrator - FASE 2', () => {
       const h3_r9 = '894cc6537ffffff'
       let intentos = 0
 
-      vi.spyOn(ServicioZonasH3, 'actualizarZona').mockImplementation(
-        async () => {
+      jest
+        .spyOn(ServicioZonasH3, 'actualizarZona')
+        .mockImplementation(async () => {
           intentos++
           if (intentos === 1) {
             throw new Error('Network timeout')
           }
           // Segunda llamada: éxito
-        }
-      )
+        })
 
       // Cuando
       const resultado = await H3TerritorialOrchestrator.procesarEventoPaseo(
@@ -176,7 +179,7 @@ describe('H3TerritorialOrchestrator - FASE 2', () => {
       const h3_r9 = '894cc6537ffffff'
       const error = new Error('Persistently failing')
 
-      vi.spyOn(ServicioZonasH3, 'actualizarZona').mockRejectedValue(error)
+      jest.spyOn(ServicioZonasH3, 'actualizarZona').mockRejectedValue(error)
 
       // Cuando
       const resultado = await H3TerritorialOrchestrator.procesarEventoPaseo(
@@ -204,7 +207,7 @@ describe('H3TerritorialOrchestrator - FASE 2', () => {
         { h3: 'zona5', estado: 'COMPLETADO' as const },
       ]
 
-      vi.spyOn(ServicioZonasH3, 'actualizarZona').mockResolvedValue(undefined)
+      jest.spyOn(ServicioZonasH3, 'actualizarZona').mockResolvedValue(undefined)
 
       // Cuando: ejecutar 5 paseos
       for (const op of operaciones) {
@@ -224,10 +227,12 @@ describe('H3TerritorialOrchestrator - FASE 2', () => {
   describe('Estadísticas: obtenerEstadisticasAudit()', () => {
     it('Debe calcular correctamente la tasa de éxito', async () => {
       // Dado
-      vi.spyOn(ServicioZonasH3, 'actualizarZona')
-        .mockResolvedValueOnce(undefined) // éxito
-        .mockRejectedValueOnce(new Error('fail')) // fallo
-        .mockResolvedValueOnce(undefined) // éxito
+      // El fallo debe ser PERSISTENTE: procesarEventoPaseo reintenta automáticamente,
+      // así que un rechazo único se recuperaría y no quedaría registrado como fallo.
+      jest
+        .spyOn(ServicioZonasH3, 'actualizarZona')
+        .mockResolvedValueOnce(undefined) // éxito (zona1)
+        .mockRejectedValue(new Error('fail')) // fallo persistente (zona2 y zona3)
 
       // Cuando
       await H3TerritorialOrchestrator.procesarEventoPaseo(
@@ -250,7 +255,9 @@ describe('H3TerritorialOrchestrator - FASE 2', () => {
       expect(stats.fallidas).toBeGreaterThan(0)
       expect(stats.tasaExito).toBeGreaterThan(0)
       expect(stats.tasaExito).toBeLessThan(100)
-    })
+      // Los reintentos usan backoff real (delayBase=1s × backoff), así que este
+      // test necesita más tiempo que el timeout por defecto de 5s.
+    }, 20000)
   })
 
   describe('Reglas de Negocio: procesarCambioEstadoZona()', () => {
@@ -266,12 +273,12 @@ describe('H3TerritorialOrchestrator - FASE 2', () => {
         },
       }
 
-      vi.spyOn(ServicioZonasH3, 'obtenerZona').mockResolvedValueOnce(
-        zonaSinCuidadores as any
-      )
-      vi.spyOn(ServicioZonasH3, 'actualizarZona').mockResolvedValueOnce(
-        undefined
-      )
+      jest
+        .spyOn(ServicioZonasH3, 'obtenerZona')
+        .mockResolvedValueOnce(zonaSinCuidadores as any)
+      jest
+        .spyOn(ServicioZonasH3, 'actualizarZona')
+        .mockResolvedValueOnce(undefined)
 
       // Cuando
       const resultado =
@@ -296,12 +303,12 @@ describe('H3TerritorialOrchestrator - FASE 2', () => {
         },
       }
 
-      vi.spyOn(ServicioZonasH3, 'obtenerZona').mockResolvedValueOnce(
-        zonaAltaDemanda as any
-      )
-      vi.spyOn(ServicioZonasH3, 'actualizarZona').mockResolvedValueOnce(
-        undefined
-      )
+      jest
+        .spyOn(ServicioZonasH3, 'obtenerZona')
+        .mockResolvedValueOnce(zonaAltaDemanda as any)
+      jest
+        .spyOn(ServicioZonasH3, 'actualizarZona')
+        .mockResolvedValueOnce(undefined)
 
       // Cuando
       const resultado =
@@ -326,10 +333,10 @@ describe('H3TerritorialOrchestrator - FASE 2', () => {
         },
       }
 
-      vi.spyOn(ServicioZonasH3, 'obtenerZona').mockResolvedValueOnce(
-        zonaCorreca as any
-      )
-      const spyActualizar = vi.spyOn(ServicioZonasH3, 'actualizarZona')
+      jest
+        .spyOn(ServicioZonasH3, 'obtenerZona')
+        .mockResolvedValueOnce(zonaCorreca as any)
+      const spyActualizar = jest.spyOn(ServicioZonasH3, 'actualizarZona')
 
       // Cuando
       const resultado =
@@ -344,7 +351,7 @@ describe('H3TerritorialOrchestrator - FASE 2', () => {
   describe('Limpieza: limpiarAuditLog()', () => {
     it('Debe borrar todos los registros de auditoría', async () => {
       // Dado: 3 registros
-      vi.spyOn(ServicioZonasH3, 'actualizarZona').mockResolvedValue(undefined)
+      jest.spyOn(ServicioZonasH3, 'actualizarZona').mockResolvedValue(undefined)
       await H3TerritorialOrchestrator.procesarEventoPaseo(
         'zona1',
         'EN_PROGRESO'

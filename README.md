@@ -101,7 +101,10 @@ En lenguaje simple:
 ## Qué está incompleto
 
 - **Cancelación** del paseo (flujo no cerrado end-to-end).
-- **Valoraciones/rating** (persistencia + cálculo y presentación final).
+- **Valoraciones/rating** (backend cerrado: callable `crearEvaluacion` + trigger
+  `alCrearEvaluacion` con agregación en `resumenes_evaluacion`, cache en
+  `perfiles_publicos.rating_promedio` e `indice_cobertura`; falta integrar el
+  flujo de UI: `GlobalPaseoManager` y pantallas de cuidador).
 - **Chat** (no está listo para producción).
 - **Admin** (placeholder).
 

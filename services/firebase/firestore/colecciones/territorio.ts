@@ -12,9 +12,8 @@
  */
 
 import { CrudResult, mapFirebaseError } from '@/services/firebase/comun'
-import { db } from '@/firebase.config'
 import type { EventoTerritorial } from '@/services/firebase/firestore/agregadores/territorial.aggregator'
-import type { ZonaH3, Identidad, Índices } from '@/models/ZonaH3'
+import type { Índices } from '@/models/ZonaH3'
 import { H3TerritorialOrchestrator } from '@/services/h3'
 
 export class ServicioTerritorio {

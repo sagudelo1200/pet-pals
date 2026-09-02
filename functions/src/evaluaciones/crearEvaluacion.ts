@@ -8,63 +8,91 @@ if (!admin.apps || admin.apps.length === 0) {
 const db = admin.firestore()
 
 /**
- * Callable Function: crearEvaluacion
+ * ============================================================================
+ * CONTRATO `crearEvaluacion` (v2 — CONGELADO)
+ * ============================================================================
+ * Callable Function que crea una evaluación de confianza con validación
+ * completa server-side. Es el ÚNICO camino de escritura de la colección
+ * `evaluaciones` (las Security Rules bloquean escrituras directas del cliente).
  *
- * Propósito:
- * Crear evaluaciones con validación completa server-side.
- * Garantiza integridad contextual: participación, estado del paseo, relación actor/objetivo.
+ * ── Payload (request.data) ─────────────────────────────────────────────────
+ * {
+ *   tipo: 'evaluacion_cuidador' | 'evaluacion_tutor' | 'evaluacion_mascota',
+ *   objetivo: string,     // ID del usuario (cuidador/tutor) o mascota evaluado
+ *   contextoId: string,   // ID del paseo (debe existir y estar COMPLETADO/FINALIZADO)
+ *   rating?: number,      // 1-5. OBLIGATORIO en evaluacion_cuidador/evaluacion_tutor.
+ *                         // PROHIBIDO en evaluacion_mascota (observación cualitativa).
+ *   comentario?: string,  // Opcional (máx 2000). Todos los tipos.
+ *   // Solo evaluacion_mascota (opcionales, máx 200 c/u):
+ *   ritmo?: string,       // ej: 'tranquilo'
+ *   compania?: string,    // ej: 'solo'
+ *   tolerancia?: string,  // ej: 'ignora'
+ * }
  *
- * Flujo:
- * Cliente: httpsCallable('crearEvaluacion')({tipo, objetivo, contextoId, rating, comentario})
- *    ↓
- * CF: Valida TODO en servidor
- *    ├── Auth: uid == actor
- *    ├── Paseo: existe + COMPLETADO
- *    ├── Participación: actor en paseo
- *    ├── Relación: actor eval a objetivo correcto
- *    └── Crear con ID determinístico
- *    ↓
- * Firestore: setDoc (protegido por Rules)
- *    ↓
- * Cloud Function (alCrearEvaluacion): Actualiza ResumenEvaluacion
+ * ── Respuesta (200) ────────────────────────────────────────────────────────
+ * { success: true, evaluacionId: string, timestamp: string }
  *
- * Garantías:
- * - ✅ Unicidad: ID determinístico
- * - ✅ Integridad contextual: Validada en servidor
- * - ✅ No hay evaluaciones falsas: Imposible sin admin SDK
+ * ── Errores (códigos https de firebase-functions) ──────────────────────────
+ * unauthenticated     Usuario no autenticado.
+ * invalid-argument    Payload mal formado (campos faltantes/tipo incorrecto,
+ *                     rating fuera de 1-5, rating en observación de mascota,
+ *                     longitud de texto excedida).
+ * not-found           El paseo (contextoId) no existe.
+ * failed-precondition El paseo no está COMPLETADO/FINALIZADO, o no tiene el
+ *                     actor/objetivo esperado (ej. sin cuidador asignado).
+ * permission-denied   El actor no participó en el paseo o no puede evaluar al
+ *                     objetivo indicado. También para `evaluacion_sistema`,
+ *                     reservada al sistema (MVP2).
+ * already-exists      Ya existe una evaluación del mismo tipo para la tripla
+ *                     (actor, objetivo, contexto).
+ * internal            Error inesperado al persistir.
+ *
+ * ── Garantías ──────────────────────────────────────────────────────────────
+ * - ID determinístico: `${tipo}_${actorId}_${objetivo}_${contextoId}`.
+ * - Unicidad REAL: escritura con `create()` (falla atómicamente si el
+ *   documento ya existe). NO se depende de Security Rules porque el Admin SDK
+ *   las ignora en producción.
+ * - Integridad contextual (paseo existe, estado, participación, relación
+ *   actor→objetivo) validada 100% en el servidor.
+ * ============================================================================
  */
+
+const TIPOS_CON_RATING = ['evaluacion_cuidador', 'evaluacion_tutor'] as const
+const TIPO_OBSERVACION_MASCOTA = 'evaluacion_mascota'
+const MAX_COMENTARIO = 2001
+const MAX_CAMPO_CUALITATIVO = 201
+
+function stringOpcional(valor: unknown, nombre: string, max: number): string {
+  if (valor === undefined || valor === null) return ''
+  if (typeof valor !== 'string') {
+    throw new HttpsError('invalid-argument', `${nombre} debe ser un string`)
+  }
+  const limpio = valor.trim()
+  if (limpio.length > max) {
+    throw new HttpsError(
+      'invalid-argument',
+      `${nombre} no puede superar ${max} caracteres`
+    )
+  }
+  return limpio
+}
+
 export const crearEvaluacion = onCall(
   { enforceAppCheck: false },
   async request => {
-    // 1. Validar autenticación
-    const uid = request.auth?.uid
-    if (!uid) {
+    // 1. Autenticación
+    const actorId = request.auth?.uid
+    if (!actorId) {
       throw new HttpsError(
         'unauthenticated',
         'Usuario no autenticado. Debes iniciar sesión para crear evaluaciones.'
       )
     }
 
-    const actorId = uid
-    const payload = request.data as Record<string, unknown>
-
-    // 2. Validar estructura de datos
+    const payload = (request.data ?? {}) as Record<string, unknown>
     const { tipo, objetivo, contextoId, rating, comentario } = payload
 
-    if (!tipo || !objetivo || !contextoId) {
-      throw new HttpsError(
-        'invalid-argument',
-        'Parámetros incompletos: tipo, objetivo y contextoId son requeridos'
-      )
-    }
-
-    if (typeof rating !== 'number' || rating < 1 || rating > 5) {
-      throw new HttpsError(
-        'invalid-argument',
-        'Rating debe ser un número entre 1 y 5'
-      )
-    }
-
+    // 2. Estructura básica
     if (
       typeof tipo !== 'string' ||
       typeof objetivo !== 'string' ||
@@ -72,25 +100,68 @@ export const crearEvaluacion = onCall(
     ) {
       throw new HttpsError(
         'invalid-argument',
-        'tipo, objetivo y contextoId deben ser strings'
+        'tipo, objetivo y contextoId son requeridos y deben ser strings'
       )
     }
 
-    // 3. Validar que el tipo es válido
-    const tiposValidos = [
-      'evaluacion_cuidador',
-      'evaluacion_tutor',
-      'evaluacion_mascota',
-      'evaluacion_sistema',
-    ]
-    if (!tiposValidos.includes(tipo)) {
+    // 3. Tipo válido
+    if (tipo === 'evaluacion_sistema') {
+      throw new HttpsError(
+        'permission-denied',
+        'evaluacion_sistema está reservada para el sistema (MVP2)'
+      )
+    }
+    if (
+      !TIPOS_CON_RATING.includes(tipo as (typeof TIPOS_CON_RATING)[number]) &&
+      tipo !== TIPO_OBSERVACION_MASCOTA
+    ) {
       throw new HttpsError(
         'invalid-argument',
         `Tipo de evaluación inválido: ${tipo}`
       )
     }
 
-    // 4. Leer Paseo
+    // 4. Rating según tipo
+    const esEvaluacionHumana = TIPOS_CON_RATING.includes(
+      tipo as (typeof TIPOS_CON_RATING)[number]
+    )
+    if (esEvaluacionHumana) {
+      if (typeof rating !== 'number' || rating < 1 || rating > 5) {
+        throw new HttpsError(
+          'invalid-argument',
+          'Rating debe ser un número entre 1 y 5 para este tipo de evaluación'
+        )
+      }
+    } else if (rating !== undefined && rating !== null) {
+      throw new HttpsError(
+        'invalid-argument',
+        'Las observaciones de mascota no usan rating (son cualitativas)'
+      )
+    }
+
+    // 5. Campos opcionales
+    const comentarioLimpio = stringOpcional(
+      comentario,
+      'comentario',
+      MAX_COMENTARIO
+    )
+    const cualitativos: Record<string, string> = {}
+    if (!esEvaluacionHumana) {
+      const { ritmo, compania, tolerancia } = payload
+      cualitativos.ritmo = stringOpcional(ritmo, 'ritmo', MAX_CAMPO_CUALITATIVO)
+      cualitativos.compania = stringOpcional(
+        compania,
+        'compania',
+        MAX_CAMPO_CUALITATIVO
+      )
+      cualitativos.tolerancia = stringOpcional(
+        tolerancia,
+        'tolerancia',
+        MAX_CAMPO_CUALITATIVO
+      )
+    }
+
+    // 6. Paseo: existencia y estado
     const paseoRef = db.doc(`paseos/${contextoId}`)
     const paseoSnap = await paseoRef.get()
 
@@ -99,21 +170,17 @@ export const crearEvaluacion = onCall(
     }
 
     const paseo = paseoSnap.data() as Record<string, unknown>
-
-    // 5. Validar estado del paseo
-    const estadoValido =
-      paseo?.estado === 'COMPLETADO' || paseo?.estado === 'FINALIZADO'
-
-    if (!estadoValido) {
+    const estado = paseo.estado
+    if (estado !== 'COMPLETADO' && estado !== 'FINALIZADO') {
       throw new HttpsError(
         'failed-precondition',
-        `Paseo debe estar COMPLETADO o FINALIZADO. Estado actual: ${paseo?.estado || 'desconocido'}`
+        `Paseo debe estar COMPLETADO o FINALIZADO. Estado actual: ${String(estado ?? 'desconocido')}`
       )
     }
 
-    // 6. Validar participación del actor en el paseo
-    const esCreador = paseo?.creado_por === actorId
-    const esCuidador = paseo?.id_cuidador === actorId
+    // 7. Participación y relación actor → objetivo
+    const esCreador = paseo.creado_por === actorId
+    const esCuidador = paseo.id_cuidador === actorId
 
     if (!esCreador && !esCuidador) {
       throw new HttpsError(
@@ -122,70 +189,101 @@ export const crearEvaluacion = onCall(
       )
     }
 
-    // 7. Validar relación actor → objetivo basada en tipo
     if (tipo === 'evaluacion_cuidador') {
-      // El tutor (creador) evalúa al cuidador
-      if (esCreador && objetivo !== paseo?.id_cuidador) {
+      // El tutor (creador) evalúa al cuidador del paseo
+      if (!esCreador) {
+        throw new HttpsError(
+          'permission-denied',
+          'Solo el tutor puede evaluar al cuidador'
+        )
+      }
+      if (typeof paseo.id_cuidador !== 'string' || paseo.id_cuidador === '') {
+        throw new HttpsError(
+          'failed-precondition',
+          'El paseo no tiene cuidador asignado'
+        )
+      }
+      if (objetivo !== paseo.id_cuidador) {
         throw new HttpsError(
           'permission-denied',
           'Como tutor, solo puedes evaluar al cuidador de este paseo'
         )
       }
-      if (esCuidador) {
+    } else if (tipo === 'evaluacion_tutor') {
+      // El cuidador evalúa al tutor (creador)
+      if (!esCuidador) {
         throw new HttpsError(
           'permission-denied',
-          'Los cuidadores no pueden crear evaluaciones de cuidador'
+          'Solo el cuidador puede evaluar al tutor'
         )
       }
-    } else if (tipo === 'evaluacion_tutor') {
-      // El cuidador evalúa al tutor
-      if (esCuidador && objetivo !== paseo?.creado_por) {
+      if (typeof paseo.creado_por !== 'string' || paseo.creado_por === '') {
+        throw new HttpsError(
+          'failed-precondition',
+          'El paseo no tiene tutor (creado_por)'
+        )
+      }
+      if (objetivo !== paseo.creado_por) {
         throw new HttpsError(
           'permission-denied',
           'Como cuidador, solo puedes evaluar al tutor de este paseo'
         )
       }
-      if (esCreador) {
-        throw new HttpsError(
-          'permission-denied',
-          'Los tutores no pueden crear evaluaciones de tutor'
-        )
-      }
-    } else if (tipo === 'evaluacion_mascota') {
-      // Solo cuidador puede evaluar mascotas
+    } else {
+      // evaluacion_mascota: solo el cuidador; la mascota debe ser del paseo
       if (!esCuidador) {
         throw new HttpsError(
           'permission-denied',
-          'Solo el cuidador puede crear evaluaciones de comportamiento de mascota'
+          'Solo el cuidador puede crear observaciones de mascota'
         )
       }
-      // objetivo es el ID de la mascota, no necesita validación especial
+      const mascotasIds = Array.isArray(paseo.mascota_ids)
+        ? (paseo.mascota_ids as unknown[]).filter(
+            (m): m is string => typeof m === 'string'
+          )
+        : []
+      if (mascotasIds.length > 0 && !mascotasIds.includes(objetivo)) {
+        throw new HttpsError(
+          'permission-denied',
+          'La mascota evaluada no pertenece a este paseo'
+        )
+      }
     }
 
-    // 8. Construir ID determinístico
+    // 8. Documento con ID determinístico
     const evaluacionId = `${tipo}_${actorId}_${objetivo}_${contextoId}`
-
-    // 9. Crear documento en Firestore
     const evaluacionRef = db.doc(`evaluaciones/${evaluacionId}`)
 
+    const datos: Record<string, unknown> = { comentario: comentarioLimpio }
+    if (esEvaluacionHumana) {
+      datos.rating = Math.max(1, Math.min(5, rating as number))
+    } else {
+      for (const [campo, valor] of Object.entries(cualitativos)) {
+        if (valor !== '') datos[campo] = valor
+      }
+    }
+
     try {
-      await evaluacionRef.set({
+      await evaluacionRef.create({
+        id: evaluacionId,
         tipo,
         actor: { tipo: 'usuario', id: actorId },
-        objetivo: { tipo: 'usuario', id: objetivo },
-        contexto: { tipo: 'paseo', id: contextoId },
-        datos: {
-          rating: Math.max(1, Math.min(5, rating as number)), // Clamp 1-5 por seguridad
-          comentario: comentario || '',
+        objetivo: {
+          tipo: esEvaluacionHumana ? 'usuario' : 'mascota',
+          id: objetivo,
         },
+        contexto: { tipo: 'paseo', id: contextoId },
+        datos,
+        creado_por: actorId,
+        actualizado_por: actorId,
         creado_en: admin.firestore.FieldValue.serverTimestamp(),
+        actualizado_en: admin.firestore.FieldValue.serverTimestamp(),
       })
     } catch (error) {
       if (
         error instanceof Error &&
-        error.message.includes('permission-denied')
+        (error as { code?: string }).code === 'already-exists'
       ) {
-        // Segunda escritura del mismo ID es UPDATE, rechazada por Rules
         throw new HttpsError(
           'already-exists',
           'Ya existe una evaluación de este tipo para esta combinación de actor/objetivo/paseo'

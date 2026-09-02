@@ -98,8 +98,8 @@ export class ServicioMascota {
    */
   static escucharPorUsuario(
     userId: string,
-    onData: (mascotas: Mascota[]) => void,
-    onError: (error: string) => void
+    onData: (_mascotas: Mascota[]) => void,
+    onError: (_error: string) => void
   ): Unsubscribe {
     const mascotasRef = collection(db, this.COLLECTION)
     const q1 = query(mascotasRef, where('creado_por', '==', userId))
@@ -190,8 +190,8 @@ export class ServicioMascota {
    */
   static escucharPorId(
     mascotaId: string,
-    onData: (mascota: Mascota) => void,
-    onError: (error: string) => void
+    onData: (_mascota: Mascota) => void,
+    onError: (_error: string) => void
   ): Unsubscribe {
     const docRef = doc(db, this.COLLECTION, mascotaId)
 

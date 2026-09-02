@@ -25,3 +25,4 @@ export { onPaseoConfirmado } from './paseos/chat'
 // Evaluaciones
 export { crearEvaluacion } from './evaluaciones/crearEvaluacion'
 export { alCrearEvaluacion } from './evaluaciones/alCrearEvaluacion'
+export { alCompletarPaseo } from './evaluaciones/alCompletarPaseo'
