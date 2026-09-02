@@ -269,14 +269,22 @@
     "gran_trabajo": "Great job!",
     "exito_mensaje": "The walk with {{mascota}} has been successfully completed.",
     "tiempo_total": "TOTAL TIME",
-    "finalizar_volver": "Finish and Return"
+    "finalizar_volver": "Finish and Return",
+    "registrar_paseo": "Register walk"
   },
   "finalizado": {
     "titulo": "Walk Completed!",
     "mensaje": "The walk with {{nombre}} has ended. We hope they enjoyed it!",
     "calificar": "How was {{cuidador}}'s service?",
     "excelente": "Excellent service!",
-    "toca_calificar": "Tap to rate"
+    "toca_calificar": "Tap to rate",
+    "confirmar": "Confirm rating",
+    "enviando": "Sending...",
+    "gracias": "Thanks for your rating!",
+    "reputacion": "⭐ {{promedio}} · {{cantidad}} walks",
+    "nuevo_promedio": "{{cuidador}}'s rating is now {{promedio}} ★ · {{cantidad}} walks",
+    "mi_calificacion": "Your rating",
+    "calificar_ahora": "Rate"
   },
   "validacion_codigo": {
     "titulo": "Verify Pickup",

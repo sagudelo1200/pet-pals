@@ -56,6 +56,16 @@ export interface Evaluacion extends BaseModel {
   /** En qué contexto ocurre (siempre paseo en MVP1) */
   contexto: ReferenciaSistema
 
+  /**
+   * Doble ciego con revelación: `true` cuando ambas partes evaluaron el mismo
+   * paseo (marcado por la CF alCrearEvaluacion) o cuando venció el plazo
+   * aleatorio de 6/9/12 días (una Cloud Task marca el doc). El evaluado solo
+   * puede leer la evaluación del otro si está revelada.
+   */
+  revelada?: boolean
+  /** Timestamp en que el sistema reveló la evaluación (contraparte mutua o ventana). */
+  revelada_en?: Date
+
   /** Datos específicos de la evaluación según su tipo */
   datos: {
     /**
@@ -63,8 +73,15 @@ export interface Evaluacion extends BaseModel {
      * evaluacion_tutor). Prohibido en observaciones de mascota.
      */
     rating?: number
-    /** Comentario opcional (máx 2000 caracteres) — todos los tipos */
+    /** Comentario público (máx 2000 caracteres) — todos los tipos.
+     * Puede publicarse en el perfil con atribución contextual. */
     comentario?: string
+    /**
+     * Feedback PRIVADO (máx 2000): visible SOLO para el evaluado tras la
+     * revelación del doble ciego. NUNCA se publica en el perfil ni en las
+     * reseñas públicas. Crítica constructiva sin fricción.
+     */
+    comentario_privado?: string
     /** Observación cualitativa (evaluacion_mascota): ritmo del paseo */
     ritmo?: string
     /** Observación cualitativa (evaluacion_mascota): comportamiento con otros */

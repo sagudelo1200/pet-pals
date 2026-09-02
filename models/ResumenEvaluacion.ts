@@ -85,6 +85,44 @@ export interface ResumenEvaluacion extends BaseModel {
    * cacheada en `perfiles_publicos.cantidad_paseos_realizados` para la UI.
    */
   cantidad_paseos_realizados?: number
+
+  /**
+   * Distribución de ratings (1-5) de evaluaciones de cuidador (pública).
+   * Permite ver, junto al promedio, cuántas reseñas hay por estrella.
+   */
+  distribucion_ratings?: Record<string, number>
+
+  /**
+   * Reseñas públicas de tutores hacia el cuidador (evaluacion_cuidador),
+   * SOLO mutuamente reveladas y SIN identidad del evaluador.
+   * Firma contextual que se muestra: "Tutor verificado · Experiencia verificada".
+   */
+  reseñas_publicas?: ReseñaPublica[]
+
+  /**
+   * Observaciones recientes de la mascota (evaluacion_mascota).
+   * La observación pertenece al expediente de la mascota: la mantiene el
+   * resumen de la mascota y la ven quienes cuidan de ella.
+   */
+  observaciones_recientes?: ObservacionMascota[]
+}
+
+/** Reseña pública de un tutor (sin identidad, con atribución contextual). */
+export interface ReseñaPublica {
+  rating: number
+  comentario: string
+  contexto_id: string
+  creado_en: Date | null
+}
+
+/** Observación de comportamiento de una mascota (expediente de la mascota). */
+export interface ObservacionMascota {
+  ritmo: string
+  compania: string
+  tolerancia: string
+  comentario: string
+  contexto_id: string
+  creado_en: Date | null
 }
 
 /**

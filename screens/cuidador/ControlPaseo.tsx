@@ -531,7 +531,12 @@ const ControlPaseo: React.FC = () => {
   if (showSuccess) {
     return (
       <SuccessOverlay
-        onClose={() => navigation.goBack()}
+        // Post-paseo: continuar al registro de la mascota (observación) y
+        // luego a la evaluación del tutor. Si el cuidador omite, vuelve al
+        // Dashboard desde esas pantallas.
+        onClose={() =>
+          navigation.navigate('ObservacionMascota', { paseoId })
+        }
         tiempo={tiempoTranscurrido}
         mascota={paseo.mascota_nombre_visual}
       />
@@ -1062,7 +1067,7 @@ const SuccessOverlay: React.FC<{
 
         <TouchableOpacity style={styles.successButton} onPress={onClose}>
           <Text style={styles.successButtonText}>
-            {t('paseos:control.finalizar_volver')}
+            {t('paseos:control.registrar_paseo')}
           </Text>
         </TouchableOpacity>
       </Animated.View>

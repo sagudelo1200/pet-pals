@@ -23,6 +23,9 @@ const db = admin.firestore()
  *   rating?: number,      // 1-5. OBLIGATORIO en evaluacion_cuidador/evaluacion_tutor.
  *                         // PROHIBIDO en evaluacion_mascota (observación cualitativa).
  *   comentario?: string,  // Opcional (máx 2000). Todos los tipos.
+ *   comentario_privado?: string, // Opcional (máx 2000). Feedback constructivo
+ *                         // visible SOLO para el evaluado tras la revelación
+ *                         // (nunca se publica en el perfil).
  *   // Solo evaluacion_mascota (opcionales, máx 200 c/u):
  *   ritmo?: string,       // ej: 'tranquilo'
  *   compania?: string,    // ej: 'solo'
@@ -145,6 +148,13 @@ export const crearEvaluacion = onCall(
       'comentario',
       MAX_COMENTARIO
     )
+    // Feedback privado: visible solo para el evaluado tras la revelación
+    // (nunca público). Opcional; sin fricción para el evaluador.
+    const comentarioPrivado = stringOpcional(
+      payload.comentario_privado,
+      'comentario_privado',
+      MAX_COMENTARIO
+    )
     const cualitativos: Record<string, string> = {}
     if (!esEvaluacionHumana) {
       const { ritmo, compania, tolerancia } = payload
@@ -255,6 +265,7 @@ export const crearEvaluacion = onCall(
     const evaluacionRef = db.doc(`evaluaciones/${evaluacionId}`)
 
     const datos: Record<string, unknown> = { comentario: comentarioLimpio }
+    if (comentarioPrivado !== '') datos.comentario_privado = comentarioPrivado
     if (esEvaluacionHumana) {
       datos.rating = Math.max(1, Math.min(5, rating as number))
     } else {

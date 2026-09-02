@@ -270,6 +270,7 @@
     "exito_mensaje": "El paseo con {{mascota}} ha sido completado con éxito.",
     "tiempo_total": "TIEMPO TOTAL",
     "finalizar_volver": "Finalizar y Volver",
+    "registrar_paseo": "Registrar paseo",
     "notificacion_titulo": "Paseo en curso",
     "notificacion_cuerpo": "Paw-Path está registrando el recorrido."
   },
@@ -278,7 +279,14 @@
     "mensaje": "El paseo con {{nombre}} ha terminado. ¡Esperamos que lo haya disfrutado!",
     "calificar": "¿Cómo estuvo el servicio de {{cuidador}}?",
     "excelente": "¡Excelente servicio!",
-    "toca_calificar": "Toca para calificar"
+    "toca_calificar": "Toca para calificar",
+    "confirmar": "Confirmar calificación",
+    "enviando": "Enviando...",
+    "gracias": "¡Gracias por tu calificación!",
+    "reputacion": "⭐ {{promedio}} · {{cantidad}} paseos",
+    "nuevo_promedio": "La calificación de {{cuidador}} ahora es {{promedio}} ★ · {{cantidad}} paseos",
+    "mi_calificacion": "Tu calificación",
+    "calificar_ahora": "Calificar"
   },
   "validacion_codigo": {
     "titulo": "Validar Recogida",

@@ -1,4 +1,4 @@
-import React, { useRef, useMemo, useCallback } from 'react'
+import React, { useRef, useMemo, useCallback, useEffect, useState } from 'react'
 import {
   StyleSheet,
   View,
@@ -22,6 +22,8 @@ import Icon from '@/components/ui/Icon'
 import { AuthStackParamList } from '@/navigation/types'
 import type { Mascota } from '@/models/Mascota'
 import { calcularCompletitud } from '@/logic/mascotas/calcularCompletitud'
+import { ServicioResumenEvaluacion } from '@/services/firebase'
+import type { ObservacionMascota } from '@/models/ResumenEvaluacion'
 
 // Hooks
 import { useAnimacionModal } from '@/hooks/useAnimacionModal'
@@ -74,6 +76,28 @@ const DetalleMascota: React.FC = () => {
 
   const scrollViewRef = useRef<ScrollView>(null)
   const lastNavTime = useRef(0)
+
+  // Observaciones de cuidadores: la observación pertenece al expediente de la
+  // mascota (resumenes_evaluacion/{mascotaId}.observaciones_recientes)
+  const [observaciones, setObservaciones] = useState<ObservacionMascota[] | null>(
+    null
+  )
+  useEffect(() => {
+    if (!mascotaNormalizada?.id) return undefined
+    let activo = true
+    setObservaciones(null)
+    ServicioResumenEvaluacion.obtenerPorObjetivo(mascotaNormalizada.id)
+      .then(res => {
+        if (!activo) return
+        setObservaciones(res.success ? (res.data?.observaciones_recientes ?? []) : [])
+      })
+      .catch(() => {
+        if (activo) setObservaciones([])
+      })
+    return () => {
+      activo = false
+    }
+  }, [mascotaNormalizada?.id])
 
   // Hook para abrir/cerrar modal de comportamiento
   const {
@@ -376,6 +400,34 @@ const DetalleMascota: React.FC = () => {
                   />
                 </View>
               )}
+
+              {/* Expediente de la mascota: observaciones de cuidadores */}
+              {!isEditMode && observaciones && observaciones.length > 0 && (
+                <View style={styles.observacionesSeccion}>
+                  <Text style={styles.observacionesTitulo}>
+                    {t('mascotas:detalle.observaciones_cuidadores')}
+                  </Text>
+                  {observaciones.map((obs, i) => (
+                    <View key={i} style={styles.observacionCard}>
+                      <Text style={styles.observacionDetalle}>
+                        {t('mascotas:detalle.ritmo', 'Ritmo')}: {obs.ritmo || '—'}{' '}
+                        · {t('mascotas:detalle.compania', 'Compañía')}:{' '}
+                        {obs.compania || '—'} ·{' '}
+                        {t('mascotas:detalle.tolerancia', 'Tolerancia')}:{' '}
+                        {obs.tolerancia || '—'}
+                      </Text>
+                      {obs.comentario ? (
+                        <Text style={styles.observacionComentario}>
+                          {obs.comentario}
+                        </Text>
+                      ) : null}
+                      <Text style={styles.observacionFirma}>
+                        {t('mascotas:detalle.firma_cuidador')}
+                      </Text>
+                    </View>
+                  ))}
+                </View>
+              )}
             </View>
           </ScrollView>
         )}
@@ -507,6 +559,40 @@ const styles = StyleSheet.create({
   deleteText: {
     color: COLOR.ERROR,
     fontSize: 14,
+  },
+  observacionesSeccion: {
+    marginTop: 8,
+    marginBottom: 8,
+  },
+  observacionesTitulo: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: COLOR.TEXTO,
+    marginBottom: 10,
+  },
+  observacionCard: {
+    backgroundColor: COLOR.SECUNDARIO,
+    borderRadius: 12,
+    padding: 14,
+    marginBottom: 10,
+  },
+  observacionDetalle: {
+    fontSize: 13,
+    lineHeight: 18,
+    color: COLOR.TEXTO,
+    fontWeight: '600',
+  },
+  observacionComentario: {
+    fontSize: 13,
+    lineHeight: 18,
+    color: COLOR.TEXTO,
+    marginTop: 6,
+  },
+  observacionFirma: {
+    fontSize: 11,
+    color: COLOR.SUBTEXTO,
+    fontStyle: 'italic',
+    marginTop: 6,
   },
 })
 

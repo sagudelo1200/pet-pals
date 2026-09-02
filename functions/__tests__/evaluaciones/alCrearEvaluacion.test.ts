@@ -29,6 +29,19 @@ jest.mock('firebase-functions/v2/firestore', () => ({
   onDocumentCreated: (_path: string, handler: unknown) => handler,
 }))
 
+// Cloud Tasks: el trigger programa la revelación por ventana (event-driven).
+// Instancia singleton para que el módulo (que cachea el cliente) y los tests
+// compartan los mismos jest.fn.
+jest.mock('@google-cloud/tasks', () => {
+  const createTask = jest.fn().mockResolvedValue({})
+  const queuePath = jest.fn(
+    (projectId: string, location: string, queue: string) =>
+      `projects/${projectId}/locations/${location}/queues/${queue}`
+  )
+  const instancia = { queuePath, createTask }
+  return { CloudTasksClient: jest.fn(() => instancia) }
+})
+
 jest.mock('h3-js', () => ({
   gridDisk: jest.fn(() => ['celda-a', 'celda-b']),
 }))
@@ -58,15 +71,22 @@ function evaluacionDoc(overrides: Record<string, unknown> = {}): Record<string, 
 }
 
 function evento(data?: Record<string, unknown>): Evento {
+  const id = (data?.id as string) || 'eval-1'
+  // En producción el doc ya existe (el trigger se dispara por su creación);
+  // se siembra automáticamente para que las escrituras del trigger funcionen.
+  if (data && !db.__docs.has(`evaluaciones/${id}`)) {
+    db.__seed(`evaluaciones/${id}`, data)
+  }
   return {
     data: data ? { data: () => data } : undefined,
-    params: { evaluacionId: 'eval-1' },
+    params: { evaluacionId: id },
   }
 }
 
 describe('alCrearEvaluacion (trigger)', () => {
   beforeEach(() => {
     db.__reset()
+    jest.clearAllMocks()
   })
 
   test('sin datos no lanza ni escribe nada', async () => {
@@ -76,7 +96,11 @@ describe('alCrearEvaluacion (trigger)', () => {
 
   test('sin objetivo.id no lanza', async () => {
     await trigger(evento(evaluacionDoc({ objetivo: undefined })))
-    expect(db.__docs.size).toBe(0)
+    // No debe escribir ningún resumen ni cache
+    const escritos = [...db.__docs.keys()].filter(
+      k => !k.startsWith('evaluaciones/')
+    )
+    expect(escritos).toHaveLength(0)
   })
 
   test('crea resumen nuevo con desgloses separados por tipo', async () => {
@@ -146,6 +170,7 @@ describe('alCrearEvaluacion (trigger)', () => {
 
   test('evaluacion_tutor NO toca la reputación pública (métrica privada)', async () => {
     const docTutor = evaluacionDoc({
+      id: 'e1',
       tipo: 'evaluacion_tutor',
       actor: { tipo: 'usuario', id: 'cuidador-1' },
       objetivo: { tipo: 'usuario', id: 'tutor-1' },
@@ -171,6 +196,7 @@ describe('alCrearEvaluacion (trigger)', () => {
 
   test('evaluacion_mascota agrega resumen cualitativo con promedio 0', async () => {
     const docMascota = evaluacionDoc({
+      id: 'e1',
       tipo: 'evaluacion_mascota',
       actor: { tipo: 'usuario', id: 'cuidador-1' },
       objetivo: { tipo: 'mascota', id: 'mascota-1' },
@@ -286,6 +312,251 @@ describe('alCrearEvaluacion (trigger)', () => {
     const resumen = db.__docs.get('resumenes_evaluacion/cuidador-1')
     expect(resumen.evaluaciones_sistema).toEqual({ promedio: 4, cantidad: 1 })
     expect(db.__docs.has('perfiles_publicos/cuidador-1')).toBe(false)
+  })
+
+  test('doble ciego: marca revelada:false si la contraparte no existe', async () => {
+    const doc = evaluacionDoc({ id: 'e1', datos: { rating: 5 } })
+    db.__seed('evaluaciones/e1', doc)
+
+    await trigger(evento(doc))
+
+    const guardada = db.__docs.get('evaluaciones/e1')
+    expect(guardada.revelada).toBe(false)
+    expect(guardada.revelada_en).toBeUndefined()
+  })
+
+  test('doble ciego: marca AMBAS reveladas si la contraparte existe', async () => {
+    const doc = evaluacionDoc({ id: 'e1', datos: { rating: 5 } })
+    db.__seed('evaluaciones/e1', doc)
+    // Contraparte: cuidador evalúa al tutor en el mismo paseo
+    const contraparte = evaluacionDoc({
+      id: 'evaluacion_tutor_cuidador-1_tutor-1_p1',
+      tipo: 'evaluacion_tutor',
+      actor: { tipo: 'usuario', id: 'cuidador-1' },
+      objetivo: { tipo: 'usuario', id: 'tutor-1' },
+      datos: { rating: 4, comentario: '' },
+    })
+    db.__seed('evaluaciones/evaluacion_tutor_cuidador-1_tutor-1_p1', contraparte)
+
+    await trigger(evento(doc))
+
+    expect(db.__docs.get('evaluaciones/e1').revelada).toBe(true)
+    expect(db.__docs.get('evaluaciones/evaluacion_tutor_cuidador-1_tutor-1_p1').revelada).toBe(true)
+  })
+
+  test('doble ciego: no aplica a evaluacion_mascota', async () => {
+    const doc = evaluacionDoc({
+      id: 'e1',
+      tipo: 'evaluacion_mascota',
+      actor: { tipo: 'usuario', id: 'cuidador-1' },
+      objetivo: { tipo: 'mascota', id: 'mascota-1' },
+      datos: { ritmo: 'tranquilo', compania: 'solo', tolerancia: 'ignora', comentario: '' },
+    })
+    db.__seed('evaluaciones/e1', doc)
+
+    await trigger(evento(doc))
+
+    expect(db.__docs.get('evaluaciones/e1').revelada).toBeUndefined()
+  })
+
+  test('doble ciego: programa la revelación por ventana si no hay contraparte', async () => {
+    process.env.GCLOUD_PROJECT = 'test-project'
+    try {
+      const { CloudTasksClient } = require('@google-cloud/tasks') as any
+      const doc = evaluacionDoc({ id: 'e1', datos: { rating: 5 } })
+      db.__seed('evaluaciones/e1', doc)
+
+      await trigger(evento(doc))
+
+      expect(db.__docs.get('evaluaciones/e1').revelada).toBe(false)
+      const client = new CloudTasksClient()
+      expect(client.createTask).toHaveBeenCalledTimes(1)
+      const [request] = (client.createTask as jest.Mock).mock.calls[0]
+      expect(request.task.httpRequest.url).toContain(
+        'revelarEvaluacionVencida'
+      )
+      const bodyDecodificado = Buffer.from(
+        request.task.httpRequest.body,
+        'base64'
+      ).toString('utf8')
+      expect(bodyDecodificado).toContain('e1')
+      // Programada para dentro de 6 a 12 días (plazo aleatorio)
+      const hoy = Math.floor(Date.now() / 1000)
+      expect(request.task.scheduleTime.seconds).toBeGreaterThan(hoy + 5 * 86400)
+      expect(request.task.scheduleTime.seconds).toBeLessThan(hoy + 13 * 86400)
+    } finally {
+      delete process.env.GCLOUD_PROJECT
+    }
+  })
+
+  test('doble ciego: no programa si la contraparte ya existe (mutua)', async () => {
+    process.env.GCLOUD_PROJECT = 'test-project'
+    try {
+      const { CloudTasksClient } = require('@google-cloud/tasks') as any
+      const doc = evaluacionDoc({ id: 'e1', datos: { rating: 5 } })
+      db.__seed('evaluaciones/e1', doc)
+      db.__seed('evaluaciones/evaluacion_tutor_cuidador-1_tutor-1_p1', {
+        tipo: 'evaluacion_tutor',
+      })
+
+      await trigger(evento(doc))
+
+      expect(db.__docs.get('evaluaciones/e1').revelada).toBe(true)
+      const client = new CloudTasksClient()
+      expect(client.createTask).not.toHaveBeenCalled()
+    } finally {
+      delete process.env.GCLOUD_PROJECT
+    }
+  })
+
+  test('doble ciego: no programa para observaciones de mascota', async () => {
+    process.env.GCLOUD_PROJECT = 'test-project'
+    try {
+      const { CloudTasksClient } = require('@google-cloud/tasks') as any
+      const doc = evaluacionDoc({
+        id: 'e1',
+        tipo: 'evaluacion_mascota',
+        actor: { tipo: 'usuario', id: 'cuidador-1' },
+        objetivo: { tipo: 'mascota', id: 'mascota-1' },
+        datos: { ritmo: 'tranquilo', compania: 'solo', tolerancia: 'ignora', comentario: '' },
+      })
+      db.__seed('evaluaciones/e1', doc)
+
+      await trigger(evento(doc))
+
+      const client = new CloudTasksClient()
+      expect(client.createTask).not.toHaveBeenCalled()
+    } finally {
+      delete process.env.GCLOUD_PROJECT
+    }
+  })
+
+  test('incluye distribución de ratings y reseñas públicas solo si mutuas', async () => {
+    db.__seed(
+      'evaluaciones/e1',
+      evaluacionDoc({
+        id: 'e1',
+        datos: { rating: 5, comentario: 'Excelente' },
+        revelada: true,
+      })
+    )
+    const doc2 = evaluacionDoc({
+      id: 'e2',
+      datos: { rating: 4, comentario: 'Muy bien' },
+      revelada: false,
+    })
+    db.__seed('evaluaciones/e2', doc2)
+
+    await trigger(evento(doc2))
+
+    const resumen = db.__docs.get('resumenes_evaluacion/cuidador-1')
+    expect(resumen.distribucion_ratings).toEqual({
+      '1': 0,
+      '2': 0,
+      '3': 0,
+      '4': 1,
+      '5': 1,
+    })
+    // Solo la evaluación mutuamente revelada aparece en público, sin identidad
+    expect(resumen.reseñas_publicas).toHaveLength(1)
+    expect(resumen.reseñas_publicas[0]).toMatchObject({
+      rating: 5,
+      comentario: 'Excelente',
+      contexto_id: 'p1',
+    })
+    expect(resumen.reseñas_publicas[0].actor).toBeUndefined()
+  })
+
+  test('observación de mascota alimenta su expediente (observaciones_recientes)', async () => {
+    const doc = evaluacionDoc({
+      id: 'e1',
+      tipo: 'evaluacion_mascota',
+      actor: { tipo: 'usuario', id: 'cuidador-1' },
+      objetivo: { tipo: 'mascota', id: 'mascota-1' },
+      datos: {
+        ritmo: 'tranquilo',
+        compania: 'solo',
+        tolerancia: 'ignora',
+        comentario: 'Se portó muy bien',
+      },
+    })
+    db.__seed('evaluaciones/e1', doc)
+
+    await trigger(evento(doc))
+
+    const resumen = db.__docs.get('resumenes_evaluacion/mascota-1')
+    expect(resumen.observaciones_recientes).toHaveLength(1)
+    expect(resumen.observaciones_recientes[0]).toMatchObject({
+      ritmo: 'tranquilo',
+      compania: 'solo',
+      tolerancia: 'ignora',
+      comentario: 'Se portó muy bien',
+      contexto_id: 'p1',
+    })
+  })
+
+  test('el comentario privado NUNCA sale en las reseñas públicas', async () => {
+    db.__seed(
+      'evaluaciones/e1',
+      evaluacionDoc({
+        id: 'e1',
+        datos: {
+          rating: 5,
+          comentario: 'Público',
+          comentario_privado: 'Privado: avísame si Luna se porta mal',
+        },
+        revelada: true,
+      })
+    )
+
+    await trigger(evento(evaluacionDoc({ id: 'e2', datos: { rating: 4 } })))
+
+    const resumen = db.__docs.get('resumenes_evaluacion/cuidador-1')
+    expect(resumen.reseñas_publicas).toHaveLength(1)
+    expect(resumen.reseñas_publicas[0].comentario).toBe('Público')
+    expect(resumen.reseñas_publicas[0].comentario_privado).toBeUndefined()
+  })
+
+  test('otorga SUPERHOST cuando el rating ≥ 4.8 con volumen suficiente', async () => {
+    for (let i = 1; i <= 5; i++) {
+      db.__seed(
+        `evaluaciones/e${i}`,
+        evaluacionDoc({ id: `e${i}`, datos: { rating: 5 } })
+      )
+    }
+    db.__seed('perfiles_publicos/cuidador-1', {
+      nombre: 'Cuidador Uno',
+      insignias_verificacion: ['IDENTIDAD'],
+      rating_promedio: 0,
+    })
+
+    await trigger(evento(evaluacionDoc({ id: 'e5', datos: { rating: 5 } })))
+
+    const perfil = db.__docs.get('perfiles_publicos/cuidador-1')
+    expect(perfil.insignias_verificacion).toContain('SUPERHOST')
+  })
+
+  test('revoca SUPERHOST si baja del umbral', async () => {
+    // Promedio 2 y cantidad 2 → no cumple (promedio y volumen)
+    db.__seed(
+      'evaluaciones/e1',
+      evaluacionDoc({ id: 'e1', datos: { rating: 2 } })
+    )
+    db.__seed(
+      'evaluaciones/e2',
+      evaluacionDoc({ id: 'e2', datos: { rating: 2 } })
+    )
+    db.__seed('perfiles_publicos/cuidador-1', {
+      nombre: 'Cuidador Uno',
+      insignias_verificacion: ['IDENTIDAD', 'SUPERHOST'],
+      rating_promedio: 4.9,
+    })
+
+    await trigger(evento(evaluacionDoc({ id: 'e2', datos: { rating: 2 } })))
+
+    const perfil = db.__docs.get('perfiles_publicos/cuidador-1')
+    expect(perfil.insignias_verificacion).not.toContain('SUPERHOST')
+    expect(perfil.insignias_verificacion).toContain('IDENTIDAD')
   })
 })
 

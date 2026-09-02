@@ -5,6 +5,9 @@
     "solicitudes_pendientes": "Requests",
     "paseos_activos": "Active",
     "paseos_completados": "Completed",
+    "mi_reputacion": "My reputation",
+    "feedback_para_ti": "Feedback for you",
+    "feedback_firma": "— Verified tutor · Verified experience",
     "proximos_paseos": "Upcoming Walks",
     "sin_paseos": "You have no upcoming walks"
   },
@@ -88,6 +91,9 @@
     "mascotas": "pets",
     "paseo": "walk",
     "paseos": "walks",
-    "hora": "hour"
+    "hora": "hour",
+    "reseñas": "Reviews from tutors",
+    "firma_tutor_verificado": "— Verified tutor · Verified experience",
+    "superhost": "Superhost"
   }
 }

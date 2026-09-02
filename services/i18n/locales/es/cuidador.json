@@ -5,6 +5,9 @@
     "solicitudes_pendientes": "Solicitudes",
     "paseos_activos": "Activos",
     "paseos_completados": "Completados",
+    "mi_reputacion": "Mi reputación",
+    "feedback_para_ti": "Feedback para ti",
+    "feedback_firma": "— Tutor verificado · Experiencia verificada",
     "proximos_paseos": "Próximos Paseos",
     "sin_paseos": "No tienes paseos próximos"
   },
@@ -88,6 +91,9 @@
     "mascotas": "mascotas",
     "paseo": "paseo",
     "paseos": "paseos",
-    "hora": "hora"
+    "hora": "hora",
+    "reseñas": "Reseñas de tutores",
+    "firma_tutor_verificado": "— Tutor verificado · Experiencia verificada",
+    "superhost": "Superhost"
   }
 }

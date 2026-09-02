@@ -20,6 +20,7 @@ import { SolicitarPaseoModal } from '@/components/paseos/SolicitarPaseoModal'
 import PaseadorPerrosSvg from '@/assets/imgs/undraw/paseador_perros.svg'
 import { useMascotas } from '@/hooks/useMascotas'
 import { usePaseos } from '@/hooks/paseos/usePaseos'
+import { useMisEvaluacionesTutor } from '@/hooks/paseos/useMisEvaluaciones'
 import DetallePaseoBottomSheet from '@/components/paseos/DetallePaseoBottomSheet'
 import { ESTADOS_PASEO } from '@/models/Paseo'
 import { obtenerExperienciaPaseo } from '@/logic/paseos/routerPaseos'
@@ -45,6 +46,8 @@ const Paseos: React.FC = () => {
   const navigation = useNavigation()
   const route = useRoute<RouteProp<TutorTabParamList, 'Paseos'>>()
   const { paseos, cargando, refetch } = usePaseos()
+  // Evaluaciones propias como tutor (paseoId → rating) para el historial
+  const misEvaluaciones = useMisEvaluacionesTutor()
   const lastNavTime = React.useRef(0)
 
   const paseoSeleccionado = useMemo(
@@ -269,6 +272,25 @@ const Paseos: React.FC = () => {
             <ItemHistorialPaseo
               paseo={item}
               onPress={() => handleNavigateToDetail(item.id)}
+              miCalificacion={
+                item.estado === ESTADOS_PASEO.COMPLETADO ||
+                item.estado === ESTADOS_PASEO.FINALIZADO
+                  ? misEvaluaciones[item.id]
+                  : undefined
+              }
+              onCalificar={
+                item.estado === ESTADOS_PASEO.COMPLETADO &&
+                misEvaluaciones[item.id] === undefined &&
+                item.id_cuidador
+                  ? () => {
+                      // Repesca: calificar un paseo completado pendiente
+                      // @ts-ignore
+                      navigation.navigate('PaseoFinalizado', {
+                        paseoId: item.id,
+                      })
+                    }
+                  : undefined
+              }
             />
           ) : (
             <TarjetaPaseo

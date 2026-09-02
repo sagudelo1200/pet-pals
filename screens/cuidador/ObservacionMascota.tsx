@@ -34,12 +34,12 @@ type RouteProps = RouteProp<AuthStackParamList, 'ObservacionMascota'>
 /**
  * Pantalla: Cuidador registra observación de comportamiento de mascota
  *
- * Caso: evaluacion_mascota
+ * Caso: evaluacion_mascota (contrato v2)
  * - El Cuidador (actor) observa Mascota (objetivo)
  * - Ocurre post-paseo COMPLETADO/FINALIZADO
- * - Datos: ritmo, compañía, tolerancia, comentario
- * - NO se promedian ratings (son observaciones cualitativas)
- * - Cloud Function auto-agrega en ResumenEvaluacion/{mascota_id}
+ * - SIN rating (cualitativo): ritmo, compania, tolerancia, comentario
+ * - Se recorre cada mascota del paseo; al terminar (o al omitir) continúa a
+ *   la evaluación del tutor (CuidadorEvaluaTutor)
  */
 export default function ObservacionMascota() {
   const route = useRoute<RouteProps>()
@@ -57,12 +57,32 @@ export default function ObservacionMascota() {
     `paseos/${paseoId}/mascotas`
   )
 
-  const [mascotaActual, setMascotaActual] = useState<MascotaPaseo | null>(null)
+  const [indice, setIndice] = useState(0)
   const [ritmo, setRitmo] = useState('')
   const [compania, setCompania] = useState('')
   const [tolerancia, setTolerancia] = useState('')
   const [comentario, setComentario] = useState('')
   const [observando, setObservando] = useState(false)
+
+  const mascotas = mascotasPaseo || []
+  const mascotaActual = mascotas[indice] || null
+  const totalMascotas = mascotas.length
+
+  const continuarConTutor = () => {
+    navigation.navigate('CuidadorEvaluaTutor', { paseoId })
+  }
+
+  const siguienteMascota = () => {
+    if (indice < totalMascotas - 1) {
+      setIndice(i => i + 1)
+      setRitmo('')
+      setCompania('')
+      setTolerancia('')
+      setComentario('')
+    } else {
+      continuarConTutor()
+    }
+  }
 
   const handleGuardarObservacion = async () => {
     if (!paseo || !user?.uid || !mascotaActual) {
@@ -77,58 +97,49 @@ export default function ObservacionMascota() {
 
     setObservando(true)
     try {
-      // Llamar Callable Function: crearEvaluacion
+      // Llamar Callable Function: crearEvaluacion (contrato v2: sin rating)
       const crearEvaluacionCallable = httpsCallable(
         functions,
         'crearEvaluacion'
       )
 
       const resultado = (await crearEvaluacionCallable({
-        tipo: 'evaluacion_mascota', // ← Tipo para mascota
-        objetivo: mascotaActual.id, // ID de la mascota
+        tipo: 'evaluacion_mascota',
+        objetivo: mascotaActual.id,
         contextoId: paseoId,
-        rating: 3, // Dummy rating (no se usa para mascotas)
-        comentario: JSON.stringify({
-          ritmo,
-          compania,
-          tolerancia,
-          comentario: comentario.trim() || null,
-        }),
-      })) as { data: { success: boolean; evaluacionId: string } }
+        ritmo: ritmo.trim(),
+        compania: compania.trim(),
+        tolerancia: tolerancia.trim(),
+        comentario: comentario.trim() || '',
+      })) as { data: { success: boolean } }
 
       if (resultado.data.success) {
-        Alert.alert('Éxito', 'Observación registrada correctamente', [
-          {
-            text: 'OK',
-            onPress: () => {
-              // Limpiar y continuar con siguiente mascota si hay
-              setRitmo('')
-              setCompania('')
-              setTolerancia('')
-              setComentario('')
-              setMascotaActual(null)
-            },
-          },
-        ])
+        Alert.alert(
+          t('observacion_guardada', 'Observación registrada'),
+          undefined,
+          [{ text: 'OK', onPress: siguienteMascota }]
+        )
       } else {
         Alert.alert('Error', 'Error al guardar observación')
       }
     } catch (error) {
       console.error('Error creando observación:', error)
 
-      // Manejar errores de Callable Function
       let mensajeError = 'Error al guardar observación'
       const errorObj = error as { code?: string; message?: string }
 
       if (errorObj?.code === 'already-exists') {
-        mensajeError = 'Ya has registrado observación para esta mascota'
+        // Ya registrada esta mascota: continuar como si se hubiera guardado
+        mensajeError = ''
+        siguienteMascota()
+        return
       } else if (errorObj?.code === 'failed-precondition') {
         mensajeError = 'El paseo debe estar completado'
       } else if (errorObj?.code === 'permission-denied') {
         mensajeError = 'Solo el cuidador puede registrar observaciones'
       }
 
-      Alert.alert('Error', mensajeError)
+      if (mensajeError) Alert.alert('Error', mensajeError)
     } finally {
       setObservando(false)
     }
@@ -142,23 +153,31 @@ export default function ObservacionMascota() {
     )
   }
 
-  if (!paseo || !mascotasPaseo || mascotasPaseo.length === 0) {
+  if (!paseo || mascotas.length === 0) {
     return (
       <View style={styles.center}>
         <Text style={{ color: COLOR.TEXTO }}>
           No hay mascotas en este paseo
         </Text>
+        <Spacer size={16} />
+        <Button title={t('continuar', 'Continuar')} onPress={continuarConTutor} />
       </View>
     )
-  }
-
-  if (!mascotaActual && mascotasPaseo && mascotasPaseo.length > 0) {
-    setMascotaActual(mascotasPaseo[0])
   }
 
   return (
     <ScrollView style={[styles.container, { backgroundColor: COLOR.BASE }]}>
       <Spacer size={20} />
+
+      {totalMascotas > 1 && (
+        <Text style={[styles.progreso, { color: COLOR.SUBTEXTO }]}>
+          {t('mascota_progreso', 'Mascota {{actual}} de {{total}}', {
+            actual: indice + 1,
+            total: totalMascotas,
+          })}
+        </Text>
+      )}
+
       <Text style={[styles.titulo, { color: COLOR.TEXTO }]}>
         Observación: {mascotaActual?.nombre}
       </Text>
@@ -219,14 +238,14 @@ export default function ObservacionMascota() {
       <Spacer size={20} />
 
       <Button
-        title="Guardar Observación"
+        title={t('guardar_observacion', 'Guardar observación')}
         onPress={handleGuardarObservacion}
         loading={observando}
       />
       <Spacer size={12} />
       <Button
-        title="Cancelar"
-        onPress={() => navigation.goBack()}
+        title={t('omitir', 'Omitir')}
+        onPress={continuarConTutor}
         variant="secundario"
       />
       <Spacer size={20} />
@@ -243,10 +262,16 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: COLOR.BASE,
   },
   titulo: {
     fontSize: 20,
     fontWeight: 'bold',
+  },
+  progreso: {
+    fontSize: 13,
+    fontWeight: '600',
+    marginBottom: 8,
   },
   label: {
     fontSize: 14,

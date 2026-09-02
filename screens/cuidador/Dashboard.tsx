@@ -12,6 +12,7 @@ import { COLOR } from '@/constants'
 import { EstadisticaCard } from '@/components/cuidador/EstadisticaCard'
 import { useEstadisticasCuidador } from '@/hooks/cuidador/useEstadisticasCuidador'
 import { useAgendaCuidador } from '@/hooks/cuidador/useAgendaCuidador'
+import { useFeedbackRecibido } from '@/hooks/cuidador/useFeedbackRecibido'
 import { useAuth } from '@/context/AuthContext'
 import PaseadorPerrosSvg from '@/assets/imgs/undraw/paseador_perros.svg'
 import {
@@ -29,6 +30,8 @@ const Dashboard: React.FC = () => {
   const { user } = useAuth()
   const estadisticas = useEstadisticasCuidador()
   const { proximos, cargando, refetch } = useAgendaCuidador()
+  // Feedback revelado que el cuidador recibió (incluye comentarios privados)
+  const feedback = useFeedbackRecibido()
   const [detalleVisible, setDetalleVisible] = useState(false)
   const [detalleTitle, setDetalleTitle] = useState('')
   const [detallePaseoId, setDetallePaseoId] = useState<string | null>(null)
@@ -128,6 +131,47 @@ const Dashboard: React.FC = () => {
               />
             </View>
           </View>
+
+          {/* Reputación: recompensa visible tras cada paseo (gamificación silenciosa) */}
+          <View style={{ height: 12 }} />
+          <EstadisticaCard
+            titulo={t('cuidador:dashboard.mi_reputacion')}
+            valor={
+              estadisticas.valoracionPromedio > 0
+                ? `${estadisticas.valoracionPromedio.toFixed(1)} ★`
+                : '—'
+            }
+            icono="star"
+            color={COLOR.ORO}
+            gradientColors={['#F59E0B15', '#F59E0B05']}
+          />
+
+          {/* Feedback para ti: reseñas reveladas + comentarios privados */}
+          {feedback.length > 0 && (
+            <View style={styles.feedbackSection}>
+              <Text style={styles.feedbackTitulo}>
+                {t('cuidador:dashboard.feedback_para_ti')}
+              </Text>
+              {feedback.map((f, i) => (
+                <View key={i} style={styles.feedbackCard}>
+                  <Text style={styles.feedbackRating}>
+                    {'★'.repeat(Math.max(1, Math.min(5, Math.round(f.rating))))}
+                  </Text>
+                  {f.comentario ? (
+                    <Text style={styles.feedbackTexto}>{f.comentario}</Text>
+                  ) : null}
+                  {f.comentario_privado ? (
+                    <Text style={styles.feedbackPrivado}>
+                      💬 {f.comentario_privado}
+                    </Text>
+                  ) : null}
+                  <Text style={styles.feedbackFirma}>
+                    {t('cuidador:dashboard.feedback_firma')}
+                  </Text>
+                </View>
+              ))}
+            </View>
+          )}
         </View>
 
         {/* Próximos Paseos */}
@@ -202,6 +246,47 @@ const styles = StyleSheet.create({
   gridItemRight: {
     flex: 1,
     marginLeft: 6,
+  },
+  feedbackSection: {
+    marginTop: 16,
+  },
+  feedbackTitulo: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: COLOR.TEXTO,
+    marginBottom: 10,
+  },
+  feedbackCard: {
+    backgroundColor: COLOR.BLOQUE,
+    borderRadius: 12,
+    padding: 14,
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: COLOR.BORDE,
+  },
+  feedbackRating: {
+    fontSize: 14,
+    color: COLOR.ORO,
+    fontWeight: '700',
+    marginBottom: 4,
+  },
+  feedbackTexto: {
+    fontSize: 13,
+    lineHeight: 18,
+    color: COLOR.TEXTO,
+  },
+  feedbackPrivado: {
+    fontSize: 13,
+    lineHeight: 18,
+    color: COLOR.PRIMARIO,
+    marginTop: 6,
+    fontStyle: 'italic',
+  },
+  feedbackFirma: {
+    fontSize: 11,
+    color: COLOR.SUBTEXTO,
+    fontStyle: 'italic',
+    marginTop: 6,
   },
   section: {
     paddingHorizontal: 20,

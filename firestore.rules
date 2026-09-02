@@ -584,23 +584,47 @@ service cloud.firestore {
     // Evaluaciones individuales de confianza entre actores.
     // La ESCRITURA la realiza SOLO la callable `crearEvaluacion` (Admin SDK).
     // Los clientes NUNCA escriben aquí directamente.
+    //
+    // DOBLE CIEGO CON REVELACIÓN (visibilidad):
+    // - El evaluador (actor) SIEMPRE puede leer lo que escribió.
+    // - El evaluado (objetivo) solo puede leer la evaluación del otro cuando
+    //   está REVELADA: ambas partes evaluaron el mismo paseo (la Cloud
+    //   Function alCrearEvaluacion marca `revelada: true` en ambos docs) o
+    //   venció el plazo aleatorio de 6/9/12 días (una Cloud Task por
+    //   evaluación marca el doc; sin fallback por tiempo para no revelar el
+    //   día exacto).
+    // - admin lee todo (vía Custom Claims, SIN get() para no romper queries).
+    // NOTA: esta regla NO usa get()/exists(), por eso las queries del actor
+    // (ej. historial del tutor) y del objetivo (reseñas reveladas) funcionan.
     match /evaluaciones/{docId} {
-      // LECTURA: Solo participantes (actor u objetivo)
-      allow read: if autenticado() &&
-      (request.auth.uid == resource.data.actor.id ||
-      request.auth.uid == resource.data.objetivo.id ||
-      es_admin());
+      // LECTURA: evaluador siempre; evaluado solo si está revelada
+      allow read: if autenticado() && (
+      resource.data.actor.id == request.auth.uid ||
+      tiene_rol_en_claims('admin') ||
+      (resource.data.objetivo.id == request.auth.uid &&
+      resource.data.tipo != 'evaluacion_mascota' &&
+      evaluacion_revelada())
+      );
 
       // CREACIÓN: SOLO la callable `crearEvaluacion` (Admin SDK, ignora rules).
       // Las validaciones de participación y relación actor→objetivo viven en
       // el servidor; un cliente que escriba directo podría falsear el objetivo.
       allow create: if false;
 
-      // ACTUALIZACIÓN: NO permitir en MVP1 (inmutable)
+      // ACTUALIZACIÓN: NO permitir en MVP1 (inmutable; la revelación la
+      // actualiza SOLO la Cloud Function vía Admin SDK, que ignora rules)
       allow update: if false;
 
       // ELIMINACIÓN: solo admin
       allow delete: if es_admin();
+
+      // Revelada = marcada por el sistema (ambas partes evaluaron o venció el
+      // plazo ALEATORIO de 6/9/12 días gestionado por Cloud Task). La regla
+      // depende SOLO del campo `revelada`: la aleatoriedad del plazo impide
+      // que el evaluado sepa el día exacto de la revelación.
+      function evaluacion_revelada() {
+        return resource.data.revelada == true;
+      }
     }
 
     // RESUMEN DE EVALUACIONES (Agregado por tipo, FUENTE DE VERDAD)

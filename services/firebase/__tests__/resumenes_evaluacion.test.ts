@@ -46,7 +46,10 @@ describe('ServicioResumenEvaluacion', () => {
 
   test('success false si el documento no existe', async () => {
     docMock.mockReturnValue({ path: 'resumenes_evaluacion/c1' })
-    getDocMock.mockResolvedValue({ exists: () => false, data: () => undefined })
+    getDocMock.mockResolvedValue({
+      exists: () => false,
+      data: (): undefined => undefined,
+    })
 
     const res = await ServicioResumenEvaluacion.obtenerPorObjetivo('c1')
 

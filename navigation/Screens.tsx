@@ -14,6 +14,8 @@ import PerfilCuidador from '@/screens/cuidador/PerfilCuidador'
 import ExcepcionSemanal from '@/screens/cuidador/ExcepcionSemanal'
 import CoberturaCuidador from '@/screens/cuidador/CoberturaCuidador'
 import { ChatScreen } from '@/screens/paseos/ChatScreen'
+import CuidadorEvaluaTutor from '@/screens/cuidador/CuidadorEvaluaTutor'
+import ObservacionMascota from '@/screens/cuidador/ObservacionMascota'
 import { AuthStackParamList } from './types'
 
 // Stack principal con autenticación
@@ -85,6 +87,22 @@ export default function RootNavigator(): React.ReactElement {
       <Stack.Screen
         name="Chat"
         component={ChatScreen}
+        options={{
+          headerShown: false,
+          presentation: 'card',
+        }}
+      />
+      <Stack.Screen
+        name="ObservacionMascota"
+        component={ObservacionMascota}
+        options={{
+          headerShown: false,
+          presentation: 'card',
+        }}
+      />
+      <Stack.Screen
+        name="CuidadorEvaluaTutor"
+        component={CuidadorEvaluaTutor}
         options={{
           headerShown: false,
           presentation: 'card',

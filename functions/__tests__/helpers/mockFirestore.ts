@@ -88,6 +88,9 @@ export function crearMockDb(): any {
           filtros.push({ campo, op, valor })
           return queryObj
         },
+        limit(_n: number) {
+          return queryObj
+        },
         // Agregación count(): reutiliza los mismos filtros de la query
         count() {
           return {
@@ -150,7 +153,18 @@ export function crearMockDb(): any {
 }
 
 export const MOCK_TIMESTAMP = {
-  now: () => ({ seconds: 1_700_000_000, nanoseconds: 0, __mock: 'Timestamp.now' }),
+  now: () => ({
+    seconds: 1_700_000_000,
+    nanoseconds: 0,
+    toMillis: () => 1_700_000_000_000,
+    __mock: 'Timestamp.now',
+  }),
+  fromMillis: (ms: number) => ({
+    seconds: Math.floor(ms / 1000),
+    nanoseconds: 0,
+    toMillis: () => ms,
+    __mock: 'Timestamp.fromMillis',
+  }),
 }
 
 export const MOCK_FIELD_VALUE = {

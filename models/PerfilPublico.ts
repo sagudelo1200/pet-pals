@@ -68,6 +68,9 @@ export interface PerfilPublico extends BaseModel {
    * - Email verificado: insignias_verificacion?.includes('EMAIL')
    * - Paseador disponible: insignias_verificacion?.includes('IDENTIDAD')
    * - Premium: insignias_verificacion?.length >= 3
+   * - Superhost (medalla tipo Airbnb): insignias_verificacion?.includes('SUPERHOST')
+   *   Otorgada/revocada automáticamente por la Cloud Function alCrearEvaluacion
+   *   cuando el rating promedio ≥ 4.8 con al menos 5 evaluaciones.
    */
   insignias_verificacion?: string[]
 }

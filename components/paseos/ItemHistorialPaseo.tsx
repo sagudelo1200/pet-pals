@@ -1,5 +1,5 @@
 import React from 'react'
-import { StyleSheet, View, Text, Pressable } from 'react-native'
+import { StyleSheet, View, Text, Pressable, TouchableOpacity } from 'react-native'
 import { COLOR } from '@/constants'
 import Icon from '@/components/ui/Icon'
 import { PetAvatar } from '@/components/ui/PetAvatar'
@@ -10,11 +10,17 @@ import { useTranslation } from 'react-i18next'
 interface ItemHistorialPaseoProps {
   paseo: Paseo
   onPress?: () => void
+  /** Calificación que el tutor dio a este paseo (undefined = aún no calificado). */
+  miCalificacion?: number
+  /** Acción de repesca: calificar un paseo completado pendiente. */
+  onCalificar?: () => void
 }
 
 export const ItemHistorialPaseo: React.FC<ItemHistorialPaseoProps> = ({
   paseo,
   onPress,
+  miCalificacion,
+  onCalificar,
 }) => {
   const { t } = useTranslation()
   const fecha = new Date(paseo.fecha_hora_inicio)
@@ -78,6 +84,24 @@ export const ItemHistorialPaseo: React.FC<ItemHistorialPaseoProps> = ({
             • {paseo.duracion_real || paseo.duracion_estimada} min
           </Text>
         </View>
+
+        {/* Mi calificación / repesca */}
+        {(miCalificacion !== undefined || onCalificar) && (
+          <View style={styles.ratingRow}>
+            {miCalificacion !== undefined && miCalificacion > 0 ? (
+              <Text style={styles.miCalificacion}>
+                {t('paseos:finalizado.mi_calificacion')}:{' '}
+                {'★'.repeat(miCalificacion)}
+              </Text>
+            ) : onCalificar ? (
+              <TouchableOpacity onPress={onCalificar} style={styles.calificarBtn}>
+                <Text style={styles.calificarText}>
+                  {t('paseos:finalizado.calificar_ahora')}
+                </Text>
+              </TouchableOpacity>
+            ) : null}
+          </View>
+        )}
       </View>
 
       {/* Avatar + Chevron */}
@@ -163,6 +187,27 @@ const styles = StyleSheet.create({
   duration: {
     fontSize: 13,
     color: COLOR.SUBTEXTO,
+  },
+  ratingRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 6,
+  },
+  miCalificacion: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: COLOR.ORO,
+  },
+  calificarBtn: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 8,
+    backgroundColor: `${COLOR.ENFASIS}1A`,
+  },
+  calificarText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: COLOR.ENFASIS,
   },
   rightContainer: {
     flexDirection: 'row',

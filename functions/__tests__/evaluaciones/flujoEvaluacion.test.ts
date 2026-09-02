@@ -66,7 +66,10 @@ const adminMock = jest.requireMock('firebase-admin') as any
 const db = adminMock.firestore()
 
 function evento(data: Record<string, unknown>): Parameters<typeof trigger>[0] {
-  return { data: { data: () => data }, params: { evaluacionId: 'eval' } }
+  return {
+    data: { data: () => data },
+    params: { evaluacionId: (data.id as string) || 'eval' },
+  }
 }
 
 describe('flujo integrado de evaluaciones', () => {

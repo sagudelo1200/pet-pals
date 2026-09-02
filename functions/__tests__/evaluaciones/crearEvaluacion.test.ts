@@ -342,7 +342,7 @@ describe('crearEvaluacion', () => {
           objetivo: 'cuidador-1',
           contextoId: 'p1',
           rating: 5,
-          comentario: 'x'.repeat(2001),
+          comentario: 'x'.repeat(2002),
         })
       )
     ).rejects.toMatchObject({ code: 'invalid-argument' })
@@ -443,7 +443,7 @@ describe('crearEvaluacion', () => {
           tipo: 'evaluacion_mascota',
           objetivo: 'mascota-1',
           contextoId: 'p1',
-          ritmo: 'x'.repeat(201),
+          ritmo: 'x'.repeat(202),
         })
       )
     ).rejects.toMatchObject({ code: 'invalid-argument' })
@@ -489,6 +489,41 @@ describe('crearEvaluacion', () => {
     } finally {
       db.doc = docOriginal
     }
+  })
+
+  test('guarda el comentario privado en datos (feedback solo para el evaluado)', async () => {
+    seedPaseo('p1')
+    const res = await handler(
+      req('tutor-1', {
+        tipo: 'evaluacion_cuidador',
+        objetivo: 'cuidador-1',
+        contextoId: 'p1',
+        rating: 4,
+        comentario: 'Público',
+        comentario_privado: 'Solo para ti: avísame si Luna puede soltarse',
+      })
+    )
+    expect(res.success).toBe(true)
+    const doc = db.__docs.get('evaluaciones/evaluacion_cuidador_tutor-1_cuidador-1_p1')
+    expect(doc.datos.comentario).toBe('Público')
+    expect(doc.datos.comentario_privado).toBe(
+      'Solo para ti: avísame si Luna puede soltarse'
+    )
+  })
+
+  test('rechaza comentario privado demasiado largo', async () => {
+    seedPaseo('p1')
+    await expect(
+      handler(
+        req('tutor-1', {
+          tipo: 'evaluacion_cuidador',
+          objetivo: 'cuidador-1',
+          contextoId: 'p1',
+          rating: 5,
+          comentario_privado: 'x'.repeat(2002),
+        })
+      )
+    ).rejects.toMatchObject({ code: 'invalid-argument' })
   })
 })
 

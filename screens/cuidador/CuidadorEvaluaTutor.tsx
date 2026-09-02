@@ -1,5 +1,12 @@
 import React, { useState } from 'react'
-import { StyleSheet, View, Text, ActivityIndicator, Alert } from 'react-native'
+import {
+  StyleSheet,
+  View,
+  Text,
+  TextInput,
+  ActivityIndicator,
+  Alert,
+} from 'react-native'
 import {
   useRoute,
   type RouteProp,
@@ -23,7 +30,8 @@ type RouteProps = RouteProp<AuthStackParamList, 'CuidadorEvaluaTutor'>
  * Caso: evaluacion_tutor
  * - El Cuidador (actor) evalúa al Tutor (objetivo)
  * - Ocurre post-paseo COMPLETADO/FINALIZADO
- * - Mismos criterios que evaluacion_cuidador (overall + opcionales)
+ * - La evaluación se envía SOLO al confirmar (botón "Enviar"), nunca al
+ *   tocar una estrella (evita envíos por tap accidental)
  * - Cloud Function auto-agrega en ResumenEvaluacion/{tutor_id}
  */
 export default function CuidadorEvaluaTutor() {
@@ -33,15 +41,17 @@ export default function CuidadorEvaluaTutor() {
   const { t } = useTranslation('evaluaciones')
   const { paseoId } = route.params
   const { data: paseo, cargando: loading } = useDoc<Paseo>('paseos', paseoId)
-  const [_evaluando, setEvaluando] = useState(false)
+  const [seleccion, setSeleccion] = useState(0)
+  const [comentarioPrivado, setComentarioPrivado] = useState('')
+  const [enviando, setEnviando] = useState(false)
 
-  const handleRate = async (rating: number) => {
+  const handleRate = async (rating: number, privado?: string) => {
     if (!paseo || !user?.uid || !paseo.creado_por) {
       Alert.alert('Error', t('error_datos_incompletos'))
       return
     }
 
-    setEvaluando(true)
+    setEnviando(true)
     try {
       // Llamar Callable Function: crearEvaluacion
       const crearEvaluacionCallable = httpsCallable(
@@ -55,7 +65,8 @@ export default function CuidadorEvaluaTutor() {
         contextoId: paseoId,
         rating: rating,
         comentario: '',
-      })) as { data: { success: boolean; evaluacionId: string } }
+        comentario_privado: privado, // Solo lo ve el tutor tras la revelación
+      })) as { data: { success: boolean } }
 
       if (resultado.data.success) {
         Alert.alert(t('exito_titulo'), t('exito_mensaje', { rating }), [
@@ -75,7 +86,14 @@ export default function CuidadorEvaluaTutor() {
       const errorObj = error as { code?: string; message?: string }
 
       if (errorObj?.code === 'already-exists') {
-        mensajeError = 'Ya has evaluado a este tutor en este paseo'
+        // Ya evaluado: se trata como éxito
+        Alert.alert(t('exito_titulo'), t('exito_mensaje', { rating }), [
+          {
+            text: t('comun:boton.volver'),
+            onPress: () => navigation.navigate('CuidadorApp'),
+          },
+        ])
+        return
       } else if (errorObj?.code === 'failed-precondition') {
         mensajeError = 'El paseo debe estar completado'
       } else if (errorObj?.code === 'permission-denied') {
@@ -86,8 +104,36 @@ export default function CuidadorEvaluaTutor() {
 
       Alert.alert('Error', mensajeError)
     } finally {
-      setEvaluando(false)
+      setEnviando(false)
     }
+  }
+
+  const confirmarEnvio = () => {
+    if (seleccion <= 0 || enviando) return
+
+    // Fricción anti-troll para calificaciones bajas (1-2★)
+    if (seleccion <= 2) {
+      Alert.alert(
+        t('confirmar_baja_titulo'),
+        t('confirmar_baja_mensaje', { rating: seleccion }),
+        [
+          { text: t('comun:boton.cancelar'), style: 'cancel' },
+          {
+            text: t('comun:aceptar'),
+            onPress: () => {
+              void handleRate(seleccion, comentarioPrivado.trim() || undefined)
+            },
+          },
+        ]
+      )
+      return
+    }
+
+    void handleRate(seleccion, comentarioPrivado.trim() || undefined)
+  }
+
+  const volverDashboard = () => {
+    navigation.navigate('CuidadorApp')
   }
 
   if (loading) {
@@ -104,6 +150,12 @@ export default function CuidadorEvaluaTutor() {
     return (
       <View style={styles.center}>
         <Text style={{ color: COLOR.TEXTO }}>Paseo no encontrado</Text>
+        <Spacer size={16} />
+        <Button
+          title={t('comun:boton.cancelar')}
+          onPress={volverDashboard}
+          variant="secundario"
+        />
       </View>
     )
   }
@@ -139,17 +191,20 @@ export default function CuidadorEvaluaTutor() {
       <Text
         style={{ color: COLOR.TEXTO, textAlign: 'center', marginBottom: 16 }}
       >
-        ¿Cómo fue tu experiencia con este tutor?
+        {t('selecciona_rating', 'Selecciona tu calificación')}
       </Text>
       <View style={{ flexDirection: 'row', justifyContent: 'center', gap: 8 }}>
         {[1, 2, 3, 4, 5].map(rating => (
           <Text
             key={rating}
-            onPress={() => handleRate(rating)}
+            onPress={() => {
+              if (!enviando) setSeleccion(rating)
+            }}
             style={[
               styles.starButton,
               {
-                color: COLOR.PRIMARIO,
+                color:
+                  rating <= seleccion ? COLOR.ORO : COLOR.INACTIVO,
                 fontSize: 28,
               },
             ]}
@@ -159,10 +214,32 @@ export default function CuidadorEvaluaTutor() {
         ))}
       </View>
 
+      {/* Feedback privado opcional: solo lo ve el tutor tras la revelación */}
+      <TextInput
+        style={[styles.input, { borderColor: COLOR.BORDE, color: COLOR.TEXTO }]}
+        placeholder={t(
+          'comentario_privado_placeholder',
+          'Opcional: algo que solo vea el tutor'
+        )}
+        value={comentarioPrivado}
+        onChangeText={setComentarioPrivado}
+        editable={!enviando}
+        placeholderTextColor={COLOR.SUBTEXTO}
+        multiline
+        numberOfLines={2}
+      />
+
       <Spacer size={20} />
       <Button
-        title={t('comun:boton.cancelar')}
-        onPress={() => navigation.goBack()}
+        title={t('boton_enviar')}
+        onPress={confirmarEnvio}
+        loading={enviando}
+        disabled={seleccion === 0}
+      />
+      <Spacer size={12} />
+      <Button
+        title={t('omitir', 'Omitir')}
+        onPress={volverDashboard}
         variant="secundario"
       />
     </View>
@@ -190,5 +267,15 @@ const styles = StyleSheet.create({
   },
   starButton: {
     padding: 8,
+  },
+  input: {
+    borderWidth: 1,
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    fontSize: 14,
+    marginTop: 16,
+    textAlignVertical: 'top',
+    minHeight: 44,
   },
 })

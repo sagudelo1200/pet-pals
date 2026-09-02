@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import {
   View,
   Text,
@@ -12,6 +12,8 @@ import { useTranslation } from 'react-i18next'
 import { Avatar, Icon } from '@/components/ui'
 import { COLOR, STANDARD_SERVICE_PRICE } from '@/constants'
 import type { PerfilPublico } from '@/models/PerfilPublico'
+import { ServicioResumenEvaluacion } from '@/services/firebase'
+import type { ResumenEvaluacion } from '@/models/ResumenEvaluacion'
 
 interface ModalPerfilCuidadorProps {
   visible: boolean
@@ -22,7 +24,8 @@ interface ModalPerfilCuidadorProps {
 
 /**
  * Modal reutilizable para mostrar el perfil completo de un cuidador
- * Incluye: foto, nombre, verificación, rating, biografía, experiencia, estadísticas y tarifa
+ * Incluye: foto, nombre, verificación, rating, biografía, experiencia,
+ * estadísticas, tarifa y reseñas públicas de tutores (sin identidad).
  */
 export function ModalPerfilCuidador({
   visible,
@@ -31,6 +34,25 @@ export function ModalPerfilCuidador({
   onCerrar,
 }: ModalPerfilCuidadorProps) {
   const { t } = useTranslation()
+
+  // Reseñas públicas del cuidador (solo mutuamente reveladas, sin identidad)
+  const [resumen, setResumen] = useState<ResumenEvaluacion | null>(null)
+
+  useEffect(() => {
+    if (!visible || !perfil?.id) return undefined
+    let activo = true
+    setResumen(null)
+    ServicioResumenEvaluacion.obtenerPorObjetivo(perfil.id)
+      .then(res => {
+        if (activo && res.success && res.data) setResumen(res.data)
+      })
+      .catch(() => {
+        // Sin resumen: la sección de reseñas simplemente no se muestra
+      })
+    return () => {
+      activo = false
+    }
+  }, [visible, perfil?.id])
 
   // No renderizar nada si no es visible
   if (!visible) return null
@@ -137,6 +159,14 @@ export function ModalPerfilCuidador({
                         style={{ marginLeft: 6 }}
                       />
                     )}
+                    {perfil.insignias_verificacion?.includes('SUPERHOST') && (
+                      <View style={styles.superhostBadge}>
+                        <Icon name="star" size={13} color={COLOR.ORO} />
+                        <Text style={styles.superhostTexto}>
+                          {t('cuidador:perfil.superhost')}
+                        </Text>
+                      </View>
+                    )}
                   </View>
 
                   {/* Rating */}
@@ -229,6 +259,45 @@ export function ModalPerfilCuidador({
               >
                 {t('perfil:editar.tarifa_estandar_mvp')}
               </Text>
+
+              {/* Reseñas públicas de tutores (solo mutuamente reveladas, sin identidad) */}
+              {resumen && (resumen.reseñas_publicas?.length ?? 0) > 0 && (
+                <View style={styles.seccion}>
+                  <Text style={styles.seccionTitulo}>
+                    {t('cuidador:perfil.reseñas')}
+                  </Text>
+
+                  {/* Distribución de ratings (honestidad del promedio) */}
+                  {resumen.distribucion_ratings && (
+                    <Text style={styles.distribucion}>
+                      {[5, 4, 3, 2, 1]
+                        .map(
+                          v =>
+                            `${v}★ ×${
+                              resumen.distribucion_ratings?.[String(v)] ?? 0
+                            }`
+                        )
+                        .join('   ·   ')}
+                    </Text>
+                  )}
+
+                  {resumen.reseñas_publicas!.map((r, i) => (
+                    <View key={i} style={styles.reseñaCard}>
+                      <Text style={styles.reseñaRating}>
+                        {'★'.repeat(
+                          Math.max(1, Math.min(5, Math.round(r.rating)))
+                        )}
+                      </Text>
+                      {r.comentario ? (
+                        <Text style={styles.reseñaTexto}>{r.comentario}</Text>
+                      ) : null}
+                      <Text style={styles.reseñaFirma}>
+                        {t('cuidador:perfil.firma_tutor_verificado')}
+                      </Text>
+                    </View>
+                  ))}
+                </View>
+              )}
             </View>
           ) : null}
         </View>
@@ -287,7 +356,23 @@ const styles = StyleSheet.create({
   nombreContainer: {
     flexDirection: 'row',
     alignItems: 'center',
+    flexWrap: 'wrap',
+    gap: 6,
     marginBottom: 8,
+  },
+  superhostBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: `${COLOR.ORO}1A`,
+    borderRadius: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+  },
+  superhostTexto: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: COLOR.ORO,
   },
   nombre: {
     fontSize: 22,
@@ -320,6 +405,35 @@ const styles = StyleSheet.create({
     fontSize: 14,
     lineHeight: 20,
     color: COLOR.SUBTEXTO,
+  },
+  distribucion: {
+    fontSize: 12,
+    color: COLOR.SUBTEXTO,
+    fontWeight: '600',
+    marginBottom: 12,
+  },
+  reseñaCard: {
+    backgroundColor: COLOR.SECUNDARIO,
+    borderRadius: 12,
+    padding: 12,
+    marginBottom: 10,
+  },
+  reseñaRating: {
+    fontSize: 14,
+    color: COLOR.ORO,
+    fontWeight: '700',
+    marginBottom: 4,
+  },
+  reseñaTexto: {
+    fontSize: 13,
+    lineHeight: 18,
+    color: COLOR.TEXTO,
+    marginBottom: 6,
+  },
+  reseñaFirma: {
+    fontSize: 11,
+    color: COLOR.SUBTEXTO,
+    fontStyle: 'italic',
   },
   estadisticas: {
     marginBottom: 20,

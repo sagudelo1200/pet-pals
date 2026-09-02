@@ -92,7 +92,12 @@
     "eliminar": "Delete",
     "sobre_mi": "About me",
     "sin_descripcion": "No description available.",
-    "vacuna": "Vaccine: "
+    "vacuna": "Vaccine: ",
+    "observaciones_cuidadores": "Caregiver observations",
+    "ritmo": "Pace",
+    "compania": "Company",
+    "tolerancia": "Tolerance",
+    "firma_cuidador": "— Verified caregiver · Verified experience"
   },
   "eliminar": {
     "titulo": "Do you want to delete {{nombre}}?",

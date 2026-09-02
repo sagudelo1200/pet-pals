@@ -93,7 +93,12 @@
     "eliminar": "Eliminar",
     "sobre_mi": "Sobre mí",
     "sin_descripcion": "Sin descripción disponible.",
-    "vacuna": "Vacuna: "
+    "vacuna": "Vacuna: ",
+    "observaciones_cuidadores": "Observaciones de cuidadores",
+    "ritmo": "Ritmo",
+    "compania": "Compañía",
+    "tolerancia": "Tolerancia",
+    "firma_cuidador": "— Cuidador verificado · Experiencia verificada"
   },
   "eliminar": {
     "titulo": "¿Quieres eliminar a {{nombre}}?",

@@ -3,6 +3,7 @@ import {
   StyleSheet,
   View,
   Text,
+  TextInput,
   TouchableOpacity,
   Animated,
 } from 'react-native'
@@ -11,11 +12,30 @@ import { useTranslation } from 'react-i18next'
 import { COLOR } from '@/constants'
 import { Button, Spacer } from '@/components/ui'
 
+interface ReputacionCuidador {
+  promedio: number
+  cantidad: number
+}
+
 interface PaseoFinalizadoCardProps {
   mascotaNombre: string
   cuidadorNombre: string
   onClose: () => void
-  onRate?: (_rating: number) => void
+  /**
+   * Se invoca UNA sola vez, cuando el usuario CONFIRMA la cantidad de
+   * estrellas seleccionada (nunca al tocar una estrella).
+   * El segundo argumento es el feedback privado opcional (solo lo ve el
+   * evaluado tras la revelación; nunca es público).
+   */
+  onRate?: (rating: number, comentarioPrivado?: string) => void
+  /** Reputación actual del cuidador (prueba social antes de calificar). */
+  ratingPrevio?: ReputacionCuidador | null
+  /** True mientras se envía la evaluación. */
+  enviando?: boolean
+  /** True una vez enviada con éxito. */
+  enviado?: boolean
+  /** Nuevo promedio (impacto) calculado tras enviar. */
+  nuevoPromedio?: number | null
 }
 
 export const PaseoFinalizadoCard: React.FC<PaseoFinalizadoCardProps> = ({
@@ -23,11 +43,17 @@ export const PaseoFinalizadoCard: React.FC<PaseoFinalizadoCardProps> = ({
   cuidadorNombre,
   onClose,
   onRate,
+  ratingPrevio,
+  enviando = false,
+  enviado = false,
+  nuevoPromedio = null,
 }) => {
   const { t } = useTranslation()
   const fadeAnim = useRef(new Animated.Value(0)).current
   const scaleAnim = useRef(new Animated.Value(0.8)).current
   const [rating, setRating] = useState(5)
+  const [comentarioPrivado, setComentarioPrivado] = useState('')
+  const confirmadoRef = useRef(false)
 
   useEffect(() => {
     Animated.parallel([
@@ -45,10 +71,23 @@ export const PaseoFinalizadoCard: React.FC<PaseoFinalizadoCardProps> = ({
     ]).start()
   }, [fadeAnim, scaleAnim])
 
-  const handleRate = (r: number) => {
-    setRating(r)
-    if (onRate) onRate(r)
+  const seleccionarEstrella = (r: number) => {
+    if (enviado || enviando) return
+    setRating(r) // Solo selección visual; NO dispara la evaluación
   }
+
+  const confirmar = () => {
+    if (!onRate || confirmadoRef.current || enviado || enviando) return
+    confirmadoRef.current = true
+    onRate(rating, comentarioPrivado.trim() || undefined) // Única invocación, al confirmar
+  }
+
+  const mostrarReputacion =
+    !!ratingPrevio && ratingPrevio.cantidad > 0 && !enviado
+  const totalPaseosTrasEnvio =
+    ratingPrevio && ratingPrevio.cantidad > 0
+      ? ratingPrevio.cantidad + 1
+      : 1
 
   return (
     <View style={styles.container}>
@@ -104,13 +143,25 @@ export const PaseoFinalizadoCard: React.FC<PaseoFinalizadoCardProps> = ({
               }
             )}
           </Text>
-          <Spacer size={16} />
+
+          {/* Prueba social: reputación actual del cuidador */}
+          {mostrarReputacion && (
+            <Text style={styles.reputacion}>
+              {t('paseos:finalizado.reputacion', {
+                promedio: ratingPrevio.promedio.toFixed(1),
+                cantidad: ratingPrevio.cantidad,
+              })}
+            </Text>
+          )}
+
+          <Spacer size={12} />
           <View style={styles.starsRow}>
             {[1, 2, 3, 4, 5].map(star => (
               <TouchableOpacity
                 key={star}
-                onPress={() => handleRate(star)}
+                onPress={() => seleccionarEstrella(star)}
                 style={styles.starButton}
+                disabled={enviado || enviando}
               >
                 <Ionicons
                   name={star <= rating ? 'star' : 'star-outline'}
@@ -125,14 +176,66 @@ export const PaseoFinalizadoCard: React.FC<PaseoFinalizadoCardProps> = ({
               ? t('paseos:finalizado.excelente')
               : t('paseos:finalizado.toca_calificar')}
           </Text>
+
+          {/* Feedback privado opcional: solo lo ve el evaluado tras la
+              revelación; nunca es público (sin fricción) */}
+          {!enviado && (
+            <TextInput
+              style={styles.comentarioPrivado}
+              placeholder={t(
+                'evaluaciones:comentario_privado_placeholder',
+                'Opcional: algo que solo vea el cuidador'
+              )}
+              value={comentarioPrivado}
+              onChangeText={setComentarioPrivado}
+              editable={!enviando}
+              placeholderTextColor={COLOR.SUBTEXTO}
+              multiline
+              numberOfLines={2}
+            />
+          )}
+
+          {/* Impacto tras confirmar */}
+          {enviado && (
+            <View style={styles.impacto}>
+              <Ionicons name="checkmark-circle" size={20} color={COLOR.EXITO} />
+              <Text style={styles.impactoTexto}>
+                {nuevoPromedio != null
+                  ? t('paseos:finalizado.nuevo_promedio', {
+                      cuidador: cuidadorNombre,
+                      promedio: nuevoPromedio.toFixed(1),
+                      cantidad: totalPaseosTrasEnvio,
+                    })
+                  : t('paseos:finalizado.gracias')}
+              </Text>
+            </View>
+          )}
         </View>
 
-        <Spacer size={32} />
+        <Spacer size={24} />
+
+        {/* Confirmación explícita: la evaluación solo se envía aquí */}
+        {onRate && !enviado && (
+          <>
+            <Button
+              title={
+                enviando
+                  ? t('paseos:finalizado.enviando')
+                  : t('paseos:finalizado.confirmar')
+              }
+              onPress={confirmar}
+              loading={enviando}
+              variant="primario"
+              style={styles.button}
+            />
+            <Spacer size={12} />
+          </>
+        )}
 
         <Button
           title={t('comun:finalizar')}
           onPress={onClose}
-          variant="primario"
+          variant={enviado ? 'primario' : 'secundario'}
           style={styles.button}
         />
       </Animated.View>
@@ -214,6 +317,13 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontWeight: '600',
   },
+  reputacion: {
+    fontSize: 13,
+    color: COLOR.ORO,
+    textAlign: 'center',
+    fontWeight: '700',
+    marginTop: 8,
+  },
   starsRow: {
     flexDirection: 'row',
     gap: 8,
@@ -226,6 +336,36 @@ const styles = StyleSheet.create({
     color: COLOR.SUBTEXTO,
     marginTop: 8,
     fontStyle: 'italic',
+  },
+  comentarioPrivado: {
+    width: '100%',
+    borderWidth: 1,
+    borderColor: COLOR.BORDE,
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    fontSize: 13,
+    color: COLOR.TEXTO,
+    marginTop: 12,
+    textAlignVertical: 'top',
+    minHeight: 44,
+  },
+  impacto: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginTop: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 12,
+    backgroundColor: `${COLOR.EXITO}12`,
+  },
+  impactoTexto: {
+    flex: 1,
+    fontSize: 13,
+    color: COLOR.TEXTO,
+    fontWeight: '600',
+    textAlign: 'left',
   },
   button: {
     width: '100%',
