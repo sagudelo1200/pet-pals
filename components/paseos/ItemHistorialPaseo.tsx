@@ -14,6 +14,8 @@ interface ItemHistorialPaseoProps {
   miCalificacion?: number
   /** Acción de repesca: calificar un paseo completado pendiente. */
   onCalificar?: () => void
+  /** Texto del botón de acción (default: "Calificar"). Ej: "Completar registro". */
+  botonLabel?: string
 }
 
 export const ItemHistorialPaseo: React.FC<ItemHistorialPaseoProps> = ({
@@ -21,6 +23,7 @@ export const ItemHistorialPaseo: React.FC<ItemHistorialPaseoProps> = ({
   onPress,
   miCalificacion,
   onCalificar,
+  botonLabel,
 }) => {
   const { t } = useTranslation()
   const fecha = new Date(paseo.fecha_hora_inicio)
@@ -96,7 +99,8 @@ export const ItemHistorialPaseo: React.FC<ItemHistorialPaseoProps> = ({
             ) : onCalificar ? (
               <TouchableOpacity onPress={onCalificar} style={styles.calificarBtn}>
                 <Text style={styles.calificarText}>
-                  {t('paseos:finalizado.calificar_ahora')}
+                  {botonLabel ||
+                    t('paseos:finalizado.calificar_ahora')}
                 </Text>
               </TouchableOpacity>
             ) : null}

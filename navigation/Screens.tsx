@@ -16,6 +16,7 @@ import CoberturaCuidador from '@/screens/cuidador/CoberturaCuidador'
 import { ChatScreen } from '@/screens/paseos/ChatScreen'
 import CuidadorEvaluaTutor from '@/screens/cuidador/CuidadorEvaluaTutor'
 import ObservacionMascota from '@/screens/cuidador/ObservacionMascota'
+import { GlobalPaseoManager } from '@/components/tutor/GlobalPaseoManager'
 import { AuthStackParamList } from './types'
 
 // Stack principal con autenticación
@@ -24,7 +25,11 @@ const Stack = createStackNavigator<AuthStackParamList>()
 // Navegador principal: Auth → App (Tabs)
 export default function RootNavigator(): React.ReactElement {
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
+    <>
+      {/* Overlay global del tutor al finalizar un paseo (vive en la raíz para
+          aparecer sobre CUALQUIER pantalla: PaseoActivo, Chat, tabs) */}
+      <GlobalPaseoManager />
+      <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="Auth" component={AuthNavigator} />
       <Stack.Screen name="TutorApp" component={TutorTabNavigator} />
       <Stack.Screen name="CuidadorApp" component={CuidadorTabNavigator} />
@@ -108,6 +113,7 @@ export default function RootNavigator(): React.ReactElement {
           presentation: 'card',
         }}
       />
-    </Stack.Navigator>
+      </Stack.Navigator>
+    </>
   )
 }

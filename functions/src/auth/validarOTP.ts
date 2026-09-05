@@ -1,5 +1,5 @@
-import * as functions from "firebase-functions";
-import * as admin from "firebase-admin";
+import * as functions from 'firebase-functions';
+import * as admin from 'firebase-admin';
 
 if (!admin.apps || admin.apps.length === 0) {
   admin.initializeApp();
@@ -32,7 +32,7 @@ export const validarOTP = functions.https.onCall(
       if (!request.auth) {
         return {
           success: false,
-          error: "Usuario no autenticado",
+          error: 'Usuario no autenticado',
         } as ValidarOTPResponse;
       }
 
@@ -41,31 +41,31 @@ export const validarOTP = functions.https.onCall(
       if (!uid || !codigo) {
         return {
           success: false,
-          error: "UID y código son requeridos",
+          error: 'UID y código son requeridos',
         } as ValidarOTPResponse;
       }
 
       if (request.auth.uid !== uid) {
         return {
           success: false,
-          error: "El UID no coincide con el usuario autenticado",
+          error: 'El UID no coincide con el usuario autenticado',
         } as ValidarOTPResponse;
       }
 
       if (!/^\d{6}$/.test(codigo)) {
         return {
           success: false,
-          error: "Formato de código inválido",
+          error: 'Formato de código inválido',
         } as ValidarOTPResponse;
       }
 
-      const otpDocRef = db.collection("otp_codes").doc(uid);
+      const otpDocRef = db.collection('otp_codes').doc(uid);
       const otpDocSnap = await otpDocRef.get();
 
       if (!otpDocSnap.exists) {
         return {
           success: false,
-          error: "Código no encontrado. Solicita un nuevo código",
+          error: 'Código no encontrado. Solicita un nuevo código',
         } as ValidarOTPResponse;
       }
 
@@ -74,7 +74,7 @@ export const validarOTP = functions.https.onCall(
       if (!otpData) {
         return {
           success: false,
-          error: "Código no encontrado. Solicita un nuevo código",
+          error: 'Código no encontrado. Solicita un nuevo código',
         } as ValidarOTPResponse;
       }
 
@@ -82,14 +82,14 @@ export const validarOTP = functions.https.onCall(
       if (otpData.expira_en && ahora > otpData.expira_en) {
         return {
           success: false,
-          error: "Código expirado. Solicita un nuevo código",
+          error: 'Código expirado. Solicita un nuevo código',
         } as ValidarOTPResponse;
       }
 
       if (otpData.utilizado) {
         return {
           success: false,
-          error: "Este código ya fue utilizado",
+          error: 'Este código ya fue utilizado',
         } as ValidarOTPResponse;
       }
 
@@ -101,7 +101,7 @@ export const validarOTP = functions.https.onCall(
 
         return {
           success: false,
-          error: "Código incorrecto",
+          error: 'Código incorrecto',
         } as ValidarOTPResponse;
       }
 
@@ -114,22 +114,22 @@ export const validarOTP = functions.https.onCall(
 
         // Crear documento de verificación EMAIL en la colección 'verificaciones'
         // Fuente de verdad: verificaciones/{id} es el registro oficial de verificación
-        const verificacionRef = db.collection("verificaciones").doc();
+        const verificacionRef = db.collection('verificaciones').doc();
         transaction.set(verificacionRef, {
           id: verificacionRef.id,
           usuario_id: uid,
-          tipo: "EMAIL",
-          estado: "VERIFICADO",
-          metodo: "AUTOMATICO",
+          tipo: 'EMAIL',
+          estado: 'VERIFICADO',
+          metodo: 'AUTOMATICO',
           version: 1,
-          resultado: {email: "OK"},
+          resultado: {email: 'OK'},
           evidencias: {email: true},
           creado_en: ahora,
           actualizado_en: ahora,
           verificado_en: ahora,
           creado_por: uid,
           actualizado_por: uid,
-          razon_transicion: "inicio_verificacion",
+          razon_transicion: 'inicio_verificacion',
         });
       });
 
@@ -145,16 +145,16 @@ export const validarOTP = functions.https.onCall(
       );
       return {
         success: true,
-        mensaje: "Email verificado correctamente",
+        mensaje: 'Email verificado correctamente',
       } as ValidarOTPResponse;
     } catch (error: unknown) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const err = error as Record<string, any>;
-      functions.logger.error("[validarOTP] Error:", error);
+      functions.logger.error('[validarOTP] Error:', error);
 
       return {
         success: false,
-        error: (err?.message as string) || "Error desconocido validando OTP",
+        error: (err?.message as string) || 'Error desconocido validando OTP',
       } as ValidarOTPResponse;
     }
   }

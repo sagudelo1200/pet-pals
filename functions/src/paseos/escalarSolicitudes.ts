@@ -14,10 +14,10 @@
  * ✓ Escalable: Miles de solicitudes sin overhead
  */
 
-import {onDocumentCreated} from "firebase-functions/v2/firestore";
-import {onRequest} from "firebase-functions/v2/https";
-import * as admin from "firebase-admin";
-import {CloudTasksClient} from "@google-cloud/tasks";
+import {onDocumentCreated} from 'firebase-functions/v2/firestore';
+import {onRequest} from 'firebase-functions/v2/https';
+import * as admin from 'firebase-admin';
+import {CloudTasksClient} from '@google-cloud/tasks';
 
 if (!admin.apps || admin.apps.length === 0) {
   admin.initializeApp();
@@ -26,8 +26,8 @@ if (!admin.apps || admin.apps.length === 0) {
 const db = admin.firestore();
 
 // Configuración de Cloud Tasks
-const LOCATION = "us-central1";
-const QUEUE_NAME = "escaladas-directas";
+const LOCATION = 'us-central1';
+const QUEUE_NAME = 'escaladas-directas';
 const ESCALADA_DELAY_SECONDS = 600; // 10 minutos
 
 // Inicializar CloudTasksClient de forma lazy (solo cuando se necesite)
@@ -43,7 +43,7 @@ const getTasksClient = (): CloudTasksClient => {
  * TRIGGER 1: Se dispara cuando se crea un paseo PENDIENTE con id_cuidador (DIRECTA)
  * Crea una Cloud Task programada para 10 minutos después
  */
-export const onCrearPaseoDirecto = onDocumentCreated("paseos", async (event) => {
+export const onCrearPaseoDirecto = onDocumentCreated('paseos', async (event) => {
   const paseo = event.data?.data() as Record<string, unknown>;
   const paseoId = event.data?.id;
 
@@ -52,7 +52,7 @@ export const onCrearPaseoDirecto = onDocumentCreated("paseos", async (event) => 
     !paseoId ||
     !paseo ||
     !paseo.id_cuidador ||
-    paseo.estado !== "PENDIENTE"
+    paseo.estado !== 'PENDIENTE'
   ) {
     return;
   }
@@ -61,12 +61,12 @@ export const onCrearPaseoDirecto = onDocumentCreated("paseos", async (event) => 
     // Obtener project ID desde context de Firebase (más fiable que env)
     const projectId = process.env.GCLOUD_PROJECT;
     if (!projectId) {
-      console.error("[CloudTasks] GCLOUD_PROJECT no configurado");
+      console.error('[CloudTasks] GCLOUD_PROJECT no configurado');
       return;
     }
 
     // Construir el endpoint de la función
-    const fnName = "escalarPaseoIndividual";
+    const fnName = 'escalarPaseoIndividual';
     const functionUrl = `https://${LOCATION}-${projectId}.cloudfunctions.net/${fnName}`;
 
     // Calcular tiempo de ejecución: ahora + ESCALADA_DELAY_SECONDS
@@ -77,7 +77,7 @@ export const onCrearPaseoDirecto = onDocumentCreated("paseos", async (event) => 
     const payload = {
       paseoId,
       cuidadorOriginal: paseo.id_cuidador,
-      cuidadorNombre: paseo.cuidador_nombre_visual || "Desconocido",
+      cuidadorNombre: paseo.cuidador_nombre_visual || 'Desconocido',
     };
 
     // Construir la request para Cloud Tasks
@@ -89,10 +89,10 @@ export const onCrearPaseoDirecto = onDocumentCreated("paseos", async (event) => 
     );
     const task = {
       httpRequest: {
-        httpMethod: "POST" as const,
+        httpMethod: 'POST' as const,
         url: functionUrl,
-        headers: {"Content-Type": "application/json"},
-        body: Buffer.from(JSON.stringify(payload)).toString("base64"),
+        headers: {'Content-Type': 'application/json'},
+        body: Buffer.from(JSON.stringify(payload)).toString('base64'),
         // OIDC token para autenticación segura
         oidcToken: {
           serviceAccountEmail: `firebase-adminsdk@${projectId}.iam.gserviceaccount.com`,
@@ -128,8 +128,8 @@ export const escalarPaseoIndividual = onRequest(
   {cors: false},
   async (req, res) => {
     // Validar que sea POST
-    if (req.method !== "POST") {
-      res.status(405).json({error: "Method not allowed"});
+    if (req.method !== 'POST') {
+      res.status(405).json({error: 'Method not allowed'});
       return;
     }
 
@@ -137,25 +137,25 @@ export const escalarPaseoIndividual = onRequest(
       const {paseoId, cuidadorOriginal, cuidadorNombre} = req.body;
 
       // Validaciones básicas
-      if (!paseoId || typeof paseoId !== "string") {
-        res.status(400).json({error: "paseoId requerido y debe ser string"});
+      if (!paseoId || typeof paseoId !== 'string') {
+        res.status(400).json({error: 'paseoId requerido y debe ser string'});
         return;
       }
 
-      const paseoRef = db.collection("paseos").doc(paseoId);
+      const paseoRef = db.collection('paseos').doc(paseoId);
 
       // Transacción: Validar estado y escalar de forma atómica
       const resultado = await db.runTransaction(async (transaction) => {
         const docSnap = await transaction.get(paseoRef);
 
         if (!docSnap.exists) {
-          return {success: false, razon: "Paseo no existe"};
+          return {success: false, razon: 'Paseo no existe'};
         }
 
         const docData = docSnap.data() as Record<string, unknown>;
 
         // Validación 1: Estado debe ser PENDIENTE
-        if (docData.estado !== "PENDIENTE") {
+        if (docData.estado !== 'PENDIENTE') {
           return {
             success: false,
             razon: `Estado no es PENDIENTE (es: ${docData.estado})`,
@@ -164,14 +164,14 @@ export const escalarPaseoIndividual = onRequest(
 
         // Validación 2: Debe tener id_cuidador (si no, ya es ABIERTA)
         if (!docData.id_cuidador) {
-          return {success: false, razon: "Ya es solicitud abierta"};
+          return {success: false, razon: 'Ya es solicitud abierta'};
         }
 
         // Validación 3: Verificar que creado_por existe (para notificación)
         if (!docData.creado_por) {
           return {
             success: false,
-            razon: "Paseo sin tutor asociado (creado_por vacío)",
+            razon: 'Paseo sin tutor asociado (creado_por vacío)',
           };
         }
 
@@ -181,23 +181,23 @@ export const escalarPaseoIndividual = onRequest(
           cuidador_nombre_visual: admin.firestore.FieldValue.delete(),
           cuidador_foto_visual: admin.firestore.FieldValue.delete(),
           actualizado_en: admin.firestore.Timestamp.now(),
-          actualizado_por: "SISTEMA_ESCALADA",
+          actualizado_por: 'SISTEMA_ESCALADA',
         });
 
         // Registrar evento en subcollection (auditoría)
-        const eventRef = paseoRef.collection("eventos").doc();
+        const eventRef = paseoRef.collection('eventos').doc();
         transaction.set(eventRef, {
-          evento: "ESCALADA_AUTOMATICA",
+          evento: 'ESCALADA_AUTOMATICA',
           payload: {
-            razon: "Cuidador no respondió en los primeros 10 minutos",
+            razon: 'Cuidador no respondió en los primeros 10 minutos',
             cuidador_anterior: cuidadorOriginal,
             cuidador_anterior_nombre: cuidadorNombre,
           },
-          actor: "SISTEMA",
+          actor: 'SISTEMA',
           creado_en: admin.firestore.Timestamp.now(),
-          creado_por: "SISTEMA",
+          creado_por: 'SISTEMA',
           actualizado_en: admin.firestore.Timestamp.now(),
-          actualizado_por: "SISTEMA",
+          actualizado_por: 'SISTEMA',
         });
 
         // Retornar docData para usar en notificación
@@ -226,19 +226,19 @@ export const escalarPaseoIndividual = onRequest(
         notificarTutorEscalada(
           paseoId,
           resultado.docData.creado_por as string
-        ).catch((e) => console.warn("[Escalada] Error en notificación:", e));
+        ).catch((e) => console.warn('[Escalada] Error en notificación:', e));
       }
 
       res.status(200).json({
         success: true,
         paseoId,
-        mensaje: "Escalada exitosa",
+        mensaje: 'Escalada exitosa',
       });
     } catch (error) {
-      console.error("[Escalada] Error en escalarPaseoIndividual:", error);
+      console.error('[Escalada] Error en escalarPaseoIndividual:', error);
       res.status(500).json({
-        error: "Error procesando escalada",
-        detalles: error instanceof Error ? error.message : "Error desconocido",
+        error: 'Error procesando escalada',
+        detalles: error instanceof Error ? error.message : 'Error desconocido',
       });
     }
   }
@@ -254,34 +254,34 @@ async function notificarTutorEscalada(
 ): Promise<void> {
   try {
     if (!tutorId) {
-      console.warn("[Escalada] tutorId vacío, omitiendo notificación");
+      console.warn('[Escalada] tutorId vacío, omitiendo notificación');
       return;
     }
 
     const notifRef = db
-      .collection("usuarios")
+      .collection('usuarios')
       .doc(tutorId)
-      .collection("notificaciones")
+      .collection('notificaciones')
       .doc();
 
     await notifRef.set({
-      tipo: "SOLICITUD_ESCALADA",
+      tipo: 'SOLICITUD_ESCALADA',
       paseo_id: paseoId,
-      titulo: "✅ Tu solicitud está disponible",
+      titulo: '✅ Tu solicitud está disponible',
       cuerpo:
-        "El cuidador asignado no respondió. Otros cuidadores pueden verla ahora.",
+        'El cuidador asignado no respondió. Otros cuidadores pueden verla ahora.',
       leido: false,
       creado_en: admin.firestore.Timestamp.now(),
       datos: {
         paseo_id: paseoId,
-        accion: "abrir_solicitud",
+        accion: 'abrir_solicitud',
       },
     });
 
     console.log(`[Escalada] 🔔 Notificación registrada para tutor ${tutorId}`);
   } catch (error) {
     console.warn(
-      "[Escalada] No se pudo crear notificación:",
+      '[Escalada] No se pudo crear notificación:',
       error instanceof Error ? error.message : String(error)
     );
     // No falla la escalada si la notificación no se crea

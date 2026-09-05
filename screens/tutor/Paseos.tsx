@@ -279,11 +279,12 @@ const Paseos: React.FC = () => {
                   : undefined
               }
               onCalificar={
-                item.estado === ESTADOS_PASEO.COMPLETADO &&
+                (item.estado === ESTADOS_PASEO.COMPLETADO ||
+                  item.estado === ESTADOS_PASEO.FINALIZADO) &&
                 misEvaluaciones[item.id] === undefined &&
                 item.id_cuidador
                   ? () => {
-                      // Repesca: calificar un paseo completado pendiente
+                      // Repesca: calificar un paseo terminado pendiente
                       // @ts-ignore
                       navigation.navigate('PaseoFinalizado', {
                         paseoId: item.id,

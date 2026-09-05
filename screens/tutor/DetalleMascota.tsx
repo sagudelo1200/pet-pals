@@ -23,7 +23,11 @@ import { AuthStackParamList } from '@/navigation/types'
 import type { Mascota } from '@/models/Mascota'
 import { calcularCompletitud } from '@/logic/mascotas/calcularCompletitud'
 import { ServicioResumenEvaluacion } from '@/services/firebase'
-import type { ObservacionMascota } from '@/models/ResumenEvaluacion'
+import type {
+  ResumenEvaluacion,
+  ObservacionMascota,
+} from '@/models/ResumenEvaluacion'
+import { keyI18nChip } from '@/logic/mascotas/comportamiento'
 
 // Hooks
 import { useAnimacionModal } from '@/hooks/useAnimacionModal'
@@ -77,22 +81,23 @@ const DetalleMascota: React.FC = () => {
   const scrollViewRef = useRef<ScrollView>(null)
   const lastNavTime = useRef(0)
 
-  // Observaciones de cuidadores: la observación pertenece al expediente de la
-  // mascota (resumenes_evaluacion/{mascotaId}.observaciones_recientes)
-  const [observaciones, setObservaciones] = useState<ObservacionMascota[] | null>(
+  // Expediente de la mascota (observaciones de cuidadores): la observación
+  // pertenece a la mascota. Guarda el resumen completo para mostrar el
+  // patrón (comportamiento_resumen) y las observaciones recientes.
+  const [resumenMascota, setResumenMascota] = useState<ResumenEvaluacion | null>(
     null
   )
   useEffect(() => {
     if (!mascotaNormalizada?.id) return undefined
     let activo = true
-    setObservaciones(null)
+    setResumenMascota(null)
     ServicioResumenEvaluacion.obtenerPorObjetivo(mascotaNormalizada.id)
       .then(res => {
         if (!activo) return
-        setObservaciones(res.success ? (res.data?.observaciones_recientes ?? []) : [])
+        setResumenMascota(res.success ? (res.data ?? null) : null)
       })
       .catch(() => {
-        if (activo) setObservaciones([])
+        if (activo) setResumenMascota(null)
       })
     return () => {
       activo = false
@@ -227,6 +232,29 @@ const DetalleMascota: React.FC = () => {
         console.warn('Error navegando a Paseos:', e)
       }
     }, 30)
+  }
+
+  // Expediente: patrón de comportamiento agregado + observaciones recientes
+  const comportamiento = resumenMascota?.comportamiento_resumen
+  const observacionesRecientes = resumenMascota?.observaciones_recientes ?? []
+  const expedienteVisible = !!(
+    (comportamiento?.total_observaciones ?? 0) > 0 ||
+    observacionesRecientes.length > 0
+  )
+
+  const formatearEje = (
+    eje: 'ritmo' | 'compania' | 'tolerancia',
+    counts?: Record<string, number>
+  ): string => {
+    if (!counts) return ''
+    return Object.entries(counts)
+      .filter(([, n]) => n > 0)
+      .sort((a, b) => b[1] - a[1])
+      .map(
+        ([valor, n]) =>
+          `${t(keyI18nChip(eje, valor), { defaultValue: valor })} ${n}`
+      )
+      .join('  ·  ')
   }
 
   return (
@@ -401,20 +429,64 @@ const DetalleMascota: React.FC = () => {
                 </View>
               )}
 
-              {/* Expediente de la mascota: observaciones de cuidadores */}
-              {!isEditMode && observaciones && observaciones.length > 0 && (
+              {/* Expediente de la mascota: patrón + observaciones de cuidadores */}
+              {!isEditMode && expedienteVisible && (
                 <View style={styles.observacionesSeccion}>
                   <Text style={styles.observacionesTitulo}>
                     {t('mascotas:detalle.observaciones_cuidadores')}
                   </Text>
-                  {observaciones.map((obs, i) => (
+
+                  {/* Patrón de comportamiento (agregado por chips) */}
+                  {comportamiento && comportamiento.total_observaciones > 0 && (
+                    <>
+                      <Text style={styles.comportamientoTotal}>
+                        {t('mascotas:detalle.paseos_registrados', {
+                          cantidad: comportamiento.total_observaciones,
+                        })}
+                      </Text>
+                      {formatearEje('ritmo', comportamiento.ritmo) ? (
+                        <Text style={styles.comportamientoLinea}>
+                          {t('mascotas:detalle.ritmo', 'Ritmo')}:{' '}
+                          {formatearEje('ritmo', comportamiento.ritmo)}
+                        </Text>
+                      ) : null}
+                      {formatearEje('compania', comportamiento.compania) ? (
+                        <Text style={styles.comportamientoLinea}>
+                          {t('mascotas:detalle.compania', 'Compañía')}:{' '}
+                          {formatearEje('compania', comportamiento.compania)}
+                        </Text>
+                      ) : null}
+                      {formatearEje(
+                        'tolerancia',
+                        comportamiento.tolerancia
+                      ) ? (
+                        <Text style={styles.comportamientoLinea}>
+                          {t('mascotas:detalle.tolerancia', 'Tolerancia')}:{' '}
+                          {formatearEje(
+                            'tolerancia',
+                            comportamiento.tolerancia
+                          )}
+                        </Text>
+                      ) : null}
+                    </>
+                  )}
+
+                  {/* Observaciones recientes (detalle) */}
+                  {observacionesRecientes.map((obs, i) => (
                     <View key={i} style={styles.observacionCard}>
                       <Text style={styles.observacionDetalle}>
-                        {t('mascotas:detalle.ritmo', 'Ritmo')}: {obs.ritmo || '—'}{' '}
+                        {t('mascotas:detalle.ritmo', 'Ritmo')}:{' '}
+                        {t(keyI18nChip('ritmo', obs.ritmo), {
+                          defaultValue: obs.ritmo || '—',
+                        })}{' '}
                         · {t('mascotas:detalle.compania', 'Compañía')}:{' '}
-                        {obs.compania || '—'} ·{' '}
-                        {t('mascotas:detalle.tolerancia', 'Tolerancia')}:{' '}
-                        {obs.tolerancia || '—'}
+                        {t(keyI18nChip('compania', obs.compania), {
+                          defaultValue: obs.compania || '—',
+                        })}{' '}
+                        · {t('mascotas:detalle.tolerancia', 'Tolerancia')}:{' '}
+                        {t(keyI18nChip('tolerancia', obs.tolerancia), {
+                          defaultValue: obs.tolerancia || '—',
+                        })}
                       </Text>
                       {obs.comentario ? (
                         <Text style={styles.observacionComentario}>
@@ -569,6 +641,18 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: COLOR.TEXTO,
     marginBottom: 10,
+  },
+  comportamientoTotal: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: COLOR.PRIMARIO,
+    marginBottom: 6,
+  },
+  comportamientoLinea: {
+    fontSize: 13,
+    lineHeight: 18,
+    color: COLOR.TEXTO,
+    marginBottom: 2,
   },
   observacionCard: {
     backgroundColor: COLOR.SECUNDARIO,

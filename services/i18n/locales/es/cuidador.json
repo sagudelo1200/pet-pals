@@ -27,6 +27,7 @@
     "vacio_proximos": "No tienes paseos programados",
     "vacio_proximos_sub": "Acepta solicitudes para llenar tu agenda",
     "vacio_historial": "No tienes paseos finalizados",
+    "completar_registro": "Completar registro",
     "asignado_a_ti": "Asignado a ti"
   },
   "solicitudes": {
@@ -35,6 +36,7 @@
     "sin_solicitudes": "No hay solicitudes disponibles",
     "sin_solicitudes_desc": "Las nuevas solicitudes aparecerán aquí",
     "sin_mascotas": "Información de mascotas no disponible",
+    "sobre_mascota": "Sobre {{nombre}}",
     "detalle_titulo": "Detalle de Solicitud",
     "directa": "Directa",
     "mascota": "Mascota",

@@ -1,16 +1,16 @@
-import { onDocumentUpdated } from 'firebase-functions/v2/firestore'
-import * as admin from 'firebase-admin'
-import { Timestamp } from 'firebase-admin/firestore'
+import {onDocumentUpdated} from 'firebase-functions/v2/firestore';
+import * as admin from 'firebase-admin';
+import {Timestamp} from 'firebase-admin/firestore';
 
 if (!admin.apps || admin.apps.length === 0) {
-  admin.initializeApp()
+  admin.initializeApp();
 }
 
-const db = admin.firestore()
+const db = admin.firestore();
 
-const SISTEMA = 'sistema-cf-paseos'
+const SISTEMA = 'sistema-cf-paseos';
 // Estados terminales que cuentan como "paseo realizado" para el cuidador
-const ESTADOS_FINALES = ['FINALIZADO', 'COMPLETADO']
+const ESTADOS_FINALES = ['FINALIZADO', 'COMPLETADO'];
 
 /**
  * ============================================================================
@@ -34,26 +34,26 @@ const ESTADOS_FINALES = ['FINALIZADO', 'COMPLETADO']
  */
 export const alCompletarPaseo = onDocumentUpdated(
   'paseos/{paseoId}',
-  async event => {
+  async (event) => {
     const antes = event.data?.before.data() as
       | Record<string, unknown>
-      | undefined
+      | undefined;
     const despues = event.data?.after.data() as
       | Record<string, unknown>
-      | undefined
+      | undefined;
 
-    if (!despues) return
+    if (!despues) return;
 
-    const estadoAnterior = antes?.estado
-    const estadoNuevo = despues.estado
-    const cuidadorId = despues.id_cuidador
+    const estadoAnterior = antes?.estado;
+    const estadoNuevo = despues.estado;
+    const cuidadorId = despues.id_cuidador;
 
     // Solo cuidadores con paseo asignado
-    if (typeof cuidadorId !== 'string' || cuidadorId === '') return
+    if (typeof cuidadorId !== 'string' || cuidadorId === '') return;
 
     // Solo al ENTRAR por primera vez a un estado final
-    if (!ESTADOS_FINALES.includes(String(estadoNuevo))) return
-    if (ESTADOS_FINALES.includes(String(estadoAnterior))) return
+    if (!ESTADOS_FINALES.includes(String(estadoNuevo))) return;
+    if (ESTADOS_FINALES.includes(String(estadoAnterior))) return;
 
     try {
       // Contar paseos finalizados/completados del cuidador
@@ -62,20 +62,20 @@ export const alCompletarPaseo = onDocumentUpdated(
         .where('id_cuidador', '==', cuidadorId)
         .where('estado', 'in', ESTADOS_FINALES)
         .count()
-        .get()
-      const cantidad = countSnap.data().count
+        .get();
+      const cantidad = countSnap.data().count;
 
-      const now = Timestamp.now()
+      const now = Timestamp.now();
 
       // 1. Fuente de verdad: resumenes_evaluacion/{uid}
-      const resumenRef = db.collection('resumenes_evaluacion').doc(cuidadorId)
-      const resumenSnap = await resumenRef.get()
+      const resumenRef = db.collection('resumenes_evaluacion').doc(cuidadorId);
+      const resumenSnap = await resumenRef.get();
       if (resumenSnap.exists) {
         await resumenRef.update({
           cantidad_paseos_realizados: cantidad,
           actualizado_en: now,
           actualizado_por: SISTEMA,
-        })
+        });
       } else {
         await resumenRef.set({
           cantidad_paseos_realizados: cantidad,
@@ -83,16 +83,16 @@ export const alCompletarPaseo = onDocumentUpdated(
           actualizado_en: now,
           creado_por: SISTEMA,
           actualizado_por: SISTEMA,
-        })
+        });
       }
 
       // 2. Cache para la UI: perfiles_publicos/{uid} (sin crear fantasma)
-      const perfilRef = db.collection('perfiles_publicos').doc(cuidadorId)
+      const perfilRef = db.collection('perfiles_publicos').doc(cuidadorId);
       try {
         await perfilRef.update({
           cantidad_paseos_realizados: cantidad,
           actualizado_en: now,
-        })
+        });
       } catch (error) {
         if (
           error instanceof Error &&
@@ -100,21 +100,21 @@ export const alCompletarPaseo = onDocumentUpdated(
         ) {
           console.log(
             `[alCompletarPaseo] PerfilPublico ${cuidadorId} no existe; cache omitido`
-          )
+          );
         } else {
-          throw error
+          throw error;
         }
       }
 
       console.log(
         `[alCompletarPaseo] ${cuidadorId}: ${cantidad} paseos realizados`
-      )
+      );
     } catch (error) {
       console.error(
         `[alCompletarPaseo] Error procesando ${event.params.paseoId}:`,
         error
-      )
-      throw error
+      );
+      throw error;
     }
   }
-)
+);

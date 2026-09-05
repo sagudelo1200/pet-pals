@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useCallback } from 'react'
 import { StyleSheet, View, Text, ActivityIndicator, Alert } from 'react-native'
 import {
   useRoute,
@@ -6,18 +6,22 @@ import {
   useNavigation,
 } from '@react-navigation/native'
 import { useTranslation } from 'react-i18next'
-import { httpsCallable } from 'firebase/functions'
 import { COLOR } from '@/constants'
 import { useDoc } from '@/hooks/useDoc'
 import { Paseo } from '@/models/Paseo'
 import { Button, Spacer } from '@/components/ui'
 import type { AuthStackParamList } from '@/navigation/types'
 import { PaseoFinalizadoCard } from '@/components/paseos/PaseoFinalizadoCard'
-import { functions } from '@/firebase.config'
 import { useAuth } from '@/context/AuthContext'
+import { useEnviarEvaluacionCuidador } from '@/hooks/paseos/useEnviarEvaluacionCuidador'
 
 type RouteProps = RouteProp<AuthStackParamList, 'PaseoFinalizado'>
 
+/**
+ * Repesca del historial del tutor: calificar a un cuidador en un paseo
+ * COMPLETADO/FINALIZADO que quedó sin calificar. Mismo flujo que el modal
+ * global (confirmación explícita, prueba social e impacto).
+ */
 export default function PaseoFinalizado() {
   const route = useRoute<RouteProps>()
   const navigation = useNavigation<any>()
@@ -25,63 +29,39 @@ export default function PaseoFinalizado() {
   const { t } = useTranslation('evaluaciones')
   const { paseoId } = route.params
   const { data: paseo, cargando: loading } = useDoc<Paseo>('paseos', paseoId)
-  const [evaluando, setEvaluando] = useState(false)
 
-  const handleRate = async (rating: number) => {
-    if (!paseo || !user?.uid || !paseo.id_cuidador) {
-      Alert.alert('Error', t('error_datos_incompletos'))
-      return
-    }
+  const cuidadorId = paseo?.id_cuidador
+  const { ratingPrevio, enviando, enviado, nuevoPromedio, enviar } =
+    useEnviarEvaluacionCuidador(cuidadorId, paseoId)
 
-    setEvaluando(true)
-    try {
-      // Llamar Callable Function: crearEvaluacion
-      // Validación server-side: participación, estado paseo, relación actor/objetivo
-      const crearEvaluacionCallable = httpsCallable(
-        functions,
-        'crearEvaluacion'
-      )
-
-      const resultado = (await crearEvaluacionCallable({
-        tipo: 'evaluacion_cuidador',
-        objetivo: paseo.id_cuidador, // Cuidador del paseo
-        contextoId: paseoId,
-        rating: rating,
-        comentario: '',
-      })) as { data: { success: boolean; evaluacionId: string } }
-
-      if (resultado.data.success) {
-        Alert.alert(t('exito_titulo'), t('exito_mensaje', { rating }), [
-          {
-            text: t('comun:boton.volver'),
-            onPress: () => navigation.navigate('TutorApp'),
-          },
-        ])
-      } else {
-        Alert.alert('Error', t('error_creando'))
+  // Confirmación explícita (la tarjeta la llama al confirmar) + fricción
+  // anti-troll para calificaciones bajas (1-2★)
+  const handleRate = useCallback(
+    (rating: number, comentario?: string, comentarioPrivado?: string) => {
+      if (!paseo || !user?.uid) {
+        Alert.alert('Error', t('error_datos_incompletos'))
+        return
       }
-    } catch (error) {
-      console.error('Error creando evaluación:', error)
-
-      // Manejar errores de Callable Function
-      let mensajeError = t('error_creando')
-      const errorObj = error as { code?: string; message?: string }
-
-      if (errorObj?.code === 'already-exists') {
-        mensajeError = 'Ya has evaluado a este cuidador en este paseo'
-      } else if (errorObj?.code === 'failed-precondition') {
-        mensajeError = 'El paseo debe estar completado'
-      } else if (errorObj?.code === 'permission-denied') {
-        mensajeError = 'No tienes permiso para crear esta evaluación'
-      } else if (errorObj?.code === 'unauthenticated') {
-        mensajeError = 'Debes iniciar sesión'
+      if (rating <= 2) {
+        Alert.alert(
+          t('confirmar_baja_titulo'),
+          t('confirmar_baja_mensaje', { rating }),
+          [
+            { text: t('comun:boton.cancelar'), style: 'cancel' },
+            {
+              text: t('comun:aceptar'),
+              onPress: () => {
+                void enviar(rating, comentario, comentarioPrivado)
+              },
+            },
+          ]
+        )
+        return
       }
-
-      Alert.alert('Error', mensajeError)
-    } finally {
-      setEvaluando(false)
-    }
-  }
+      void enviar(rating, comentario, comentarioPrivado)
+    },
+    [paseo, user?.uid, enviar, t]
+  )
 
   if (loading) {
     return (
@@ -101,7 +81,7 @@ export default function PaseoFinalizado() {
           No se encontró la información del paseo.
         </Text>
         <Spacer size={20} />
-        <Button title="Volver" onPress={() => navigation.goBack()} />
+        <Button title="Volver" onPress={() => navigation.navigate('TutorApp')} />
       </View>
     )
   }
@@ -114,8 +94,12 @@ export default function PaseoFinalizado() {
           cuidadorNombre={paseo.cuidador_nombre_visual}
           onClose={() => navigation.navigate('TutorApp')}
           onRate={handleRate}
+          ratingPrevio={ratingPrevio}
+          enviando={enviando}
+          enviado={enviado}
+          nuevoPromedio={nuevoPromedio}
         />
-        {evaluando && (
+        {enviando && (
           <View style={styles.loadingOverlay}>
             <ActivityIndicator size="large" color={COLOR.PRIMARIO} />
             <Text style={styles.loadingText}>{t('registrando')}</Text>
@@ -141,6 +125,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: COLOR.BASE,
   },
   subtitle: {
     fontSize: 16,

@@ -94,6 +94,7 @@
     "sin_descripcion": "No description available.",
     "vacuna": "Vaccine: ",
     "observaciones_cuidadores": "Caregiver observations",
+    "paseos_registrados": "{{cantidad}} registered walks",
     "ritmo": "Pace",
     "compania": "Company",
     "tolerancia": "Tolerance",

@@ -1,6 +1,6 @@
-import {onDocumentUpdated} from "firebase-functions/v2/firestore";
-import * as admin from "firebase-admin";
-import {Timestamp} from "firebase-admin/firestore";
+import {onDocumentUpdated} from 'firebase-functions/v2/firestore';
+import * as admin from 'firebase-admin';
+import {Timestamp} from 'firebase-admin/firestore';
 
 if (!admin.apps || admin.apps.length === 0) {
   admin.initializeApp();
@@ -12,12 +12,12 @@ const db = admin.firestore();
  * Auto-crear conversación cuando paseo → CONFIRMADO
  */
 export const onPaseoConfirmado = onDocumentUpdated(
-  "paseos/{paseoId}",
+  'paseos/{paseoId}',
   async (event) => {
     const afterData = event.data?.after.data() as Record<string, unknown>;
     const paseoId = event.params.paseoId;
 
-    if (afterData?.estado !== "CONFIRMADO") {
+    if (afterData?.estado !== 'CONFIRMADO') {
       return;
     }
 
@@ -30,7 +30,7 @@ export const onPaseoConfirmado = onDocumentUpdated(
     }
 
     try {
-      const convRef = db.collection("conversaciones").doc(paseoId);
+      const convRef = db.collection('conversaciones').doc(paseoId);
       const existing = await convRef.get();
 
       if (existing.exists) {
@@ -45,8 +45,8 @@ export const onPaseoConfirmado = onDocumentUpdated(
         activa: true,
         creado_en: now,
         actualizado_en: now,
-        creado_por: "sistema-cf-paseo-confirmado",
-        actualizado_por: "sistema-cf-paseo-confirmado",
+        creado_por: 'sistema-cf-paseo-confirmado',
+        actualizado_por: 'sistema-cf-paseo-confirmado',
       });
     } catch (err) {
       console.error(`[onPaseoConfirmado] Error para paseo ${paseoId}:`, err);

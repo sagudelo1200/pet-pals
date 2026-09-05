@@ -1,16 +1,16 @@
-import * as admin from 'firebase-admin'
-import { Timestamp } from 'firebase-admin/firestore'
-import { gridDisk } from 'h3-js'
+import * as admin from 'firebase-admin';
+import {Timestamp} from 'firebase-admin/firestore';
+import {gridDisk} from 'h3-js';
 
 if (!admin.apps || admin.apps.length === 0) {
-  admin.initializeApp()
+  admin.initializeApp();
 }
 
-const db = admin.firestore()
+const db = admin.firestore();
 
-const SISTEMA = 'sistema-cf-evaluaciones'
+const SISTEMA = 'sistema-cf-evaluaciones';
 // Mismo radio que celdasDeCobertura del cliente (gridDisk k=2 → 19 celdas ≈ 2 km)
-const RADIO_COBERTURA = 2
+const RADIO_COBERTURA = 2;
 
 export interface Desglose {
   promedio: number
@@ -26,16 +26,64 @@ export interface Desgloses {
 
 // Medalla tipo "Superhost" (Airbnb): rating ≥ 4.8 con volumen mínimo.
 // Se refleja en perfiles_publicos.insignias_verificacion.
-export const PROMEDIO_SUPERHOST = 4.8
-export const MIN_EVALUACIONES_SUPERHOST = 6
-export const INSIGNIA_SUPERHOST = 'SUPERHOST'
+export const PROMEDIO_SUPERHOST = 4.8;
+export const MIN_EVALUACIONES_SUPERHOST = 6;
+export const INSIGNIA_SUPERHOST = 'SUPERHOST';
 
 /** True si el desglose de cuidador cumple el umbral de Superhost. */
 export function calcularSuperhost(desglose: Desglose): boolean {
   return (
     desglose.promedio >= PROMEDIO_SUPERHOST &&
     desglose.cantidad >= MIN_EVALUACIONES_SUPERHOST
-  )
+  );
+}
+
+// Opciones estandarizadas de cada eje de observación (chips del UI).
+// Mismas que usa el frontend al registrar la observación de la mascota.
+const OPCIONES_RITMO = ['tranquilo', 'normal', 'energico'];
+const OPCIONES_COMPANIA = ['solo', 'confiado', 'sociable'];
+const OPCIONES_TOLERANCIA = ['ignora', 'neutro', 'receptivo'];
+
+/**
+ * Patrón de comportamiento de la mascota: cuenta por chip cuántas veces fue
+ * observada cada opción (ritmo/compania/tolerancia) + total de registros.
+ * Permite mostrar "Ritmo: Tranquilo 9 · Normal 3" en el expediente.
+ */
+export function calcularComportamientoResumen(
+  evaluaciones: Record<string, unknown>[]
+): {
+  ritmo: Record<string, number>
+  compania: Record<string, number>
+  tolerancia: Record<string, number>
+  total_observaciones: number
+} {
+  const contar = (opciones: string[]) =>
+    Object.fromEntries(opciones.map((o) => [o, 0])) as Record<string, number>;
+
+  const resumen = {
+    ritmo: contar(OPCIONES_RITMO),
+    compania: contar(OPCIONES_COMPANIA),
+    tolerancia: contar(OPCIONES_TOLERANCIA),
+    total_observaciones: 0,
+  };
+
+  for (const e of evaluaciones) {
+    if (e.tipo !== 'evaluacion_mascota') continue;
+    const datos = (e.datos as Record<string, unknown>) || {};
+    resumen.total_observaciones++;
+    const ritmo = datos.ritmo as string | undefined;
+    const compania = datos.compania as string | undefined;
+    const tolerancia = datos.tolerancia as string | undefined;
+    if (ritmo && ritmo in resumen.ritmo) resumen.ritmo[ritmo]++;
+    if (compania && compania in resumen.compania) {
+      resumen.compania[compania]++;
+    }
+    if (tolerancia && tolerancia in resumen.tolerancia) {
+      resumen.tolerancia[tolerancia]++;
+    }
+  }
+
+  return resumen;
 }
 
 /**
@@ -61,14 +109,14 @@ export async function calcularYGuardarResumen(objetivo: {
   tipo: string
   id: string
 }): Promise<Desgloses> {
-  const objetivoId = objetivo.id
+  const objetivoId = objetivo.id;
 
   const evaluacionesSnap = await db
     .collection('evaluaciones')
     .where('objetivo.id', '==', objetivoId)
-    .get()
+    .get();
 
-  const evaluaciones = evaluacionesSnap.docs.map(doc => doc.data())
+  const evaluaciones = evaluacionesSnap.docs.map((doc) => doc.data());
 
   const desgloses: Desgloses = {
     evaluaciones_cuidador: calcularDesglose(
@@ -78,17 +126,17 @@ export async function calcularYGuardarResumen(objetivo: {
     evaluaciones_tutor: calcularDesglose(evaluaciones, 'evaluacion_tutor'),
     evaluaciones_mascota: calcularDesglose(evaluaciones, 'evaluacion_mascota'),
     evaluaciones_sistema: calcularDesglose(evaluaciones, 'evaluacion_sistema'),
-  }
+  };
 
-  const resumenExtra: Record<string, unknown> = {}
+  const resumenExtra: Record<string, unknown> = {};
   if (objetivo.tipo === 'usuario') {
     resumenExtra.distribucion_ratings = calcularDistribucion(
       evaluaciones,
       'evaluacion_cuidador'
-    )
+    );
     resumenExtra.reseñas_publicas = evaluaciones
-      .filter(e => e.tipo === 'evaluacion_cuidador' && e.revelada === true)
-      .map(e => ({
+      .filter((e) => e.tipo === 'evaluacion_cuidador' && e.revelada === true)
+      .map((e) => ({
         rating:
           ((e.datos as Record<string, unknown> | undefined)?.rating as
             number | undefined) ?? 0,
@@ -100,12 +148,12 @@ export async function calcularYGuardarResumen(objetivo: {
             string | undefined) ?? '',
         creado_en: e.creado_en ?? null,
       }))
-      .slice(-5)
+      .slice(-5);
   } else if (objetivo.tipo === 'mascota') {
     resumenExtra.observaciones_recientes = evaluaciones
-      .filter(e => e.tipo === 'evaluacion_mascota')
-      .map(e => {
-        const datos = (e.datos as Record<string, unknown>) || {}
+      .filter((e) => e.tipo === 'evaluacion_mascota')
+      .map((e) => {
+        const datos = (e.datos as Record<string, unknown>) || {};
         return {
           ritmo: (datos.ritmo as string) ?? '',
           compania: (datos.compania as string) ?? '',
@@ -115,15 +163,21 @@ export async function calcularYGuardarResumen(objetivo: {
             ((e.contexto as Record<string, unknown> | undefined)?.id as
               string | undefined) ?? '',
           creado_en: e.creado_en ?? null,
-        }
+        };
       })
-      .slice(-5)
+      .slice(-5);
+
+    // Patrón de comportamiento: agregado por chips (valores estandarizados)
+    // para que el expediente de la mascota sea comparable entre cuidadores.
+    resumenExtra.comportamiento_resumen = calcularComportamientoResumen(
+      evaluaciones
+    );
   }
 
   // Upsert preservando creado_en/creado_por originales
-  const resumenRef = db.collection('resumenes_evaluacion').doc(objetivoId)
-  const now = Timestamp.now()
-  const resumenSnap = await resumenRef.get()
+  const resumenRef = db.collection('resumenes_evaluacion').doc(objetivoId);
+  const now = Timestamp.now();
+  const resumenSnap = await resumenRef.get();
 
   if (resumenSnap.exists) {
     await resumenRef.update({
@@ -132,7 +186,7 @@ export async function calcularYGuardarResumen(objetivo: {
       ...resumenExtra,
       actualizado_en: now,
       actualizado_por: SISTEMA,
-    })
+    });
   } else {
     await resumenRef.set({
       objetivo,
@@ -142,10 +196,10 @@ export async function calcularYGuardarResumen(objetivo: {
       actualizado_en: now,
       creado_por: SISTEMA,
       actualizado_por: SISTEMA,
-    })
+    });
   }
 
-  return desgloses
+  return desgloses;
 }
 
 /**
@@ -157,30 +211,30 @@ export function calcularDesglose(
   evaluaciones: Record<string, unknown>[],
   tipo: string
 ): Desglose {
-  const evaluacionesDelTipo = evaluaciones.filter(e => e.tipo === tipo)
+  const evaluacionesDelTipo = evaluaciones.filter((e) => e.tipo === tipo);
 
   if (evaluacionesDelTipo.length === 0) {
-    return { promedio: 0, cantidad: 0 }
+    return {promedio: 0, cantidad: 0};
   }
 
   const ratings = evaluacionesDelTipo
-    .map(e => {
-      const datos = e.datos as Record<string, unknown> | undefined
-      return typeof datos?.rating === 'number' ? datos.rating : 0
+    .map((e) => {
+      const datos = e.datos as Record<string, unknown> | undefined;
+      return typeof datos?.rating === 'number' ? datos.rating : 0;
     })
-    .filter(r => r > 0)
+    .filter((r) => r > 0);
 
   const promedio =
-    ratings.length > 0
-      ? Math.round(
-          (ratings.reduce((a, b) => a + b, 0) / ratings.length) * 100
-        ) / 100
-      : 0
+    ratings.length > 0 ?
+      Math.round(
+        (ratings.reduce((a, b) => a + b, 0) / ratings.length) * 100
+      ) / 100 :
+      0;
 
   return {
     promedio: promedio,
     cantidad: evaluacionesDelTipo.length,
-  }
+  };
 }
 
 /**
@@ -198,16 +252,16 @@ export function calcularDistribucion(
     '3': 0,
     '4': 0,
     '5': 0,
-  }
+  };
   for (const e of evaluaciones) {
-    if (e.tipo !== tipo) continue
-    const rating = (e.datos as Record<string, unknown> | undefined)?.rating
+    if (e.tipo !== tipo) continue;
+    const rating = (e.datos as Record<string, unknown> | undefined)?.rating;
     if (typeof rating === 'number' && rating >= 1 && rating <= 5) {
-      const clave = String(Math.floor(rating))
-      distribucion[clave] = (distribucion[clave] || 0) + 1
+      const clave = String(Math.floor(rating));
+      distribucion[clave] = (distribucion[clave] || 0) + 1;
     }
   }
-  return distribucion
+  return distribucion;
 }
 
 /**
@@ -221,47 +275,48 @@ export async function actualizarRatingEnIndice(
   perfil: Record<string, unknown>
 ): Promise<void> {
   try {
-    const celdasManuales = Array.isArray(perfil.celdas_cobertura)
-      ? (perfil.celdas_cobertura as unknown[]).filter(
-          (c): c is string => typeof c === 'string'
-        )
-      : []
+    const celdasManuales = Array.isArray(perfil.celdas_cobertura) ?
+      (perfil.celdas_cobertura as unknown[]).filter(
+        (c): c is string => typeof c === 'string'
+      ) :
+      [];
     const celdas =
-      celdasManuales.length > 0
-        ? celdasManuales
-        : typeof perfil.h3_r8 === 'string'
-          ? gridDisk(perfil.h3_r8, RADIO_COBERTURA)
-          : []
+      celdasManuales.length > 0 ?
+        celdasManuales :
+        typeof perfil.h3_r8 === 'string' ?
+          gridDisk(perfil.h3_r8, RADIO_COBERTURA) :
+          [];
 
     if (celdas.length === 0) {
       console.log(
         `[reputacion] Cuidador ${uid} sin cobertura H3; índice no actualizado`
-      )
-      return
+      );
+      return;
     }
 
-    const ahora = Timestamp.now()
+    const ahora = Timestamp.now();
     const resultados = await Promise.allSettled(
-      celdas.map(celda =>
+      celdas.map((celda) =>
         db
           .collection('indice_cobertura')
           .doc(celda)
           .collection('cuidadores')
           .doc(uid)
-          .update({ rating_promedio: ratingPromedio, actualizado_en: ahora })
+          .update({rating_promedio: ratingPromedio, actualizado_en: ahora})
       )
-    )
+    );
 
-    const fallidos = resultados.filter(r => r.status === 'rejected').length
+    const fallidos = resultados.filter((r) => r.status === 'rejected').length;
     if (fallidos > 0) {
+      const total = celdas.length;
       console.warn(
-        `[reputacion] ${fallidos}/${celdas.length} celdas de índice no actualizadas para ${uid}`
-      )
+        `[reputacion] ${fallidos}/${total} celdas de índice no actualizadas para ${uid}`
+      );
     }
   } catch (error) {
     console.warn(
       `[reputacion] Error actualizando índice de cobertura para ${uid}:`,
       error
-    )
+    );
   }
 }

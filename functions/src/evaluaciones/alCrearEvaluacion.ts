@@ -1,19 +1,19 @@
-import { onDocumentCreated } from 'firebase-functions/v2/firestore'
-import * as admin from 'firebase-admin'
-import { Timestamp } from 'firebase-admin/firestore'
+import {onDocumentCreated} from 'firebase-functions/v2/firestore';
+import * as admin from 'firebase-admin';
+import {Timestamp} from 'firebase-admin/firestore';
 import {
   calcularYGuardarResumen,
   actualizarRatingEnIndice,
   calcularSuperhost,
   INSIGNIA_SUPERHOST,
-} from './reputacion'
-import { programarRevelacion } from './cloudTasks'
+} from './reputacion';
+import {programarRevelacion} from './cloudTasks';
 
 if (!admin.apps || admin.apps.length === 0) {
-  admin.initializeApp()
+  admin.initializeApp();
 }
 
-const db = admin.firestore()
+const db = admin.firestore();
 
 /**
  * ============================================================================
@@ -46,88 +46,80 @@ const db = admin.firestore()
 
 export const alCrearEvaluacion = onDocumentCreated(
   'evaluaciones/{evaluacionId}',
-  async event => {
+  async (event) => {
     const evaluacionData = event.data?.data() as
-      | Record<string, unknown>
-      | undefined
-    const evaluacionId = event.params.evaluacionId
+      Record<string, unknown> | undefined;
+    const evaluacionId = event.params.evaluacionId;
 
     if (!evaluacionData) {
-      console.warn(`[alCrearEvaluacion] Evaluacion ${evaluacionId} sin datos`)
-      return
+      console.warn(`[alCrearEvaluacion] Evaluacion ${evaluacionId} sin datos`);
+      return;
     }
 
     try {
       const objetivo = evaluacionData.objetivo as
-        | Record<string, unknown>
-        | undefined
-      const objetivoId = objetivo?.id as string | undefined
-      const objetivoTipo = objetivo?.tipo as string | undefined
-      const tipo = evaluacionData.tipo as string | undefined
+        Record<string, unknown> | undefined;
+      const objetivoId = objetivo?.id as string | undefined;
+      const objetivoTipo = objetivo?.tipo as string | undefined;
+      const tipo = evaluacionData.tipo as string | undefined;
 
       if (!objetivoId) {
-        console.warn(`[alCrearEvaluacion] Evaluacion sin objetivo.id`)
-        return
+        console.warn('[alCrearEvaluacion] Evaluacion sin objetivo.id');
+        return;
       }
 
-      console.log(
-        `[alCrearEvaluacion] Procesando evaluacion ${evaluacionId} para objetivo ${objetivoId}`
-      )
+      console.log(`[alCrearEvaluacion] Procesando evaluacion ${evaluacionId}`);
+      console.log(`  para objetivo ${objetivoId}`);
 
       // 1. DOBLE CIEGO: marcar revelación (antes del resumen para que la
       // evaluación recién creada ya cuente como revelada si es mutua)
       if (tipo === 'evaluacion_cuidador' || tipo === 'evaluacion_tutor') {
         const actor = evaluacionData.actor as
-          | Record<string, unknown>
-          | undefined
+          Record<string, unknown> | undefined;
         const contexto = evaluacionData.contexto as
-          | Record<string, unknown>
-          | undefined
-        const actorId = actor?.id as string | undefined
-        const contextoId = contexto?.id as string | undefined
+          Record<string, unknown> | undefined;
+        const actorId = actor?.id as string | undefined;
+        const contextoId = contexto?.id as string | undefined;
 
         if (actorId && contextoId) {
           const contraparteId =
-            tipo === 'evaluacion_cuidador'
-              ? `evaluacion_tutor_${objetivoId}_${actorId}_${contextoId}`
-              : `evaluacion_cuidador_${objetivoId}_${actorId}_${contextoId}`
+            tipo === 'evaluacion_cuidador' ?
+              `evaluacion_tutor_${objetivoId}_${actorId}_${contextoId}` :
+              `evaluacion_cuidador_${objetivoId}_${actorId}`;
 
           const contraparteSnap = await db
             .doc(`evaluaciones/${contraparteId}`)
-            .get()
+            .get();
 
           if (contraparteSnap.exists) {
-            const reveladaEn = Timestamp.now()
+            const reveladaEn = Timestamp.now();
             await Promise.all([
               db
                 .doc(`evaluaciones/${evaluacionId}`)
-                .update({ revelada: true, revelada_en: reveladaEn }),
+                .update({revelada: true, revelada_en: reveladaEn}),
               db
                 .doc(`evaluaciones/${contraparteId}`)
-                .update({ revelada: true, revelada_en: reveladaEn }),
-            ])
-            console.log(
-              `[alCrearEvaluacion] Evaluación mutua: reveladas ${evaluacionId} y ${contraparteId}`
-            )
+                .update({revelada: true, revelada_en: reveladaEn}),
+            ]);
+            console.log('[alCrearEvaluacion] Evaluaci\u00f3n mutua: reveladas');
+            console.log(`  ${evaluacionId} y ${contraparteId}`);
           } else {
             await db
               .doc(`evaluaciones/${evaluacionId}`)
-              .update({ revelada: false })
+              .update({revelada: false});
             // EVENT-DRIVEN: se programa UNA Cloud Task con delay de 6 días
             // para materializar la ventana de ESTA evaluación (la lectura por
             // rules ya revela a tiempo; la tarea publica la reseña en el
             // perfil). Sin polling: si la contraparte llega antes, la tarea
             // será un no-op. Fire-and-forget: si falla la programación, la
             // reseña aparece con la próxima evaluación del cuidador.
-            programarRevelacion(evaluacionId).catch(error =>
-              console.warn(
-                `[alCrearEvaluacion] No se pudo programar la revelación de ${evaluacionId}:`,
-                error instanceof Error ? error.message : String(error)
-              )
-            )
-            console.log(
-              `[alCrearEvaluacion] ${evaluacionId} en espera (contraparte ${contraparteId} no existe); revelación programada`
-            )
+            programarRevelacion(evaluacionId).catch((error) => {
+              const msg = '[alCrearEvaluacion] No se pudo programar:';
+              const err = error instanceof Error ? error.message : String(error);
+              console.warn(msg, err);
+            });
+            console.log(`[alCrearEvaluacion] ${evaluacionId} en espera;`);
+            console.log('  revelación programada (contraparte no existe)');
           }
         }
       }
@@ -136,72 +128,67 @@ export const alCrearEvaluacion = onDocumentCreated(
       const desgloses = await calcularYGuardarResumen({
         tipo: objetivoTipo ?? 'usuario',
         id: objetivoId,
-      })
+      });
       console.log(
         `[alCrearEvaluacion] ResumenEvaluacion actualizado para ${objetivoId}`
-      )
+      );
 
       // 3. Cache público: SOLO evaluacion_cuidador sobre objetivo usuario
       if (tipo === 'evaluacion_cuidador' && objetivoTipo === 'usuario') {
-        const desgloseCuidador = desgloses.evaluaciones_cuidador
+        const desgloseCuidador = desgloses.evaluaciones_cuidador;
         const ratingPromedio =
-          desgloseCuidador.cantidad > 0 ? desgloseCuidador.promedio : 0
+          desgloseCuidador.cantidad > 0 ? desgloseCuidador.promedio : 0;
 
-        const perfilRef = db.collection('perfiles_publicos').doc(objetivoId)
-        const perfilSnap = await perfilRef.get()
-        const now = Timestamp.now()
+        const perfilRef = db.collection('perfiles_publicos').doc(objetivoId);
+        const perfilSnap = await perfilRef.get();
+        const now = Timestamp.now();
 
         if (perfilSnap.exists) {
           // Medalla tipo Superhost: rating ≥ 4.8 con volumen mínimo
-          const esSuperhost = calcularSuperhost(desgloseCuidador)
-          const perfilData = perfilSnap.data() as Record<string, unknown>
-          const insignias = Array.isArray(perfilData.insignias_verificacion)
-            ? (perfilData.insignias_verificacion as unknown[]).filter(
-                (i): i is string => typeof i === 'string'
-              )
-            : []
-          const tieneInsignia = insignias.includes(INSIGNIA_SUPERHOST)
+          const esSuperhost = calcularSuperhost(desgloseCuidador);
+          const perfilData = perfilSnap.data() as Record<string, unknown>;
+          const insignias = Array.isArray(perfilData.insignias_verificacion) ?
+            (perfilData.insignias_verificacion as unknown[]).filter(
+              (i): i is string => typeof i === 'string'
+            ) :
+            [];
+          const tieneInsignia = insignias.includes(INSIGNIA_SUPERHOST);
           const debeActualizarInsignia =
-            (esSuperhost && !tieneInsignia) ||
-            (!esSuperhost && tieneInsignia)
+            (esSuperhost && !tieneInsignia) || (!esSuperhost && tieneInsignia);
 
           const updatePerfil: Record<string, unknown> = {
             rating_promedio: ratingPromedio,
             actualizado_en: now,
-          }
+          };
           if (debeActualizarInsignia) {
-            updatePerfil.insignias_verificacion = esSuperhost
-              ? [...insignias, INSIGNIA_SUPERHOST]
-              : insignias.filter(i => i !== INSIGNIA_SUPERHOST)
+            updatePerfil.insignias_verificacion = esSuperhost ?
+              [...insignias, INSIGNIA_SUPERHOST] :
+              insignias.filter((i) => i !== INSIGNIA_SUPERHOST);
           }
 
-          await perfilRef.update(updatePerfil)
+          await perfilRef.update(updatePerfil);
 
-          await actualizarRatingEnIndice(
-            objetivoId,
-            ratingPromedio,
-            perfilData
-          )
+          await actualizarRatingEnIndice(objetivoId, ratingPromedio, perfilData);
 
+          const msgRating = '[alCrearEvaluacion] PerfilPublico actualizado';
           console.log(
-            `[alCrearEvaluacion] PerfilPublico actualizado para ${objetivoId}: rating ${ratingPromedio}, superhost ${esSuperhost}`
-          )
+            `${msgRating} para ${objetivoId}: rating ${ratingPromedio}`
+          );
         } else {
           // Nunca crear perfiles fantasma: si el cuidador no tiene perfil,
           // simplemente se omite el cache de rating.
-          console.log(
-            `[alCrearEvaluacion] PerfilPublico ${objetivoId} no existe; cache de rating omitido`
-          )
+          const msgNoExists = '[alCrearEvaluacion] PerfilPublico no existe';
+          console.log(`${msgNoExists} para ${objetivoId}`);
         }
       }
 
-      console.log(`[alCrearEvaluacion] Completada para ${evaluacionId}`)
+      console.log(`[alCrearEvaluacion] Completada para ${evaluacionId}`);
     } catch (error) {
       console.error(
         `[alCrearEvaluacion] Error procesando ${evaluacionId}:`,
         error
-      )
-      throw error
+      );
+      throw error;
     }
   }
-)
+);

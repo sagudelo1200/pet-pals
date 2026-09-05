@@ -11,6 +11,7 @@ import Chip from '@/components/ui/Chip'
 import EmptyState from '@/components/ui/EmptyState'
 import PaseadorPerrosSvg from '@/assets/imgs/undraw/paseador_perros.svg'
 import { useAgendaCuidador } from '@/hooks/cuidador/useAgendaCuidador'
+import { usePaseosEvaluados } from '@/hooks/paseos/usePaseosEvaluados'
 import { Paseo } from '@/models/Paseo'
 import DetallePaseoBottomSheet from '@/components/paseos/DetallePaseoBottomSheet'
 import { obtenerExperienciaPaseo } from '@/logic/paseos/routerPaseos'
@@ -22,6 +23,8 @@ const Agenda: React.FC = () => {
   const navigation = useNavigation()
   const [activeTab, setActiveTab] = useState<TabTipo>('proximos')
   const { proximos, historial, cargando, refetch } = useAgendaCuidador()
+  // Paseos donde el cuidador ya dejó su registro (repesca)
+  const paseosEvaluados = usePaseosEvaluados()
   const [detalleVisible, setDetalleVisible] = useState(false)
   const [detalleTitle, setDetalleTitle] = useState('')
   const [detallePaseo, setDetallePaseo] = useState<Paseo | null>(null)
@@ -108,6 +111,19 @@ const Agenda: React.FC = () => {
             <ItemHistorialPaseo
               paseo={item}
               onPress={() => handlePressPaseo(item.id)}
+              // Repesca del cuidador: "Completar registro" en paseos
+              // terminados donde aún no dejó observación/evaluación
+              onCalificar={
+                !paseosEvaluados.has(item.id)
+                  ? () => {
+                      // @ts-ignore
+                      navigation.navigate('ObservacionMascota', {
+                        paseoId: item.id,
+                      })
+                    }
+                  : undefined
+              }
+              botonLabel={t('cuidador:agenda.completar_registro')}
             />
           ) : (
             <TarjetaPaseo

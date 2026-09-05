@@ -1,12 +1,12 @@
 import {
   onDocumentCreated,
   onDocumentUpdated,
-} from "firebase-functions/v2/firestore";
+} from 'firebase-functions/v2/firestore';
 import type {
   FirestoreEvent,
   QueryDocumentSnapshot,
-} from "firebase-functions/v2/firestore";
-import * as admin from "firebase-admin";
+} from 'firebase-functions/v2/firestore';
+import * as admin from 'firebase-admin';
 
 if (!admin.apps || admin.apps.length === 0) {
   admin.initializeApp();
@@ -19,7 +19,7 @@ const db = admin.firestore();
  * Se ejecuta automáticamente al crear o actualizar un documento en 'verificaciones'.
  */
 export const actualizarInsignias = onDocumentCreated(
-  "verificaciones/{docId}",
+  'verificaciones/{docId}',
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async (
     event: FirestoreEvent<QueryDocumentSnapshot | undefined, { docId: string }>
@@ -32,7 +32,7 @@ export const actualizarInsignias = onDocumentCreated(
  * Escucha cambios de estado en documentos de verificación
  */
 export const actualizarInsigniasOnUpdate = onDocumentUpdated(
-  "verificaciones/{docId}",
+  'verificaciones/{docId}',
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async (event: FirestoreEvent<any, { docId: string }>) => {
     await procesarActualizacionInsignias(event);
@@ -69,9 +69,9 @@ async function procesarActualizacionInsignias(
     }
 
     const verificacionesSnapshot = await db
-      .collection("verificaciones")
-      .where("usuario_id", "==", usuarioId)
-      .where("estado", "==", "VERIFICADO")
+      .collection('verificaciones')
+      .where('usuario_id', '==', usuarioId)
+      .where('estado', '==', 'VERIFICADO')
       .get();
 
     // Mapear tipos a insignias
@@ -84,14 +84,14 @@ async function procesarActualizacionInsignias(
     });
 
     // Actualizar PerfilPublico
-    const perfilRef = db.collection("perfiles_publicos").doc(usuarioId);
+    const perfilRef = db.collection('perfiles_publicos').doc(usuarioId);
     const perfilSnap = await perfilRef.get();
 
     if (perfilSnap.exists) {
       await perfilRef.update({
         insignias_verificacion: insignias,
         actualizado_en: admin.firestore.Timestamp.now(),
-        actualizado_por: "sistema",
+        actualizado_por: 'sistema',
       });
     } else {
       // Si el perfil no existe, crearlo
@@ -100,8 +100,8 @@ async function procesarActualizacionInsignias(
           insignias_verificacion: insignias,
           creado_en: admin.firestore.Timestamp.now(),
           actualizado_en: admin.firestore.Timestamp.now(),
-          creado_por: "sistema",
-          actualizado_por: "sistema",
+          creado_por: 'sistema',
+          actualizado_por: 'sistema',
         },
         {merge: true}
       );

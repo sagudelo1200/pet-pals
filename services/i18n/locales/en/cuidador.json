@@ -27,6 +27,7 @@
     "vacio_proximos": "You have no scheduled walks",
     "vacio_proximos_sub": "Accept requests to fill your schedule",
     "vacio_historial": "You have no completed walks",
+    "completar_registro": "Complete registration",
     "asignado_a_ti": "Assigned to you"
   },
   "solicitudes": {
@@ -35,6 +36,7 @@
     "sin_solicitudes": "No requests available",
     "sin_solicitudes_desc": "New requests will appear here",
     "sin_mascotas": "Pet information not available",
+    "sobre_mascota": "About {{nombre}}",
     "detalle_titulo": "Request Detail",
     "directa": "Direct",
     "mascota": "Pet",

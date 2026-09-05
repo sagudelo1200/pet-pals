@@ -10,7 +10,6 @@ import Paseos from '@/screens/tutor/Paseos'
 import MiCuenta from '@/screens/comun/MiCuenta'
 import { TutorTabParamList } from './types'
 import { COLOR } from '@/constants'
-import { GlobalPaseoManager } from '@/components/tutor/GlobalPaseoManager'
 
 const Tab = createBottomTabNavigator<TutorTabParamList>()
 
@@ -20,9 +19,7 @@ export default function TutorTabNavigator(): React.ReactElement {
   const { t } = useTranslation()
 
   return (
-    <>
-      <GlobalPaseoManager />
-      <Tab.Navigator
+    <Tab.Navigator
         screenOptions={{
           headerShown: false,
           headerStyle: {
@@ -104,6 +101,5 @@ export default function TutorTabNavigator(): React.ReactElement {
           }}
         />
       </Tab.Navigator>
-    </>
   )
 }

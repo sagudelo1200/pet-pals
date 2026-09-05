@@ -1,4 +1,4 @@
-import * as admin from "firebase-admin";
+import * as admin from 'firebase-admin';
 
 type UsuarioData = {
   nombre?: string | null
@@ -10,7 +10,7 @@ type UsuarioData = {
  * Otherwise returns `undefined`.
  */
 function asRecord(v: unknown): Record<string, unknown> | undefined {
-  return v && typeof v === "object" ? (v as Record<string, unknown>) : undefined;
+  return v && typeof v === 'object' ? (v as Record<string, unknown>) : undefined;
 }
 
 /**
@@ -19,15 +19,15 @@ function asRecord(v: unknown): Record<string, unknown> | undefined {
  */
 function parseFirestoreValue(v: unknown): unknown {
   if (v == null) return null;
-  if (typeof v !== "object") return v;
+  if (typeof v !== 'object') return v;
   const obj = v as Record<string, unknown>;
-  if ("stringValue" in obj) return obj.stringValue as string;
-  if ("booleanValue" in obj) return obj.booleanValue as boolean;
-  if ("integerValue" in obj) return Number(obj.integerValue as unknown);
-  if ("doubleValue" in obj) return Number(obj.doubleValue as unknown);
-  if ("nullValue" in obj) return null;
+  if ('stringValue' in obj) return obj.stringValue as string;
+  if ('booleanValue' in obj) return obj.booleanValue as boolean;
+  if ('integerValue' in obj) return Number(obj.integerValue as unknown);
+  if ('doubleValue' in obj) return Number(obj.doubleValue as unknown);
+  if ('nullValue' in obj) return null;
   const mapVal = asRecord(obj.mapValue)?.fields;
-  if (mapVal && typeof mapVal === "object") {
+  if (mapVal && typeof mapVal === 'object') {
     const out: Record<string, unknown> = {};
     for (const k of Object.keys(mapVal)) {
       out[k] = parseFirestoreValue((mapVal as Record<string, unknown>)[k]);
@@ -53,7 +53,7 @@ export function extraerDatosUsuarioDesdeEvento(
   if (!data) return {};
 
   const maybeSnapshot = asRecord(data)?.data;
-  if (typeof maybeSnapshot === "function") {
+  if (typeof maybeSnapshot === 'function') {
     try {
       const res = (maybeSnapshot as () => unknown)();
       return (res as Record<string, unknown>) ?? {};
@@ -64,7 +64,7 @@ export function extraerDatosUsuarioDesdeEvento(
 
   const value = (asRecord(data)?.value ?? data) as unknown;
   const fields = asRecord(value)?.fields ?? value;
-  if (!fields || typeof fields !== "object") return {};
+  if (!fields || typeof fields !== 'object') return {};
 
   const out: Record<string, unknown> = {};
   const fieldsObj = asRecord(fields) ?? {};
@@ -90,7 +90,7 @@ export function extraerAntesYDespuesDesdeEvento(event: unknown): {
   const resolve = (obj: unknown): Record<string, unknown> => {
     if (!obj) return {};
     const maybeSnapshot = asRecord(obj)?.data;
-    if (typeof maybeSnapshot === "function") {
+    if (typeof maybeSnapshot === 'function') {
       try {
         return (maybeSnapshot as () => unknown)() as Record<string, unknown>;
       } catch {
@@ -99,7 +99,7 @@ export function extraerAntesYDespuesDesdeEvento(event: unknown): {
     }
     const value = (asRecord(obj)?.value ?? obj) as unknown;
     const fields = asRecord(value)?.fields ?? value;
-    if (!fields || typeof fields !== "object") return {};
+    if (!fields || typeof fields !== 'object') return {};
     const out: Record<string, unknown> = {};
     const fieldsObj = asRecord(fields) ?? {};
     for (const k of Object.keys(fieldsObj)) {
@@ -133,10 +133,10 @@ export function construirActualizacion(
   uid: string
 ): Record<string, unknown> | null {
   const actualizar: Record<string, unknown> = {};
-  if (Object.prototype.hasOwnProperty.call(nuevo, "nombre")) {
+  if (Object.prototype.hasOwnProperty.call(nuevo, 'nombre')) {
     actualizar.nombre = nuevo.nombre ?? null;
   }
-  if (Object.prototype.hasOwnProperty.call(nuevo, "foto")) {
+  if (Object.prototype.hasOwnProperty.call(nuevo, 'foto')) {
     actualizar.foto = nuevo.foto ?? null;
   }
   // NOTA: El campo 'verificado' de usuarios NO se sincroniza.
@@ -151,7 +151,7 @@ export function construirActualizacion(
   if (
     FieldValue &&
     typeof (FieldValue as { serverTimestamp?: unknown }).serverTimestamp ===
-      "function"
+      'function'
   ) {
     const serverTimestampFn = (
       FieldValue as { serverTimestamp?: () => unknown }
@@ -159,7 +159,7 @@ export function construirActualizacion(
     ts = serverTimestampFn ? serverTimestampFn() : undefined;
   } else if (
     TimestampObj &&
-    typeof (TimestampObj as { now?: unknown }).now === "function"
+    typeof (TimestampObj as { now?: unknown }).now === 'function'
   ) {
     const nowFn = (TimestampObj as { now?: () => unknown }).now;
     ts = nowFn ? nowFn() : undefined;

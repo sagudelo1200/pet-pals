@@ -24,10 +24,15 @@ interface PaseoFinalizadoCardProps {
   /**
    * Se invoca UNA sola vez, cuando el usuario CONFIRMA la cantidad de
    * estrellas seleccionada (nunca al tocar una estrella).
-   * El segundo argumento es el feedback privado opcional (solo lo ve el
-   * evaluado tras la revelación; nunca es público).
+   * Argumentos: (rating, comentarioPúblico?, comentarioPrivado?).
+   * El comentario público puede publicarse en el perfil; el privado solo lo
+   * ve el evaluado tras la revelación (nunca es público).
    */
-  onRate?: (rating: number, comentarioPrivado?: string) => void
+  onRate?: (
+    rating: number,
+    comentario?: string,
+    comentarioPrivado?: string
+  ) => void
   /** Reputación actual del cuidador (prueba social antes de calificar). */
   ratingPrevio?: ReputacionCuidador | null
   /** True mientras se envía la evaluación. */
@@ -52,6 +57,7 @@ export const PaseoFinalizadoCard: React.FC<PaseoFinalizadoCardProps> = ({
   const fadeAnim = useRef(new Animated.Value(0)).current
   const scaleAnim = useRef(new Animated.Value(0.8)).current
   const [rating, setRating] = useState(5)
+  const [comentario, setComentario] = useState('')
   const [comentarioPrivado, setComentarioPrivado] = useState('')
   const confirmadoRef = useRef(false)
 
@@ -79,7 +85,12 @@ export const PaseoFinalizadoCard: React.FC<PaseoFinalizadoCardProps> = ({
   const confirmar = () => {
     if (!onRate || confirmadoRef.current || enviado || enviando) return
     confirmadoRef.current = true
-    onRate(rating, comentarioPrivado.trim() || undefined) // Única invocación, al confirmar
+    // Única invocación, al confirmar
+    onRate(
+      rating,
+      comentario.trim() || undefined,
+      comentarioPrivado.trim() || undefined
+    )
   }
 
   const mostrarReputacion =
@@ -177,22 +188,36 @@ export const PaseoFinalizadoCard: React.FC<PaseoFinalizadoCardProps> = ({
               : t('paseos:finalizado.toca_calificar')}
           </Text>
 
-          {/* Feedback privado opcional: solo lo ve el evaluado tras la
-              revelación; nunca es público (sin fricción) */}
+          {/* Feedback opcional (sin fricción) */}
           {!enviado && (
-            <TextInput
-              style={styles.comentarioPrivado}
-              placeholder={t(
-                'evaluaciones:comentario_privado_placeholder',
-                'Opcional: algo que solo vea el cuidador'
-              )}
-              value={comentarioPrivado}
-              onChangeText={setComentarioPrivado}
-              editable={!enviando}
-              placeholderTextColor={COLOR.SUBTEXTO}
-              multiline
-              numberOfLines={2}
-            />
+            <>
+              <TextInput
+                style={styles.comentarioPrivado}
+                placeholder={t(
+                  'evaluaciones:comentario_publico_placeholder',
+                  'Comparte tu experiencia (opcional)'
+                )}
+                value={comentario}
+                onChangeText={setComentario}
+                editable={!enviando}
+                placeholderTextColor={COLOR.SUBTEXTO}
+                multiline
+                numberOfLines={2}
+              />
+              <TextInput
+                style={styles.comentarioPrivado}
+                placeholder={t(
+                  'evaluaciones:comentario_privado_placeholder',
+                  'Solo para el cuidador (opcional)'
+                )}
+                value={comentarioPrivado}
+                onChangeText={setComentarioPrivado}
+                editable={!enviando}
+                placeholderTextColor={COLOR.SUBTEXTO}
+                multiline
+                numberOfLines={2}
+              />
+            </>
           )}
 
           {/* Impacto tras confirmar */}

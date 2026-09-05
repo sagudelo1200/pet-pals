@@ -105,6 +105,12 @@ export interface ResumenEvaluacion extends BaseModel {
    * resumen de la mascota y la ven quienes cuidan de ella.
    */
   observaciones_recientes?: ObservacionMascota[]
+
+  /**
+   * Patrón de comportamiento agregado por chips (valores estandarizados).
+   * Responde "¿cómo es esta mascota en general?" con el conteo por opción.
+   */
+  comportamiento_resumen?: ComportamientoResumen
 }
 
 /** Reseña pública de un tutor (sin identidad, con atribución contextual). */
@@ -123,6 +129,14 @@ export interface ObservacionMascota {
   comentario: string
   contexto_id: string
   creado_en: Date | null
+}
+
+/** Conteo por opción (chip) de cada eje de comportamiento + total. */
+export interface ComportamientoResumen {
+  ritmo: Record<string, number>
+  compania: Record<string, number>
+  tolerancia: Record<string, number>
+  total_observaciones: number
 }
 
 /**

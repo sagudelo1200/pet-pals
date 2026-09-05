@@ -1,11 +1,11 @@
-import { onCall, HttpsError } from 'firebase-functions/v2/https'
-import * as admin from 'firebase-admin'
+import {onCall, HttpsError} from 'firebase-functions/v2/https';
+import * as admin from 'firebase-admin';
 
 if (!admin.apps || admin.apps.length === 0) {
-  admin.initializeApp()
+  admin.initializeApp();
 }
 
-const db = admin.firestore()
+const db = admin.firestore();
 
 /**
  * ============================================================================
@@ -60,40 +60,47 @@ const db = admin.firestore()
  * ============================================================================
  */
 
-const TIPOS_CON_RATING = ['evaluacion_cuidador', 'evaluacion_tutor'] as const
-const TIPO_OBSERVACION_MASCOTA = 'evaluacion_mascota'
-const MAX_COMENTARIO = 2001
-const MAX_CAMPO_CUALITATIVO = 201
+const TIPOS_CON_RATING = ['evaluacion_cuidador', 'evaluacion_tutor'] as const;
+const TIPO_OBSERVACION_MASCOTA = 'evaluacion_mascota';
+const MAX_COMENTARIO = 2001;
+const MAX_CAMPO_CUALITATIVO = 201;
 
+/**
+ * Valida y limpia un string opcional.
+ * @param valor El valor a validar
+ * @param nombre Nombre del campo para mensajes de error
+ * @param max Longitud máxima permitida
+ * @return El string limpio o vacío
+ */
 function stringOpcional(valor: unknown, nombre: string, max: number): string {
-  if (valor === undefined || valor === null) return ''
+  if (valor === undefined || valor === null) return '';
   if (typeof valor !== 'string') {
-    throw new HttpsError('invalid-argument', `${nombre} debe ser un string`)
+    throw new HttpsError('invalid-argument', `${nombre} debe ser un string`);
   }
-  const limpio = valor.trim()
+  const limpio = valor.trim();
   if (limpio.length > max) {
     throw new HttpsError(
       'invalid-argument',
       `${nombre} no puede superar ${max} caracteres`
-    )
+    );
   }
-  return limpio
+  return limpio;
 }
 
 export const crearEvaluacion = onCall(
-  { enforceAppCheck: false },
-  async request => {
+  {enforceAppCheck: false},
+  async (request) => {
     // 1. Autenticación
-    const actorId = request.auth?.uid
+    const actorId = request.auth?.uid;
     if (!actorId) {
       throw new HttpsError(
         'unauthenticated',
         'Usuario no autenticado. Debes iniciar sesión para crear evaluaciones.'
-      )
+      );
     }
 
-    const payload = (request.data ?? {}) as Record<string, unknown>
-    const { tipo, objetivo, contextoId, rating, comentario } = payload
+    const payload = (request.data ?? {}) as Record<string, unknown>;
+    const {tipo, objetivo, contextoId, rating, comentario} = payload;
 
     // 2. Estructura básica
     if (
@@ -104,7 +111,7 @@ export const crearEvaluacion = onCall(
       throw new HttpsError(
         'invalid-argument',
         'tipo, objetivo y contextoId son requeridos y deben ser strings'
-      )
+      );
     }
 
     // 3. Tipo válido
@@ -112,7 +119,7 @@ export const crearEvaluacion = onCall(
       throw new HttpsError(
         'permission-denied',
         'evaluacion_sistema está reservada para el sistema (MVP2)'
-      )
+      );
     }
     if (
       !TIPOS_CON_RATING.includes(tipo as (typeof TIPOS_CON_RATING)[number]) &&
@@ -121,25 +128,25 @@ export const crearEvaluacion = onCall(
       throw new HttpsError(
         'invalid-argument',
         `Tipo de evaluación inválido: ${tipo}`
-      )
+      );
     }
 
     // 4. Rating según tipo
     const esEvaluacionHumana = TIPOS_CON_RATING.includes(
       tipo as (typeof TIPOS_CON_RATING)[number]
-    )
+    );
     if (esEvaluacionHumana) {
       if (typeof rating !== 'number' || rating < 1 || rating > 5) {
         throw new HttpsError(
           'invalid-argument',
           'Rating debe ser un número entre 1 y 5 para este tipo de evaluación'
-        )
+        );
       }
     } else if (rating !== undefined && rating !== null) {
       throw new HttpsError(
         'invalid-argument',
         'Las observaciones de mascota no usan rating (son cualitativas)'
-      )
+      );
     }
 
     // 5. Campos opcionales
@@ -147,56 +154,57 @@ export const crearEvaluacion = onCall(
       comentario,
       'comentario',
       MAX_COMENTARIO
-    )
+    );
     // Feedback privado: visible solo para el evaluado tras la revelación
     // (nunca público). Opcional; sin fricción para el evaluador.
     const comentarioPrivado = stringOpcional(
       payload.comentario_privado,
       'comentario_privado',
       MAX_COMENTARIO
-    )
-    const cualitativos: Record<string, string> = {}
+    );
+    const cualitativos: Record<string, string> = {};
     if (!esEvaluacionHumana) {
-      const { ritmo, compania, tolerancia } = payload
-      cualitativos.ritmo = stringOpcional(ritmo, 'ritmo', MAX_CAMPO_CUALITATIVO)
+      const {ritmo, compania, tolerancia} = payload;
+      cualitativos.ritmo = stringOpcional(ritmo, 'ritmo', MAX_CAMPO_CUALITATIVO);
       cualitativos.compania = stringOpcional(
         compania,
         'compania',
         MAX_CAMPO_CUALITATIVO
-      )
+      );
       cualitativos.tolerancia = stringOpcional(
         tolerancia,
         'tolerancia',
         MAX_CAMPO_CUALITATIVO
-      )
+      );
     }
 
     // 6. Paseo: existencia y estado
-    const paseoRef = db.doc(`paseos/${contextoId}`)
-    const paseoSnap = await paseoRef.get()
+    const paseoRef = db.doc(`paseos/${contextoId}`);
+    const paseoSnap = await paseoRef.get();
 
     if (!paseoSnap.exists) {
-      throw new HttpsError('not-found', `Paseo con ID ${contextoId} no existe`)
+      throw new HttpsError('not-found', `Paseo con ID ${contextoId} no existe`);
     }
 
-    const paseo = paseoSnap.data() as Record<string, unknown>
-    const estado = paseo.estado
+    const paseo = paseoSnap.data() as Record<string, unknown>;
+    const estado = paseo.estado;
     if (estado !== 'COMPLETADO' && estado !== 'FINALIZADO') {
+      const estadoStr = String(estado ?? 'desconocido');
       throw new HttpsError(
         'failed-precondition',
-        `Paseo debe estar COMPLETADO o FINALIZADO. Estado actual: ${String(estado ?? 'desconocido')}`
-      )
+        `Paseo debe estar COMPLETADO o FINALIZADO. Estado: ${estadoStr}`
+      );
     }
 
     // 7. Participación y relación actor → objetivo
-    const esCreador = paseo.creado_por === actorId
-    const esCuidador = paseo.id_cuidador === actorId
+    const esCreador = paseo.creado_por === actorId;
+    const esCuidador = paseo.id_cuidador === actorId;
 
     if (!esCreador && !esCuidador) {
       throw new HttpsError(
         'permission-denied',
         'No participaste en este paseo. Solo los participantes pueden crear evaluaciones.'
-      )
+      );
     }
 
     if (tipo === 'evaluacion_cuidador') {
@@ -205,19 +213,19 @@ export const crearEvaluacion = onCall(
         throw new HttpsError(
           'permission-denied',
           'Solo el tutor puede evaluar al cuidador'
-        )
+        );
       }
       if (typeof paseo.id_cuidador !== 'string' || paseo.id_cuidador === '') {
         throw new HttpsError(
           'failed-precondition',
           'El paseo no tiene cuidador asignado'
-        )
+        );
       }
       if (objetivo !== paseo.id_cuidador) {
         throw new HttpsError(
           'permission-denied',
           'Como tutor, solo puedes evaluar al cuidador de este paseo'
-        )
+        );
       }
     } else if (tipo === 'evaluacion_tutor') {
       // El cuidador evalúa al tutor (creador)
@@ -225,19 +233,19 @@ export const crearEvaluacion = onCall(
         throw new HttpsError(
           'permission-denied',
           'Solo el cuidador puede evaluar al tutor'
-        )
+        );
       }
       if (typeof paseo.creado_por !== 'string' || paseo.creado_por === '') {
         throw new HttpsError(
           'failed-precondition',
           'El paseo no tiene tutor (creado_por)'
-        )
+        );
       }
       if (objetivo !== paseo.creado_por) {
         throw new HttpsError(
           'permission-denied',
           'Como cuidador, solo puedes evaluar al tutor de este paseo'
-        )
+        );
       }
     } else {
       // evaluacion_mascota: solo el cuidador; la mascota debe ser del paseo
@@ -245,32 +253,32 @@ export const crearEvaluacion = onCall(
         throw new HttpsError(
           'permission-denied',
           'Solo el cuidador puede crear observaciones de mascota'
-        )
+        );
       }
-      const mascotasIds = Array.isArray(paseo.mascota_ids)
-        ? (paseo.mascota_ids as unknown[]).filter(
-            (m): m is string => typeof m === 'string'
-          )
-        : []
+      const mascotasIds = Array.isArray(paseo.mascota_ids) ?
+        (paseo.mascota_ids as unknown[]).filter(
+          (m): m is string => typeof m === 'string'
+        ) :
+        [];
       if (mascotasIds.length > 0 && !mascotasIds.includes(objetivo)) {
         throw new HttpsError(
           'permission-denied',
           'La mascota evaluada no pertenece a este paseo'
-        )
+        );
       }
     }
 
     // 8. Documento con ID determinístico
-    const evaluacionId = `${tipo}_${actorId}_${objetivo}_${contextoId}`
-    const evaluacionRef = db.doc(`evaluaciones/${evaluacionId}`)
+    const evaluacionId = `${tipo}_${actorId}_${objetivo}_${contextoId}`;
+    const evaluacionRef = db.doc(`evaluaciones/${evaluacionId}`);
 
-    const datos: Record<string, unknown> = { comentario: comentarioLimpio }
-    if (comentarioPrivado !== '') datos.comentario_privado = comentarioPrivado
+    const datos: Record<string, unknown> = {comentario: comentarioLimpio};
+    if (comentarioPrivado !== '') datos.comentario_privado = comentarioPrivado;
     if (esEvaluacionHumana) {
-      datos.rating = Math.max(1, Math.min(5, rating as number))
+      datos.rating = Math.max(1, Math.min(5, rating as number));
     } else {
       for (const [campo, valor] of Object.entries(cualitativos)) {
-        if (valor !== '') datos[campo] = valor
+        if (valor !== '') datos[campo] = valor;
       }
     }
 
@@ -278,18 +286,18 @@ export const crearEvaluacion = onCall(
       await evaluacionRef.create({
         id: evaluacionId,
         tipo,
-        actor: { tipo: 'usuario', id: actorId },
+        actor: {tipo: 'usuario', id: actorId},
         objetivo: {
           tipo: esEvaluacionHumana ? 'usuario' : 'mascota',
           id: objetivo,
         },
-        contexto: { tipo: 'paseo', id: contextoId },
+        contexto: {tipo: 'paseo', id: contextoId},
         datos,
         creado_por: actorId,
         actualizado_por: actorId,
         creado_en: admin.firestore.FieldValue.serverTimestamp(),
         actualizado_en: admin.firestore.FieldValue.serverTimestamp(),
-      })
+      });
     } catch (error) {
       if (
         error instanceof Error &&
@@ -297,19 +305,19 @@ export const crearEvaluacion = onCall(
       ) {
         throw new HttpsError(
           'already-exists',
-          'Ya existe una evaluación de este tipo para esta combinación de actor/objetivo/paseo'
-        )
+          'Ya existe una evaluación de este tipo'
+        );
       }
       throw new HttpsError(
         'internal',
-        `Error al guardar evaluación: ${error instanceof Error ? error.message : String(error)}`
-      )
+        `Error al guardar: ${error instanceof Error ? error.message : String(error)}`
+      );
     }
 
     return {
       success: true,
       evaluacionId,
       timestamp: new Date().toISOString(),
-    }
+    };
   }
-)
+);

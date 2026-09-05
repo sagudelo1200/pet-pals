@@ -69,12 +69,17 @@ export default function CuidadorEvaluaTutor() {
       })) as { data: { success: boolean } }
 
       if (resultado.data.success) {
-        Alert.alert(t('exito_titulo'), t('exito_mensaje', { rating }), [
-          {
-            text: t('comun:boton.volver'),
-            onPress: () => navigation.navigate('CuidadorApp'),
-          },
-        ])
+        // Valor intrínseco: la evaluación al tutor es coaching privado
+        Alert.alert(
+          t('exito_titulo'),
+          t('exito_mensaje_tutor', 'Tu feedback privado ayuda a mejorar las próximas experiencias.'),
+          [
+            {
+              text: t('comun:boton.volver'),
+              onPress: () => navigation.navigate('CuidadorApp'),
+            },
+          ]
+        )
       } else {
         Alert.alert('Error', t('error_creando'))
       }
@@ -87,12 +92,16 @@ export default function CuidadorEvaluaTutor() {
 
       if (errorObj?.code === 'already-exists') {
         // Ya evaluado: se trata como éxito
-        Alert.alert(t('exito_titulo'), t('exito_mensaje', { rating }), [
-          {
-            text: t('comun:boton.volver'),
-            onPress: () => navigation.navigate('CuidadorApp'),
-          },
-        ])
+        Alert.alert(
+          t('exito_titulo'),
+          t('exito_mensaje_tutor', 'Tu feedback privado ayuda a mejorar las próximas experiencias.'),
+          [
+            {
+              text: t('comun:boton.volver'),
+              onPress: () => navigation.navigate('CuidadorApp'),
+            },
+          ]
+        )
         return
       } else if (errorObj?.code === 'failed-precondition') {
         mensajeError = 'El paseo debe estar completado'

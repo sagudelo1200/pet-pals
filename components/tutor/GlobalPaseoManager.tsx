@@ -1,39 +1,33 @@
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { useCallback } from 'react'
 import { Modal, View, StyleSheet, Platform, Alert } from 'react-native'
 import { BlurView } from 'expo-blur'
-import { httpsCallable } from 'firebase/functions'
-import { functions } from '@/firebase.config'
-import { PaseoFinalizadoCard } from '@/components/paseos/PaseoFinalizadoCard'
-import { useMonitorPaseoGlobal } from '@/hooks/paseos/useMonitorPaseoGlobal'
 import { useNavigation } from '@react-navigation/native'
 import { useTranslation } from 'react-i18next'
-import { ServicioPerfilPublico } from '@/services/firebase'
-import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs'
-import type { TutorTabParamList } from '@/navigation/types'
-
-interface ReputacionCuidador {
-  promedio: number
-  cantidad: number
-}
+import { useAuth } from '@/context/AuthContext'
+import { PaseoFinalizadoCard } from '@/components/paseos/PaseoFinalizadoCard'
+import { useMonitorPaseoGlobal } from '@/hooks/paseos/useMonitorPaseoGlobal'
+import { useEnviarEvaluacionCuidador } from '@/hooks/paseos/useEnviarEvaluacionCuidador'
+import type { AuthStackParamList } from '@/navigation/types'
+import type { StackNavigationProp } from '@react-navigation/stack'
 
 /**
- * Overlay global del tutor al finalizar un paseo (estado FINALIZADO).
+ * Overlay global del TUTOR al finalizar un paseo (estado FINALIZADO).
+ * Vive en el navigator RAÍZ para aparecer sobre cualquier pantalla del tutor
+ * (PaseoActivo, Chat, tabs).
+ * - SOLO se muestra al rol activo TUTOR: el contenido (calificar al cuidador)
+ *   es exclusivo del tutor; el cuidador tiene su propio flujo post-paseo
+ *   (overlay → observación de la mascota → evalúa al tutor).
  * - Muestra la reputación actual del cuidador (prueba social).
  * - La evaluación se envía SOLO cuando el tutor CONFIRMA las estrellas
- *   (nunca al tocar una estrella, para evitar envíos por tap accidental).
- * - Tras enviar, muestra el impacto: el nuevo promedio calculado localmente.
+ *   (nunca al tocar) + doble confirmación para 1-2★.
+ * - Tras enviar, muestra el impacto (nuevo promedio calculado localmente).
  */
 export const GlobalPaseoManager = () => {
+  const { rolActivo } = useAuth()
   const { showFinishedModal, paseo, handleClose } = useMonitorPaseoGlobal()
-  const navigation = useNavigation<BottomTabNavigationProp<TutorTabParamList>>()
+  const navigation =
+    useNavigation<StackNavigationProp<AuthStackParamList>>()
   const { t } = useTranslation()
-
-  const [ratingPrevio, setRatingPrevio] = useState<ReputacionCuidador | null>(
-    null
-  )
-  const [enviando, setEnviando] = useState(false)
-  const [enviado, setEnviado] = useState(false)
-  const [nuevoPromedio, setNuevoPromedio] = useState<number | null>(null)
 
   const paseoId = paseo?.id
   const original = (paseo as any)?.original as Record<string, any> | undefined
@@ -44,87 +38,13 @@ export const GlobalPaseoManager = () => {
     (paseo?.mascota_ids && paseo.mascota_ids[0]) ||
     'Tu mascota'
 
-  // Al abrir el modal: resetear estado y leer la reputación del cuidador
-  useEffect(() => {
-    if (!showFinishedModal || !cuidadorId) return undefined
-    let activo = true
-    setEnviado(false)
-    setEnviando(false)
-    setNuevoPromedio(null)
-    setRatingPrevio(null)
-
-    ServicioPerfilPublico.obtenerPorId(cuidadorId)
-      .then(res => {
-        if (!activo || !res.success || !res.data) return
-        const perfil = res.data as any
-        const promedio = typeof perfil.rating_promedio === 'number' ? perfil.rating_promedio : 0
-        const cantidad =
-          typeof perfil.cantidad_paseos_realizados === 'number'
-            ? perfil.cantidad_paseos_realizados
-            : 0
-        setRatingPrevio({ promedio, cantidad })
-      })
-      .catch(() => {
-        // Sin reputación disponible: se omite la prueba social
-      })
-
-    return () => {
-      activo = false
-    }
-  }, [showFinishedModal, cuidadorId])
-
-  const enviarRating = useCallback(
-    async (rating: number, comentarioPrivado?: string) => {
-      if (!paseoId || !cuidadorId || enviando || enviado) return
-      setEnviando(true)
-      try {
-        const crearEvaluacion = httpsCallable(functions, 'crearEvaluacion')
-        const resultado = (await crearEvaluacion({
-          tipo: 'evaluacion_cuidador',
-          objetivo: cuidadorId,
-          contextoId: paseoId,
-          rating,
-          comentario: '',
-          comentario_privado: comentarioPrivado,
-        })) as { data: { success: boolean } }
-
-        if (resultado.data.success) {
-          // Impacto inmediato: nuevo promedio calculado localmente
-          const prev = ratingPrevio
-          const nuevo =
-            prev && prev.cantidad > 0
-              ? Math.round(
-                  ((prev.promedio * prev.cantidad + rating) /
-                    (prev.cantidad + 1)) *
-                    100
-                ) / 100
-              : rating
-          setNuevoPromedio(nuevo)
-          setEnviado(true)
-        }
-      } catch (error) {
-        const code = (error as { code?: string })?.code
-        if (code === 'already-exists') {
-          // Ya se evaluó antes: se trata como éxito silencioso
-          setNuevoPromedio(ratingPrevio?.promedio ?? null)
-          setEnviado(true)
-        } else {
-          console.error('Error creando evaluación:', error)
-          Alert.alert(
-            t('evaluaciones:error_creando', 'No se pudo enviar la calificación')
-          )
-        }
-      } finally {
-        setEnviando(false)
-      }
-    },
-    [paseoId, cuidadorId, enviando, enviado, ratingPrevio, t]
-  )
+  const { ratingPrevio, enviando, enviado, nuevoPromedio, enviar } =
+    useEnviarEvaluacionCuidador(cuidadorId, paseoId)
 
   // Confirmación explícita (la tarjeta la llama al confirmar) + fricción
   // anti-troll para calificaciones bajas (1-2★)
   const handleRate = useCallback(
-    (rating: number, comentarioPrivado?: string) => {
+    (rating: number, comentario?: string, comentarioPrivado?: string) => {
       if (enviando || enviado) return
       if (rating <= 2) {
         Alert.alert(
@@ -135,16 +55,16 @@ export const GlobalPaseoManager = () => {
             {
               text: t('comun:aceptar'),
               onPress: () => {
-                void enviarRating(rating, comentarioPrivado)
+                void enviar(rating, comentario, comentarioPrivado)
               },
             },
           ]
         )
         return
       }
-      void enviarRating(rating, comentarioPrivado)
+      void enviar(rating, comentario, comentarioPrivado)
     },
-    [enviando, enviado, enviarRating, t]
+    [enviando, enviado, enviar, t]
   )
 
   const onClose = async () => {
@@ -154,13 +74,15 @@ export const GlobalPaseoManager = () => {
       // Se ignora: se navega igual
     }
     try {
-      navigation.navigate('Inicio')
+      navigation.navigate('TutorApp')
     } catch (_e) {
       // Se ignora si el contexto de navegación difiere
     }
   }
 
-  if (!showFinishedModal || !paseo) return null
+  // SOLO al rol tutor: el contenido del modal es exclusivo del tutor
+  // (calificar al cuidador). El cuidador nunca debe verlo.
+  if (!showFinishedModal || !paseo || rolActivo !== 'tutor') return null
 
   return (
     <Modal

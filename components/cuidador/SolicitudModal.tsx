@@ -23,6 +23,8 @@ import { GestorPerfilPublico } from '@/logic/usuarios/perfilPublico'
 import { PerfilPublico } from '@/models/PerfilPublico'
 import { usePedirCelularSiFalta } from '@/hooks/usePedirCelularSiFalta'
 import { ModalCompletarCelular } from '@/components/paseos/ModalCompletarCelular'
+import { ServicioResumenEvaluacion } from '@/services/firebase'
+import { keyI18nChip } from '@/logic/mascotas/comportamiento'
 
 interface Props {
   visible: boolean
@@ -40,6 +42,49 @@ const SolicitudModal: React.FC<Props> = ({ visible, paseo, onClose }) => {
   const [tutor, setTutor] = useState<PerfilPublico | null>(null)
   const [loadingTutor, setLoadingTutor] = useState(false)
   const [modalCelularVisible, setModalCelularVisible] = useState(false)
+  const [expediente, setExpediente] = useState<string | null>(null)
+
+  // Expediente de la primera mascota: "Tranquila · Sociable · Tolerante"
+  // (solo si hay registros y es UNA sola mascota — sin sobrecargar el modal)
+  useEffect(() => {
+    let mounted = true
+    setExpediente(null)
+    const cargar = async () => {
+      if (!visible || mascotas.length !== 1 || !mascotas[0]?.id) return
+      try {
+        const res = await ServicioResumenEvaluacion.obtenerPorObjetivo(
+          mascotas[0].id
+        )
+        if (!mounted || !res.success || !res.data?.comportamiento_resumen) {
+          return
+        }
+        const c = res.data.comportamiento_resumen
+        if ((c.total_observaciones ?? 0) === 0) return
+        // Top de cada eje: "Tranquila · Sociable · Tolerante"
+        const ejes: Array<['ritmo' | 'compania' | 'tolerancia', Record<string, number>?]> = [
+          ['ritmo', c.ritmo],
+          ['compania', c.compania],
+          ['tolerancia', c.tolerancia],
+        ]
+        const partes = ejes
+          .map(([eje, counts]) => {
+            if (!counts) return null
+            const [valor, n] =
+              Object.entries(counts).sort((a, b) => b[1] - a[1])[0] || []
+            if (!valor || !n) return null
+            return t(keyI18nChip(eje, valor), { defaultValue: valor })
+          })
+          .filter(Boolean)
+        if (mounted && partes.length > 0) setExpediente(partes.join(' · '))
+      } catch (_e) {
+        // Sin expediente: se omite
+      }
+    }
+    void cargar()
+    return () => {
+      mounted = false
+    }
+  }, [visible, mascotas, t])
   const {
     tieneCelular,
     guardarCelular,
@@ -291,6 +336,17 @@ const SolicitudModal: React.FC<Props> = ({ visible, paseo, onClose }) => {
             </Text>
           )}
 
+          {/* Expediente de comportamiento (si la mascota ya tiene registros):
+              el cuidador llega preparado antes de aceptar */}
+          {expediente && (
+            <Text style={styles.expedienteTexto}>
+              {t('cuidador:solicitudes.sobre_mascota', 'Sobre {{nombre}}', {
+                nombre: mascotasAMostrar[0]?.nombre || 'la mascota',
+              })}
+              : {expediente}
+            </Text>
+          )}
+
           <Spacer size={24} />
 
           {/* Acciones */}
@@ -403,6 +459,13 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
     textAlign: 'center',
     marginTop: 10,
+  },
+  expedienteTexto: {
+    color: COLOR.PRIMARIO,
+    fontSize: 13,
+    fontWeight: '600',
+    textAlign: 'center',
+    marginTop: 12,
   },
   footerActions: {
     flexDirection: 'row',
