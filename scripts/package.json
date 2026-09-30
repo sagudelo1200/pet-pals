@@ -1,0 +1,16 @@
+{
+  "name": "paw-path-siigo-scripts",
+  "version": "1.0.0",
+  "description": "Scripts de prueba para integración con Siigo API",
+  "private": true,
+  "scripts": {
+    "siigo:export-products": "node siigo-products-export.js",
+    "siigo:test": "node siigo-products-export.js"
+  },
+  "dependencies": {
+    "dotenv": "^16.0.3"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}

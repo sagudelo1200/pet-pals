@@ -29,9 +29,9 @@ interface PaseoFinalizadoCardProps {
    * ve el evaluado tras la revelación (nunca es público).
    */
   onRate?: (
-    rating: number,
-    comentario?: string,
-    comentarioPrivado?: string
+    _rating: number,
+    _comentario?: string,
+    _comentarioPrivado?: string
   ) => void
   /** Reputación actual del cuidador (prueba social antes de calificar). */
   ratingPrevio?: ReputacionCuidador | null
@@ -96,9 +96,7 @@ export const PaseoFinalizadoCard: React.FC<PaseoFinalizadoCardProps> = ({
   const mostrarReputacion =
     !!ratingPrevio && ratingPrevio.cantidad > 0 && !enviado
   const totalPaseosTrasEnvio =
-    ratingPrevio && ratingPrevio.cantidad > 0
-      ? ratingPrevio.cantidad + 1
-      : 1
+    ratingPrevio && ratingPrevio.cantidad > 0 ? ratingPrevio.cantidad + 1 : 1
 
   return (
     <View style={styles.container}>

@@ -30,11 +30,6 @@ import {
   type EjeComportamiento,
 } from '@/logic/mascotas/comportamiento'
 
-interface MascotaPaseo {
-  id: string
-  nombre: string
-}
-
 type RouteProps = RouteProp<AuthStackParamList, 'ObservacionMascota'>
 
 /**
@@ -166,10 +161,7 @@ export default function ObservacionMascota() {
             key={opcion}
             onPress={() => seleccionarChip(eje, opcion)}
             disabled={observando}
-            style={[
-              styles.chip,
-              seleccionado && styles.chipSeleccionado,
-            ]}
+            style={[styles.chip, seleccionado && styles.chipSeleccionado]}
           >
             <Text
               style={[
@@ -227,7 +219,10 @@ export default function ObservacionMascota() {
 
       <Spacer size={8} />
       <Text style={{ color: COLOR.SUBTEXTO, fontSize: 13 }}>
-        {t('observacion_subtitulo', 'Un tap por campo: así crece el expediente de tu mascota')}
+        {t(
+          'observacion_subtitulo',
+          'Un tap por campo: así crece el expediente de tu mascota'
+        )}
       </Text>
 
       <Spacer size={16} />

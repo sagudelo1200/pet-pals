@@ -9,11 +9,13 @@ import {
 } from 'react-native'
 import { Block, Text } from 'galio-framework'
 import { COLOR } from '@/constants'
-import { Button, TextInput } from '@/components/ui'
-import { GoogleSignInButton } from '@/components/auth/GoogleSignInButton'
+import { Button, TextInput, CheckboxConsentimiento } from '@/components/ui'
+import { ModalLeerConsentimiento } from '@/components/consentimientos'
+// import { GoogleSignInButton } from '@/components/auth/GoogleSignInButton'
 import { BirthDatePicker } from '@/components/auth/BirthDatePicker'
 import Screen from '@/components/ui/Screen'
 import { useAuth } from '@/context/AuthContext'
+import { useRegistroConsentimiento } from '@/hooks'
 import { useTranslation } from 'react-i18next'
 import { useNavigation } from '@react-navigation/native'
 import type { StackNavigationProp } from '@react-navigation/stack'
@@ -57,9 +59,18 @@ const Registro: React.FC = () => {
   const navigation = useNavigation<Nav>()
   const { registrar, cargando } = useAuth()
   const { t } = useTranslation()
+  const {
+    consentimientoAceptado,
+    toggleConsentimiento,
+    registrarConsentimientoAlRegistro,
+    abrirModal,
+    cerrarModal,
+    modalVisible,
+  } = useRegistroConsentimiento()
   const [nombre, setNombre] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
   const [fechaNacimiento, setFechaNacimiento] = useState<Date | undefined>()
   const [emailTouched, setEmailTouched] = useState(false)
   const [passwordTouched, setPasswordTouched] = useState(false)
@@ -187,6 +198,19 @@ const Registro: React.FC = () => {
       return
     }
 
+    // Validar que el consentimiento sea aceptado
+    if (!consentimientoAceptado) {
+      if (isMountedRef.current) {
+        Alert.alert(
+          t('auth:registro.errores.consentimiento.titulo') ||
+            'Consentimiento Requerido',
+          t('auth:registro.errores.consentimiento.mensaje') ||
+            'Debes aceptar el tratamiento de tus datos personales para continuar'
+        )
+      }
+      return
+    }
+
     console.log('[Registro] Llamando a registrar...', { email, nombre })
     const result = await registrar(
       email.trim(),
@@ -214,13 +238,36 @@ const Registro: React.FC = () => {
       return
     }
 
-    // ✅ Registro exitoso: NO navegar aquí
-    // AuthNavigator detectará emailVerified=false y navegará automáticamente
-    // Esto evita conflictos de navegación simultánea
+    // Registrar consentimiento después del registro de usuario exitoso
     console.log(
-      '[Registro] ✅ Registro exitoso, esperando navegación de AuthNavigator...'
+      '[Registro] ✅ Usuario registrado, registrando consentimiento...'
     )
-  }, [canSubmit, email, nombre, password, fechaNacimiento, registrar, t])
+    const consentimientoRegistrado = await registrarConsentimientoAlRegistro()
+
+    if (!consentimientoRegistrado) {
+      console.warn(
+        '[Registro] ⚠️ Consentimiento no fue registrado, pero usuario está autenticado'
+      )
+      // No bloqueamos el flujo si el consentimiento falla
+      // El usuario ya está registrado y puede continuar
+    }
+
+    // ✅ Registro y consentimiento completados
+    // AuthNavigator detectará emailVerified=false y navegará automáticamente
+    console.log(
+      '[Registro] ✅ Registro y consentimiento completados, esperando navegación...'
+    )
+  }, [
+    canSubmit,
+    consentimientoAceptado,
+    email,
+    nombre,
+    password,
+    fechaNacimiento,
+    registrar,
+    registrarConsentimientoAlRegistro,
+    t,
+  ])
 
   // Validar nombre
   const nombreValido = useCallback(() => nombre.trim().length > 0, [nombre])
@@ -256,6 +303,10 @@ const Registro: React.FC = () => {
       // No hay ref para BirthDatePicker, así que solo marcamos como tocado
     }
   }, [passwordValido])
+
+  const toggleShowPassword = useCallback(() => {
+    setShowPassword(prev => !prev)
+  }, [])
 
   const goToLogin = useCallback(() => {
     if (isMountedRef.current) {
@@ -339,9 +390,11 @@ const Registro: React.FC = () => {
               if (!passwordTouched) setPasswordTouched(true)
             }}
             placeholder={t('auth:registro.formulario.password.placeholder')}
-            secureTextEntry
+            secureTextEntry={!showPassword}
             autoCapitalize="none"
             iconName="lock"
+            rightIcon={showPassword ? 'eye' : 'eye-slash'}
+            onRightIconPress={toggleShowPassword}
             errorText={passwordError}
             returnKeyType="next"
             onSubmitEditing={handlePasswordSubmit}
@@ -353,6 +406,16 @@ const Registro: React.FC = () => {
             errorText={fechaNacimientoError}
           />
 
+          <CheckboxConsentimiento
+            label={
+              t('auth:registro.formulario.consentimiento.label') ||
+              'Acepto el tratamiento de mis datos personales conforme a la Ley 1581 de 2012'
+            }
+            value={consentimientoAceptado}
+            onValueChange={toggleConsentimiento}
+            onLeerDocumento={abrirModal}
+          />
+
           <Button
             title={
               cargando
@@ -362,7 +425,7 @@ const Registro: React.FC = () => {
             onPress={onSubmit}
             variant="primario"
             style={styles.submit}
-            disabled={!canSubmit}
+            disabled={!canSubmit || !consentimientoAceptado}
             loading={cargando}
           />
 
@@ -373,9 +436,16 @@ const Registro: React.FC = () => {
             style={styles.secondary}
           />
 
-          <GoogleSignInButton />
+          {/* TODO: Implementar Google y Apple Sign-In */}
+          {/* <GoogleSignInButton /> */}
         </Animated.View>
       </Block>
+
+      <ModalLeerConsentimiento
+        visible={modalVisible}
+        tipoConsentimiento="DATOS_PERSONALES"
+        onClose={cerrarModal}
+      />
     </Screen>
   )
 }

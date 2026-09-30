@@ -246,24 +246,26 @@ export const ConfirmarPaseoPaso = ({
           {/* Paseo Compartido Compact (temporalmente desactivado en MVP) */}
           <View style={[styles.section, { marginBottom: 4 }]}>
             {PASEO_COMPARTIDO_FEATURE && (
-              <View style={styles.savingsBannerCompact}>
-                <Icon name="check-circle" size={14} color={COLOR.EXITO} />
-                <Text style={styles.savingsTextCompact}>
-                  {t('paseos:pasos.confirmar.ahorro_mensaje', {
-                    descuento: Math.round(COMPARTIDO_DISCOUNT * 100),
-                  })}
-                </Text>
-              </View>
+              <>
+                <View style={styles.savingsBannerCompact}>
+                  <Icon name="check-circle" size={14} color={COLOR.EXITO} />
+                  <Text style={styles.savingsTextCompact}>
+                    {t('paseos:pasos.confirmar.ahorro_mensaje', {
+                      descuento: Math.round(COMPARTIDO_DISCOUNT * 100),
+                    })}
+                  </Text>
+                </View>
+                <View style={{ marginTop: 4 }}>
+                  <Switch
+                    value={esCompartido}
+                    onValueChange={onCompartidoChange}
+                    label={t('paseos:pasos.confirmar.paseo_compartido_label')}
+                    style={{ paddingVertical: 4 }}
+                    disabled={true}
+                  />
+                </View>
+              </>
             )}
-            <View style={{ marginTop: 4 }}>
-              <Switch
-                value={esCompartido}
-                onValueChange={onCompartidoChange}
-                label={t('paseos:pasos.confirmar.paseo_compartido_label')}
-                style={{ paddingVertical: 4 }}
-                disabled={true}
-              />
-            </View>
           </View>
 
           <View style={styles.divider} />

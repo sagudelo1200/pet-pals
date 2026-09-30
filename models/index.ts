@@ -49,3 +49,19 @@ export {
   transicionValida,
   revalidacionValida,
 } from './Verificacion'
+export {
+  type EstadoConsentimiento,
+  type EstadoBase,
+  type MotivoNoVigencia,
+  type DocumentoConsentimiento,
+  type Consentimiento,
+  type ConsentimientoEstadoActual,
+  transicionValida as consentimientoTransicionValida,
+  TRANSICIONES_VALIDAS,
+} from './Consentimiento'
+export {
+  evaluarVigencia as evaluarConsentimiento,
+  evaluarAlerta as evaluarAlertaConsentimiento,
+  type ResultadoVigencia as ResultadoEvaluacionConsentimiento,
+  type ResultadoAlerta,
+} from '@/logic/consentimientos/evaluador'

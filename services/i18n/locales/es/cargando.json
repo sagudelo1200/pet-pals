@@ -39,5 +39,13 @@
     "Preparando un paseo seguro",
     "Conectando con personas que cuidan de verdad",
     "Todo listo para empezar el recorrido"
+  ],
+  "consentimiento": [
+    "Cargando documento...",
+    "Un momento...",
+    "Escribiendo documento...",
+    "Preparando documento...",
+    "Trae el documento",
+    "Consultando términos"
   ]
 }

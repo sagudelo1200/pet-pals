@@ -1,0 +1,32 @@
+{
+  "titulo": "Consentimientos",
+  "documentos": {
+    "DATOS_PERSONALES": {
+      "titulo": "Tratamiento de Datos Personales",
+      "resumen": "Autorizo el tratamiento de mis datos personales",
+      "contenido": "POLÍTICA DE TRATAMIENTO DE DATOS PERSONALES\n\nDe conformidad con la Ley 1581 de 2012 y Decreto 1377 de 2013, Pet Pals solicita tu autorización para el tratamiento de tus datos personales.\n\n1. RESPONSABLE DEL TRATAMIENTO\nPaw-Path es responsable del tratamiento de tus datos personales.\n\n2. FINALIDAD\n- Crear y mantener tu cuenta\n- Facilitar conexiones con cuidadores\n- Mejorar la experiencia en la plataforma\n- Cumplir obligaciones legales\n\n3. DATOS RECOLECTADOS\n- Información de identificación (nombre, email, teléfono)\n- Datos de ubicación (con tu consentimiento)\n- Información de tus mascotas\n- Historial de transacciones y paseos\n\n4. DERECHOS\nTienes derecho a:\n- Acceder a tus datos\n- Solicitar correcciones\n- Solicitar eliminación (derecho al olvido)\n- Revocar tu consentimiento\n- Presentar quejas ante la Superintendencia de Industria y Comercio (SIC)\n\n5. VIGENCIA\nEste consentimiento es válido por 12 meses desde la aceptación y será requerido al vencer."
+    }
+  },
+  "estados": {
+    "ACEPTADO": "Aceptado",
+    "RECHAZADO": "Rechazado",
+    "PENDIENTE": "Pendiente de aceptación",
+    "REVOCADO": "Revocado"
+  },
+  "acciones": {
+    "aceptar": "Aceptar",
+    "rechazar": "Rechazar",
+    "revocar": "Revocar consentimiento",
+    "leer": "Leer documento",
+    "cerrar": "Cerrar"
+  },
+  "mensajes": {
+    "debeAceptar": "Debes aceptar los consentimientos obligatorios",
+    "acepto": "Acepto el tratamiento de datos personales",
+    "versionCambiada": "Hay una nueva versión de este consentimiento que requiere tu aceptación",
+    "errorAlCargar": "Error al cargar el documento",
+    "confirmacionRechazo": "¿Estás seguro de que deseas rechazar este consentimiento?",
+    "confirmacionRevocacion": "¿Estás seguro de que deseas revocar tu consentimiento?",
+    "consentimientoRegistrado": "Consentimiento registrado exitosamente"
+  }
+}

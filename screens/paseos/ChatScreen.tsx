@@ -150,26 +150,27 @@ export const ChatScreen: React.FC = () => {
           <Text style={styles.errorText}>{error}</Text>
         </View>
       ) : (
-        <View style={styles.chatContainer}>
-          {mensajes.length === 0 ? (
-            <View style={styles.emptyContainer}>
-              <Icon name="comments" size={48} color={COLOR.BORDE} />
-              <Text style={styles.emptyText}>
-                {t('chat:sin_mensajes') || 'Sin mensajes'}
-              </Text>
-            </View>
-          ) : (
-            <FlashList
-              ref={scrollViewRef}
-              data={mensajes}
-              renderItem={({ item }) => renderMensaje(item)}
-              keyExtractor={item => item.id}
-              contentContainerStyle={styles.contentContainer}
-              scrollEnabled={true}
-              keyboardDismissMode="on-drag"
-            />
-          )}
-
+        <>
+          <View style={{ flex: 1 }}>
+            {mensajes.length === 0 ? (
+              <View style={styles.emptyContainer}>
+                <Icon name="comments" size={48} color={COLOR.BORDE} />
+                <Text style={styles.emptyText}>
+                  {t('chat:sin_mensajes') || 'Sin mensajes'}
+                </Text>
+              </View>
+            ) : (
+              <FlashList
+                ref={scrollViewRef}
+                data={mensajes}
+                renderItem={({ item }) => renderMensaje(item)}
+                keyExtractor={item => item.id}
+                contentContainerStyle={styles.contentContainer}
+                scrollEnabled={true}
+                keyboardDismissMode="on-drag"
+              />
+            )}
+          </View>
           <InputFooter
             inputRef={inputRef}
             contenido={contenido}
@@ -178,7 +179,7 @@ export const ChatScreen: React.FC = () => {
             enviando={enviando}
             conversacion={conversacion}
           />
-        </View>
+        </>
       )}
     </Screen>
   )

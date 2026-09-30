@@ -1,0 +1,32 @@
+{
+  "titulo": "Consents",
+  "documentos": {
+    "DATOS_PERSONALES": {
+      "titulo": "Personal Data Processing",
+      "resumen": "I authorize the processing of my personal data",
+      "contenido": "PERSONAL DATA PROCESSING POLICY\n\nIn accordance with Law 1581 of 2012 and Decree 1377 of 2013, Pet Pals requests your authorization for the processing of your personal data.\n\n1. DATA CONTROLLER\nPet Pals is responsible for the processing of your personal data.\n\n2. PURPOSE\n- Create and maintain your account\n- Facilitate connections with caregivers\n- Improve platform experience\n- Comply with legal obligations\n\n3. DATA COLLECTED\n- Identification information (name, email, phone)\n- Location data (with your consent)\n- Information about your pets\n- Transaction and walk history\n\n4. YOUR RIGHTS\nYou have the right to:\n- Access your data\n- Request corrections\n- Request deletion (right to be forgotten)\n- Revoke your consent\n- File complaints with the Superintendence of Industry and Commerce (SIC)\n\n5. VALIDITY\nThis consent is valid for 12 months from acceptance and will be required upon expiration."
+    }
+  },
+  "estados": {
+    "ACEPTADO": "Accepted",
+    "RECHAZADO": "Rejected",
+    "PENDIENTE": "Pending acceptance",
+    "REVOCADO": "Revoked"
+  },
+  "acciones": {
+    "aceptar": "Accept",
+    "rechazar": "Reject",
+    "revocar": "Revoke consent",
+    "leer": "Read document",
+    "cerrar": "Close"
+  },
+  "mensajes": {
+    "debeAceptar": "You must accept mandatory consents",
+    "acepto": "I accept the processing of personal data",
+    "versionCambiada": "There is a new version of this consent that requires your acceptance",
+    "errorAlCargar": "Error loading document",
+    "confirmacionRechazo": "Are you sure you want to reject this consent?",
+    "confirmacionRevocacion": "Are you sure you want to revoke your consent?",
+    "consentimientoRegistrado": "Consent registered successfully"
+  }
+}

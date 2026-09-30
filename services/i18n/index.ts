@@ -1,38 +1,6 @@
 import i18n from 'i18next'
 import { initReactI18next } from 'react-i18next'
-
-// Recursos base (ES)
-import esComun from './locales/es/comun.json'
-import esAuth from './locales/es/auth.json'
-import esMascotas from './locales/es/mascotas.json'
-import esPaseos from './locales/es/paseos.json'
-import esPaseosControl from './locales/es/paseos_control.json'
-import esCargando from './locales/es/cargando.json'
-import esPerfil from './locales/es/perfil.json'
-import esCuidador from './locales/es/cuidador.json'
-import esTutor from './locales/es/tutor.json'
-import esUbicaciones from './locales/es/ubicaciones.json'
-import esExplorador from './locales/es/explorador.json'
-import esUsuarios from './locales/es/usuarios.json'
-import esChat from './locales/es/chat.json'
-import esEvaluaciones from './locales/es/evaluaciones.json'
-
-// English resources
-import enComun from './locales/en/comun.json'
-import enAuth from './locales/en/auth.json'
-import enMascotas from './locales/en/mascotas.json'
-import enPaseos from './locales/en/paseos.json'
-import enPaseosControl from './locales/en/paseos_control.json'
-import enCargando from './locales/en/cargando.json'
-import enPerfil from './locales/en/perfil.json'
-import enCuidador from './locales/en/cuidador.json'
-import enTutor from './locales/en/tutor.json'
-import enUbicaciones from './locales/en/ubicaciones.json'
-import enExplorador from './locales/en/explorador.json'
-import enUsuarios from './locales/en/usuarios.json'
-import enChat from './locales/en/chat.json'
-import enEvaluaciones from './locales/en/evaluaciones.json'
-
+import { loadLocales, NAMESPACES, SUPPORTED_LANGUAGES } from './config'
 import { ERR, type ErrorCode } from '@/constants/errors'
 
 // Detección opcional del idioma del dispositivo sin forzar dependencia inmediata
@@ -49,59 +17,16 @@ function detectDeviceLanguage(): string {
 
 // Inicialización única
 if (!i18n.isInitialized) {
+  const resources = loadLocales()
+
   void i18n.use(initReactI18next).init({
     compatibilityJSON: 'v4',
-    resources: {
-      es: {
-        comun: esComun,
-        auth: esAuth as any,
-        mascotas: esMascotas as any,
-        paseos: { ...esPaseos, ...esPaseosControl } as any,
-        cargando: esCargando as any,
-        perfil: esPerfil as any,
-        cuidador: esCuidador as any,
-        tutor: esTutor as any,
-        ubicaciones: esUbicaciones as any,
-        explorador: esExplorador as any,
-        usuarios: esUsuarios as any,
-        chat: esChat as any,
-        evaluaciones: esEvaluaciones as any,
-      },
-      en: {
-        comun: enComun,
-        auth: enAuth as any,
-        mascotas: enMascotas as any,
-        paseos: { ...enPaseos, ...enPaseosControl } as any,
-        cargando: enCargando as any,
-        perfil: enPerfil as any,
-        cuidador: enCuidador as any,
-        tutor: enTutor as any,
-        ubicaciones: enUbicaciones as any,
-        explorador: enExplorador as any,
-        usuarios: enUsuarios as any,
-        chat: enChat as any,
-        evaluaciones: enEvaluaciones as any,
-      },
-    },
-    ns: [
-      'comun',
-      'auth',
-      'mascotas',
-      'paseos',
-      'cargando',
-      'perfil',
-      'cuidador',
-      'tutor',
-      'ubicaciones',
-      'explorador',
-      'usuarios',
-      'chat',
-      'evaluaciones',
-    ],
+    resources,
+    ns: NAMESPACES,
     defaultNS: 'comun',
     fallbackLng: 'es',
     lng: detectDeviceLanguage() || 'es',
-    supportedLngs: ['es', 'en'],
+    supportedLngs: SUPPORTED_LANGUAGES,
     nsSeparator: ':',
     keySeparator: '.',
     interpolation: { escapeValue: false },

@@ -27,3 +27,8 @@ export {crearEvaluacion} from './evaluaciones/crearEvaluacion';
 export {alCrearEvaluacion} from './evaluaciones/alCrearEvaluacion';
 export {alCompletarPaseo} from './evaluaciones/alCompletarPaseo';
 export {revelarEvaluacionVencida} from './evaluaciones/revelarEvaluacion';
+
+// Consentimientos
+export {registrarConsentimiento} from './consentimientos/registrarConsentimiento';
+export {publicarNuevaVersion} from './consentimientos/publicarNuevaVersion';
+export {alPublicarNuevaVersion} from './consentimientos/alPublicarNuevaVersion';

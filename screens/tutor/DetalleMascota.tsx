@@ -23,10 +23,7 @@ import { AuthStackParamList } from '@/navigation/types'
 import type { Mascota } from '@/models/Mascota'
 import { calcularCompletitud } from '@/logic/mascotas/calcularCompletitud'
 import { ServicioResumenEvaluacion } from '@/services/firebase'
-import type {
-  ResumenEvaluacion,
-  ObservacionMascota,
-} from '@/models/ResumenEvaluacion'
+import type { ResumenEvaluacion } from '@/models/ResumenEvaluacion'
 import { keyI18nChip } from '@/logic/mascotas/comportamiento'
 
 // Hooks
@@ -84,9 +81,8 @@ const DetalleMascota: React.FC = () => {
   // Expediente de la mascota (observaciones de cuidadores): la observación
   // pertenece a la mascota. Guarda el resumen completo para mostrar el
   // patrón (comportamiento_resumen) y las observaciones recientes.
-  const [resumenMascota, setResumenMascota] = useState<ResumenEvaluacion | null>(
-    null
-  )
+  const [resumenMascota, setResumenMascota] =
+    useState<ResumenEvaluacion | null>(null)
   useEffect(() => {
     if (!mascotaNormalizada?.id) return undefined
     let activo = true
@@ -456,10 +452,7 @@ const DetalleMascota: React.FC = () => {
                           {formatearEje('compania', comportamiento.compania)}
                         </Text>
                       ) : null}
-                      {formatearEje(
-                        'tolerancia',
-                        comportamiento.tolerancia
-                      ) ? (
+                      {formatearEje('tolerancia', comportamiento.tolerancia) ? (
                         <Text style={styles.comportamientoLinea}>
                           {t('mascotas:detalle.tolerancia', 'Tolerancia')}:{' '}
                           {formatearEje(

@@ -45,7 +45,7 @@ export const GoogleSignInButton = () => {
 
   return (
     <View style={styles.container}>
-      <View style={styles.separatorContainer}>
+      {/* <View style={styles.separatorContainer}>
         <View style={styles.separatorLine} />
         <Text style={styles.separatorText}>{t('auth:o_prueba')}</Text>
         <View style={styles.separatorLine} />
@@ -71,7 +71,7 @@ export const GoogleSignInButton = () => {
             </Text>
           </>
         )}
-      </Pressable>
+      </Pressable> */}
     </View>
   )
 }

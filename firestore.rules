@@ -639,5 +639,77 @@ service cloud.firestore {
       // Los clientes NO deben escribir directamente
       allow write: if false;
     }
+
+    // DOCUMENTOS DE CONSENTIMIENTO (Versiones legales)
+    // /documentos_consentimientos/{docId}
+    // Ej: documentos_consentimientos/DATOS_PERSONALES_v1
+    //
+    // Estos son documentos legales que los usuarios leen y aceptan.
+    // Cada versión es inmutable para auditoría legal.
+    // Solo admin puede crear/actualizar; cualquier usuario puede leer (público legal).
+    match /documentos_consentimientos/{docId} {
+      // LECTURA: PÚBLICO (sin autenticación requerida)
+      // Necesario para mostrar documento en flujo de registro (usuario aún no autenticado)
+      // Los documentos legales son públicos por naturaleza
+      allow read: if true;
+
+      // CREACIÓN: SOLO admin (a través de console o CLI)
+      // Solo admin puede crear nuevas versiones de documentos
+      allow create: if es_admin() &&
+      tiene_campos_sistema_basicos() &&
+      campos_sistema_validos_crear() &&
+      request.resource.data.tipo_documento is string &&
+      request.resource.data.tipo_documento.size() > 0 &&
+      request.resource.data.version is int &&
+      request.resource.data.version > 0 &&
+      request.resource.data.titulo is string &&
+      request.resource.data.titulo.size() > 0 &&
+      request.resource.data.contenido is string &&
+      request.resource.data.contenido.size() > 0 &&
+      request.resource.data.hash_contenido is string &&
+      request.resource.data.es_obligatorio is bool &&
+      request.resource.data.activo is bool;
+
+      // ACTUALIZACIÓN: SOLO admin
+      // Solo se puede actualizar para marcar como activo/inactivo
+      allow update: if es_admin() &&
+      puede_actualizar_valido() &&
+      request.resource.data.tipo_documento == resource.data.tipo_documento &&
+      request.resource.data.version == resource.data.version &&
+      request.resource.data.contenido == resource.data.contenido &&
+      request.resource.data.hash_contenido == resource.data.hash_contenido &&
+      solo_campos_permitidos([
+      'tipo_documento', 'version', 'titulo', 'contenido', 'hash_contenido',
+      'es_obligatorio', 'roles_requeridos', 'requiere_reconfirmacion_meses',
+      'activo', 'id', 'creado_por', 'creado_en', 'actualizado_en', 'actualizado_por'
+      ]);
+
+      // ELIMINACIÓN: NO permitida (auditoría legal)
+      allow delete: if false;
+    }
+
+    // EVENTOS DE CONSENTIMIENTO (Historial legal inmutable)
+    // /consentimientos/{eventId}
+    //
+    // Cada aceptación/rechazo/revocación es un evento inmutable.
+    // Estos eventos crean el historial legal auditable.
+    // Los usuarios pueden leer sus propios eventos; admin lee todo.
+    // SOLO la Cloud Function puede crear eventos (vía Admin SDK, ignora rules).
+    match /consentimientos/{eventId} {
+      // LECTURA: El usuario que generó el evento, admin, o usuarios con acceso especial
+      allow read: if autenticado() && (
+      resource.data.usuario_id == request.auth.uid ||
+      es_admin()
+      );
+
+      // CREACIÓN: SOLO Cloud Function
+      allow create: if false;
+
+      // ACTUALIZACIÓN: NO permitida (inmutable para auditoría)
+      allow update: if false;
+
+      // ELIMINACIÓN: SOLO admin (raro, casos legales excepcionales)
+      allow delete: if es_admin();
+    }
   }
 }

@@ -1,8 +1,8 @@
 {
   "extends": "expo/tsconfig.base",
   "compilerOptions": {
-    "target": "es2017",
-    "lib": ["es2017", "dom"],
+    "target": "es2019",
+    "lib": ["es2019", "dom"],
     "module": "esnext",
     "allowJs": true,
     "skipLibCheck": true,
@@ -27,5 +27,11 @@
     "types": ["react", "react-native", "jest"]
   },
   "include": ["**/*.ts", "**/*.tsx"],
-  "exclude": ["node_modules", "babel.config.js", "jest.config.ts", "functions"]
+  "exclude": [
+    "node_modules",
+    "babel.config.js",
+    "jest.config.ts",
+    "functions",
+    "scripts"
+  ]
 }

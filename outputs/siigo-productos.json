@@ -1,0 +1,146 @@
+{
+  "timestamp": "2026-09-17T23:11:02.032Z",
+  "api_endpoint": "/v1/products",
+  "api_version": "v1",
+  "partner_id": "PAWPATHAPP",
+  "total": 4,
+  "productos": [
+    {
+      "id": "1a3ee414-e751-40f0-b4bb-e2d51142d053",
+      "code": "PP",
+      "name": "PASEO PAW-PATH",
+      "account_group": {
+        "id": 126,
+        "name": "Servicios"
+      },
+      "type": "Service",
+      "stock_control": false,
+      "active": true,
+      "tax_classification": "Excluded",
+      "tax_included": false,
+      "prices": [
+        {
+          "currency_code": "COP",
+          "price_list": [
+            {
+              "position": 1,
+              "name": "Precio de venta 1",
+              "value": 20000
+            }
+          ]
+        }
+      ],
+      "unit": {
+        "code": "94",
+        "name": "unidad"
+      },
+      "unit_label": "unidad",
+      "reference": "",
+      "description": "",
+      "additional_fields": {},
+      "available_quantity": 0,
+      "warehouses": [],
+      "metadata": {
+        "created": "2026-09-04T20:13:33.427Z"
+      }
+    },
+    {
+      "id": "710e79a1-0c33-40d7-b263-5b462317b46f",
+      "code": "PAW",
+      "name": "PASEO_INDIVIDUAL",
+      "account_group": {
+        "id": 126,
+        "name": "Servicios"
+      },
+      "type": "Service",
+      "stock_control": false,
+      "active": true,
+      "tax_classification": "Excluded",
+      "tax_included": false,
+      "prices": [
+        {
+          "currency_code": "COP",
+          "price_list": [
+            {
+              "position": 1,
+              "name": "Precio de venta 1",
+              "value": 21000
+            }
+          ]
+        }
+      ],
+      "unit": {
+        "code": "94",
+        "name": "unidad"
+      },
+      "unit_label": "unidad",
+      "additional_fields": {},
+      "available_quantity": 0,
+      "warehouses": [],
+      "metadata": {
+        "created": "2026-09-04T11:27:40.887Z"
+      }
+    },
+    {
+      "id": "6db7a0dd-5ff9-4177-8c48-c4bf4a0c47cd",
+      "code": "productogenericonube",
+      "name": "Producto genérico del sistema Siigo Nube (POS - WhatsApp)",
+      "account_group": {
+        "id": 125,
+        "name": "Productos"
+      },
+      "type": "Product",
+      "stock_control": false,
+      "active": true,
+      "tax_classification": "Taxed",
+      "tax_included": false,
+      "taxes": [
+        {
+          "id": 1312,
+          "name": "IVA 19%",
+          "type": "IVA",
+          "percentage": 19
+        }
+      ],
+      "unit": {
+        "code": "94",
+        "name": "unidad"
+      },
+      "additional_fields": {},
+      "available_quantity": 0,
+      "warehouses": [],
+      "metadata": {
+        "created": "2024-10-29T05:08:40.367Z",
+        "last_updated": "2024-10-29T05:08:40.367Z"
+      }
+    },
+    {
+      "id": "c59d1fbd-1af1-4bf9-977c-8deeabcb664e",
+      "code": "2",
+      "name": "Servicios profesionales / tecnicos / otros",
+      "account_group": {
+        "id": 126,
+        "name": "Servicios"
+      },
+      "type": "Product",
+      "stock_control": false,
+      "active": true,
+      "tax_classification": "Excluded",
+      "tax_included": false,
+      "additional_fields": {},
+      "available_quantity": 0,
+      "warehouses": [],
+      "metadata": {
+        "created": "2020-08-27T19:02:50.327Z",
+        "last_updated": "2020-08-27T19:02:50.327Z"
+      }
+    }
+  ],
+  "_info": {
+    "documentacion": "https://developers.siigo.com/docs/siigoapi/productos/",
+    "nota": "Este archivo contiene TODOS los datos completos de todos los productos de tu cuenta Siigo.",
+    "generado_por": "PawPath Siigo Export Script v1.0",
+    "autenticacion": "OAuth 2.0 with Bearer Token",
+    "detalles": "Cada producto contiene sus datos completos obtenidos del endpoint /v1/products/{id}"
+  }
+}

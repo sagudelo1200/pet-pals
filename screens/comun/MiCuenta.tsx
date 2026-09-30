@@ -10,6 +10,7 @@ import { useNavigation } from '@react-navigation/native'
 import { COLOR } from '@/constants'
 import { useTranslation } from 'react-i18next'
 import { LinearGradient } from 'expo-linear-gradient'
+import { PanelPrivacidadConsentimientos } from '@/components/consentimientos/PanelPrivacidadConsentimientos'
 
 const MiCuenta = () => {
   const navigation = useNavigation<any>()
@@ -103,7 +104,7 @@ const MiCuenta = () => {
   ) => {
     await cambiarRolActivo(rol)
     // Navegar manteniendo la vista en MiCuenta
-    const targetApp =
+    const targetApp: keyof any =
       rol === 'tutor'
         ? 'TutorApp'
         : rol === 'cuidador'
@@ -113,171 +114,184 @@ const MiCuenta = () => {
             : rol === 'admin'
               ? 'AdminApp'
               : 'TutorApp'
-    navigation.navigate(targetApp as any, {
+    navigation.navigate(targetApp, {
       screen: 'MiCuenta',
     })
   }
 
   return (
-    <Screen style={[styles.container, { paddingBottom: TAB_BAR_HEIGHT }]}>
-      {/* Contenido scrolleable */}
-      <View style={styles.scrollContent}>
-        {/* Header Grande con Gradiente */}
-        <LinearGradient
-          colors={[COLOR.PRIMARIO, COLOR.ENFASIS]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={[styles.headerGradient, { paddingTop: insets.top + 12 }]}
-        >
-          <View style={styles.profileHeader}>
-            <Avatar
-              uri={foto}
-              name={nombre}
-              size={80}
-              backgroundColor="rgba(255,255,255,0.2)"
-              color="#FFF"
-              containerStyle={styles.avatar}
-            />
-            <Text style={styles.nameText}>{nombre}</Text>
-            <Text style={styles.emailText}>{correo}</Text>
-            <View style={styles.roleBadge}>
-              <Icon
-                name={
-                  rolActivo === 'cuidador'
-                    ? 'walking'
-                    : rolActivo === 'explorador'
-                      ? 'map-marked-alt'
-                      : rolActivo === 'admin'
-                        ? 'shield-alt'
-                        : 'paw'
-                }
-                size={14}
-                color="#FFF"
-                containerStyle={{ marginRight: 6 }}
-              />
-              <Text style={styles.roleText}>
-                {rolActivo === 'cuidador'
-                  ? t('perfil:cuidador')
+    <Screen
+      scroll={true}
+      scrollProps={{ showsVerticalScrollIndicator: false }}
+      contentContainerStyle={[
+        styles.scrollContent,
+        { paddingBottom: TAB_BAR_HEIGHT },
+      ]}
+      style={styles.container}
+    >
+      {/* Header Grande con Gradiente */}
+      <LinearGradient
+        colors={[COLOR.PRIMARIO, COLOR.ENFASIS]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={[styles.headerGradient, { paddingTop: insets.top + 12 }]}
+      >
+        <View style={styles.profileHeader}>
+          <Avatar
+            uri={foto}
+            name={nombre}
+            size={80}
+            backgroundColor="rgba(255,255,255,0.2)"
+            color="#FFF"
+            containerStyle={styles.avatar}
+          />
+          <Text style={styles.nameText}>{nombre}</Text>
+          <Text style={styles.emailText}>{correo}</Text>
+          <View style={styles.roleBadge}>
+            <Icon
+              name={
+                rolActivo === 'cuidador'
+                  ? 'walking'
                   : rolActivo === 'explorador'
-                    ? 'Explorador'
+                    ? 'map-marked-alt'
                     : rolActivo === 'admin'
-                      ? 'Admin'
-                      : t('perfil:tutor')}
-              </Text>
-            </View>
-          </View>
-        </LinearGradient>
-
-        <View style={styles.content}>
-          {/* Acción rápida para cuidador */}
-          {rolActivo === 'cuidador' && (
-            <Button
-              title={t('perfil:perfil_publico')}
-              icon="id-card"
-              variant="secundario"
-              size="sm"
-              style={styles.quickAction}
-              onPress={() => navigation.navigate('PerfilCuidador')}
+                      ? 'shield-alt'
+                      : 'paw'
+              }
+              size={14}
+              color="#FFF"
+              containerStyle={{ marginRight: 6 }}
             />
+            <Text style={styles.roleText}>
+              {rolActivo === 'cuidador'
+                ? t('perfil:cuidador')
+                : rolActivo === 'explorador'
+                  ? 'Explorador'
+                  : rolActivo === 'admin'
+                    ? 'Admin'
+                    : t('perfil:tutor')}
+            </Text>
+          </View>
+        </View>
+      </LinearGradient>
+
+      <View style={styles.content}>
+        {/* Acción rápida para cuidador */}
+        {rolActivo === 'cuidador' && (
+          <Button
+            title={t('perfil:perfil_publico')}
+            icon="id-card"
+            variant="secundario"
+            size="sm"
+            style={styles.quickAction}
+            onPress={() => navigation.navigate('PerfilCuidador')}
+          />
+        )}
+
+        {/* Sección de Roles */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>{t('perfil:gestionar_roles')}</Text>
+
+          {/* Selector de roles existentes (si tienes múltiples) */}
+          {tieneMultiplesRoles && (
+            <View style={styles.rolesContainer}>
+              {rolesDisponibles.map(rol => (
+                <Card
+                  key={rol}
+                  style={[
+                    styles.roleCard,
+                    rolActivo === rol && styles.activeRoleCard,
+                  ]}
+                  onPress={() =>
+                    rol !== rolActivo && handleCambiarRolActivo(rol as any)
+                  }
+                >
+                  <View style={styles.roleCardContent}>
+                    <Icon
+                      name={
+                        rol === 'cuidador'
+                          ? 'walking'
+                          : rol === 'explorador'
+                            ? 'map-marked-alt'
+                            : rol === 'admin'
+                              ? 'shield-alt'
+                              : 'paw'
+                      }
+                      size={20}
+                      color={
+                        rolActivo === rol ? COLOR.PRIMARIO : COLOR.SUBTEXTO
+                      }
+                    />
+                    <Text
+                      style={[
+                        styles.roleCardTitle,
+                        rolActivo === rol && styles.activeRoleText,
+                      ]}
+                    >
+                      {rol === 'cuidador'
+                        ? t('perfil:modo_cuidador')
+                        : rol === 'explorador'
+                          ? t('perfil:modo_explorador')
+                          : rol === 'admin'
+                            ? 'Modo Admin'
+                            : t('perfil:modo_tutor')}
+                    </Text>
+                    {rolActivo === rol && (
+                      <View style={styles.activeIndicator}>
+                        <Icon name="check" size={12} color="#FFF" />
+                      </View>
+                    )}
+                  </View>
+                </Card>
+              ))}
+            </View>
           )}
 
-          {/* Sección de Roles */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>
-              {t('perfil:gestionar_roles')}
-            </Text>
-
-            {/* Selector de roles existentes (si tienes múltiples) */}
-            {tieneMultiplesRoles && (
-              <View style={styles.rolesContainer}>
-                {rolesDisponibles.map(rol => (
-                  <Card
-                    key={rol}
-                    style={[
-                      styles.roleCard,
-                      rolActivo === rol && styles.activeRoleCard,
-                    ]}
-                    onPress={() =>
-                      rol !== rolActivo && handleCambiarRolActivo(rol as any)
-                    }
-                  >
-                    <View style={styles.roleCardContent}>
-                      <Icon
-                        name={
-                          rol === 'cuidador'
-                            ? 'walking'
-                            : rol === 'explorador'
-                              ? 'map-marked-alt'
-                              : rol === 'admin'
-                                ? 'shield-alt'
-                                : 'paw'
-                        }
-                        size={20}
-                        color={
-                          rolActivo === rol ? COLOR.PRIMARIO : COLOR.SUBTEXTO
-                        }
-                      />
-                      <Text
-                        style={[
-                          styles.roleCardTitle,
-                          rolActivo === rol && styles.activeRoleText,
-                        ]}
-                      >
-                        {rol === 'cuidador'
-                          ? t('perfil:modo_cuidador')
-                          : rol === 'explorador'
-                            ? t('perfil:modo_explorador')
-                            : rol === 'admin'
-                              ? 'Modo Admin'
-                              : t('perfil:modo_tutor')}
-                      </Text>
-                      {rolActivo === rol && (
-                        <View style={styles.activeIndicator}>
-                          <Icon name="check" size={12} color="#FFF" />
-                        </View>
-                      )}
-                    </View>
-                  </Card>
-                ))}
-              </View>
+          {/* Opciones para activar roles nuevos */}
+          <View style={styles.rolesPromoContainer}>
+            {!rolesDisponibles.includes('tutor') && (
+              <Button
+                title={t('perfil:activar_modo_tutor')}
+                icon="paw"
+                variant="contorno"
+                size="sm"
+                onPress={() => handleActivarRol('tutor')}
+                loading={cargandoRol}
+              />
             )}
 
-            {/* Opciones para activar roles nuevos */}
-            <View style={styles.rolesPromoContainer}>
-              {!rolesDisponibles.includes('tutor') && (
-                <Button
-                  title={t('perfil:activar_modo_tutor')}
-                  icon="paw"
-                  variant="contorno"
-                  size="sm"
-                  onPress={() => handleActivarRol('tutor')}
-                  loading={cargandoRol}
-                />
-              )}
+            {!rolesDisponibles.includes('cuidador') && (
+              <Button
+                title={t('perfil:convertirme_cuidador')}
+                icon="walking"
+                variant="contorno"
+                size="sm"
+                onPress={() => handleActivarRol('cuidador')}
+                loading={cargandoRol}
+              />
+            )}
 
-              {!rolesDisponibles.includes('cuidador') && (
-                <Button
-                  title={t('perfil:convertirme_cuidador')}
-                  icon="walking"
-                  variant="contorno"
-                  size="sm"
-                  onPress={() => handleActivarRol('cuidador')}
-                  loading={cargandoRol}
-                />
-              )}
-
-              {!rolesDisponibles.includes('explorador') && (
-                <Button
-                  title={t('perfil:activar_modo_explorador')}
-                  icon="map-marked-alt"
-                  variant="contorno"
-                  size="sm"
-                  onPress={() => handleActivarRol('explorador')}
-                  loading={cargandoRol}
-                />
-              )}
-            </View>
+            {!rolesDisponibles.includes('explorador') && (
+              <Button
+                title={t('perfil:activar_modo_explorador')}
+                icon="map-marked-alt"
+                variant="contorno"
+                size="sm"
+                onPress={() => handleActivarRol('explorador')}
+                loading={cargandoRol}
+              />
+            )}
           </View>
+        </View>
+
+        {/* Sección Privacidad y Autorizaciones */}
+        <View style={[styles.section, styles.consentimientosSection]}>
+          <Text style={styles.sectionTitle}>Privacidad y autorizaciones</Text>
+          <Text style={styles.sectionDescription}>
+            Gestiona las autorizaciones que nos permiten prestarte nuestros
+            servicios.
+          </Text>
+          <PanelPrivacidadConsentimientos />
         </View>
       </View>
 
@@ -366,6 +380,12 @@ const styles = StyleSheet.create({
     color: COLOR.TEXTO,
     marginBottom: 10,
   },
+  sectionDescription: {
+    fontSize: 13,
+    color: COLOR.SUBTEXTO,
+    marginBottom: 12,
+    lineHeight: 18,
+  },
   rolesContainer: {
     flexDirection: 'row',
     gap: 8,
@@ -420,6 +440,9 @@ const styles = StyleSheet.create({
     borderRadius: 9,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  consentimientosSection: {
+    paddingHorizontal: 0,
   },
 })
 

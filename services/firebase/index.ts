@@ -22,6 +22,11 @@ export { ServicioChat } from './firestore/colecciones/chat'
 export { ServicioExploracionTerritorial } from './firestore/colecciones/exploraciones'
 export { ServicioVerificaciones } from './firestore/colecciones/verificaciones'
 export { ServicioResumenEvaluacion } from './firestore/colecciones/resumenes_evaluacion'
+export {
+  ServicioDocumentoConsentimiento,
+  ServicioConsentimiento,
+  ServicioEstadoConsentimientoUsuario,
+} from './firestore/colecciones/consentimiento'
 
 // Auth
 export { ServicioAuth } from './auth/auth'

@@ -4,11 +4,11 @@ import { SafeAreaProvider } from 'react-native-safe-area-context'
 import { NavigationContainer, DarkTheme, Theme } from '@react-navigation/native'
 import { GalioProvider } from 'galio-framework'
 import { AuthProvider } from './context/AuthContext'
+import { ConsentimientosProvider } from './context/ConsentimientosContext'
 import { RootNavigator } from './navigation'
 import { COLOR } from './constants'
 import './services/i18n'
 import { TerritorialAggregator } from '@/services/firebase/firestore/agregadores/territorial.aggregator'
-
 import { MascotasProvider } from './context/MascotasContext'
 // Registro de tareas de segundo plano para ubicación
 import '@/logic/paseos/backgroundTask'
@@ -39,18 +39,20 @@ export default function App(): React.ReactElement {
   return (
     <SafeAreaProvider>
       <AuthProvider>
-        <MascotasProvider>
-          <GalioProvider>
-            <StatusBar
-              barStyle="light-content"
-              backgroundColor={COLOR.BLOQUE}
-              translucent={false}
-            />
-            <NavigationContainer theme={navTheme}>
-              <RootNavigator />
-            </NavigationContainer>
-          </GalioProvider>
-        </MascotasProvider>
+        <ConsentimientosProvider>
+          <MascotasProvider>
+            <GalioProvider>
+              <StatusBar
+                barStyle="light-content"
+                backgroundColor={COLOR.BLOQUE}
+                translucent={false}
+              />
+              <NavigationContainer theme={navTheme}>
+                <RootNavigator />
+              </NavigationContainer>
+            </GalioProvider>
+          </MascotasProvider>
+        </ConsentimientosProvider>
       </AuthProvider>
     </SafeAreaProvider>
   )

@@ -55,6 +55,7 @@ const getAuthErrorMessage = (
 const Ingresar: React.FC = () => {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
   const navigation = useNavigation<Nav>()
   const { ingresar, cargando } = useAuth()
   const { t } = useTranslation()
@@ -145,6 +146,10 @@ const Ingresar: React.FC = () => {
     navigation.navigate('Registro')
   }, [navigation])
 
+  const toggleShowPassword = useCallback(() => {
+    setShowPassword(prev => !prev)
+  }, [])
+
   return (
     <Screen contentContainerStyle={styles.content} style={styles.container}>
       {/* Círculo decorativo */}
@@ -203,9 +208,11 @@ const Ingresar: React.FC = () => {
             value={password}
             onChangeText={setPassword}
             placeholder={t('auth:ingresar.formulario.password.placeholder')}
-            secureTextEntry
+            secureTextEntry={!showPassword}
             autoCapitalize="none"
             iconName="lock"
+            rightIcon={showPassword ? 'eye' : 'eye-slash'}
+            onRightIconPress={toggleShowPassword}
             returnKeyType="send"
             onSubmitEditing={handlePasswordSubmit}
           />

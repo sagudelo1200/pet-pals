@@ -21,3 +21,10 @@ export {
   USE_GLOBAL_SERVICE_PRICE,
   EXTRA_PER_ADDITIONAL_PET,
 } from './pricing'
+export {
+  TipoConsentimiento,
+  CONSENTIMIENTOS_METADATOS,
+  obtenerObligatorios,
+  obtenerOpcionales,
+  obtenerMetadatos,
+} from './consentimientos'
