@@ -65,7 +65,7 @@ export function useCodigosRecogidaPorTutor(
     setError(null)
 
     // Suscribirse a cambios en tiempo real del documento Paseo
-    const paseoRef = doc(db, 'paseos', paseoId)
+    const paseoRef = doc(db, 'operaciones', paseoId)
     const unsubscribePaseo = onSnapshot(
       paseoRef,
       snapshot => {
@@ -89,7 +89,7 @@ export function useCodigosRecogidaPorTutor(
           }
 
           // Agrupar mascotas por tutor desde la subcolección (async sin await aquí)
-          const mascotasRef = collection(db, 'paseos', paseoId, 'mascotas')
+          const mascotasRef = collection(db, 'operaciones', paseoId, 'mascotas')
           getDocs(mascotasRef)
             .then(mascotasSnap => {
               const mascotasPorTutorMap: Record<string, MascotaPorTutor> = {}

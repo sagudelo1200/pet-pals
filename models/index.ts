@@ -6,6 +6,19 @@
 export { type RolUsuario, type Usuario } from './Usuario'
 export { type Mascota } from './Mascota'
 export {
+  type Operacion,
+  type TipoOperacion,
+  type ModalidadOperacion,
+  type EstadoOperacion,
+  type TipoEntidadAuditoria,
+  type TipoEventoAuditoria,
+  type TipoEventoOperacion,
+  type CambioAuditoria,
+  type EventoOperacion,
+  type EventoAuditoria,
+  ESTADOS_OPERACION,
+} from './Operacion'
+export {
   type Paseo,
   type TipoPaseo,
   type ModalidadPaseo,
@@ -57,7 +70,7 @@ export {
   type Consentimiento,
   type ConsentimientoEstadoActual,
   transicionValida as consentimientoTransicionValida,
-  TRANSICIONES_VALIDAS,
+  TRANSICIONES_VALIDAS as TRANSICIONES_VALIDAS_CONSENTIMIENTO,
 } from './Consentimiento'
 export {
   evaluarVigencia as evaluarConsentimiento,

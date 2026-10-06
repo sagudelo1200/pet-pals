@@ -43,82 +43,86 @@ const getTasksClient = (): CloudTasksClient => {
  * TRIGGER 1: Se dispara cuando se crea un paseo PENDIENTE con id_cuidador (DIRECTA)
  * Crea una Cloud Task programada para 10 minutos después
  */
-export const onCrearPaseoDirecto = onDocumentCreated('paseos', async (event) => {
-  const paseo = event.data?.data() as Record<string, unknown>;
-  const paseoId = event.data?.id;
+export const onCrearPaseoDirecto = onDocumentCreated(
+  'operaciones',
+  async (event) => {
+    const paseo = event.data?.data() as Record<string, unknown>;
+    const paseoId = event.data?.id;
 
-  // Solo procesar paseos DIRECTA (tienen id_cuidador y estado PENDIENTE)
-  if (
-    !paseoId ||
-    !paseo ||
-    !paseo.id_cuidador ||
-    paseo.estado !== 'PENDIENTE'
-  ) {
-    return;
-  }
-
-  try {
-    // Obtener project ID desde context de Firebase (más fiable que env)
-    const projectId = process.env.GCLOUD_PROJECT;
-    if (!projectId) {
-      console.error('[CloudTasks] GCLOUD_PROJECT no configurado');
+    // Solo procesar operaciones tipo='paseo' (tienen id_cuidador y estado PENDIENTE)
+    if (
+      !paseoId ||
+      !paseo ||
+      paseo.tipo !== 'paseo' ||
+      !paseo.id_cuidador ||
+      paseo.estado !== 'PENDIENTE'
+    ) {
       return;
     }
 
-    // Construir el endpoint de la función
-    const fnName = 'escalarPaseoIndividual';
-    const functionUrl = `https://${LOCATION}-${projectId}.cloudfunctions.net/${fnName}`;
+    try {
+      // Obtener project ID desde context de Firebase (más fiable que env)
+      const projectId = process.env.GCLOUD_PROJECT;
+      if (!projectId) {
+        console.error('[CloudTasks] GCLOUD_PROJECT no configurado');
+        return;
+      }
 
-    // Calcular tiempo de ejecución: ahora + ESCALADA_DELAY_SECONDS
-    const ahora = Math.floor(Date.now() / 1000);
-    const tiempoEjecucion = ahora + ESCALADA_DELAY_SECONDS;
+      // Construir el endpoint de la función
+      const fnName = 'escalarPaseoIndividual';
+      const functionUrl = `https://${LOCATION}-${projectId}.cloudfunctions.net/${fnName}`;
 
-    // Payload para la función
-    const payload = {
-      paseoId,
-      cuidadorOriginal: paseo.id_cuidador,
-      cuidadorNombre: paseo.cuidador_nombre_visual || 'Desconocido',
-    };
+      // Calcular tiempo de ejecución: ahora + ESCALADA_DELAY_SECONDS
+      const ahora = Math.floor(Date.now() / 1000);
+      const tiempoEjecucion = ahora + ESCALADA_DELAY_SECONDS;
 
-    // Construir la request para Cloud Tasks
-    const tasksClientInstance = getTasksClient();
-    const parent = tasksClientInstance.queuePath(
-      projectId,
-      LOCATION,
-      QUEUE_NAME
-    );
-    const task = {
-      httpRequest: {
-        httpMethod: 'POST' as const,
-        url: functionUrl,
-        headers: {'Content-Type': 'application/json'},
-        body: Buffer.from(JSON.stringify(payload)).toString('base64'),
-        // OIDC token para autenticación segura
-        oidcToken: {
-          serviceAccountEmail: `firebase-adminsdk@${projectId}.iam.gserviceaccount.com`,
+      // Payload para la función
+      const payload = {
+        paseoId,
+        cuidadorOriginal: paseo.id_cuidador,
+        cuidadorNombre: paseo.cuidador_nombre_visual || 'Desconocido',
+      };
+
+      // Construir la request para Cloud Tasks
+      const tasksClientInstance = getTasksClient();
+      const parent = tasksClientInstance.queuePath(
+        projectId,
+        LOCATION,
+        QUEUE_NAME
+      );
+      const task = {
+        httpRequest: {
+          httpMethod: 'POST' as const,
+          url: functionUrl,
+          headers: {'Content-Type': 'application/json'},
+          body: Buffer.from(JSON.stringify(payload)).toString('base64'),
+          // OIDC token para autenticación segura
+          oidcToken: {
+            serviceAccountEmail: `firebase-adminsdk@${projectId}.iam.gserviceaccount.com`,
+          },
         },
-      },
-      scheduleTime: {
-        seconds: tiempoEjecucion,
-      },
-    };
+        scheduleTime: {
+          seconds: tiempoEjecucion,
+        },
+      };
 
-    // Crear la tarea en la queue
-    await tasksClientInstance.createTask({parent, task});
+      // Crear la tarea en la queue
+      await tasksClientInstance.createTask({parent, task});
 
-    console.log(
-      `[CloudTasks] ✅ Escalada programada para paseo ${paseoId} ` +
-        `en ${ESCALADA_DELAY_SECONDS / 60} minutos`
-    );
-  } catch (error) {
-    // Si falla la creación de task, loguear pero NO fallar la creación del paseo
-    // (usuarios pueden escalar manualmente o esperar al siguiente intento)
-    console.warn(
-      `[CloudTasks] ⚠️ Error programando escalada para ${paseoId}:`,
-      error instanceof Error ? error.message : String(error)
-    );
+      console.log(
+        `[CloudTasks] ✅ Escalada programada para paseo ${paseoId} ` +
+          `en ${ESCALADA_DELAY_SECONDS / 60} minutos`
+      );
+    } catch (error) {
+      // Si falla la creación de task, loguear pero NO fallar la creación del paseo
+      // (usuarios pueden escalar manualmente o esperar al siguiente intento)
+      console.warn(
+        `[CloudTasks] ⚠️ Error programando escalada para ${paseoId}:`,
+        error instanceof Error ? error.message : String(error)
+      );
+    }
   }
-});
+);
 
 /**
  * FUNCTION 2: HTTP endpoint ejecutado por Cloud Tasks
@@ -142,7 +146,7 @@ export const escalarPaseoIndividual = onRequest(
         return;
       }
 
-      const paseoRef = db.collection('paseos').doc(paseoId);
+      const paseoRef = db.collection('operaciones').doc(paseoId);
 
       // Transacción: Validar estado y escalar de forma atómica
       const resultado = await db.runTransaction(async (transaction) => {
@@ -153,6 +157,11 @@ export const escalarPaseoIndividual = onRequest(
         }
 
         const docData = docSnap.data() as Record<string, unknown>;
+
+        // Validación 0: Debe ser tipo='paseo'
+        if (docData.tipo !== 'paseo') {
+          return {success: false, razon: 'No es una operación de tipo paseo'};
+        }
 
         // Validación 1: Estado debe ser PENDIENTE
         if (docData.estado !== 'PENDIENTE') {

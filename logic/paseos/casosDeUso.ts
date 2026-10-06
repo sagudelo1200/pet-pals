@@ -16,13 +16,8 @@ import { MAX_MASCOTAS_POR_PASEO, ERR } from '@/constants'
 import { crearMaquinaPaseo } from './maquinaEstados'
 import { generarCodigosRecogidaPorTutor } from './generador'
 import { paseoActivo } from './gestor'
-import {
-  collection,
-  query,
-  where,
-  orderBy,
-  getDocs,
-} from 'firebase/firestore'
+import { registrarAuditoria } from '@/logic/operaciones/auditoria'
+import { collection, query, where, orderBy, getDocs } from 'firebase/firestore'
 import { db } from '@/firebase.config'
 import { coordsAH3 } from '@/services/geo'
 import { H3TerritorialOrchestrator } from '@/services/h3'
@@ -91,7 +86,8 @@ async function validarNoDoubleBooking(
   try {
     // Query: paseos del cuidador en estados activos
     const agendaQuery = query(
-      collection(db, 'paseos'),
+      collection(db, 'operaciones'),
+      where('tipo', '==', 'paseo'),
       where('id_cuidador', '==', uid),
       where('estado', 'in', [
         ESTADOS_PASEO.CONFIRMADO,
@@ -160,7 +156,8 @@ async function validarNoSolapamientoPorMascota(
     // MULTI-TUTOR: Busca TODOS los paseos activos de la mascota, sin importar quién los creó.
     // Esto previene que múltiples tutores de la misma mascota creen paseos solapados.
     const q = query(
-      collection(db, 'paseos'),
+      collection(db, 'operaciones'),
+      where('tipo', '==', 'paseo'),
       where('mascota_ids', 'array-contains', mascotaId),
       where('estado', 'in', estadosActivos)
     )
@@ -389,6 +386,20 @@ export async function crearConMascotas(
     }
   }
 
+  // Registrar auditoría: paseo creado
+  if (paseoRes.data) {
+    await registrarAuditoria({
+      entidad_tipo: 'operacion',
+      entidad_id: paseoRes.data.id,
+      tipo_evento: 'ENTIDAD_CREADA',
+      actor: uid,
+      id_operacion: paseoRes.data.id,
+    }).catch(err => {
+      console.warn('[Auditoría] Error registrando creación de paseo:', err)
+      // No fallar si la auditoría falla (es no-bloqueante)
+    })
+  }
+
   return paseoRes as any
 }
 
@@ -466,6 +477,22 @@ export async function aceptarSolicitud(paseoId: string) {
         cuidador_nombre_visual,
         cuidador_foto_visual,
         intento,
+      })
+      // Registrar auditoría: cambio de estado
+      await registrarAuditoria({
+        entidad_tipo: 'operacion',
+        entidad_id: paseoId,
+        tipo_evento: 'CAMBIO_ESTADO',
+        cambios: {
+          estado: {
+            antes: 'PENDIENTE',
+            despues: 'CONFIRMADO',
+          },
+        },
+        actor: uid,
+        id_operacion: paseoId,
+      }).catch(err => {
+        console.warn('[Auditoría] Error registrando aceptación de paseo:', err)
       })
       return res
     }
@@ -750,11 +777,13 @@ export async function obtenerEstadisticasCuidador(cuidadorId: string) {
       ESTADOS_PASEO.CONFIRMADO,
       ESTADOS_PASEO.EN_CAMINO,
       ESTADOS_PASEO.EN_PROGRESO,
-    ].includes(p.estado)
+    ].includes(p.estado as any)
   )
 
   const completados = misPaseos.filter(p =>
-    [ESTADOS_PASEO.FINALIZADO, ESTADOS_PASEO.COMPLETADO].includes(p.estado)
+    [ESTADOS_PASEO.FINALIZADO, ESTADOS_PASEO.COMPLETADO].includes(
+      p.estado as any
+    )
   )
 
   // Rating público del cuidador (evaluaciones_cuidador); 0 si aún no hay

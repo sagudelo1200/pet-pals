@@ -1,24 +1,41 @@
-import { ServicioCrudBase } from '@/services/firebase/firestore/base'
+/**
+ * SERVICIO DE PASEO - WRAPPER ESPECIALIZADO
+ *
+ * Proporciona una interfaz específica para paseos.
+ * Internamente utiliza ServicioOperacion y la colección /operaciones con tipo='paseo'.
+ *
+ * RESPONSABILIDAD:
+ * - Transacciones de estado Paseo-específicas (atomic state transitions)
+ * - Registro de eventos (bitácora, incidentes, auditoría)
+ * - Validación de códigos de recogida/entrega
+ * - Búsquedas Paseo-específicas
+ * - Enriquecimiento territorial automático
+ *
+ * CRUD base (crear, obtener, actualizar, eliminar) está delegado a ServicioOperacion.
+ */
+
+import { ServicioOperacion } from '@/services/firebase/firestore/colecciones/operacion'
 import {
-  Paseo,
   ESTADOS_PASEO,
+  type Paseo,
   type CapaTerritorialHecho,
   type CapaContextoTerritorial,
 } from '@/models/Paseo'
-import {
-  CrudResult,
-  mapFirebaseError,
-  camposSistemaActualizar,
-  camposSistemaCrear,
-} from '@/services/firebase/comun'
+import type { Operacion } from '@/models/Operacion'
 import { ServicioAuth } from '@/services/firebase/auth/auth'
-import { ServicioChat } from '@/services/firebase/firestore/colecciones/chat'
 import { ERR } from '@/constants'
 import { validarFormatoCodigo } from '@/logic/paseos/generador'
 import { coordsAH3 } from '@/services/geo/h3Utils'
 import { enriquecerContextoConAPIs } from '@/services/geo/enriquecimientoTerritorial'
 import { detectarPatron } from '@/logic/paseos/detectarPatrones'
 import { TerritorialAggregator } from '@/services/firebase/firestore/agregadores/territorial.aggregator'
+import { ServicioChat } from '@/services/firebase/firestore/colecciones/chat'
+import {
+  mapFirebaseError,
+  camposSistemaActualizar,
+  camposSistemaCrear,
+  type CrudResult,
+} from '@/services/firebase/comun'
 import {
   collection,
   query,
@@ -30,15 +47,17 @@ import {
   getDocs,
   Timestamp,
   getDoc,
+  addDoc,
 } from 'firebase/firestore'
 import { db } from '@/firebase.config'
 
+const COLLECTION_NAME = 'operaciones'
+
 /**
- * Servicio de persistencia para Paseos.
- * Solo realiza operaciones CRUD y transiciones atómicas.
+ * Servicio de Paseo
+ * Wrapper que garantiza que las operaciones sean de tipo 'paseo'
  */
 export class ServicioPaseo {
-  private static readonly COLLECTION = 'paseos'
   // Buffer local para eventos creados por el cliente y aún no confirmados por el servidor
   private static pendingEventos: Map<string, any[]> = new Map()
 
@@ -60,40 +79,172 @@ export class ServicioPaseo {
     return limpio
   }
 
+  /**
+   * Query helper para obtener solicitudes pendientes de paseos
+   */
   static getQuerySolicitudesPendientes(): Query {
     return query(
-      collection(db, this.COLLECTION),
+      collection(db, COLLECTION_NAME),
+      where('tipo', '==', 'paseo'),
       where('estado', '==', ESTADOS_PASEO.PENDIENTE),
       orderBy('creado_en', 'desc')
     )
   }
 
+  /**
+   * Crear un paseo
+   * Delega a ServicioOperacion pero asegura tipo='paseo'
+   */
   static async crear(
-    data: Omit<
-      Paseo,
-      'id' | 'creado_en' | 'actualizado_en' | 'creado_por' | 'actualizado_por'
-    >
+    data: Omit<Paseo, 'id' | 'tipo' | 'timestamp_creacion'>
   ): Promise<CrudResult<Paseo>> {
-    return ServicioCrudBase.crear<Paseo>(this.COLLECTION, data as any)
+    try {
+      const currentUser = ServicioAuth.obtenerUsuarioActual()
+      if (!currentUser?.uid) {
+        return {
+          success: false,
+          error: 'Usuario no autenticado',
+        }
+      }
+
+      const id = await ServicioOperacion.crear(
+        {
+          ...data,
+          tipo: 'paseo',
+        } as any,
+        currentUser.uid
+      )
+
+      return {
+        success: true,
+        data: { id, ...data, tipo: 'paseo' } as Paseo,
+      }
+    } catch (error) {
+      return {
+        success: false,
+        error: mapFirebaseError(error),
+      }
+    }
   }
 
+  /**
+   * Obtener un paseo por ID
+   * Verifica que sea tipo='paseo'
+   */
   static async obtenerPorId(id: string): Promise<CrudResult<Paseo>> {
-    return ServicioCrudBase.obtenerPorId<Paseo>(this.COLLECTION, id)
+    try {
+      const operacion = await ServicioOperacion.obtener(id)
+
+      if (!operacion) {
+        return { success: false, error: ERR.COMUN.DOCUMENTO_NO_ENCONTRADO }
+      }
+
+      if (operacion.tipo !== 'paseo') {
+        return { success: false, error: 'La operación no es un paseo' }
+      }
+
+      return {
+        success: true,
+        data: operacion as Paseo,
+      }
+    } catch (error) {
+      return {
+        success: false,
+        error: mapFirebaseError(error),
+      }
+    }
   }
 
+  /**
+   * Actualizar un paseo
+   */
   static async actualizar(
     id: string,
-    data: Partial<Omit<Paseo, 'id' | 'creado_en' | 'creado_por'>>
-  ): Promise<CrudResult<Paseo>> {
-    return ServicioCrudBase.actualizar<Paseo>(this.COLLECTION, id, data)
+    cambios: Partial<Paseo>
+  ): Promise<CrudResult<void>> {
+    try {
+      await ServicioOperacion.actualizar(id, cambios as any)
+      return { success: true }
+    } catch (error) {
+      return {
+        success: false,
+        error: mapFirebaseError(error),
+      }
+    }
   }
 
+  /**
+   * Eliminar un paseo
+   */
   static async eliminar(id: string): Promise<CrudResult<boolean>> {
-    return ServicioCrudBase.eliminar(this.COLLECTION, id)
+    try {
+      await ServicioOperacion.eliminar(id)
+      return { success: true, data: true }
+    } catch (error) {
+      return {
+        success: false,
+        error: mapFirebaseError(error),
+      }
+    }
+  }
+
+  /**
+   * Obtener paseos por tutor
+   */
+  static async obtenerPorTutor(id_tutor: string): Promise<CrudResult<Paseo[]>> {
+    try {
+      const operaciones = await ServicioOperacion.obtenerPorTutor(id_tutor)
+      const paseos = operaciones.filter(op => op.tipo === 'paseo') as Paseo[]
+
+      return { success: true, data: paseos }
+    } catch (error) {
+      return {
+        success: false,
+        error: mapFirebaseError(error),
+      }
+    }
+  }
+
+  /**
+   * Obtener paseos por cuidador
+   */
+  static async obtenerPorCuidador(
+    id_cuidador: string
+  ): Promise<CrudResult<Paseo[]>> {
+    try {
+      const operaciones =
+        await ServicioOperacion.obtenerPorCuidador(id_cuidador)
+      const paseos = operaciones.filter(op => op.tipo === 'paseo') as Paseo[]
+
+      return { success: true, data: paseos }
+    } catch (error) {
+      return {
+        success: false,
+        error: mapFirebaseError(error),
+      }
+    }
+  }
+
+  /**
+   * Obtener paseos por estado
+   */
+  static async obtenerPorEstado(estado: string): Promise<CrudResult<Paseo[]>> {
+    try {
+      const operaciones = await ServicioOperacion.obtenerPorEstado(estado)
+      const paseos = operaciones.filter(op => op.tipo === 'paseo') as Paseo[]
+
+      return { success: true, data: paseos }
+    } catch (error) {
+      return {
+        success: false,
+        error: mapFirebaseError(error),
+      }
+    }
   }
 
   /**
    * Realiza una transición de estado atómica.
+   * Solo Paseo-específico: validar estado actual y actualizar atomicamente.
    */
   static async commitEstadoTransaccional(
     paseoId: string,
@@ -106,14 +257,14 @@ export class ServicioPaseo {
 
     try {
       await runTransaction(db, async transaction => {
-        const paseoRef = doc(db, this.COLLECTION, paseoId)
+        const paseoRef = doc(db, COLLECTION_NAME, paseoId)
         const paseoDoc = await transaction.get(paseoRef)
 
         if (!paseoDoc.exists()) {
           throw new Error(ERR.COMUN.DOCUMENTO_NO_ENCONTRADO)
         }
 
-        const data = paseoDoc.data() as Paseo
+        const data = paseoDoc.data() as Operacion
 
         if (data.estado !== esperado) {
           throw new Error(ERR.PASEOS.ESTADO_NO_ESPERADO)
@@ -135,6 +286,15 @@ export class ServicioPaseo {
     }
   }
 
+  /**
+   * Registra un evento en la subcollection de eventos del paseo.
+   * Soporta enriquecimiento territorial automático (H3, contexto).
+   *
+   * ENRIQUECIMIENTO:
+   * - Capa 1 (Hecho): H3 R8/R9, timestamp, duración desde inicio
+   * - Capa 2 (Contexto): Hora local, APIs públicas (non-blocking)
+   * - Capa 3a (Patrón): Detectado en cliente desde últimos eventos
+   */
   static async registrarEvento(
     paseoId: string,
     evento: string,
@@ -150,12 +310,13 @@ export class ServicioPaseo {
       let h3_r9: string | undefined
       let h3_r8: string | undefined
 
+      // ENRIQUECIMIENTO TERRITORIAL
       if (
         payload?.ubicacion?.lat !== undefined &&
         payload?.ubicacion?.lng !== undefined
       ) {
         try {
-          const paseoRef = doc(db, this.COLLECTION, paseoId)
+          const paseoRef = doc(db, COLLECTION_NAME, paseoId)
           const paseoSnap = await getDoc(paseoRef)
           const paseoData = paseoSnap.data() as Paseo | undefined
 
@@ -174,6 +335,7 @@ export class ServicioPaseo {
           h3_r8 = coordsAH3(payload.ubicacion.lat, payload.ubicacion.lng, 8)
           h3_r9 = coordsAH3(payload.ubicacion.lat, payload.ubicacion.lng, 9)
 
+          // Capa 1: Hecho Territorial
           hechoTerritorial = {
             h3_r8,
             h3_r9,
@@ -181,9 +343,7 @@ export class ServicioPaseo {
             duracion_desde_inicio_paseo_segundos: duracionDesdeInicio,
           }
 
-          // FASE 2+: Contexto Territorial (con APIs públicas gratuitas)
-          // Si el cliente envió horaLocal (calculada en zona horaria correcta), usar esa
-          // Si no, calcular aquí (puede tener zona horaria incorrecta si se ejecuta en servidor)
+          // Capa 2: Contexto Territorial
           const horaLocal =
             payload?.horaLocal ||
             new Date(timestamp).toLocaleTimeString('es-ES', {
@@ -211,16 +371,6 @@ export class ServicioPaseo {
               apiErr
             )
           }
-
-          console.log(
-            '[ServicioPaseo.registrarEvento] Enriquecimiento Territorial:',
-            {
-              accion: payload.accion,
-              h3_r9,
-              duracion_seg: duracionDesdeInicio,
-              contextoTerritorial,
-            }
-          )
         } catch (enrichErr) {
           console.warn(
             '[ServicioPaseo.registrarEvento] Error enriqueciendo:',
@@ -229,11 +379,10 @@ export class ServicioPaseo {
         }
       }
 
-      // OPCIÓN A: Detección de patrones en cliente
-      // Leer últimos eventos del paseo para detectar patrones
+      // CAPA 3a: Detección de patrones en cliente
       if (evento === 'bitacora') {
         try {
-          const eventosCol = collection(db, this.COLLECTION, paseoId, 'eventos')
+          const eventosCol = collection(db, COLLECTION_NAME, paseoId, 'eventos')
           const q = query(
             eventosCol,
             where('tipoEvento', '==', 'bitacora'),
@@ -245,7 +394,6 @@ export class ServicioPaseo {
             .map(doc => doc.data() as any)
             .reverse()
 
-          // Crear evento temporal para detectar patrón
           const eventoTemporal = {
             tipoEvento: 'bitacora',
             payload,
@@ -267,7 +415,10 @@ export class ServicioPaseo {
         }
       }
 
-      const localId = `local_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`
+      // REGISTRO LOCAL (buffer para optimización de UI)
+      const localId = `local_${Date.now()}_${Math.random()
+        .toString(36)
+        .slice(2, 8)}`
       const payloadLimpio = this.limpiarUndefined(payload || {})
       const localEntry: any = {
         id: localId,
@@ -285,6 +436,7 @@ export class ServicioPaseo {
       buf.unshift(localEntry)
       this.pendingEventos.set(paseoId, buf)
 
+      // REGISTRO EN FIRESTORE
       const camposSistema = camposSistemaCrear(currentUser.uid)
 
       const entry: any = {
@@ -294,16 +446,17 @@ export class ServicioPaseo {
         ...camposSistema,
       }
 
-      const { addDoc } = await import('firebase/firestore')
-      const eventosCol = collection(db, this.COLLECTION, paseoId, 'eventos')
+      const eventosCol = collection(db, COLLECTION_NAME, paseoId, 'eventos')
       await addDoc(eventosCol, entry)
 
+      // LIMPIEZA LOCAL
       const remain = (this.pendingEventos.get(paseoId) || []).filter(
         (e: any) => e.id !== localId
       )
       if (remain.length) this.pendingEventos.set(paseoId, remain)
       else this.pendingEventos.delete(paseoId)
 
+      // PUBLICACIÓN TERRITORIAL
       if (h3_r9 && h3_r8 && evento === 'bitacora') {
         TerritorialAggregator.publishEvento({
           accion: payload?.accion || 'desconocido',
@@ -327,12 +480,16 @@ export class ServicioPaseo {
     }
   }
 
+  /**
+   * Obtiene eventos pendientes del buffer local
+   * Usado para sincronización de UI en tiempo real
+   */
   static obtenerEventosPendientes(paseoId: string) {
     return (this.pendingEventos.get(paseoId) || []).slice()
   }
 
   /**
-   * Valida código de recogida POR TUTOR (no por mascota)
+   * Valida código de recogida POR TUTOR
    * Operación atómica: verifica código y actualiza contadores de intentos
    */
   static async validarCodigoRecogidaPorTutor(
@@ -354,7 +511,7 @@ export class ServicioPaseo {
       }
     }
 
-    const paseoRef = doc(db, 'paseos', paseoId)
+    const paseoRef = doc(db, COLLECTION_NAME, paseoId)
 
     try {
       const resultado = await runTransaction(db, async tx => {
@@ -457,15 +614,23 @@ export class ServicioPaseo {
     }
   }
 
+  /**
+   * Busca paseos por filtros arbitrarios
+   */
   static async buscarPaseos(
     filtros: { campo: string; op: any; valor: any }[],
     orden?: { campo: string; dir: 'asc' | 'desc' }
   ): Promise<CrudResult<Paseo[]>> {
     try {
-      let q = query(collection(db, this.COLLECTION))
+      let q = query(
+        collection(db, COLLECTION_NAME),
+        where('tipo', '==', 'paseo')
+      )
+
       for (const f of filtros) {
         q = query(q, where(f.campo, f.op, f.valor))
       }
+
       if (orden) {
         q = query(q, orderBy(orden.campo, orden.dir))
       }
@@ -484,12 +649,9 @@ export class ServicioPaseo {
 
   /**
    * Traduce una acción de bitácora a una clave i18n para mensaje del sistema.
-   * Mapea 'accion' → 'paseos.bitacora.sistema.acciones_mascota.accion'
    */
   private static obtenerClaveI18nBitacora(accion: string): string {
-    // Mapear acciones a claves i18n en el namespace 'chat' con puntos para objetos anidados
     const mapas: Record<string, string> = {
-      // Acciones de mascota
       necesidades: 'chat:sistema.acciones_mascota.necesidades',
       corrio: 'chat:sistema.acciones_mascota.corrio',
       juego: 'chat:sistema.acciones_mascota.juego',
@@ -501,7 +663,6 @@ export class ServicioPaseo {
         'chat:sistema.acciones_mascota.socializacion_personas',
       exploró: 'chat:sistema.acciones_mascota.exploró',
       comio: 'chat:sistema.acciones_mascota.comio',
-      // Lugares
       'lugar:parque': 'chat:sistema.lugares.parque',
       'lugar:sendero': 'chat:sistema.lugares.sendero',
       'lugar:zona_residencial': 'chat:sistema.lugares.zona_residencial',
@@ -510,12 +671,10 @@ export class ServicioPaseo {
       'lugar:rio': 'chat:sistema.lugares.rio',
       'lugar:vehiculo': 'chat:sistema.lugares.vehiculo',
       'lugar:otro_lugar': 'chat:sistema.lugares.otro_lugar',
-      // Momentos
       'recuerdo:foto': 'chat:sistema.recuerdos.foto',
       'recuerdo:video': 'chat:sistema.recuerdos.video',
       'recuerdo:voz': 'chat:sistema.recuerdos.voz',
       'recuerdo:nota': 'chat:sistema.recuerdos.nota',
-      // Novedades
       'novedad:asustó': 'chat:sistema.novedades.asustó',
       'novedad:lesion': 'chat:sistema.novedades.lesion',
       'novedad:pelea': 'chat:sistema.novedades.pelea',
@@ -529,11 +688,6 @@ export class ServicioPaseo {
 
   /**
    * Registra un evento de bitácora (momento registrado por el cuidador).
-   * La bitácora es la narrativa del paseo: qué hizo la mascota, dónde fue, qué pasó.
-   *
-   * ENRIQUECIMIENTO AUTOMÁTICO:
-   * - Fase 1 (Hecho): H3 R8/R9, duración desde inicio del paseo
-   * - Fase 2 (Contexto): Hora local, sin APIs externas
    */
   static async registrarBitacora(
     paseoId: string,
@@ -580,8 +734,6 @@ export class ServicioPaseo {
 
   /**
    * Registra un evento de incidente (problema o alerta durante el paseo).
-   * Los incidentes tienen severidad (baja, media, crítica) para filtrado y alertas.
-   * TAMBIÉN crea un mensaje del sistema de NOTIFICACIÓN en el chat del paseo.
    */
   static async registrarIncidente(
     paseoId: string,
@@ -592,14 +744,11 @@ export class ServicioPaseo {
       ubicacion?: {
         lat: number
         lng: number
-        h3_r8?: string
-        h3_r9?: string
       }
       horaLocal?: string
     }
   ): Promise<CrudResult<void>> {
     try {
-      // 1. Registrar evento de incidente
       const eventoResult = await this.registrarEvento(paseoId, 'incidente', {
         tipo,
         severidad,
@@ -613,19 +762,66 @@ export class ServicioPaseo {
         return eventoResult
       }
 
-      // 2. Crear mensaje de NOTIFICACIÓN en el chat (fire-and-forget)
-      const claveI18nIncidente = `chat:sistema.novedades.${tipo}`
-      const tipoMensaje = severidad === 'critica' ? 'notificacion' : 'sistema'
-      ServicioChat.enviarMensaje(paseoId, claveI18nIncidente, tipoMensaje, {
-        tipo,
-        severidad,
-        descripcion: opciones?.descripcion,
-        claveI18n: claveI18nIncidente,
-      }).catch(err => {
+      const claveI18n = `chat:sistema.incidentes.${tipo}`
+      const severidadEmoji =
+        severidad === 'critica' ? '🚨' : severidad === 'media' ? '⚠️' : '👁️'
+
+      ServicioChat.enviarMensaje(
+        paseoId,
+        `${severidadEmoji} ${claveI18n}`,
+        'sistema',
+        {
+          tipo,
+          severidad,
+          descripcion: opciones?.descripcion,
+        }
+      ).catch(err => {
         console.warn(
-          '[ServicioPaseo.registrarIncidente] Error enviando msg incidente:',
+          '[ServicioPaseo.registrarIncidente] Error enviando msg sistema:',
           err
         )
+      })
+
+      return { success: true }
+    } catch (error) {
+      return { success: false, error: mapFirebaseError(error) }
+    }
+  }
+
+  /**
+   * Transacción especializada: agregar mascota al paseo
+   * Útil para paseos compartidos donde se pueden agregar mascotas después de creado
+   */
+  static async commitMascotaTransaccional(
+    paseoId: string,
+    mascotaId: string
+  ): Promise<CrudResult<void>> {
+    const uid = ServicioAuth.obtenerUsuarioActual()?.uid
+    if (!uid) return { success: false, error: ERR.COMUN.NO_AUTENTICADO }
+
+    try {
+      await runTransaction(db, async transaction => {
+        const paseoRef = doc(db, COLLECTION_NAME, paseoId)
+        const paseoDoc = await transaction.get(paseoRef)
+
+        if (!paseoDoc.exists()) {
+          throw new Error(ERR.COMUN.DOCUMENTO_NO_ENCONTRADO)
+        }
+
+        const data = paseoDoc.data() as Paseo
+        const mascotaIds = data.mascota_ids || []
+
+        if (mascotaIds.includes(mascotaId)) {
+          throw new Error('MASCOTA_YA_EXISTE_EN_PASEO')
+        }
+
+        const updateFields = camposSistemaActualizar(uid)
+
+        transaction.update(paseoRef, {
+          mascota_ids: [...mascotaIds, mascotaId],
+          mascotas_count: (data.mascotas_count || 0) + 1,
+          ...updateFields,
+        })
       })
 
       return { success: true }

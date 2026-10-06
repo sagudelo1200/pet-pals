@@ -19,7 +19,6 @@ import { httpsCallable } from 'firebase/functions'
 import { COLOR } from '@/constants'
 import { useDoc } from '@/hooks/useDoc'
 import { useCollection } from '@/hooks/useCollection'
-import { Paseo } from '@/models/Paseo'
 import { Button, Spacer } from '@/components/ui'
 import type { AuthStackParamList } from '@/navigation/types'
 import { functions } from '@/firebase.config'
@@ -49,14 +48,14 @@ export default function ObservacionMascota() {
   const { user } = useAuth()
   const { t } = useTranslation('evaluaciones')
   const { paseoId } = route.params
-  const { data: paseo, cargando: loadingPaseo } = useDoc<Paseo>(
-    'paseos',
+  const { data: paseo, cargando: loadingPaseo } = useDoc<any>(
+    'operaciones',
     paseoId
   )
 
   // Obtener mascotas del paseo desde subcolección
   const { data: mascotasPaseo, cargando: loadingMascotas } = useCollection(
-    `paseos/${paseoId}/mascotas`
+    `operaciones/${paseoId}/mascotas`
   )
 
   const [indice, setIndice] = useState(0)

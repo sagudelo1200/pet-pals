@@ -1,7 +1,7 @@
 {
   "rules": {
-    "seguimiento_paseos": {
-      "$paseoId": {
+    "seguimiento_operaciones": {
+      "$operacionId": {
         ".read": "auth != null",
         "actual": {
           ".read": "auth != null",

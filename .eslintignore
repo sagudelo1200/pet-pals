@@ -1,2 +1,3 @@
 functions/**
 !.eslintrc.json
+paseo_old_backup.ts

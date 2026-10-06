@@ -1,21 +1,12 @@
 import React, { useEffect } from 'react'
-import {
-  StyleSheet,
-  Alert,
-  View,
-  Text,
-  Pressable,
-  ActivityIndicator,
-} from 'react-native'
-import GoogleLogo from '@/assets/imgs/logos/google.svg'
+import { StyleSheet, Alert, View } from 'react-native'
 import { COLOR } from '@/constants'
 import { useGoogleAuth } from '@/hooks/useGoogleAuth'
-import { useAuth } from '@/context/AuthContext'
+
 import { useTranslation } from 'react-i18next'
 
 export const GoogleSignInButton = () => {
-  const { signIn, loading: googleLoading, error } = useGoogleAuth()
-  const { ingresarConGoogle } = useAuth()
+  const { error } = useGoogleAuth()
   const { t } = useTranslation()
 
   useEffect(() => {
@@ -28,20 +19,6 @@ export const GoogleSignInButton = () => {
       )
     }
   }, [error, t])
-
-  const handlePress = async () => {
-    if (!ingresarConGoogle) return
-
-    const result = await signIn()
-    if (result && !result.success && result.error) {
-      Alert.alert(
-        t('auth:errores.tituloGoogle', {
-          defaultValue: 'Error de autenticación',
-        }),
-        result.error
-      )
-    }
-  }
 
   return (
     <View style={styles.container}>

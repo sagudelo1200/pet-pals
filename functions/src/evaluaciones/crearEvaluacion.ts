@@ -179,14 +179,24 @@ export const crearEvaluacion = onCall(
     }
 
     // 6. Paseo: existencia y estado
-    const paseoRef = db.doc(`paseos/${contextoId}`);
+    const paseoRef = db.doc(`operaciones/${contextoId}`);
     const paseoSnap = await paseoRef.get();
 
     if (!paseoSnap.exists) {
-      throw new HttpsError('not-found', `Paseo con ID ${contextoId} no existe`);
+      throw new HttpsError(
+        'not-found',
+        `Operación (paseo) con ID ${contextoId} no existe`
+      );
     }
 
     const paseo = paseoSnap.data() as Record<string, unknown>;
+    // Validar que sea de tipo 'paseo'
+    if (paseo.tipo !== 'paseo') {
+      throw new HttpsError(
+        'failed-precondition',
+        `Operación ${contextoId} no es de tipo 'paseo'`
+      );
+    }
     const estado = paseo.estado;
     if (estado !== 'COMPLETADO' && estado !== 'FINALIZADO') {
       const estadoStr = String(estado ?? 'desconocido');

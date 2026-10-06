@@ -1,5 +1,6 @@
 import { BaseModel } from './BaseModel'
 import type { UbicacionSnapshot } from '@/models/Ubicacion'
+import { ESTADOS_OPERACION, type Operacion } from './Operacion'
 
 /**
  * Tipos de paseo disponibles.
@@ -9,21 +10,38 @@ export type TipoPaseo = 'solicitado' | 'programado'
 
 /**
  * Estados posibles de un paseo.
- * Controla el flujo desde solicitud hasta conclusión o cancelación.
+ * Extiende ESTADOS_OPERACION con estados específicos de paseos.
+ *
+ * Máquina de estados para paseos:
+ * PENDIENTE → CONFIRMADO → EN_CAMINO → EN_PUNTO_RECOGIDA → EN_PROGRESO → FINALIZADO → COMPLETADO → LIQUIDADA
+ *
+ * Estos estados específicos (EN_CAMINO, EN_PUNTO_RECOGIDA) NO existen en Operacion genérica.
+ * Son atajos para transiciones comunes en paseos.
  */
 /* eslint-disable no-unused-vars */
 // Los valores del enum `ESTADOS_PASEO` se usan en múltiples módulos del proyecto.
 export enum ESTADOS_PASEO {
+  // Heredados de Operacion (genéricos)
   PENDIENTE = 'PENDIENTE',
   CONFIRMADO = 'CONFIRMADO',
-  EN_CAMINO = 'EN_CAMINO',
-  EN_PUNTO_RECOGIDA = 'EN_PUNTO_RECOGIDA',
   EN_PROGRESO = 'EN_PROGRESO',
   FINALIZADO = 'FINALIZADO',
   COMPLETADO = 'COMPLETADO',
   CANCELADO = 'CANCELADO',
   ERROR = 'ERROR',
+
+  // Específicos de Paseo (sub-estados opcionales entre CONFIRMADO y EN_PROGRESO)
+  EN_CAMINO = 'EN_CAMINO', // Cuidador en ruta hacia punto de recogida
+  EN_PUNTO_RECOGIDA = 'EN_PUNTO_RECOGIDA', // Cuidador esperando a mascota/tutor en punto de recogida
+
+  // Nota: LIQUIDADA no está en Paseo (se hereda de genérico si es necesario)
 }
+
+/**
+ * Re-export de ESTADOS_OPERACION para mantener compatibilidad
+ * Recomendación: migrar gradualmente a ESTADOS_OPERACION
+ */
+export const ESTADOS_PASEO_OPERACION = ESTADOS_OPERACION
 
 /**
  * Modalidad del paseo que define si acepta mascotas de otros tutores.
@@ -207,49 +225,35 @@ export interface PayloadIncidente {
 
 /**
  * Representa un servicio de paseo de mascota.
+ * Hereda de Operacion (con tipo discriminador 'paseo')
  * Contiene información sobre quién solicita, quién pasea, duración, precio y localización.
+ *
+ * ARQUITECTURA: Operacion es la abstracción genérica.
+ * Paseo es una especialización que implementa Operacion con tipo='paseo'
  */
-export interface Paseo extends BaseModel {
-  /** ID del cuidador asignado al servicio (puede no estar asignado inicialmente). */
+export interface Paseo extends Operacion {
+  // Reafirmar tipo específico
+  tipo: 'paseo'
+
+  // Campos específicos de Paseo (heredan de Operacion pero especializados)
   id_cuidador?: string
+  modalidad: ModalidadPaseo
 
-  /**
-   * Modalidad del paseo: 'privado' (solo mis mascotas) o 'compartido' (acepta otros tutores).
-   * Define si el paseo permite que otros tutores unan sus mascotas.
-   */
-  modalidad?: ModalidadPaseo
-
-  /** Cupo máximo de mascotas TOTALES para este paseo (incluyendo de todos los tutores). */
+  // Campos específicos de paseo
   cupo_maximo_mascotas?: number
-  /** Contador actual de mascotas unidas a este paseo (subcolección). */
   mascotas_count?: number
-  /** IDs de las mascotas participantes (para optimización de consultas). */
   mascota_ids?: string[]
-  /** IDs de los tutores participantes (para paseos compartidos). */
   tutor_ids?: string[]
-  /** Tipo de paseo (a demanda o programado). */
   tipo_paseo: TipoPaseo
-  /** Fecha y hora de inicio del paseo. */
   fecha_hora_inicio: Date
-  /** Duración estimada en minutos. */
   duracion_estimada: number
-  /** Duración real */
   duracion_real?: number
-  /** Costo del servicio en la moneda local. */
   precio: number
-  /** Estado actual del paseo. */
-  estado: ESTADOS_PASEO
-  /** Fecha y hora real de inicio del paseo (cuando pasa a EN_PROGRESO). */
   fecha_inicio_real?: Date
-  /** Fecha y hora real de fin del paseo (cuando pasa a FINALIZADO). */
   fecha_fin_real?: Date
-  /** Ubicación de inicio (dirección o coordenadas). */
   ubicacion_inicio?: UbicacionSnapshot | string
-  /** Texto legible de la ubicación de inicio (ej. "Casa", "Trabajo") para listas. */
   ubicacion_inicio_txt?: string
-  /** Ubicación de término (dirección o coordenadas). */
   ubicacion_fin?: UbicacionSnapshot | string
-  /** Texto legible de la ubicación de fin para listas. */
   ubicacion_fin_txt?: string
   /** Referencia al documento de tracking GPS si aplica. */
   tracking_gps?: string

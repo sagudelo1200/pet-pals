@@ -167,7 +167,7 @@ service cloud.firestore {
     }
 
     function es_actor_paseo_doc(p) {
-      return autenticado() && p != null && (
+      return autenticado() && p != null && p.data.tipo == 'paseo' && (
       p.data.creado_por == request.auth.uid ||
       p.data.id_cuidador == request.auth.uid ||
       es_admin()
@@ -176,12 +176,12 @@ service cloud.firestore {
 
     function puede_unirse_a_paseo_doc(p) {
       // Solo paseos con modalidad 'compartido' permiten que OTROS tutores se unan
-      return p != null && p.data.modalidad == 'compartido' && estado_permite_unirse(p.data.estado);
+      return p != null && p.data.tipo == 'paseo' && p.data.modalidad == 'compartido' && estado_permite_unirse(p.data.estado);
     }
 
-    // Helper para obtener documento de paseo (reutilizable en subcolecciones)
-    function get_paseo_doc(paseoId) {
-      return get(/databases/$(database)/documents/paseos/$(paseoId));
+    // Helper para obtener documento de operación (reutilizable en subcolecciones)
+    function get_operacion_doc(operacionId) {
+      return get(/databases/$(database)/documents/operaciones/$(operacionId));
     }
 
     // Validar transiciones de estado permitidas para cuidador
@@ -288,23 +288,22 @@ service cloud.firestore {
       allow delete: if es_admin();
     }
 
-    // PASEOS
-    match /paseos/{id} {
+    // OPERACIONES (genérica, pero con validaciones específicas por tipo)
+    match /operaciones/{id} {
       // OPTIMIZADO: Validaciones baratas primero
       // Permitir lectura si:
-      // 1. Eres actor del paseo (creador o cuidador asignado)
-      // 2. El paseo está PENDIENTE Y sin cuidador asignado (mercado abierto)
+      // 1. Eres actor de la operación (creador o cuidador asignado para tipo='paseo')
+      // 2. La operación es PENDIENTE SIN cuidador asignado Y tipo='paseo' (mercado abierto)
       allow get: if autenticado() && (
       resource == null || 
       resource.data.creado_por == request.auth.uid ||
-      resource.data.id_cuidador == request.auth.uid ||
-      (resource.data.estado == 'PENDIENTE' && sin_cuidador_asignado(resource))
+      (resource.data.tipo == 'paseo' && resource.data.id_cuidador == request.auth.uid) ||
+      (resource.data.tipo == 'paseo' && resource.data.estado == 'PENDIENTE' && sin_cuidador_asignado(resource))
       );
 
       // MULTI-TUTOR: Permitir queries para detectar solapamiento de mascotas
       // Los tutores necesitan leer paseos activos de sus mascotas sin importar quién los creó
       // Restricción: solo consultas (list), no acceso a documento específico
-      // Los datos de paseos no son confidenciales una vez creados
       allow list: if autenticado();
 
       allow create: if puede_crear_valido()
@@ -316,16 +315,18 @@ service cloud.firestore {
       // Caso 1: El Creador actualiza (validación más barata - solo request.auth.uid)
       resource.data.creado_por == request.auth.uid ||
 
-      // Caso 2: Aceptar solicitud (PENDIENTE -> CONFIRMADO)
+      // Caso 2: Aceptar solicitud (PENDIENTE -> CONFIRMADO) - solo para tipo='paseo'
       (
+      resource.data.tipo == 'paseo' &&
       resource.data.estado == 'PENDIENTE' &&
       request.resource.data.estado == 'CONFIRMADO' &&
       request.resource.data.id_cuidador == request.auth.uid &&
       (!('id_cuidador' in resource.data) || resource.data.id_cuidador == null || resource.data.id_cuidador == '' || resource.data.id_cuidador == request.auth.uid)
       ) ||
 
-      // Caso 3: El Cuidador asignado actualiza estado (con validación de transición)
+      // Caso 3: El Cuidador asignado actualiza estado (con validación de transición) - solo para tipo='paseo'
       (
+      resource.data.tipo == 'paseo' &&
       resource.data.id_cuidador == request.auth.uid &&
       request.resource.data.id_cuidador == request.auth.uid &&
       (
@@ -344,8 +345,8 @@ service cloud.firestore {
       allow delete: if es_actor_paseo_doc(resource);
     }
 
-    // SUBCOLECCION PASEOS MASCOTAS
-    match /paseos/{paseoId}/mascotas/{mascotaId} {
+    // SUBCOLECCION OPERACIONES-MASCOTAS (para paseos)
+    match /operaciones/{operacionId}/mascotas/{mascotaId} {
 
       function es_tutor_mascota() {
         return resource != null && resource.data.id_usuario == request.auth.uid;
@@ -354,7 +355,7 @@ service cloud.firestore {
       // OPTIMIZADO: Verificar autenticado primero, luego es_tutor_mascota (barato), finalmente get()
       allow read: if autenticado() && (
       es_tutor_mascota() || 
-      es_actor_paseo_doc(get_paseo_doc(paseoId))
+      es_actor_paseo_doc(get_operacion_doc(operacionId))
       );
 
       // OPTIMIZADO: Validaciones baratas primero
@@ -363,14 +364,14 @@ service cloud.firestore {
       // Primero verificar si es el usuario que se está agregando (barato)
       (request.resource.data.id_usuario == request.auth.uid && 
       request.resource.data.id_mascota == mascotaId &&
-      puede_unirse_a_paseo_doc(get_paseo_doc(paseoId))) ||
+      puede_unirse_a_paseo_doc(get_operacion_doc(operacionId))) ||
       // Luego verificar si es actor (requiere get)
-      es_actor_paseo_doc(get_paseo_doc(paseoId))
+      es_actor_paseo_doc(get_operacion_doc(operacionId))
       );
 
       // Actor o tutor puede actualizar observaciones
       allow update: if puede_actualizar_valido() && (
-      (es_actor_paseo_doc(get_paseo_doc(paseoId))
+      (es_actor_paseo_doc(get_operacion_doc(operacionId))
         && request.resource.data.id_mascota == resource.data.id_mascota
         && request.resource.data.id_usuario == resource.data.id_usuario)
         ||
@@ -384,18 +385,18 @@ service cloud.firestore {
         && request.resource.data.actualizado_por == request.auth.uid)
       );
 
-      allow delete: if es_actor_paseo_doc(get_paseo_doc(paseoId));
+      allow delete: if es_actor_paseo_doc(get_operacion_doc(operacionId));
     }
 
-    // SUBCOLECCION DE EVENTOS (HISTORIAL)
-    match /paseos/{paseoId}/eventos/{eventoId} {
+    // SUBCOLECCION DE EVENTOS (HISTORIAL) - para operaciones tipo='paseo'
+    match /operaciones/{operacionId}/eventos/{eventoId} {
       // OPTIMIZADO: Verificar autenticado primero, luego get()
-      allow read: if autenticado() && es_actor_paseo_doc(get_paseo_doc(paseoId));
+      allow read: if autenticado() && es_actor_paseo_doc(get_operacion_doc(operacionId));
 
-      // OPTIMIZADO: Crear eventos en la bitácora del paseo
+      // OPTIMIZADO: Crear eventos en la bitácora de la operación
       // - Validar campos obligatorios y campos de sistema
       // - El actor debe ser el usuario autenticado
-      // - El usuario debe ser actor del paseo
+      // - El usuario debe ser actor de la operación tipo='paseo'
       // NOTA: No validamos campos_sistema_validos_crear() porque cliente usa serverTimestamp()
       // que no puede ser comparado directamente con request.time en rules
       allow create: if autenticado() &&
@@ -406,7 +407,7 @@ service cloud.firestore {
       request.resource.data.actualizado_por == request.auth.uid &&
       request.resource.data.creado_en is timestamp &&
       request.resource.data.actualizado_en is timestamp &&
-      es_actor_paseo_doc(get_paseo_doc(paseoId)) &&
+      es_actor_paseo_doc(get_operacion_doc(operacionId)) &&
       solo_campos_permitidos([
       'evento','payload','actor','creado_por','creado_en','actualizado_por','actualizado_en'
       ]);
@@ -709,6 +710,25 @@ service cloud.firestore {
       allow update: if false;
 
       // ELIMINACIÓN: SOLO admin (raro, casos legales excepcionales)
+      allow delete: if es_admin();
+    }
+
+    // EVENTOS DE AUDITORÍA
+    // /eventos_auditoria/{id}
+    // Registro inmutable de todos los eventos de auditoría del sistema
+    // Captura creación, modificación, eliminación y cambios de estado de entidades
+    match /eventos_auditoria/{id} {
+      // LECTURA: Solo admin puede ver la auditoría completa
+      allow read: if autenticado() && es_admin();
+
+      // CREACIÓN: Solo Cloud Functions o admin pueden crear eventos de auditoría
+      // (desde la aplicación: registrarAuditoria() es llamada desde logic/)
+      allow create: if request.auth == null || es_admin();
+
+      // ACTUALIZACIÓN: NO permitida (auditoría es inmutable)
+      allow update: if false;
+
+      // ELIMINACIÓN: Solo admin (raro, casos legales excepcionales)
       allow delete: if es_admin();
     }
   }

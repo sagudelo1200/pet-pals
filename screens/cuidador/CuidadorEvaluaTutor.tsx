@@ -16,7 +16,6 @@ import { useTranslation } from 'react-i18next'
 import { httpsCallable } from 'firebase/functions'
 import { COLOR } from '@/constants'
 import { useDoc } from '@/hooks/useDoc'
-import { Paseo } from '@/models/Paseo'
 import { Button, Spacer } from '@/components/ui'
 import type { AuthStackParamList } from '@/navigation/types'
 import { functions } from '@/firebase.config'
@@ -40,7 +39,7 @@ export default function CuidadorEvaluaTutor() {
   const { user } = useAuth()
   const { t } = useTranslation('evaluaciones')
   const { paseoId } = route.params
-  const { data: paseo, cargando: loading } = useDoc<Paseo>('paseos', paseoId)
+  const { data: paseo, cargando: loading } = useDoc<any>('operaciones', paseoId)
   const [seleccion, setSeleccion] = useState(0)
   const [comentarioPrivado, setComentarioPrivado] = useState('')
   const [enviando, setEnviando] = useState(false)
@@ -72,7 +71,10 @@ export default function CuidadorEvaluaTutor() {
         // Valor intrínseco: la evaluación al tutor es coaching privado
         Alert.alert(
           t('exito_titulo'),
-          t('exito_mensaje_tutor', 'Tu feedback privado ayuda a mejorar las próximas experiencias.'),
+          t(
+            'exito_mensaje_tutor',
+            'Tu feedback privado ayuda a mejorar las próximas experiencias.'
+          ),
           [
             {
               text: t('comun:boton.volver'),
@@ -94,7 +96,10 @@ export default function CuidadorEvaluaTutor() {
         // Ya evaluado: se trata como éxito
         Alert.alert(
           t('exito_titulo'),
-          t('exito_mensaje_tutor', 'Tu feedback privado ayuda a mejorar las próximas experiencias.'),
+          t(
+            'exito_mensaje_tutor',
+            'Tu feedback privado ayuda a mejorar las próximas experiencias.'
+          ),
           [
             {
               text: t('comun:boton.volver'),
@@ -212,8 +217,7 @@ export default function CuidadorEvaluaTutor() {
             style={[
               styles.starButton,
               {
-                color:
-                  rating <= seleccion ? COLOR.ORO : COLOR.INACTIVO,
+                color: rating <= seleccion ? COLOR.ORO : COLOR.INACTIVO,
                 fontSize: 28,
               },
             ]}

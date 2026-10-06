@@ -32,6 +32,7 @@
     "babel.config.js",
     "jest.config.ts",
     "functions",
-    "scripts"
+    "scripts",
+    "paseo_old_backup.ts"
   ]
 }

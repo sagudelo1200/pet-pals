@@ -35,7 +35,7 @@ export function useBitacoraPaseo(paseoId: string) {
 
     try {
       const q: Query = query(
-        collection(db, 'paseos', paseoId, 'eventos'),
+        collection(db, 'operaciones', paseoId, 'eventos'),
         orderBy('creado_en', 'desc')
       )
 

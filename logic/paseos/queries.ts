@@ -16,7 +16,8 @@ import { ServicioPaseo } from '@/services/firebase'
  */
 export function obtenerQueryPaseosTutor(uid: string): Query {
   return query(
-    collection(db, 'paseos'),
+    collection(db, 'operaciones'),
+    where('tipo', '==', 'paseo'),
     where('creado_por', '==', uid),
     orderBy('fecha_hora_inicio', 'desc'),
     limit(30)
@@ -35,7 +36,8 @@ export function obtenerQuerySolicitudesPendientes(): Query {
  */
 export function obtenerQueryAgendaCuidador(uid: string): Query {
   return query(
-    collection(db, 'paseos'),
+    collection(db, 'operaciones'),
+    where('tipo', '==', 'paseo'),
     where('id_cuidador', '==', uid),
     where('estado', 'in', [
       ESTADOS_PASEO.CONFIRMADO,
@@ -52,7 +54,8 @@ export function obtenerQueryAgendaCuidador(uid: string): Query {
  */
 export function obtenerQueryHistorialCuidador(uid: string): Query {
   return query(
-    collection(db, 'paseos'),
+    collection(db, 'operaciones'),
+    where('tipo', '==', 'paseo'),
     where('id_cuidador', '==', uid),
     where('estado', 'in', [
       ESTADOS_PASEO.COMPLETADO,
@@ -69,7 +72,8 @@ export function obtenerQueryHistorialCuidador(uid: string): Query {
  */
 export function obtenerQueryMonitorPaseoGlobal(uid: string): Query {
   return query(
-    collection(db, 'paseos'),
+    collection(db, 'operaciones'),
+    where('tipo', '==', 'paseo'),
     where('creado_por', '==', uid),
     where('estado', 'in', [
       ESTADOS_PASEO.CONFIRMADO,

@@ -12,10 +12,14 @@ const db = admin.firestore();
  * Auto-crear conversación cuando paseo → CONFIRMADO
  */
 export const onPaseoConfirmado = onDocumentUpdated(
-  'paseos/{paseoId}',
+  'operaciones/{operacionId}',
   async (event) => {
     const afterData = event.data?.after.data() as Record<string, unknown>;
-    const paseoId = event.params.paseoId;
+    // Solo procesar si es tipo='paseo'
+    if (afterData?.tipo !== 'paseo') {
+      return;
+    }
+    const operacionId = event.params.operacionId;
 
     if (afterData?.estado !== 'CONFIRMADO') {
       return;
@@ -25,12 +29,14 @@ export const onPaseoConfirmado = onDocumentUpdated(
     const cuidadorId = afterData?.id_cuidador;
 
     if (!tutorId || !cuidadorId) {
-      console.warn(`[onPaseoConfirmado] Paseo ${paseoId} sin tutor o cuidador.`);
+      console.warn(
+        `[onPaseoConfirmado] Operación ${operacionId} sin tutor o cuidador.`
+      );
       return;
     }
 
     try {
-      const convRef = db.collection('conversaciones').doc(paseoId);
+      const convRef = db.collection('conversaciones').doc(operacionId);
       const existing = await convRef.get();
 
       if (existing.exists) {
@@ -49,7 +55,10 @@ export const onPaseoConfirmado = onDocumentUpdated(
         actualizado_por: 'sistema-cf-paseo-confirmado',
       });
     } catch (err) {
-      console.error(`[onPaseoConfirmado] Error para paseo ${paseoId}:`, err);
+      console.error(
+        `[onPaseoConfirmado] Error para operación ${operacionId}:`,
+        err
+      );
       throw err;
     }
   }

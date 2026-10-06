@@ -8,7 +8,6 @@ import {
 import { useTranslation } from 'react-i18next'
 import { COLOR } from '@/constants'
 import { useDoc } from '@/hooks/useDoc'
-import { Paseo } from '@/models/Paseo'
 import { Button, Spacer } from '@/components/ui'
 import type { AuthStackParamList } from '@/navigation/types'
 import { PaseoFinalizadoCard } from '@/components/paseos/PaseoFinalizadoCard'
@@ -28,7 +27,7 @@ export default function PaseoFinalizado() {
   const { user } = useAuth()
   const { t } = useTranslation('evaluaciones')
   const { paseoId } = route.params
-  const { data: paseo, cargando: loading } = useDoc<Paseo>('paseos', paseoId)
+  const { data: paseo, cargando: loading } = useDoc<any>('operaciones', paseoId)
 
   const cuidadorId = paseo?.id_cuidador
   const { ratingPrevio, enviando, enviado, nuevoPromedio, enviar } =
@@ -81,7 +80,10 @@ export default function PaseoFinalizado() {
           No se encontró la información del paseo.
         </Text>
         <Spacer size={20} />
-        <Button title="Volver" onPress={() => navigation.navigate('TutorApp')} />
+        <Button
+          title="Volver"
+          onPress={() => navigation.navigate('TutorApp')}
+        />
       </View>
     )
   }

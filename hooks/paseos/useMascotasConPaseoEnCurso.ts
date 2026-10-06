@@ -40,7 +40,8 @@ export const useMascotasConPaseoEnCurso = () => {
     ]
 
     const q = query(
-      collection(db, 'paseos'),
+      collection(db, 'operaciones'),
+      where('tipo', '==', 'paseo'),
       where('creado_por', '==', user.uid),
       where('estado', 'in', estadosActivos)
     )

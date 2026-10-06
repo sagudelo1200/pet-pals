@@ -39,7 +39,7 @@ export function iniciarSincronizador(
   const { onPaseo, onEventos, onError } = handlers
 
   // Listener documento principal
-  const paseoRef = doc(db, 'paseos', paseoId)
+  const paseoRef = doc(db, 'operaciones', paseoId)
   const unsubPaseo = onSnapshot(
     paseoRef,
     snapshot => {
@@ -79,7 +79,7 @@ export function iniciarSincronizador(
   )
 
   // Listener de eventos (hitos)
-  const eventosRef = collection(db, 'paseos', paseoId, 'eventos')
+  const eventosRef = collection(db, 'operaciones', paseoId, 'eventos')
   const qEventos = query(eventosRef, orderBy('creado_en', 'desc'), limit(50))
   const unsubEventos = onSnapshot(
     qEventos,

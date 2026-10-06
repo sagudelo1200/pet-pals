@@ -35,7 +35,7 @@ export class ServicioPaseoMascota {
 
     try {
       const batch = writeBatch(db)
-      const col = collection(db, 'paseos', paseoId, 'mascotas')
+      const col = collection(db, 'operaciones', paseoId, 'mascotas')
 
       for (const data of mascotasData) {
         const ref = doc(col, data.id)
@@ -67,8 +67,11 @@ export class ServicioPaseoMascota {
     const uid = ServicioAuth.obtenerUsuarioActual()?.uid
     if (!uid) return { success: false, error: ERR.COMUN.NO_AUTENTICADO }
 
-    const paseoRef = doc(db, 'paseos', paseoId)
-    const subRef = doc(collection(db, 'paseos', paseoId, 'mascotas'), mascotaId)
+    const paseoRef = doc(db, 'operaciones', paseoId)
+    const subRef = doc(
+      collection(db, 'operaciones', paseoId, 'mascotas'),
+      mascotaId
+    )
 
     try {
       await runTransaction(db, async tx => {
@@ -106,6 +109,4 @@ export class ServicioPaseoMascota {
    * @param codigoIngresado Código de 6 dígitos proporcionado por el cuidador
    * @returns { success, error?, intentosFallidos?, validado? }
    */
-
-
 }

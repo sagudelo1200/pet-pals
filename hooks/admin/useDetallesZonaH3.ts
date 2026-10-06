@@ -95,7 +95,8 @@ export function useDetallesZonaH3(h3_r8: string | null): DetallesZonaH3 {
         // Buscar paseos con estado PENDIENTE cuya ubicación sea en esta zona
         const paseosSnap = await getDocs(
           query(
-            collection(db, 'paseos'),
+            collection(db, 'operaciones'),
+            where('tipo', '==', 'paseo'),
             where('estado', '==', ESTADOS_PASEO.PENDIENTE)
           )
         )
@@ -124,7 +125,7 @@ export function useDetallesZonaH3(h3_r8: string | null): DetallesZonaH3 {
             // Intenta cargar la primera mascota
             try {
               const mascotasSnap = await getDocs(
-                query(collection(db, `paseos/${paseoDoc.id}/mascotas`))
+                query(collection(db, `operaciones/${paseoDoc.id}/mascotas`))
               )
               if (mascotasSnap.docs.length > 0) {
                 mascota_nombre = mascotasSnap.docs[0].data().nombre || 'Mascota'

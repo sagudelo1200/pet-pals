@@ -33,16 +33,19 @@ const ESTADOS_FINALES = ['FINALIZADO', 'COMPLETADO'];
  * ============================================================================
  */
 export const alCompletarPaseo = onDocumentUpdated(
-  'paseos/{paseoId}',
+  'operaciones/{operacionId}',
   async (event) => {
     const antes = event.data?.before.data() as
-      | Record<string, unknown>
-      | undefined;
+      Record<string, unknown> | undefined;
     const despues = event.data?.after.data() as
-      | Record<string, unknown>
-      | undefined;
+      Record<string, unknown> | undefined;
+    // operacionId extraído de event.params pero no se usa (lógica basada en documento)
+    // const _operacionId = (event.params as Record<string, string>).operacionId;
 
     if (!despues) return;
+
+    // Solo procesar si es tipo='paseo'
+    if (despues.tipo !== 'paseo') return;
 
     const estadoAnterior = antes?.estado;
     const estadoNuevo = despues.estado;
@@ -56,9 +59,10 @@ export const alCompletarPaseo = onDocumentUpdated(
     if (ESTADOS_FINALES.includes(String(estadoAnterior))) return;
 
     try {
-      // Contar paseos finalizados/completados del cuidador
+      // Contar paseos finalizados/completados del cuidador en operaciones tipo='paseo'
       const countSnap = await db
-        .collection('paseos')
+        .collection('operaciones')
+        .where('tipo', '==', 'paseo')
         .where('id_cuidador', '==', cuidadorId)
         .where('estado', 'in', ESTADOS_FINALES)
         .count()
@@ -111,7 +115,7 @@ export const alCompletarPaseo = onDocumentUpdated(
       );
     } catch (error) {
       console.error(
-        `[alCompletarPaseo] Error procesando ${event.params.paseoId}:`,
+        `[alCompletarPaseo] Error procesando ${event.params.operacionId}:`,
         error
       );
       throw error;
