@@ -151,7 +151,7 @@ const TerritorioVivo: React.FC = () => {
         <View style={[styles.badge, { top: insets.top + 12 }]}>
           <Text style={styles.badgeTexto}>
             {conteoZonas > 0
-              ? `${conteoZonas} zonas R${resolucionActual.toUpperCase()}`
+              ? `${conteoZonas} zonas ${resolucionActual.toUpperCase()}`
               : `${zonas.length} zonas`}
           </Text>
         </View>

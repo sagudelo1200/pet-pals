@@ -10,6 +10,7 @@ interface ProximoPaseoPreviewProps {
   paseo: Paseo
   onVerDetalles: () => void
   onContactar: () => void
+  contactarDisabled?: boolean
 }
 
 /**
@@ -22,6 +23,7 @@ const ProximoPaseoPreviewComponent: React.FC<ProximoPaseoPreviewProps> = ({
   paseo,
   onVerDetalles,
   onContactar,
+  contactarDisabled = false,
 }) => {
   const { t } = useTranslation()
 
@@ -42,8 +44,9 @@ const ProximoPaseoPreviewComponent: React.FC<ProximoPaseoPreviewProps> = ({
 
         <Button
           title={t('paseos:acciones.contactar')}
-          variant="secundario"
+          variant={contactarDisabled ? 'inactivo' : 'secundario'}
           onPress={onContactar}
+          disabled={contactarDisabled}
           style={{ flex: 1 }}
         />
       </View>
@@ -57,7 +60,8 @@ export const ProximoPaseoPreview = React.memo(
     return (
       prevProps.paseo?.id === nextProps.paseo?.id &&
       prevProps.onVerDetalles === nextProps.onVerDetalles &&
-      prevProps.onContactar === nextProps.onContactar
+      prevProps.onContactar === nextProps.onContactar &&
+      prevProps.contactarDisabled === nextProps.contactarDisabled
     )
   }
 )

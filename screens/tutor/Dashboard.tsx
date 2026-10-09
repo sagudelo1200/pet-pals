@@ -179,13 +179,36 @@ const Dashboard: React.FC = () => {
     setMostrarDetallePaseo(true)
   }, [proximoPaseo, navigation])
 
+  const puedeAbrirChat = useMemo(() => {
+    if (!proximoPaseo || !proximoPaseo.id_cuidador) return false
+
+    const estadosConChat = [
+      ESTADOS_PASEO.CONFIRMADO,
+      ESTADOS_PASEO.EN_CAMINO,
+      ESTADOS_PASEO.EN_PUNTO_RECOGIDA,
+      ESTADOS_PASEO.EN_PROGRESO,
+      ESTADOS_PASEO.FINALIZADO,
+      ESTADOS_PASEO.COMPLETADO,
+    ]
+
+    return estadosConChat.includes(proximoPaseo.estado as ESTADOS_PASEO)
+  }, [proximoPaseo])
+
   const handleContactarCuidador = useCallback(() => {
-    if (proximoPaseo?.id) {
-      // Navegar a Chat (FASE 3)
-      // @ts-ignore
-      navigation.navigate('Chat', { paseoId: proximoPaseo.id })
+    if (!proximoPaseo?.id) return
+
+    if (!puedeAbrirChat) {
+      Alert.alert(
+        'Chat no disponible',
+        'El chat se activará cuando el paseo esté confirmado y tenga cuidador asignado.'
+      )
+      return
     }
-  }, [proximoPaseo, navigation])
+
+    // Navegar a Chat (FASE 3)
+    // @ts-ignore
+    navigation.navigate('Chat', { paseoId: proximoPaseo.id })
+  }, [proximoPaseo, puedeAbrirChat, navigation])
 
   const handleVerDetalleActividad = useCallback(
     (paseoId: string) => {
@@ -312,6 +335,7 @@ const Dashboard: React.FC = () => {
               paseo={proximoPaseo}
               onVerDetalles={handleVerDetallesPaseo}
               onContactar={handleContactarCuidador}
+              contactarDisabled={!puedeAbrirChat}
             />
           ) : (
             <EmptyState
