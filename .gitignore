@@ -25,3 +25,5 @@ docs/*
 
 functions/npm-cache/*
 functions/.npm-cache
+
+.vscode/**

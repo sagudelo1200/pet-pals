@@ -731,5 +731,112 @@ service cloud.firestore {
       // ELIMINACIÓN: Solo admin (raro, casos legales excepcionales)
       allow delete: if es_admin();
     }
+
+    // ===== NUEVA FASE 5: OPERACIONES ECONÓMICAS =====
+
+    // OPERACIONES ECONÓMICAS
+    // /operaciones_economicas/{operacion_id}
+    // Documento base que fija términos del encargo entre tutor, cuidador y Paw-Path
+    match /operaciones_economicas/{operacion_id} {
+      // LECTURA: 
+      // - Tutor: solo su propia operación
+      // - Cuidador: operaciones asignadas a él
+      // - Admin: todas
+      allow read: if autenticado() && (
+      resource.data.tutor_id == request.auth.uid ||
+      (resource.data.cuidador_id != null && resource.data.cuidador_id == request.auth.uid) ||
+      es_admin()
+      );
+
+      // CREACIÓN: Solo tutor (creador) puede crear operación
+      allow create: if autenticado() &&
+      request.resource.data.tutor_id == request.auth.uid &&
+      request.resource.data.estado == 'ENCARGADA' &&
+      request.resource.data.valor_acordado > 0 &&
+      request.resource.data.remuneracion_mandatario >= 0 &&
+      request.resource.data.recursos_administrados_en_ejecucion >= 0 &&
+      request.resource.data.creado_en is timestamp &&
+      (request.resource.data.cuidador_id == null || request.resource.data.cuidador_id is string);
+
+      // ACTUALIZACIÓN: Tutor puede actualizar estado (ej: asignar cuidador, cancelar)
+      // Cuidador puede confirmar ejecución
+      allow update: if autenticado() &&
+      puede_actualizar_valido() &&
+      (
+      (resource.data.tutor_id == request.auth.uid) ||
+      (resource.data.cuidador_id == request.auth.uid) ||
+      es_admin()
+      );
+
+      // ELIMINACIÓN: Solo admin
+      allow delete: if es_admin();
+
+      // SUBCOLECCIÓN: Eventos Económicos
+      match /eventos_economicos/{evento_id} {
+        // LECTURA: Quienes pueden leer la operación padre pueden leer sus eventos
+        allow read: if autenticado() && get(/databases/$(database)/documents/operaciones_economicas/$(operacion_id)).data.tutor_id == request.auth.uid ||
+        get(/databases/$(database)/documents/operaciones_economicas/$(operacion_id)).data.cuidador_id == request.auth.uid ||
+        es_admin();
+
+        // CREACIÓN: Sistema (backend) crea eventos al registrar cambios
+        allow create: if request.auth == null || es_admin();
+
+        // ACTUALIZACIÓN: NO permitida (eventos inmutables)
+        allow update: if false;
+
+        // ELIMINACIÓN: Solo admin
+        allow delete: if es_admin();
+      }
+    }
+
+    // MOVIMIENTOS FINANCIEROS (Transacciones de dinero)
+    // /movimientos_financieros/{movimiento_id}
+    // Registro de cada ingreso/egreso con trazabilidad completa
+    match /movimientos_financieros/{movimiento_id} {
+      // LECTURA:
+      // - Tutor de la operación: puede leer movimientos de su operación
+      // - Contador: acceso de lectura (auditoría financiera)
+      // - Admin: acceso total
+      allow read: if autenticado() && (
+      (resource.data.operacion_id != null && 
+      resource.data.operacion_id in get(/databases/$(database)/documents/operaciones_economicas/$(resource.data.operacion_id)).data.tutor_id) ||
+      tiene_rol_actual('contador') ||
+      es_admin()
+      );
+
+      // CREACIÓN: Backend (Cloud Functions) crea movimientos
+      allow create: if request.auth == null || es_admin();
+
+      // ACTUALIZACIÓN: NO permitida (trazabilidad inmutable)
+      allow update: if false;
+
+      // ELIMINACIÓN: Solo admin (raro, casos legales)
+      allow delete: if es_admin();
+    }
+
+    // OBLIGACIONES (Deudas y compromisos bilaterales)
+    // /obligaciones/{obligacion_id}
+    // Mapeo de quién debe a quién, con estados de cumplimiento
+    match /obligaciones/{obligacion_id} {
+      // LECTURA:
+      // - Tutor involucrado en la operación
+      // - Contador (auditoría)
+      // - Admin
+      allow read: if autenticado() && (
+      (resource.data.operacion_id != null && 
+      resource.data.operacion_id in get(/databases/$(database)/documents/operaciones_economicas/$(resource.data.operacion_id)).data.tutor_id) ||
+      tiene_rol_actual('contador') ||
+      es_admin()
+      );
+
+      // CREACIÓN: Backend registra obligaciones al capturar fondos
+      allow create: if request.auth == null || es_admin();
+
+      // ACTUALIZACIÓN: Backend marca como CUMPLIDA cuando se paga
+      allow update: if request.auth == null || es_admin();
+
+      // ELIMINACIÓN: Solo admin
+      allow delete: if es_admin();
+    }
   }
 }

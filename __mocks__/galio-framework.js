@@ -7,7 +7,9 @@ module.exports = {
     COLORS: {},
   },
   // Dummy Input component for backward compatibility
-  Input: React.forwardRef((props, ref) => <TextInput ref={ref} {...props} />),
+  Input: React.forwardRef((props, ref) =>
+    React.createElement(TextInput, { ref, ...props })
+  ),
   // Export Text from react-native
   Text: View,
   // Export Block from react-native

@@ -1,0 +1,1753 @@
+npm warn Unknown user config "msvs_version". This will stop working in the next major version of npm.
+
+> paw-path@0.1.0 test
+> jest --passWithNoTests
+
+PASS functions/__tests__/evaluaciones/alCrearEvaluacion.test.ts
+  ● Console
+
+    console.warn
+      [alCrearEvaluacion] Evaluacion eval-1 sin datos
+
+    [0m [90m 53 |[39m
+     [90m 54 |[39m     [36mif[39m ([33m![39mevaluacionData) {
+    [31m[1m>[22m[39m[90m 55 |[39m       console[33m.[39mwarn([32m`[alCrearEvaluacion] Evaluacion ${evaluacionId} sin datos`[39m)[33m;[39m
+     [90m    |[39m               [31m[1m^[22m[39m
+     [90m 56 |[39m       [36mreturn[39m[33m;[39m
+     [90m 57 |[39m     }
+     [90m 58 |[39m[0m
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:55:15
+      at Object.<anonymous> (functions/__tests__/evaluaciones/alCrearEvaluacion.test.ts:93:11)
+
+    console.warn
+      [alCrearEvaluacion] Evaluacion sin objetivo.id
+
+    [0m [90m 65 |[39m
+     [90m 66 |[39m       [36mif[39m ([33m![39mobjetivoId) {
+    [31m[1m>[22m[39m[90m 67 |[39m         console[33m.[39mwarn([32m'[alCrearEvaluacion] Evaluacion sin objetivo.id'[39m)[33m;[39m
+     [90m    |[39m                 [31m[1m^[22m[39m
+     [90m 68 |[39m         [36mreturn[39m[33m;[39m
+     [90m 69 |[39m       }
+     [90m 70 |[39m[0m
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:67:17
+      at Object.<anonymous> (functions/__tests__/evaluaciones/alCrearEvaluacion.test.ts:98:11)
+
+    console.log
+      [alCrearEvaluacion] Procesando evaluacion e3
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:71:15
+
+    console.log
+        para objetivo cuidador-1
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:72:15
+
+    console.log
+      [alCrearEvaluacion] e3 en espera;
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:121:21
+
+    console.log
+        revelación programada (contraparte no existe)
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:122:21
+
+    console.log
+      [alCrearEvaluacion] ResumenEvaluacion actualizado para cuidador-1
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:132:15
+
+    console.log
+      [alCrearEvaluacion] PerfilPublico no existe para cuidador-1
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:181:19
+
+    console.log
+      [alCrearEvaluacion] Completada para e3
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:185:15
+
+    console.log
+      [alCrearEvaluacion] Procesando evaluacion e2
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:71:15
+
+    console.log
+        para objetivo cuidador-1
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:72:15
+
+    console.log
+      [alCrearEvaluacion] e2 en espera;
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:121:21
+
+    console.log
+        revelación programada (contraparte no existe)
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:122:21
+
+    console.log
+      [alCrearEvaluacion] ResumenEvaluacion actualizado para cuidador-1
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:132:15
+
+    console.log
+      [alCrearEvaluacion] PerfilPublico no existe para cuidador-1
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:181:19
+
+    console.log
+      [alCrearEvaluacion] Completada para e2
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:185:15
+
+    console.log
+      [alCrearEvaluacion] Procesando evaluacion e2
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:71:15
+
+    console.log
+        para objetivo cuidador-1
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:72:15
+
+    console.log
+      [alCrearEvaluacion] e2 en espera;
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:121:21
+
+    console.log
+        revelación programada (contraparte no existe)
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:122:21
+
+    console.log
+      [alCrearEvaluacion] ResumenEvaluacion actualizado para cuidador-1
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:132:15
+
+    console.warn
+      [reputacion] 1/2 celdas de índice no actualizadas para cuidador-1
+
+    [0m [90m 310 |[39m     [36mif[39m (fallidos [33m>[39m [35m0[39m) {
+     [90m 311 |[39m       [36mconst[39m total [33m=[39m celdas[33m.[39mlength[33m;[39m
+    [31m[1m>[22m[39m[90m 312 |[39m       console[33m.[39mwarn(
+     [90m     |[39m               [31m[1m^[22m[39m
+     [90m 313 |[39m         [32m`[reputacion] ${fallidos}/${total} celdas de índice no actualizadas para ${uid}`[39m
+     [90m 314 |[39m       )[33m;[39m
+     [90m 315 |[39m     }[0m
+
+      at actualizarRatingEnIndice (functions/src/evaluaciones/reputacion.ts:312:15)
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:171:11
+      at Object.<anonymous> (functions/__tests__/evaluaciones/alCrearEvaluacion.test.ts:152:5)
+
+    console.log
+      [alCrearEvaluacion] PerfilPublico actualizado para cuidador-1: rating 5
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:174:19
+
+    console.log
+      [alCrearEvaluacion] Completada para e2
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:185:15
+
+    console.log
+      [alCrearEvaluacion] Procesando evaluacion e2
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:71:15
+
+    console.log
+        para objetivo cuidador-1
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:72:15
+
+    console.log
+      [alCrearEvaluacion] e2 en espera;
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:121:21
+
+    console.log
+        revelación programada (contraparte no existe)
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:122:21
+
+    console.log
+      [alCrearEvaluacion] ResumenEvaluacion actualizado para cuidador-1
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:132:15
+
+    console.log
+      [alCrearEvaluacion] PerfilPublico no existe para cuidador-1
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:181:19
+
+    console.log
+      [alCrearEvaluacion] Completada para e2
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:185:15
+
+    console.log
+      [alCrearEvaluacion] Procesando evaluacion e1
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:71:15
+
+    console.log
+        para objetivo tutor-1
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:72:15
+
+    console.log
+      [alCrearEvaluacion] e1 en espera;
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:121:21
+
+    console.log
+        revelación programada (contraparte no existe)
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:122:21
+
+    console.log
+      [alCrearEvaluacion] ResumenEvaluacion actualizado para tutor-1
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:132:15
+
+    console.log
+      [alCrearEvaluacion] Completada para e1
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:185:15
+
+    console.log
+      [alCrearEvaluacion] Procesando evaluacion e1
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:71:15
+
+    console.log
+        para objetivo mascota-1
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:72:15
+
+    console.log
+      [alCrearEvaluacion] ResumenEvaluacion actualizado para mascota-1
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:132:15
+
+    console.log
+      [alCrearEvaluacion] Completada para e1
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:185:15
+
+    console.log
+      [alCrearEvaluacion] Procesando evaluacion e2
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:71:15
+
+    console.log
+        para objetivo cuidador-1
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:72:15
+
+    console.log
+      [alCrearEvaluacion] e2 en espera;
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:121:21
+
+    console.log
+        revelación programada (contraparte no existe)
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:122:21
+
+    console.log
+      [alCrearEvaluacion] ResumenEvaluacion actualizado para cuidador-1
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:132:15
+
+    console.log
+      [alCrearEvaluacion] PerfilPublico actualizado para cuidador-1: rating 5
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:174:19
+
+    console.log
+      [alCrearEvaluacion] Completada para e2
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:185:15
+
+    console.log
+      [alCrearEvaluacion] Procesando evaluacion e2
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:71:15
+
+    console.log
+        para objetivo cuidador-1
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:72:15
+
+    console.log
+      [alCrearEvaluacion] e2 en espera;
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:121:21
+
+    console.log
+        revelación programada (contraparte no existe)
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:122:21
+
+    console.log
+      [alCrearEvaluacion] ResumenEvaluacion actualizado para cuidador-1
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:132:15
+
+    console.log
+      [alCrearEvaluacion] Completada para e2
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:185:15
+
+    console.log
+      [alCrearEvaluacion] Procesando evaluacion e2
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:71:15
+
+    console.log
+        para objetivo cuidador-1
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:72:15
+
+    console.log
+      [alCrearEvaluacion] e2 en espera;
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:121:21
+
+    console.log
+        revelación programada (contraparte no existe)
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:122:21
+
+    console.log
+      [alCrearEvaluacion] ResumenEvaluacion actualizado para cuidador-1
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:132:15
+
+    console.log
+      [alCrearEvaluacion] Completada para e2
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:185:15
+
+    console.log
+      [alCrearEvaluacion] Procesando evaluacion e3
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:71:15
+
+    console.log
+        para objetivo cuidador-1
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:72:15
+
+    console.log
+      [alCrearEvaluacion] e3 en espera;
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:121:21
+
+    console.log
+        revelación programada (contraparte no existe)
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:122:21
+
+    console.log
+      [alCrearEvaluacion] ResumenEvaluacion actualizado para cuidador-1
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:132:15
+
+    console.log
+      [alCrearEvaluacion] PerfilPublico no existe para cuidador-1
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:181:19
+
+    console.log
+      [alCrearEvaluacion] Completada para e3
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:185:15
+
+    console.log
+      [alCrearEvaluacion] Procesando evaluacion e2
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:71:15
+
+    console.log
+        para objetivo cuidador-1
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:72:15
+
+    console.log
+      [alCrearEvaluacion] e2 en espera;
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:121:21
+
+    console.log
+        revelación programada (contraparte no existe)
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:122:21
+
+    console.log
+      [alCrearEvaluacion] ResumenEvaluacion actualizado para cuidador-1
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:132:15
+
+    console.log
+      [reputacion] Cuidador cuidador-1 sin cobertura H3; índice no actualizado
+
+      at actualizarRatingEnIndice (functions/src/evaluaciones/reputacion.ts:291:15)
+
+    console.log
+      [alCrearEvaluacion] PerfilPublico actualizado para cuidador-1: rating 5
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:174:19
+
+    console.log
+      [alCrearEvaluacion] Completada para e2
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:185:15
+
+    console.log
+      [alCrearEvaluacion] Procesando evaluacion e1
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:71:15
+
+    console.log
+        para objetivo cuidador-1
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:72:15
+
+    console.log
+      [alCrearEvaluacion] ResumenEvaluacion actualizado para cuidador-1
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:132:15
+
+    console.log
+      [alCrearEvaluacion] Completada para e1
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:185:15
+
+    console.log
+      [alCrearEvaluacion] Procesando evaluacion e1
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:71:15
+
+    console.log
+        para objetivo cuidador-1
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:72:15
+
+    console.log
+      [alCrearEvaluacion] e1 en espera;
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:121:21
+
+    console.log
+        revelación programada (contraparte no existe)
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:122:21
+
+    console.log
+      [alCrearEvaluacion] ResumenEvaluacion actualizado para cuidador-1
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:132:15
+
+    console.log
+      [alCrearEvaluacion] PerfilPublico no existe para cuidador-1
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:181:19
+
+    console.log
+      [alCrearEvaluacion] Completada para e1
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:185:15
+
+    console.log
+      [alCrearEvaluacion] Procesando evaluacion e1
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:71:15
+
+    console.log
+        para objetivo cuidador-1
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:72:15
+
+    console.log
+      [alCrearEvaluacion] Evaluación mutua: reveladas
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:104:21
+
+    console.log
+        e1 y evaluacion_tutor_cuidador-1_tutor-1_p1
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:105:21
+
+    console.log
+      [alCrearEvaluacion] ResumenEvaluacion actualizado para cuidador-1
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:132:15
+
+    console.log
+      [alCrearEvaluacion] PerfilPublico no existe para cuidador-1
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:181:19
+
+    console.log
+      [alCrearEvaluacion] Completada para e1
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:185:15
+
+    console.log
+      [alCrearEvaluacion] Procesando evaluacion e1
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:71:15
+
+    console.log
+        para objetivo mascota-1
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:72:15
+
+    console.log
+      [alCrearEvaluacion] ResumenEvaluacion actualizado para mascota-1
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:132:15
+
+    console.log
+      [alCrearEvaluacion] Completada para e1
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:185:15
+
+    console.log
+      [alCrearEvaluacion] Procesando evaluacion e1
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:71:15
+
+    console.log
+        para objetivo cuidador-1
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:72:15
+
+    console.log
+      [alCrearEvaluacion] e1 en espera;
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:121:21
+
+    console.log
+        revelación programada (contraparte no existe)
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:122:21
+
+    console.log
+      [alCrearEvaluacion] ResumenEvaluacion actualizado para cuidador-1
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:132:15
+
+    console.log
+      [alCrearEvaluacion] PerfilPublico no existe para cuidador-1
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:181:19
+
+    console.log
+      [alCrearEvaluacion] Completada para e1
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:185:15
+
+    console.log
+      [alCrearEvaluacion] Procesando evaluacion e1
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:71:15
+
+    console.log
+        para objetivo cuidador-1
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:72:15
+
+    console.log
+      [alCrearEvaluacion] Evaluación mutua: reveladas
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:104:21
+
+    console.log
+        e1 y evaluacion_tutor_cuidador-1_tutor-1_p1
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:105:21
+
+    console.log
+      [alCrearEvaluacion] ResumenEvaluacion actualizado para cuidador-1
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:132:15
+
+    console.log
+      [alCrearEvaluacion] PerfilPublico no existe para cuidador-1
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:181:19
+
+    console.log
+      [alCrearEvaluacion] Completada para e1
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:185:15
+
+    console.log
+      [alCrearEvaluacion] Procesando evaluacion e1
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:71:15
+
+    console.log
+        para objetivo mascota-1
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:72:15
+
+    console.log
+      [alCrearEvaluacion] ResumenEvaluacion actualizado para mascota-1
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:132:15
+
+    console.log
+      [alCrearEvaluacion] Completada para e1
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:185:15
+
+    console.log
+      [alCrearEvaluacion] Procesando evaluacion e2
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:71:15
+
+    console.log
+        para objetivo cuidador-1
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:72:15
+
+    console.log
+      [alCrearEvaluacion] e2 en espera;
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:121:21
+
+    console.log
+        revelación programada (contraparte no existe)
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:122:21
+
+    console.log
+      [alCrearEvaluacion] ResumenEvaluacion actualizado para cuidador-1
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:132:15
+
+    console.log
+      [alCrearEvaluacion] PerfilPublico no existe para cuidador-1
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:181:19
+
+    console.log
+      [alCrearEvaluacion] Completada para e2
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:185:15
+
+    console.log
+      [alCrearEvaluacion] Procesando evaluacion e1
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:71:15
+
+    console.log
+        para objetivo mascota-1
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:72:15
+
+    console.log
+      [alCrearEvaluacion] ResumenEvaluacion actualizado para mascota-1
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:132:15
+
+    console.log
+      [alCrearEvaluacion] Completada para e1
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:185:15
+
+    console.log
+      [alCrearEvaluacion] Procesando evaluacion e2
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:71:15
+
+    console.log
+        para objetivo cuidador-1
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:72:15
+
+    console.log
+      [alCrearEvaluacion] e2 en espera;
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:121:21
+
+    console.log
+        revelación programada (contraparte no existe)
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:122:21
+
+    console.log
+      [alCrearEvaluacion] ResumenEvaluacion actualizado para cuidador-1
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:132:15
+
+    console.log
+      [alCrearEvaluacion] PerfilPublico no existe para cuidador-1
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:181:19
+
+    console.log
+      [alCrearEvaluacion] Completada para e2
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:185:15
+
+    console.log
+      [alCrearEvaluacion] Procesando evaluacion e6
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:71:15
+
+    console.log
+        para objetivo cuidador-1
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:72:15
+
+    console.log
+      [alCrearEvaluacion] e6 en espera;
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:121:21
+
+    console.log
+        revelación programada (contraparte no existe)
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:122:21
+
+    console.log
+      [alCrearEvaluacion] ResumenEvaluacion actualizado para cuidador-1
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:132:15
+
+    console.log
+      [reputacion] Cuidador cuidador-1 sin cobertura H3; índice no actualizado
+
+      at actualizarRatingEnIndice (functions/src/evaluaciones/reputacion.ts:291:15)
+
+    console.log
+      [alCrearEvaluacion] PerfilPublico actualizado para cuidador-1: rating 5
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:174:19
+
+    console.log
+      [alCrearEvaluacion] Completada para e6
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:185:15
+
+    console.log
+      [alCrearEvaluacion] Procesando evaluacion e2
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:71:15
+
+    console.log
+        para objetivo cuidador-1
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:72:15
+
+    console.log
+      [alCrearEvaluacion] e2 en espera;
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:121:21
+
+    console.log
+        revelación programada (contraparte no existe)
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:122:21
+
+    console.log
+      [alCrearEvaluacion] ResumenEvaluacion actualizado para cuidador-1
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:132:15
+
+    console.log
+      [reputacion] Cuidador cuidador-1 sin cobertura H3; índice no actualizado
+
+      at actualizarRatingEnIndice (functions/src/evaluaciones/reputacion.ts:291:15)
+
+    console.log
+      [alCrearEvaluacion] PerfilPublico actualizado para cuidador-1: rating 2
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:174:19
+
+    console.log
+      [alCrearEvaluacion] Completada para e2
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:185:15
+
+    console.log
+      [alCrearEvaluacion] Procesando evaluacion e2
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:71:15
+
+    console.log
+        para objetivo mascota-1
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:72:15
+
+    console.log
+      [alCrearEvaluacion] ResumenEvaluacion actualizado para mascota-1
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:132:15
+
+    console.log
+      [alCrearEvaluacion] Completada para e2
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:185:15
+
+PASS __tests__/auditoria.test.ts
+  ● Console
+
+    console.log
+      [Auditoría] ENTIDAD_CREADA: operacion/OP-001 por USER-123
+
+      at registrarAuditoria (logic/operaciones/auditoria.ts:70:13)
+
+    console.log
+      [Auditoría] CAMBIO_ESTADO: operacion/OP-001 por USER-123
+
+      at registrarAuditoria (logic/operaciones/auditoria.ts:70:13)
+
+    console.log
+      [Auditoría] ENTIDAD_MODIFICADA: operacion/OP-001 por USER-123
+
+      at registrarAuditoria (logic/operaciones/auditoria.ts:70:13)
+
+    console.log
+      [Auditoría] ENTIDAD_CREADA: operacion/OP-001 por USER-123
+
+      at registrarAuditoria (logic/operaciones/auditoria.ts:70:13)
+
+    console.log
+      [Auditoría] ENTIDAD_CREADA: operacion/OP-001 por USER-123
+
+      at registrarAuditoria (logic/operaciones/auditoria.ts:70:13)
+
+    console.log
+      [Auditoría] ENTIDAD_CREADA: operacion/OP-001 por USER-123
+
+      at registrarAuditoria (logic/operaciones/auditoria.ts:70:13)
+
+    console.log
+      [Auditoría] ENTIDAD_MODIFICADA: operacion/OP-001 por USER-123
+
+      at registrarAuditoria (logic/operaciones/auditoria.ts:70:13)
+
+    console.log
+      [Auditoría] ENTIDAD_ELIMINADA: operacion/OP-001 por USER-123
+
+      at registrarAuditoria (logic/operaciones/auditoria.ts:70:13)
+
+    console.log
+      [Auditoría] CAMBIO_ESTADO: operacion/OP-001 por USER-123
+
+      at registrarAuditoria (logic/operaciones/auditoria.ts:70:13)
+
+    console.log
+      [Auditoría] ERROR: operacion/OP-001 por SISTEMA
+
+      at registrarAuditoria (logic/operaciones/auditoria.ts:70:13)
+
+    console.log
+      [Auditoría] ENTIDAD_CREADA: operacion/ID-operacion por USER-123
+
+      at registrarAuditoria (logic/operaciones/auditoria.ts:70:13)
+
+    console.log
+      [Auditoría] ENTIDAD_CREADA: cargo/ID-cargo por USER-123
+
+      at registrarAuditoria (logic/operaciones/auditoria.ts:70:13)
+
+    console.log
+      [Auditoría] ENTIDAD_CREADA: pago/ID-pago por USER-123
+
+      at registrarAuditoria (logic/operaciones/auditoria.ts:70:13)
+
+    console.log
+      [Auditoría] ENTIDAD_CREADA: movimiento/ID-movimiento por USER-123
+
+      at registrarAuditoria (logic/operaciones/auditoria.ts:70:13)
+
+    console.log
+      [Auditoría] ENTIDAD_CREADA: fondos_terceros/ID-fondos_terceros por USER-123
+
+      at registrarAuditoria (logic/operaciones/auditoria.ts:70:13)
+
+    console.log
+      [Auditoría] ENTIDAD_CREADA: liquidacion/ID-liquidacion por USER-123
+
+      at registrarAuditoria (logic/operaciones/auditoria.ts:70:13)
+
+    console.log
+      [Auditoría] ENTIDAD_CREADA: operacion/OP-001 por USER-123
+
+      at registrarAuditoria (logic/operaciones/auditoria.ts:70:13)
+
+    console.log
+      [Auditoría] ENTIDAD_CREADA: cargo/CARGO-001 por USER-123
+
+      at registrarAuditoria (logic/operaciones/auditoria.ts:70:13)
+
+    console.log
+      [Auditoría] ERROR: operacion/OP-001 por SISTEMA
+
+      at registrarAuditoria (logic/operaciones/auditoria.ts:70:13)
+
+    console.error
+      [Auditoría] Error registrando evento: Error: Firebase error
+          at Object.<anonymous> (C:\Code\paw-path\__tests__\auditoria.test.ts:464:21)
+          at Promise.then.completed (C:\Code\paw-path\node_modules\jest-circus\build\utils.js:298:28)
+          at new Promise (<anonymous>)
+          at callAsyncCircusFn (C:\Code\paw-path\node_modules\jest-circus\build\utils.js:231:10)
+          at _callCircusTest (C:\Code\paw-path\node_modules\jest-circus\build\run.js:316:40)
+          at processTicksAndRejections (node:internal/process/task_queues:105:5)
+          at _runTest (C:\Code\paw-path\node_modules\jest-circus\build\run.js:252:3)
+          at _runTestsForDescribeBlock (C:\Code\paw-path\node_modules\jest-circus\build\run.js:126:9)
+          at _runTestsForDescribeBlock (C:\Code\paw-path\node_modules\jest-circus\build\run.js:121:9)
+          at _runTestsForDescribeBlock (C:\Code\paw-path\node_modules\jest-circus\build\run.js:121:9)
+          at run (C:\Code\paw-path\node_modules\jest-circus\build\run.js:71:3)
+          at runAndTransformResultsToJestFormat (C:\Code\paw-path\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapterInit.js:122:21)
+          at jestAdapter (C:\Code\paw-path\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapter.js:79:19)
+          at runTestInternal (C:\Code\paw-path\node_modules\jest-runner\build\runTest.js:367:16)
+          at runTest (C:\Code\paw-path\node_modules\jest-runner\build\runTest.js:444:34)
+          at Object.worker (C:\Code\paw-path\node_modules\jest-runner\build\testWorker.js:106:12)
+
+    [0m [90m 73 |[39m     [36mreturn[39m eventoId
+     [90m 74 |[39m   } [36mcatch[39m (error) {
+    [31m[1m>[22m[39m[90m 75 |[39m     console[33m.[39merror([32m'[Auditoría] Error registrando evento:'[39m[33m,[39m error)
+     [90m    |[39m             [31m[1m^[22m[39m
+     [90m 76 |[39m     [36mthrow[39m error
+     [90m 77 |[39m   }
+     [90m 78 |[39m }[0m
+
+      at registrarAuditoria (logic/operaciones/auditoria.ts:75:13)
+      at Object.<anonymous> (__tests__/auditoria.test.ts:467:7)
+
+PASS logic/operacionesEconomicas/__tests__/invariantes.test.ts
+FAIL logic/operacionesEconomicas/__tests__/casosDeUso.test.ts
+  ● Casos de Uso - Operaciones Económicas › cancelarOperacion › Debe cancelar operación y anular obligaciones PENDIENTE
+
+    expect(jest.fn()).toHaveBeenCalledWith(...expected)
+
+    Expected: "op-1", ObjectContaining {"canceladoPor": "admin-1", "estado": "CANCELADA"}
+    Received: "op-1", {"cancelado_en": {"nanoseconds": 223000000, "seconds": 1791594073, "type": "firestore/timestamp/1.0"}, "cancelado_por": "admin-1", "estado": "CANCELADA"}
+
+    Number of calls: 1
+
+    [0m [90m 301 |[39m       [36mawait[39m cancelarOperacion([32m'op-1'[39m[33m,[39m [32m'admin-1'[39m[33m,[39m [32m'Solicitud del usuario'[39m)
+     [90m 302 |[39m
+    [31m[1m>[22m[39m[90m 303 |[39m       expect(actualizarOperacion)[33m.[39mtoHaveBeenCalledWith(
+     [90m     |[39m                                   [31m[1m^[22m[39m
+     [90m 304 |[39m         [32m'op-1'[39m[33m,[39m
+     [90m 305 |[39m         expect[33m.[39mobjectContaining({
+     [90m 306 |[39m           estado[33m:[39m [32m'CANCELADA'[39m[33m,[39m[0m
+
+      at Object.<anonymous> (logic/operacionesEconomicas/__tests__/casosDeUso.test.ts:303:35)
+
+PASS __tests__/fase6-integracion-operaciones.test.ts
+  ● Console
+
+    console.log
+      ✅ Invariantes validados en pruebas:
+
+      at Object.<anonymous> (__tests__/fase6-integracion-operaciones.test.ts:536:15)
+
+    console.log
+        - I1: valor_acordado === remuneracion_mandatario + recursos_administrados
+
+      at __tests__/fase6-integracion-operaciones.test.ts:537:42
+          at Array.forEach (<anonymous>)
+
+    console.log
+        - I5: No se puede cerrar si hay obligaciones PENDIENTE
+
+      at __tests__/fase6-integracion-operaciones.test.ts:537:42
+          at Array.forEach (<anonymous>)
+
+PASS logic/paseos/__tests__/paseoActivo.test.ts
+PASS services/geo/__tests__/h3Utils.test.ts
+PASS services/firebase/__tests__/mascota.test.ts
+PASS services/firebase/__tests__/errors.test.ts
+PASS logic/paseos/__tests__/obtenerEstadisticasCuidador.test.ts
+PASS logic/mascotas/__tests__/gestor.test.ts
+PASS services/firebase/__tests__/resumenes_evaluacion.test.ts
+PASS functions/__tests__/evaluaciones/flujoEvaluacion.test.ts
+  ● Console
+
+    console.log
+      [alCrearEvaluacion] Procesando evaluacion evaluacion_cuidador_tutor-1_cuidador-1_p1
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:71:15
+
+    console.log
+        para objetivo cuidador-1
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:72:15
+
+    console.log
+      [alCrearEvaluacion] evaluacion_cuidador_tutor-1_cuidador-1_p1 en espera;
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:121:21
+
+    console.log
+        revelación programada (contraparte no existe)
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:122:21
+
+    console.log
+      [alCrearEvaluacion] ResumenEvaluacion actualizado para cuidador-1
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:132:15
+
+    console.warn
+      [reputacion] 1/2 celdas de índice no actualizadas para cuidador-1
+
+    [0m [90m 310 |[39m     [36mif[39m (fallidos [33m>[39m [35m0[39m) {
+     [90m 311 |[39m       [36mconst[39m total [33m=[39m celdas[33m.[39mlength[33m;[39m
+    [31m[1m>[22m[39m[90m 312 |[39m       console[33m.[39mwarn(
+     [90m     |[39m               [31m[1m^[22m[39m
+     [90m 313 |[39m         [32m`[reputacion] ${fallidos}/${total} celdas de índice no actualizadas para ${uid}`[39m
+     [90m 314 |[39m       )[33m;[39m
+     [90m 315 |[39m     }[0m
+
+      at actualizarRatingEnIndice (functions/src/evaluaciones/reputacion.ts:312:15)
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:171:11
+      at Object.<anonymous> (functions/__tests__/evaluaciones/flujoEvaluacion.test.ts:114:5)
+
+    console.log
+      [alCrearEvaluacion] PerfilPublico actualizado para cuidador-1: rating 5
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:174:19
+
+    console.log
+      [alCrearEvaluacion] Completada para evaluacion_cuidador_tutor-1_cuidador-1_p1
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:185:15
+
+    console.log
+      [alCrearEvaluacion] Procesando evaluacion evaluacion_mascota_cuidador-1_m1_p1
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:71:15
+
+    console.log
+        para objetivo m1
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:72:15
+
+    console.log
+      [alCrearEvaluacion] ResumenEvaluacion actualizado para m1
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:132:15
+
+    console.log
+      [alCrearEvaluacion] Completada para evaluacion_mascota_cuidador-1_m1_p1
+
+      at functions/src/evaluaciones/alCrearEvaluacion.ts:185:15
+
+PASS functions/__tests__/evaluaciones/crearEvaluacion.test.ts
+PASS models/__tests__/evaluacion.test.ts
+PASS logic/paseos/__tests__/maquinaEstados.test.ts
+PASS functions/__tests__/evaluaciones/alCompletarPaseo.test.ts
+  ● Console
+
+    console.log
+      [alCompletarPaseo] c1: 2 paseos realizados
+
+      at functions/src/evaluaciones/alCompletarPaseo.ts:113:15
+
+    console.log
+      [alCompletarPaseo] PerfilPublico c1 no existe; cache omitido
+
+      at functions/src/evaluaciones/alCompletarPaseo.ts:105:19
+
+    console.log
+      [alCompletarPaseo] c1: 1 paseos realizados
+
+      at functions/src/evaluaciones/alCompletarPaseo.ts:113:15
+
+PASS functions/__tests__/evaluaciones/revelarEvaluacion.test.ts
+  ● Console
+
+    console.log
+      [revelarEvaluacion] no-existe no existe; nada que revelar
+
+      at functions/src/evaluaciones/revelarEvaluacion.ts:50:17
+
+    console.log
+      [revelarEvaluacion] e1 revelada por ventana
+
+      at functions/src/evaluaciones/revelarEvaluacion.ts:81:15
+
+    console.log
+      [revelarEvaluacion] e1 revelada por ventana
+
+      at functions/src/evaluaciones/revelarEvaluacion.ts:81:15
+
+PASS logic/paseos/__tests__/gestor.crearConMascotas.test.ts
+  ● Console
+
+    console.error
+      [Auditoría] Error registrando evento: TypeError: Cannot read properties of undefined (reading 'now')
+          at Function.registrar (C:\Code\paw-path\services\firebase\firestore\colecciones\auditoria.ts:68:28)
+          at registrarAuditoria (C:\Code\paw-path\logic\operaciones\auditoria.ts:69:46)
+          at crearConMascotas (C:\Code\paw-path\logic\paseos\casosDeUso.ts:391:29)
+          at processTicksAndRejections (node:internal/process/task_queues:105:5)
+          at Object.<anonymous> (C:\Code\paw-path\logic\paseos\__tests__\gestor.crearConMascotas.test.ts:125:17)
+
+    [0m [90m 73 |[39m     [36mreturn[39m eventoId
+     [90m 74 |[39m   } [36mcatch[39m (error) {
+    [31m[1m>[22m[39m[90m 75 |[39m     console[33m.[39merror([32m'[Auditoría] Error registrando evento:'[39m[33m,[39m error)
+     [90m    |[39m             [31m[1m^[22m[39m
+     [90m 76 |[39m     [36mthrow[39m error
+     [90m 77 |[39m   }
+     [90m 78 |[39m }[0m
+
+      at registrarAuditoria (logic/operaciones/auditoria.ts:75:13)
+      at crearConMascotas (logic/paseos/casosDeUso.ts:391:5)
+      at Object.<anonymous> (logic/paseos/__tests__/gestor.crearConMascotas.test.ts:125:17)
+
+    console.warn
+      [Auditoría] Error registrando creación de paseo: TypeError: Cannot read properties of undefined (reading 'now')
+          at Function.registrar (C:\Code\paw-path\services\firebase\firestore\colecciones\auditoria.ts:68:28)
+          at registrarAuditoria (C:\Code\paw-path\logic\operaciones\auditoria.ts:69:46)
+          at crearConMascotas (C:\Code\paw-path\logic\paseos\casosDeUso.ts:391:29)
+          at processTicksAndRejections (node:internal/process/task_queues:105:5)
+          at Object.<anonymous> (C:\Code\paw-path\logic\paseos\__tests__\gestor.crearConMascotas.test.ts:125:17)
+
+    [0m [90m 396 |[39m       id_operacion[33m:[39m paseoRes[33m.[39mdata[33m.[39mid[33m,[39m
+     [90m 397 |[39m     })[33m.[39m[36mcatch[39m(err [33m=>[39m {
+    [31m[1m>[22m[39m[90m 398 |[39m       console[33m.[39mwarn([32m'[Auditoría] Error registrando creación de paseo:'[39m[33m,[39m err)
+     [90m     |[39m               [31m[1m^[22m[39m
+     [90m 399 |[39m       [90m// No fallar si la auditoría falla (es no-bloqueante)[39m
+     [90m 400 |[39m     })
+     [90m 401 |[39m   }[0m
+
+      at logic/paseos/casosDeUso.ts:398:15
+      at crearConMascotas (logic/paseos/casosDeUso.ts:391:5)
+      at Object.<anonymous> (logic/paseos/__tests__/gestor.crearConMascotas.test.ts:125:17)
+
+PASS functions/__tests__/evaluaciones/cloudTasks.test.ts
+PASS __tests__/modelos-consentimiento.test.ts
+PASS services/firebase/__tests__/realtime.conversores.test.ts
+PASS __tests__/fase1-enriquecimiento.test.ts
+PASS logic/ubicaciones/__tests__/gestor.test.ts
+PASS logic/ubicaciones/__tests__/validaciones.test.ts
+PASS logic/mascotas/__tests__/utilidades.test.ts
+PASS logic/ubicaciones/__tests__/referencias.test.ts
+PASS logic/ubicaciones/__tests__/normalizador.test.ts
+PASS logic/paseos/__tests__/tier1.test.ts
+PASS logic/paseos/__tests__/confirmador.test.ts
+PASS services/firebase/__tests__/conversores.test.ts
+FAIL __tests__/fase5-seguridad-indices.test.ts
+  ● Test suite failed to run
+
+    FirebaseError: Firebase: Error (auth/invalid-api-key).
+
+    [0m [90m 34 |[39m
+     [90m 35 |[39m [90m// Inicializar Auth con persistencia de React Native (solo si está disponible)[39m
+    [31m[1m>[22m[39m[90m 36 |[39m [36mexport[39m [36mconst[39m auth [33m=[39m initializeAuth(
+     [90m    |[39m                                   [31m[1m^[22m[39m
+     [90m 37 |[39m   app[33m,[39m
+     [90m 38 |[39m   getReactNativePersistence [33m&&[39m [33mReactNativeAsyncStorage[39m
+     [90m 39 |[39m     [33m?[39m { persistence[33m:[39m getReactNativePersistence([33mReactNativeAsyncStorage[39m) }[0m
+
+      at createErrorInternal (node_modules/@firebase/auth/src/core/util/assert.ts:152:38)
+      at _assert (node_modules/@firebase/auth/src/core/util/assert.ts:177:11)
+      at Component.instanceFactory (node_modules/@firebase/auth/src/core/auth/register.ts:72:9)
+      at Provider.getOrInitializeService (node_modules/@firebase/component/src/provider.ts:318:33)
+      at Provider.initialize (node_modules/@firebase/component/src/provider.ts:242:27)
+      at initializeAuth (node_modules/@firebase/auth/src/core/auth/initialize.ts:66:25)
+      at Object.<anonymous> (firebase.config.ts:36:35)
+      at Object.<anonymous> (__tests__/fase5-seguridad-indices.test.ts:27:1)
+
+FAIL __tests__/fase2b-apis.test.ts (8.766 s)
+  ● Console
+
+    console.warn
+      [fetchClima] Error al obtener clima: Error: API error: 503
+          at fetchClima (C:\Code\paw-path\services\geo\enriquecimientoTerritorial.ts:116:29)
+          at processTicksAndRejections (node:internal/process/task_queues:105:5)
+          at Object.<anonymous> (C:\Code\paw-path\__tests__\fase2b-apis.test.ts:53:25)
+
+    [0m [90m 197 |[39m     [36mreturn[39m { clima_actual[33m,[39m temperatura_c[33m,[39m precipitacion_mm }
+     [90m 198 |[39m   } [36mcatch[39m (error) {
+    [31m[1m>[22m[39m[90m 199 |[39m     console[33m.[39mwarn([32m'[fetchClima] Error al obtener clima:'[39m[33m,[39m error)
+     [90m     |[39m             [31m[1m^[22m[39m
+     [90m 200 |[39m     [36mreturn[39m [36mnull[39m
+     [90m 201 |[39m   }
+     [90m 202 |[39m }[0m
+
+      at fetchClima (services/geo/enriquecimientoTerritorial.ts:199:13)
+      at Object.<anonymous> (__tests__/fase2b-apis.test.ts:53:25)
+
+    console.warn
+      [fetchClima] Error al obtener clima: Error: API error: 503
+          at fetchClima (C:\Code\paw-path\services\geo\enriquecimientoTerritorial.ts:116:29)
+          at processTicksAndRejections (node:internal/process/task_queues:105:5)
+          at Object.<anonymous> (C:\Code\paw-path\__tests__\fase2b-apis.test.ts:64:25)
+
+    [0m [90m 197 |[39m     [36mreturn[39m { clima_actual[33m,[39m temperatura_c[33m,[39m precipitacion_mm }
+     [90m 198 |[39m   } [36mcatch[39m (error) {
+    [31m[1m>[22m[39m[90m 199 |[39m     console[33m.[39mwarn([32m'[fetchClima] Error al obtener clima:'[39m[33m,[39m error)
+     [90m     |[39m             [31m[1m^[22m[39m
+     [90m 200 |[39m     [36mreturn[39m [36mnull[39m
+     [90m 201 |[39m   }
+     [90m 202 |[39m }[0m
+
+      at fetchClima (services/geo/enriquecimientoTerritorial.ts:199:13)
+      at Object.<anonymous> (__tests__/fase2b-apis.test.ts:64:25)
+
+    console.warn
+      [fetchClima] Error al obtener clima: Error: API error: 503
+          at fetchClima (C:\Code\paw-path\services\geo\enriquecimientoTerritorial.ts:116:29)
+          at processTicksAndRejections (node:internal/process/task_queues:105:5)
+          at async Promise.all (index 1)
+          at enriquecerContextoConAPIs (C:\Code\paw-path\services\geo\enriquecimientoTerritorial.ts:327:52)
+          at Object.<anonymous> (C:\Code\paw-path\__tests__\fase2b-apis.test.ts:87:25)
+
+    [0m [90m 197 |[39m     [36mreturn[39m { clima_actual[33m,[39m temperatura_c[33m,[39m precipitacion_mm }
+     [90m 198 |[39m   } [36mcatch[39m (error) {
+    [31m[1m>[22m[39m[90m 199 |[39m     console[33m.[39mwarn([32m'[fetchClima] Error al obtener clima:'[39m[33m,[39m error)
+     [90m     |[39m             [31m[1m^[22m[39m
+     [90m 200 |[39m     [36mreturn[39m [36mnull[39m
+     [90m 201 |[39m   }
+     [90m 202 |[39m }[0m
+
+      at fetchClima (services/geo/enriquecimientoTerritorial.ts:199:13)
+          at async Promise.all (index 1)
+      at enriquecerContextoConAPIs (services/geo/enriquecimientoTerritorial.ts:327:52)
+      at Object.<anonymous> (__tests__/fase2b-apis.test.ts:87:25)
+
+    console.warn
+      [fetchClima] Error al obtener clima: Error: API error: 503
+          at fetchClima (C:\Code\paw-path\services\geo\enriquecimientoTerritorial.ts:116:29)
+          at processTicksAndRejections (node:internal/process/task_queues:105:5)
+          at async Promise.all (index 1)
+          at enriquecerContextoConAPIs (C:\Code\paw-path\services\geo\enriquecimientoTerritorial.ts:327:52)
+          at Object.<anonymous> (C:\Code\paw-path\__tests__\fase2b-apis.test.ts:99:26)
+
+    [0m [90m 197 |[39m     [36mreturn[39m { clima_actual[33m,[39m temperatura_c[33m,[39m precipitacion_mm }
+     [90m 198 |[39m   } [36mcatch[39m (error) {
+    [31m[1m>[22m[39m[90m 199 |[39m     console[33m.[39mwarn([32m'[fetchClima] Error al obtener clima:'[39m[33m,[39m error)
+     [90m     |[39m             [31m[1m^[22m[39m
+     [90m 200 |[39m     [36mreturn[39m [36mnull[39m
+     [90m 201 |[39m   }
+     [90m 202 |[39m }[0m
+
+      at fetchClima (services/geo/enriquecimientoTerritorial.ts:199:13)
+          at async Promise.all (index 1)
+      at enriquecerContextoConAPIs (services/geo/enriquecimientoTerritorial.ts:327:52)
+      at Object.<anonymous> (__tests__/fase2b-apis.test.ts:99:26)
+
+  ● Enriquecimiento Territorial con APIs › enriquecerContextoConAPIs › debe respetar cache TTL
+
+    expect(received).toEqual(expected) // deep equality
+
+    - Expected  - 3
+    + Received  + 0
+
+      Object {
+    -   "clima_actual": "soleado",
+        "elevacion_metros": 18.462223,
+        "nombre_barrio": "Covent Garden",
+        "nombre_ubicacion": "Charing Cross",
+        "pendiente_grados": 0,
+    -   "precipitacion_mm": 0,
+    -   "temperatura_c": 12.1,
+      }
+
+    [0m [90m 103 |[39m
+     [90m 104 |[39m       [90m// Ambos deberían ser idénticos si el caché funcionó[39m
+    [31m[1m>[22m[39m[90m 105 |[39m       expect(resultado1)[33m.[39mtoEqual(resultado2)
+     [90m     |[39m                          [31m[1m^[22m[39m
+     [90m 106 |[39m     })
+     [90m 107 |[39m   })
+     [90m 108 |[39m[0m
+
+      at Object.<anonymous> (__tests__/fase2b-apis.test.ts:105:26)
+
+PASS services/h3/__tests__/H3TerritorialOrchestrator.test.ts (13.956 s)
+  ● Console
+
+    console.log
+      [H3TerritorialOrchestrator] 🔄 Procesando cambio de cobertura: test-uid-001 de 894cc6537ffffff a 894cc6537000001
+
+      at Function.procesarCambioCobertura (services/h3/H3TerritorialOrchestrator.ts:163:15)
+
+    console.log
+      [H3TerritorialOrchestrator] ✅ Cobertura migrada atómicamente
+
+      at Function.procesarCambioCobertura (services/h3/H3TerritorialOrchestrator.ts:175:17)
+
+    console.log
+      [H3TerritorialOrchestrator] 🔄 Procesando cambio de cobertura: test-uid-002 de 894cc6537ffffff a 894cc6537000001
+
+      at Function.procesarCambioCobertura (services/h3/H3TerritorialOrchestrator.ts:163:15)
+
+    console.log
+      [H3TerritorialOrchestrator] ✅ Cobertura migrada atómicamente
+
+      at Function.procesarCambioCobertura (services/h3/H3TerritorialOrchestrator.ts:175:17)
+
+    console.log
+      [H3TerritorialOrchestrator] 🔄 Procesando cambio de cobertura: test-uid-003 de 894cc6537ffffff a 894cc6537000001
+
+      at Function.procesarCambioCobertura (services/h3/H3TerritorialOrchestrator.ts:163:15)
+
+    console.error
+      [H3TerritorialOrchestrator] ❌ Error procesando cambio de cobertura: Error: Firestore write failed
+          at Object.<anonymous> (C:\Code\paw-path\services\h3\__tests__\H3TerritorialOrchestrator.test.ts:102:29)
+          at Promise.then.completed (C:\Code\paw-path\node_modules\jest-circus\build\utils.js:298:28)
+          at new Promise (<anonymous>)
+          at callAsyncCircusFn (C:\Code\paw-path\node_modules\jest-circus\build\utils.js:231:10)
+          at _callCircusTest (C:\Code\paw-path\node_modules\jest-circus\build\run.js:316:40)
+          at processTicksAndRejections (node:internal/process/task_queues:105:5)
+          at _runTest (C:\Code\paw-path\node_modules\jest-circus\build\run.js:252:3)
+          at _runTestsForDescribeBlock (C:\Code\paw-path\node_modules\jest-circus\build\run.js:126:9)
+          at _runTestsForDescribeBlock (C:\Code\paw-path\node_modules\jest-circus\build\run.js:121:9)
+          at _runTestsForDescribeBlock (C:\Code\paw-path\node_modules\jest-circus\build\run.js:121:9)
+          at run (C:\Code\paw-path\node_modules\jest-circus\build\run.js:71:3)
+          at runAndTransformResultsToJestFormat (C:\Code\paw-path\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapterInit.js:122:21)
+          at jestAdapter (C:\Code\paw-path\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapter.js:79:19)
+          at runTestInternal (C:\Code\paw-path\node_modules\jest-runner\build\runTest.js:367:16)
+          at runTest (C:\Code\paw-path\node_modules\jest-runner\build\runTest.js:444:34)
+          at Object.worker (C:\Code\paw-path\node_modules\jest-runner\build\testWorker.js:106:12)
+
+    [0m [90m 194 |[39m       [36mthis[39m[33m.[39mregistrarEnAudit(registro)
+     [90m 195 |[39m
+    [31m[1m>[22m[39m[90m 196 |[39m       console[33m.[39merror(
+     [90m     |[39m               [31m[1m^[22m[39m
+     [90m 197 |[39m         [32m'[H3TerritorialOrchestrator] ❌ Error procesando cambio de cobertura:'[39m[33m,[39m
+     [90m 198 |[39m         error
+     [90m 199 |[39m       )[0m
+
+      at Function.procesarCambioCobertura (services/h3/H3TerritorialOrchestrator.ts:196:15)
+      at Object.<anonymous> (services/h3/__tests__/H3TerritorialOrchestrator.test.ts:110:25)
+
+    console.log
+      [H3TerritorialOrchestrator] 🚶 Procesando evento de paseo: 894cc6537ffffff → EN_PROGRESO
+
+      at Function.procesarEventoPaseo (services/h3/H3TerritorialOrchestrator.ts:281:15)
+
+    console.log
+      [H3TerritorialOrchestrator] ✅ Zona 894cc6537ffffff actualizada en intento 1 (evento_paseo_EN_PROGRESO)
+
+      at Function.actualizarZonaConRetry (services/h3/H3TerritorialOrchestrator.ts:104:17)
+
+    console.log
+      [H3TerritorialOrchestrator] 🚶 Procesando evento de paseo: 894cc6537ffffff → COMPLETADO
+
+      at Function.procesarEventoPaseo (services/h3/H3TerritorialOrchestrator.ts:281:15)
+
+    console.warn
+      [H3TerritorialOrchestrator] ⚠️ Error actualizando 894cc6537ffffff, reintentando en 1000ms (evento_paseo_COMPLETADO): Network timeout
+
+    [0m [90m 113 |[39m             [33mRETRY_CONFIG[39m[33m.[39mdelayBase [33m*[39m
+     [90m 114 |[39m             [33mMath[39m[33m.[39mpow([33mRETRY_CONFIG[39m[33m.[39mbackoffMultiplier[33m,[39m intento)
+    [31m[1m>[22m[39m[90m 115 |[39m           console[33m.[39mwarn(
+     [90m     |[39m                   [31m[1m^[22m[39m
+     [90m 116 |[39m             [32m`[H3TerritorialOrchestrator] ⚠️ Error actualizando ${h3_r9}, reintentando en ${delayMs}ms (${operacion}):`[39m[33m,[39m
+     [90m 117 |[39m             ultimoError[33m.[39mmessage
+     [90m 118 |[39m           )[0m
+
+      at Function.actualizarZonaConRetry (services/h3/H3TerritorialOrchestrator.ts:115:19)
+      at Function.procesarEventoPaseo (services/h3/H3TerritorialOrchestrator.ts:291:21)
+      at Object.<anonymous> (services/h3/__tests__/H3TerritorialOrchestrator.test.ts:165:25)
+
+    console.log
+      [H3TerritorialOrchestrator] ✅ Zona 894cc6537ffffff actualizada en intento 2 (evento_paseo_COMPLETADO)
+
+      at Function.actualizarZonaConRetry (services/h3/H3TerritorialOrchestrator.ts:104:17)
+
+    console.log
+      [H3TerritorialOrchestrator] 🚶 Procesando evento de paseo: 894cc6537ffffff → EN_PROGRESO
+
+      at Function.procesarEventoPaseo (services/h3/H3TerritorialOrchestrator.ts:281:15)
+
+    console.warn
+      [H3TerritorialOrchestrator] ⚠️ Error actualizando 894cc6537ffffff, reintentando en 1000ms (evento_paseo_EN_PROGRESO): Persistently failing
+
+    [0m [90m 113 |[39m             [33mRETRY_CONFIG[39m[33m.[39mdelayBase [33m*[39m
+     [90m 114 |[39m             [33mMath[39m[33m.[39mpow([33mRETRY_CONFIG[39m[33m.[39mbackoffMultiplier[33m,[39m intento)
+    [31m[1m>[22m[39m[90m 115 |[39m           console[33m.[39mwarn(
+     [90m     |[39m                   [31m[1m^[22m[39m
+     [90m 116 |[39m             [32m`[H3TerritorialOrchestrator] ⚠️ Error actualizando ${h3_r9}, reintentando en ${delayMs}ms (${operacion}):`[39m[33m,[39m
+     [90m 117 |[39m             ultimoError[33m.[39mmessage
+     [90m 118 |[39m           )[0m
+
+      at Function.actualizarZonaConRetry (services/h3/H3TerritorialOrchestrator.ts:115:19)
+      at Function.procesarEventoPaseo (services/h3/H3TerritorialOrchestrator.ts:291:21)
+      at Object.<anonymous> (services/h3/__tests__/H3TerritorialOrchestrator.test.ts:185:25)
+
+    console.warn
+      [H3TerritorialOrchestrator] ⚠️ Error actualizando 894cc6537ffffff, reintentando en 2000ms (evento_paseo_EN_PROGRESO): Persistently failing
+
+    [0m [90m 113 |[39m             [33mRETRY_CONFIG[39m[33m.[39mdelayBase [33m*[39m
+     [90m 114 |[39m             [33mMath[39m[33m.[39mpow([33mRETRY_CONFIG[39m[33m.[39mbackoffMultiplier[33m,[39m intento)
+    [31m[1m>[22m[39m[90m 115 |[39m           console[33m.[39mwarn(
+     [90m     |[39m                   [31m[1m^[22m[39m
+     [90m 116 |[39m             [32m`[H3TerritorialOrchestrator] ⚠️ Error actualizando ${h3_r9}, reintentando en ${delayMs}ms (${operacion}):`[39m[33m,[39m
+     [90m 117 |[39m             ultimoError[33m.[39mmessage
+     [90m 118 |[39m           )[0m
+
+      at Function.actualizarZonaConRetry (services/h3/H3TerritorialOrchestrator.ts:115:19)
+      at Function.procesarEventoPaseo (services/h3/H3TerritorialOrchestrator.ts:291:21)
+      at Object.<anonymous> (services/h3/__tests__/H3TerritorialOrchestrator.test.ts:185:25)
+
+    console.error
+      [H3TerritorialOrchestrator] ❌ Falló actualizar zona 894cc6537ffffff después de 3 intentos (evento_paseo_EN_PROGRESO) Error: Persistently failing
+          at Object.<anonymous> (C:\Code\paw-path\services\h3\__tests__\H3TerritorialOrchestrator.test.ts:180:21)
+          at Promise.then.completed (C:\Code\paw-path\node_modules\jest-circus\build\utils.js:298:28)
+          at new Promise (<anonymous>)
+          at callAsyncCircusFn (C:\Code\paw-path\node_modules\jest-circus\build\utils.js:231:10)
+          at _callCircusTest (C:\Code\paw-path\node_modules\jest-circus\build\run.js:316:40)
+          at _runTest (C:\Code\paw-path\node_modules\jest-circus\build\run.js:252:3)
+          at _runTestsForDescribeBlock (C:\Code\paw-path\node_modules\jest-circus\build\run.js:126:9)
+          at _runTestsForDescribeBlock (C:\Code\paw-path\node_modules\jest-circus\build\run.js:121:9)
+          at _runTestsForDescribeBlock (C:\Code\paw-path\node_modules\jest-circus\build\run.js:121:9)
+          at run (C:\Code\paw-path\node_modules\jest-circus\build\run.js:71:3)
+          at runAndTransformResultsToJestFormat (C:\Code\paw-path\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapterInit.js:122:21)
+          at jestAdapter (C:\Code\paw-path\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapter.js:79:19)
+          at runTestInternal (C:\Code\paw-path\node_modules\jest-runner\build\runTest.js:367:16)
+          at runTest (C:\Code\paw-path\node_modules\jest-runner\build\runTest.js:444:34)
+          at Object.worker (C:\Code\paw-path\node_modules\jest-runner\build\testWorker.js:106:12)
+
+    [0m [90m 122 |[39m     }
+     [90m 123 |[39m
+    [31m[1m>[22m[39m[90m 124 |[39m     console[33m.[39merror(
+     [90m     |[39m             [31m[1m^[22m[39m
+     [90m 125 |[39m       [32m`[H3TerritorialOrchestrator] ❌ Falló actualizar zona ${h3_r9} después de ${RETRY_CONFIG.maxReintentos} intentos (${operacion})`[39m[33m,[39m
+     [90m 126 |[39m       ultimoError
+     [90m 127 |[39m     )[0m
+
+      at Function.actualizarZonaConRetry (services/h3/H3TerritorialOrchestrator.ts:124:13)
+      at Function.procesarEventoPaseo (services/h3/H3TerritorialOrchestrator.ts:291:21)
+      at Object.<anonymous> (services/h3/__tests__/H3TerritorialOrchestrator.test.ts:185:25)
+
+    console.log
+      [H3TerritorialOrchestrator] 🚶 Procesando evento de paseo: zona1 → EN_PROGRESO
+
+      at Function.procesarEventoPaseo (services/h3/H3TerritorialOrchestrator.ts:281:15)
+
+    console.log
+      [H3TerritorialOrchestrator] ✅ Zona zona1 actualizada en intento 1 (evento_paseo_EN_PROGRESO)
+
+      at Function.actualizarZonaConRetry (services/h3/H3TerritorialOrchestrator.ts:104:17)
+
+    console.log
+      [H3TerritorialOrchestrator] 🚶 Procesando evento de paseo: zona2 → COMPLETADO
+
+      at Function.procesarEventoPaseo (services/h3/H3TerritorialOrchestrator.ts:281:15)
+
+    console.log
+      [H3TerritorialOrchestrator] ✅ Zona zona2 actualizada en intento 1 (evento_paseo_COMPLETADO)
+
+      at Function.actualizarZonaConRetry (services/h3/H3TerritorialOrchestrator.ts:104:17)
+
+    console.log
+      [H3TerritorialOrchestrator] 🚶 Procesando evento de paseo: zona3 → EN_PROGRESO
+
+      at Function.procesarEventoPaseo (services/h3/H3TerritorialOrchestrator.ts:281:15)
+
+    console.log
+      [H3TerritorialOrchestrator] ✅ Zona zona3 actualizada en intento 1 (evento_paseo_EN_PROGRESO)
+
+      at Function.actualizarZonaConRetry (services/h3/H3TerritorialOrchestrator.ts:104:17)
+
+    console.log
+      [H3TerritorialOrchestrator] 🚶 Procesando evento de paseo: zona4 → EN_PROGRESO
+
+      at Function.procesarEventoPaseo (services/h3/H3TerritorialOrchestrator.ts:281:15)
+
+    console.log
+      [H3TerritorialOrchestrator] ✅ Zona zona4 actualizada en intento 1 (evento_paseo_EN_PROGRESO)
+
+      at Function.actualizarZonaConRetry (services/h3/H3TerritorialOrchestrator.ts:104:17)
+
+    console.log
+      [H3TerritorialOrchestrator] 🚶 Procesando evento de paseo: zona5 → COMPLETADO
+
+      at Function.procesarEventoPaseo (services/h3/H3TerritorialOrchestrator.ts:281:15)
+
+    console.log
+      [H3TerritorialOrchestrator] ✅ Zona zona5 actualizada en intento 1 (evento_paseo_COMPLETADO)
+
+      at Function.actualizarZonaConRetry (services/h3/H3TerritorialOrchestrator.ts:104:17)
+
+    console.log
+      [H3TerritorialOrchestrator] 🚶 Procesando evento de paseo: zona1 → EN_PROGRESO
+
+      at Function.procesarEventoPaseo (services/h3/H3TerritorialOrchestrator.ts:281:15)
+
+    console.log
+      [H3TerritorialOrchestrator] ✅ Zona zona1 actualizada en intento 1 (evento_paseo_EN_PROGRESO)
+
+      at Function.actualizarZonaConRetry (services/h3/H3TerritorialOrchestrator.ts:104:17)
+
+    console.log
+      [H3TerritorialOrchestrator] 🚶 Procesando evento de paseo: zona2 → EN_PROGRESO
+
+      at Function.procesarEventoPaseo (services/h3/H3TerritorialOrchestrator.ts:281:15)
+
+    console.warn
+      [H3TerritorialOrchestrator] ⚠️ Error actualizando zona2, reintentando en 1000ms (evento_paseo_EN_PROGRESO): fail
+
+    [0m [90m 113 |[39m             [33mRETRY_CONFIG[39m[33m.[39mdelayBase [33m*[39m
+     [90m 114 |[39m             [33mMath[39m[33m.[39mpow([33mRETRY_CONFIG[39m[33m.[39mbackoffMultiplier[33m,[39m intento)
+    [31m[1m>[22m[39m[90m 115 |[39m           console[33m.[39mwarn(
+     [90m     |[39m                   [31m[1m^[22m[39m
+     [90m 116 |[39m             [32m`[H3TerritorialOrchestrator] ⚠️ Error actualizando ${h3_r9}, reintentando en ${delayMs}ms (${operacion}):`[39m[33m,[39m
+     [90m 117 |[39m             ultimoError[33m.[39mmessage
+     [90m 118 |[39m           )[0m
+
+      at Function.actualizarZonaConRetry (services/h3/H3TerritorialOrchestrator.ts:115:19)
+      at Function.procesarEventoPaseo (services/h3/H3TerritorialOrchestrator.ts:291:21)
+      at Object.<anonymous> (services/h3/__tests__/H3TerritorialOrchestrator.test.ts:242:7)
+
+    console.warn
+      [H3TerritorialOrchestrator] ⚠️ Error actualizando zona2, reintentando en 2000ms (evento_paseo_EN_PROGRESO): fail
+
+    [0m [90m 113 |[39m             [33mRETRY_CONFIG[39m[33m.[39mdelayBase [33m*[39m
+     [90m 114 |[39m             [33mMath[39m[33m.[39mpow([33mRETRY_CONFIG[39m[33m.[39mbackoffMultiplier[33m,[39m intento)
+    [31m[1m>[22m[39m[90m 115 |[39m           console[33m.[39mwarn(
+     [90m     |[39m                   [31m[1m^[22m[39m
+     [90m 116 |[39m             [32m`[H3TerritorialOrchestrator] ⚠️ Error actualizando ${h3_r9}, reintentando en ${delayMs}ms (${operacion}):`[39m[33m,[39m
+     [90m 117 |[39m             ultimoError[33m.[39mmessage
+     [90m 118 |[39m           )[0m
+
+      at Function.actualizarZonaConRetry (services/h3/H3TerritorialOrchestrator.ts:115:19)
+      at Function.procesarEventoPaseo (services/h3/H3TerritorialOrchestrator.ts:291:21)
+      at Object.<anonymous> (services/h3/__tests__/H3TerritorialOrchestrator.test.ts:242:7)
+
+    console.error
+      [H3TerritorialOrchestrator] ❌ Falló actualizar zona zona2 después de 3 intentos (evento_paseo_EN_PROGRESO) Error: fail
+          at Object.<anonymous> (C:\Code\paw-path\services\h3\__tests__\H3TerritorialOrchestrator.test.ts:235:28)
+          at Promise.then.completed (C:\Code\paw-path\node_modules\jest-circus\build\utils.js:298:28)
+          at new Promise (<anonymous>)
+          at callAsyncCircusFn (C:\Code\paw-path\node_modules\jest-circus\build\utils.js:231:10)
+          at _callCircusTest (C:\Code\paw-path\node_modules\jest-circus\build\run.js:316:40)
+          at _runTest (C:\Code\paw-path\node_modules\jest-circus\build\run.js:252:3)
+          at _runTestsForDescribeBlock (C:\Code\paw-path\node_modules\jest-circus\build\run.js:126:9)
+          at _runTestsForDescribeBlock (C:\Code\paw-path\node_modules\jest-circus\build\run.js:121:9)
+          at _runTestsForDescribeBlock (C:\Code\paw-path\node_modules\jest-circus\build\run.js:121:9)
+          at run (C:\Code\paw-path\node_modules\jest-circus\build\run.js:71:3)
+          at runAndTransformResultsToJestFormat (C:\Code\paw-path\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapterInit.js:122:21)
+          at jestAdapter (C:\Code\paw-path\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapter.js:79:19)
+          at runTestInternal (C:\Code\paw-path\node_modules\jest-runner\build\runTest.js:367:16)
+          at runTest (C:\Code\paw-path\node_modules\jest-runner\build\runTest.js:444:34)
+          at Object.worker (C:\Code\paw-path\node_modules\jest-runner\build\testWorker.js:106:12)
+
+    [0m [90m 122 |[39m     }
+     [90m 123 |[39m
+    [31m[1m>[22m[39m[90m 124 |[39m     console[33m.[39merror(
+     [90m     |[39m             [31m[1m^[22m[39m
+     [90m 125 |[39m       [32m`[H3TerritorialOrchestrator] ❌ Falló actualizar zona ${h3_r9} después de ${RETRY_CONFIG.maxReintentos} intentos (${operacion})`[39m[33m,[39m
+     [90m 126 |[39m       ultimoError
+     [90m 127 |[39m     )[0m
+
+      at Function.actualizarZonaConRetry (services/h3/H3TerritorialOrchestrator.ts:124:13)
+      at Function.procesarEventoPaseo (services/h3/H3TerritorialOrchestrator.ts:291:21)
+      at Object.<anonymous> (services/h3/__tests__/H3TerritorialOrchestrator.test.ts:242:7)
+
+    console.log
+      [H3TerritorialOrchestrator] 🚶 Procesando evento de paseo: zona3 → EN_PROGRESO
+
+      at Function.procesarEventoPaseo (services/h3/H3TerritorialOrchestrator.ts:281:15)
+
+    console.warn
+      [H3TerritorialOrchestrator] ⚠️ Error actualizando zona3, reintentando en 1000ms (evento_paseo_EN_PROGRESO): fail
+
+    [0m [90m 113 |[39m             [33mRETRY_CONFIG[39m[33m.[39mdelayBase [33m*[39m
+     [90m 114 |[39m             [33mMath[39m[33m.[39mpow([33mRETRY_CONFIG[39m[33m.[39mbackoffMultiplier[33m,[39m intento)
+    [31m[1m>[22m[39m[90m 115 |[39m           console[33m.[39mwarn(
+     [90m     |[39m                   [31m[1m^[22m[39m
+     [90m 116 |[39m             [32m`[H3TerritorialOrchestrator] ⚠️ Error actualizando ${h3_r9}, reintentando en ${delayMs}ms (${operacion}):`[39m[33m,[39m
+     [90m 117 |[39m             ultimoError[33m.[39mmessage
+     [90m 118 |[39m           )[0m
+
+      at Function.actualizarZonaConRetry (services/h3/H3TerritorialOrchestrator.ts:115:19)
+      at Function.procesarEventoPaseo (services/h3/H3TerritorialOrchestrator.ts:291:21)
+      at Object.<anonymous> (services/h3/__tests__/H3TerritorialOrchestrator.test.ts:246:7)
+
+    console.warn
+      [H3TerritorialOrchestrator] ⚠️ Error actualizando zona3, reintentando en 2000ms (evento_paseo_EN_PROGRESO): fail
+
+    [0m [90m 113 |[39m             [33mRETRY_CONFIG[39m[33m.[39mdelayBase [33m*[39m
+     [90m 114 |[39m             [33mMath[39m[33m.[39mpow([33mRETRY_CONFIG[39m[33m.[39mbackoffMultiplier[33m,[39m intento)
+    [31m[1m>[22m[39m[90m 115 |[39m           console[33m.[39mwarn(
+     [90m     |[39m                   [31m[1m^[22m[39m
+     [90m 116 |[39m             [32m`[H3TerritorialOrchestrator] ⚠️ Error actualizando ${h3_r9}, reintentando en ${delayMs}ms (${operacion}):`[39m[33m,[39m
+     [90m 117 |[39m             ultimoError[33m.[39mmessage
+     [90m 118 |[39m           )[0m
+
+      at Function.actualizarZonaConRetry (services/h3/H3TerritorialOrchestrator.ts:115:19)
+      at Function.procesarEventoPaseo (services/h3/H3TerritorialOrchestrator.ts:291:21)
+      at Object.<anonymous> (services/h3/__tests__/H3TerritorialOrchestrator.test.ts:246:7)
+
+    console.error
+      [H3TerritorialOrchestrator] ❌ Falló actualizar zona zona3 después de 3 intentos (evento_paseo_EN_PROGRESO) Error: fail
+          at Object.<anonymous> (C:\Code\paw-path\services\h3\__tests__\H3TerritorialOrchestrator.test.ts:235:28)
+          at Promise.then.completed (C:\Code\paw-path\node_modules\jest-circus\build\utils.js:298:28)
+          at new Promise (<anonymous>)
+          at callAsyncCircusFn (C:\Code\paw-path\node_modules\jest-circus\build\utils.js:231:10)
+          at _callCircusTest (C:\Code\paw-path\node_modules\jest-circus\build\run.js:316:40)
+          at _runTest (C:\Code\paw-path\node_modules\jest-circus\build\run.js:252:3)
+          at _runTestsForDescribeBlock (C:\Code\paw-path\node_modules\jest-circus\build\run.js:126:9)
+          at _runTestsForDescribeBlock (C:\Code\paw-path\node_modules\jest-circus\build\run.js:121:9)
+          at _runTestsForDescribeBlock (C:\Code\paw-path\node_modules\jest-circus\build\run.js:121:9)
+          at run (C:\Code\paw-path\node_modules\jest-circus\build\run.js:71:3)
+          at runAndTransformResultsToJestFormat (C:\Code\paw-path\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapterInit.js:122:21)
+          at jestAdapter (C:\Code\paw-path\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapter.js:79:19)
+          at runTestInternal (C:\Code\paw-path\node_modules\jest-runner\build\runTest.js:367:16)
+          at runTest (C:\Code\paw-path\node_modules\jest-runner\build\runTest.js:444:34)
+          at Object.worker (C:\Code\paw-path\node_modules\jest-runner\build\testWorker.js:106:12)
+
+    [0m [90m 122 |[39m     }
+     [90m 123 |[39m
+    [31m[1m>[22m[39m[90m 124 |[39m     console[33m.[39merror(
+     [90m     |[39m             [31m[1m^[22m[39m
+     [90m 125 |[39m       [32m`[H3TerritorialOrchestrator] ❌ Falló actualizar zona ${h3_r9} después de ${RETRY_CONFIG.maxReintentos} intentos (${operacion})`[39m[33m,[39m
+     [90m 126 |[39m       ultimoError
+     [90m 127 |[39m     )[0m
+
+      at Function.actualizarZonaConRetry (services/h3/H3TerritorialOrchestrator.ts:124:13)
+      at Function.procesarEventoPaseo (services/h3/H3TerritorialOrchestrator.ts:291:21)
+      at Object.<anonymous> (services/h3/__tests__/H3TerritorialOrchestrator.test.ts:246:7)
+
+    console.log
+      [H3TerritorialOrchestrator] 📊 Recalculando estado de zona: 894cc6537ffffff
+
+      at Function.procesarCambioEstadoZona (services/h3/H3TerritorialOrchestrator.ts:386:15)
+
+    console.log
+      [H3TerritorialOrchestrator] ✅ Zona 894cc6537ffffff actualizada en intento 1 (cambio_estado_sin_cobertura)
+
+      at Function.actualizarZonaConRetry (services/h3/H3TerritorialOrchestrator.ts:104:17)
+
+    console.log
+      [H3TerritorialOrchestrator] 📊 Recalculando estado de zona: 894cc6537ffffff
+
+      at Function.procesarCambioEstadoZona (services/h3/H3TerritorialOrchestrator.ts:386:15)
+
+    console.log
+      [H3TerritorialOrchestrator] ✅ Zona 894cc6537ffffff actualizada en intento 1 (cambio_estado_alta_demanda)
+
+      at Function.actualizarZonaConRetry (services/h3/H3TerritorialOrchestrator.ts:104:17)
+
+    console.log
+      [H3TerritorialOrchestrator] 📊 Recalculando estado de zona: 894cc6537ffffff
+
+      at Function.procesarCambioEstadoZona (services/h3/H3TerritorialOrchestrator.ts:386:15)
+
+    console.log
+      [H3TerritorialOrchestrator] 🚶 Procesando evento de paseo: zona1 → EN_PROGRESO
+
+      at Function.procesarEventoPaseo (services/h3/H3TerritorialOrchestrator.ts:281:15)
+
+    console.log
+      [H3TerritorialOrchestrator] ✅ Zona zona1 actualizada en intento 1 (evento_paseo_EN_PROGRESO)
+
+      at Function.actualizarZonaConRetry (services/h3/H3TerritorialOrchestrator.ts:104:17)
+
+    console.log
+      [H3TerritorialOrchestrator] 🚶 Procesando evento de paseo: zona2 → EN_PROGRESO
+
+      at Function.procesarEventoPaseo (services/h3/H3TerritorialOrchestrator.ts:281:15)
+
+    console.log
+      [H3TerritorialOrchestrator] ✅ Zona zona2 actualizada en intento 1 (evento_paseo_EN_PROGRESO)
+
+      at Function.actualizarZonaConRetry (services/h3/H3TerritorialOrchestrator.ts:104:17)
+
+    console.log
+      [H3TerritorialOrchestrator] 🚶 Procesando evento de paseo: zona3 → EN_PROGRESO
+
+      at Function.procesarEventoPaseo (services/h3/H3TerritorialOrchestrator.ts:281:15)
+
+    console.log
+      [H3TerritorialOrchestrator] ✅ Zona zona3 actualizada en intento 1 (evento_paseo_EN_PROGRESO)
+
+      at Function.actualizarZonaConRetry (services/h3/H3TerritorialOrchestrator.ts:104:17)
+
+
+Summary of all failing tests
+FAIL logic/operacionesEconomicas/__tests__/casosDeUso.test.ts
+  ● Casos de Uso - Operaciones Económicas › cancelarOperacion › Debe cancelar operación y anular obligaciones PENDIENTE
+
+    expect(jest.fn()).toHaveBeenCalledWith(...expected)
+
+    Expected: "op-1", ObjectContaining {"canceladoPor": "admin-1", "estado": "CANCELADA"}
+    Received: "op-1", {"cancelado_en": {"nanoseconds": 223000000, "seconds": 1791594073, "type": "firestore/timestamp/1.0"}, "cancelado_por": "admin-1", "estado": "CANCELADA"}
+
+    Number of calls: 1
+
+    [0m [90m 301 |[39m       [36mawait[39m cancelarOperacion([32m'op-1'[39m[33m,[39m [32m'admin-1'[39m[33m,[39m [32m'Solicitud del usuario'[39m)
+     [90m 302 |[39m
+    [31m[1m>[22m[39m[90m 303 |[39m       expect(actualizarOperacion)[33m.[39mtoHaveBeenCalledWith(
+     [90m     |[39m                                   [31m[1m^[22m[39m
+     [90m 304 |[39m         [32m'op-1'[39m[33m,[39m
+     [90m 305 |[39m         expect[33m.[39mobjectContaining({
+     [90m 306 |[39m           estado[33m:[39m [32m'CANCELADA'[39m[33m,[39m[0m
+
+      at Object.<anonymous> (logic/operacionesEconomicas/__tests__/casosDeUso.test.ts:303:35)
+
+FAIL __tests__/fase5-seguridad-indices.test.ts
+  ● Test suite failed to run
+
+    FirebaseError: Firebase: Error (auth/invalid-api-key).
+
+    [0m [90m 34 |[39m
+     [90m 35 |[39m [90m// Inicializar Auth con persistencia de React Native (solo si está disponible)[39m
+    [31m[1m>[22m[39m[90m 36 |[39m [36mexport[39m [36mconst[39m auth [33m=[39m initializeAuth(
+     [90m    |[39m                                   [31m[1m^[22m[39m
+     [90m 37 |[39m   app[33m,[39m
+     [90m 38 |[39m   getReactNativePersistence [33m&&[39m [33mReactNativeAsyncStorage[39m
+     [90m 39 |[39m     [33m?[39m { persistence[33m:[39m getReactNativePersistence([33mReactNativeAsyncStorage[39m) }[0m
+
+      at createErrorInternal (node_modules/@firebase/auth/src/core/util/assert.ts:152:38)
+      at _assert (node_modules/@firebase/auth/src/core/util/assert.ts:177:11)
+      at Component.instanceFactory (node_modules/@firebase/auth/src/core/auth/register.ts:72:9)
+      at Provider.getOrInitializeService (node_modules/@firebase/component/src/provider.ts:318:33)
+      at Provider.initialize (node_modules/@firebase/component/src/provider.ts:242:27)
+      at initializeAuth (node_modules/@firebase/auth/src/core/auth/initialize.ts:66:25)
+      at Object.<anonymous> (firebase.config.ts:36:35)
+      at Object.<anonymous> (__tests__/fase5-seguridad-indices.test.ts:27:1)
+
+FAIL __tests__/fase2b-apis.test.ts (8.766 s)
+  ● Enriquecimiento Territorial con APIs › enriquecerContextoConAPIs › debe respetar cache TTL
+
+    expect(received).toEqual(expected) // deep equality
+
+    - Expected  - 3
+    + Received  + 0
+
+      Object {
+    -   "clima_actual": "soleado",
+        "elevacion_metros": 18.462223,
+        "nombre_barrio": "Covent Garden",
+        "nombre_ubicacion": "Charing Cross",
+        "pendiente_grados": 0,
+    -   "precipitacion_mm": 0,
+    -   "temperatura_c": 12.1,
+      }
+
+    [0m [90m 103 |[39m
+     [90m 104 |[39m       [90m// Ambos deberían ser idénticos si el caché funcionó[39m
+    [31m[1m>[22m[39m[90m 105 |[39m       expect(resultado1)[33m.[39mtoEqual(resultado2)
+     [90m     |[39m                          [31m[1m^[22m[39m
+     [90m 106 |[39m     })
+     [90m 107 |[39m   })
+     [90m 108 |[39m[0m
+
+      at Object.<anonymous> (__tests__/fase2b-apis.test.ts:105:26)
+
+
+Test Suites: 3 failed, 31 passed, 34 total
+Tests:       2 failed, 330 passed, 332 total
+Snapshots:   0 total
+Time:        16.024 s
+Ran all test suites.

@@ -17,6 +17,7 @@ const config: Config = {
   moduleNameMapper: {
     '^@/firebase.config$': '<rootDir>/__mocks__/firebase.config.ts',
     '^@\\/(.*)$': '<rootDir>/$1',
+    '^firebase.config$': '<rootDir>/__mocks__/firebase.config.ts',
     '^react-native$': '<rootDir>/__mocks__/react-native.js',
     '^expo-constants$': '<rootDir>/__mocks__/expo-constants.js',
     '^@react-native-async-storage/async-storage$':
