@@ -301,4 +301,15 @@ export interface Paseo extends Operacion {
   timestamp_validacion_entrega_por_tutor?: Record<string, Date>
   /** Intentos fallidos de entrega por tutor: { [tutorId]: number }. */
   intentos_fallidos_entrega_por_tutor?: Record<string, number>
+
+  /**
+   * OPERACIÓN ECONÓMICA (FASE 1)
+   * Referencia a la OperacionEconomica creada cuando se solicita el paseo.
+   * Esta operación registra el contrato entre tutor y cuidador.
+   */
+  operacion_economica_id?: string
+  /** Timestamp de cuando se solicita el pago (cuando se crea el paseo). */
+  timestamp_pago_solicitado?: Date
+  /** Timestamp de cuando se confirma el pago (cuando el cuidador acepta). */
+  timestamp_pago_confirmado?: Date
 }

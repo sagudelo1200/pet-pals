@@ -270,16 +270,36 @@ export const ConfirmarPaseoPaso = ({
 
           <View style={styles.divider} />
 
-          {/* Price Breakdown Compact */}
+          {/* Price Breakdown Compact - FASE 1: Mostrar desglose con Paw-Path y Cuidador */}
           <View style={styles.priceSectionCompact}>
+            <Text
+              style={[
+                styles.priceLabel,
+                { marginBottom: 8, fontWeight: '600' },
+              ]}
+            >
+              {t('paseos:pasos.confirmar.costo_servicio')}
+            </Text>
+
+            {/* Desglose: Paw-Path */}
             <View style={styles.priceRowCompact}>
-              <Text style={styles.priceLabel}>
-                {t('paseos:pasos.confirmar.costo_servicio')}
-              </Text>
+              <Text style={styles.priceLabel}>Paw-Path (10%)</Text>
               <Text style={styles.priceValue}>
-                ${subtotal.toLocaleString()}
+                ${Math.round(subtotal * 0.1).toLocaleString()}
               </Text>
             </View>
+
+            {/* Desglose: Cuidador */}
+            <View style={[styles.priceRowCompact, { marginBottom: 8 }]}>
+              <Text style={styles.priceLabel}>
+                {t('paseos:pasos.confirmar.resumen_cuidador')} (90%)
+              </Text>
+              <Text style={styles.priceValue}>
+                ${Math.round(subtotal * 0.9).toLocaleString()}
+              </Text>
+            </View>
+
+            {/* Descuento por paseo compartido (si aplica) */}
             {esCompartido && PASEO_COMPARTIDO_FEATURE && (
               <View style={styles.priceRowCompact}>
                 <Text style={[styles.priceLabel, styles.discountText]}>

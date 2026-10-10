@@ -21,6 +21,10 @@ import { collection, query, where, orderBy, getDocs } from 'firebase/firestore'
 import { db } from '@/firebase.config'
 import { coordsAH3 } from '@/services/geo'
 import { H3TerritorialOrchestrator } from '@/services/h3'
+import {
+  crearOperacionEconomica,
+  generarObligacion,
+} from '@/logic/operacionesEconomicas/casosDeUso'
 
 // ---------- Helpers de denormalización ----------
 const MAX_DENORMALIZED_PHOTO_SIZE = 120 * 1024 // 120KB (suficiente para URLs y mini-thumbnails)
@@ -398,6 +402,56 @@ export async function crearConMascotas(
       console.warn('[Auditoría] Error registrando creación de paseo:', err)
       // No fallar si la auditoría falla (es no-bloqueante)
     })
+
+    // FASE 1: Crear OperacionEconomica para registrar el contrato
+    // Esta operación registra el pago entre tutor y cuidador
+    const precio = (data as any).precio || 0
+    if (precio > 0) {
+      try {
+        // Calcular desglose: 10% Paw-Path, 90% Cuidador
+        const remuneracion_mandatario = Math.round(precio * 0.1)
+        const recursos_administrados = precio - remuneracion_mandatario
+
+        // Crear OperacionEconomica con el tutor como quien paga
+        // y Paw-Path como beneficiaria
+        const opEcon = await crearOperacionEconomica(
+          uid, // tutorId: el tutor que solicita el paseo
+          precio, // valorAcordado: precio total
+          remuneracion_mandatario, // remuneracion_mandatario: 10% para Paw-Path
+          recursos_administrados // recursos_administrados: 90% para el cuidador
+        )
+
+        if (opEcon) {
+          // Actualizar paseo con referencia a la OperacionEconomica
+          await ServicioPaseo.actualizar(paseoRes.data.id, {
+            operacion_economica_id: opEcon.id || opEcon, // El ID de la OperacionEconomica
+            timestamp_pago_solicitado: new Date(),
+          }).catch(err => {
+            console.warn(
+              '[Paseo] Error actualizando operacion_economica_id:',
+              err
+            )
+          })
+
+          // Crear Obligación: tutor debe pagar el precio completo a Paw-Path
+          await generarObligacion(
+            opEcon.id || opEcon, // operacionId
+            uid, // deudor: el tutor
+            'paw-path', // acreedor: Paw-Path
+            'Pago por servicio de paseo', // concepto
+            precio // valor
+          ).catch(err => {
+            console.warn('[Paseo] Error creando obligación de pago:', err)
+          })
+        }
+      } catch (err) {
+        console.warn(
+          '[FASE1] Error creando OperacionEconomica para paseo:',
+          err
+        )
+        // No fallar si la OperacionEconomica falla (es no-bloqueante en esta fase)
+      }
+    }
   }
 
   return paseoRes as any

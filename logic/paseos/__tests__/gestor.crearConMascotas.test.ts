@@ -9,9 +9,27 @@ jest.mock('@/services/firebase', () => ({
   },
   ServicioPaseo: {
     crear: jest.fn(),
+    actualizar: jest.fn(),
   },
   ServicioPaseoMascota: {
     commitMascotasBatch: jest.fn(),
+  },
+}))
+
+// Mock para operaciones económicas (FASE 1)
+jest.mock('@/logic/operacionesEconomicas/casosDeUso', () => ({
+  crearOperacionEconomica: jest.fn(),
+  generarObligacion: jest.fn(),
+}))
+
+// Mock para auditoría y territorio
+jest.mock('@/logic/operaciones/auditoria', () => ({
+  registrarAuditoria: jest.fn().mockResolvedValue({ success: true }),
+}))
+
+jest.mock('@/services/h3', () => ({
+  H3TerritorialOrchestrator: {
+    procesarEventoPaseo: jest.fn().mockResolvedValue(true),
   },
 }))
 
@@ -127,5 +145,72 @@ describe('crearConMascotas', () => {
     expect(ServicioPaseoMascota.commitMascotasBatch).toHaveBeenCalled()
     expect(res.success).toBe(true)
     expect(res.data).toEqual(paseoMock.data)
+  })
+
+  // FASE 1: Test para verificar creación de OperacionEconomica
+  test('FASE 1: crea OperacionEconomica cuando se crea paseo con precio', async () => {
+    const crearOperacionEconomica =
+      require('@/logic/operacionesEconomicas/casosDeUso').crearOperacionEconomica
+    const generarObligacion =
+      require('@/logic/operacionesEconomicas/casosDeUso').generarObligacion
+
+    void (ServicioAuth.obtenerUsuarioActual as jest.Mock).mockReturnValue({
+      uid: 'tutor1',
+    })
+    void (ServicioCrudBase.obtenerPorId as jest.Mock).mockResolvedValue({
+      success: true,
+      data: { id: 'm1', creado_por: 'tutor1', nombre: 'Fido', foto: 'f.jpg' },
+    })
+
+    const paseoMock = { success: true, data: { id: 'p1' } }
+    void (ServicioPaseo.crear as jest.Mock).mockResolvedValue(paseoMock)
+    void (ServicioPaseo.actualizar as jest.Mock).mockResolvedValue({
+      success: true,
+    })
+    void (
+      ServicioPaseoMascota.commitMascotasBatch as jest.Mock
+    ).mockResolvedValue({ success: true })
+
+    // Mock OperacionEconomica
+    void (crearOperacionEconomica as jest.Mock).mockResolvedValue({
+      id: 'op1',
+    })
+    void (generarObligacion as jest.Mock).mockResolvedValue({ success: true })
+
+    const precio = 50000
+    const data = {
+      tipo_paseo: 'solicitado',
+      estado: 'PENDIENTE',
+      fecha_hora_inicio: new Date(),
+      duracion_estimada: 60,
+      precio,
+    }
+
+    const res = await crearConMascotas(data as any, ['m1'])
+
+    // Verificar que se creó la OperacionEconomica con desglose correcto
+    expect(crearOperacionEconomica).toHaveBeenCalledWith(
+      'tutor1', // tutorId
+      precio, // valorAcordado
+      Math.round(precio * 0.1), // remuneracion_mandatario (10%)
+      Math.round(precio * 0.9) // recursos_administrados (90%)
+    )
+
+    // Verificar que se actualiza el paseo con operacion_economica_id
+    expect(ServicioPaseo.actualizar).toHaveBeenCalledWith('p1', {
+      operacion_economica_id: 'op1',
+      timestamp_pago_solicitado: expect.any(Date),
+    })
+
+    // Verificar que se genera la obligación del tutor
+    expect(generarObligacion).toHaveBeenCalledWith(
+      'op1', // operacionId
+      'tutor1', // deudor
+      'paw-path', // acreedor
+      'Pago por servicio de paseo', // concepto
+      precio // valor
+    )
+
+    expect(res.success).toBe(true)
   })
 })
