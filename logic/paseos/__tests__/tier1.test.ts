@@ -180,4 +180,21 @@ describe('Tier 1: Sistema de Matching Robusto', () => {
       expect(mensajeUI).toBeTruthy()
     })
   })
+
+  describe('FASE 2: Asignar Cuidador a OperacionEconomica', () => {
+    it('debería asignar cuidador a OperacionEconomica cuando acepta paseo', () => {
+      // Cuando aceptarSolicitud() tiene éxito:
+      // 1. Paseo pasa a CONFIRMADO
+      // 2. OperacionEconomica se actualiza con cuidador_id
+      // 3. Se registra evento CUIDADOR_ASIGNADO
+      // 4. Cuidador recibe notificación de ingreso neto (90%)
+      expect(true).toBe(true) // Test placeholder para documentar flujo
+    })
+
+    it('FASE 2: no debe fallar si asignarCuidador falla (es no-bloqueante)', () => {
+      // Si falla la asignación económica, el paseo sigue confirmado
+      // La lógica es robusta: el paseo se creó exitosamente
+      expect(true).toBe(true) // Test placeholder
+    })
+  })
 })

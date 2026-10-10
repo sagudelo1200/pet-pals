@@ -172,9 +172,7 @@ describe('crearConMascotas', () => {
     ).mockResolvedValue({ success: true })
 
     // Mock OperacionEconomica
-    void (crearOperacionEconomica as jest.Mock).mockResolvedValue({
-      id: 'op1',
-    })
+    void (crearOperacionEconomica as jest.Mock).mockResolvedValue('op1') // Retorna directamente el ID string
     void (generarObligacion as jest.Mock).mockResolvedValue({ success: true })
 
     const precio = 50000

@@ -24,6 +24,7 @@ import { H3TerritorialOrchestrator } from '@/services/h3'
 import {
   crearOperacionEconomica,
   generarObligacion,
+  asignarCuidador,
 } from '@/logic/operacionesEconomicas/casosDeUso'
 
 // ---------- Helpers de denormalización ----------
@@ -424,7 +425,7 @@ export async function crearConMascotas(
         if (opEcon) {
           // Actualizar paseo con referencia a la OperacionEconomica
           await ServicioPaseo.actualizar(paseoRes.data.id, {
-            operacion_economica_id: opEcon.id || opEcon, // El ID de la OperacionEconomica
+            operacion_economica_id: opEcon, // opEcon es directamente el ID
             timestamp_pago_solicitado: new Date(),
           }).catch(err => {
             console.warn(
@@ -435,7 +436,7 @@ export async function crearConMascotas(
 
           // Crear Obligación: tutor debe pagar el precio completo a Paw-Path
           await generarObligacion(
-            opEcon.id || opEcon, // operacionId
+            opEcon, // operacionId (es directamente el string ID)
             uid, // deudor: el tutor
             'paw-path', // acreedor: Paw-Path
             'Pago por servicio de paseo', // concepto
@@ -548,6 +549,29 @@ export async function aceptarSolicitud(paseoId: string) {
       }).catch(err => {
         console.warn('[Auditoría] Error registrando aceptación de paseo:', err)
       })
+
+      // FASE 2: Asignar cuidador a la OperacionEconomica
+      if (paseo.operacion_economica_id) {
+        try {
+          await asignarCuidador(paseo.operacion_economica_id, uid)
+
+          // Notificar al cuidador su ingreso neto (90% del precio)
+          const ingreso_neto = Math.round((paseo.precio || 0) * 0.9)
+          console.log(
+            `[FASE2] Cuidador ${uid} asignado al paseo ${paseoId}. Ingreso neto: $${ingreso_neto.toLocaleString()}`
+          )
+
+          // TODO: Enviar notificación push al cuidador con:
+          // "¡Paseo aceptado! Ingreso neto: $45,000"
+        } catch (err) {
+          console.warn(
+            '[FASE2] Error asignando cuidador a OperacionEconomica:',
+            err
+          )
+          // No fallar si la asignación económica falla
+        }
+      }
+
       return res
     }
 
