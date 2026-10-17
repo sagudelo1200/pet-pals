@@ -6,6 +6,7 @@ if (!admin.apps || admin.apps.length === 0) {
 }
 
 const db = admin.firestore();
+const MAX_INTENTOS = 3;
 
 // Interfaces para tipado
 interface ValidarOTPRequest {
@@ -90,6 +91,14 @@ export const validarOTP = functions.https.onCall(
         return {
           success: false,
           error: 'Este código ya fue utilizado',
+        } as ValidarOTPResponse;
+      }
+
+      // Bloqueo tras MAX_INTENTOS fallidos (el cliente muestra 3 intentos)
+      if ((otpData.intentos_fallidos || 0) >= MAX_INTENTOS) {
+        return {
+          success: false,
+          error: 'Demasiados intentos fallidos. Solicita un nuevo código',
         } as ValidarOTPResponse;
       }
 

@@ -118,5 +118,7 @@
     },
     "mes": "Month",
     "año": "Year"
-  }
+  },
+  "algo_salio_mal": "Something went wrong",
+  "enviando": "Sending"
 }

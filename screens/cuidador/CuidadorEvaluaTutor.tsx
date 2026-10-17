@@ -77,7 +77,7 @@ export default function CuidadorEvaluaTutor() {
           ),
           [
             {
-              text: t('comun:boton.volver'),
+              text: t('comun:volver'),
               onPress: () => navigation.navigate('CuidadorApp'),
             },
           ]
@@ -102,7 +102,7 @@ export default function CuidadorEvaluaTutor() {
           ),
           [
             {
-              text: t('comun:boton.volver'),
+              text: t('comun:volver'),
               onPress: () => navigation.navigate('CuidadorApp'),
             },
           ]
@@ -131,7 +131,7 @@ export default function CuidadorEvaluaTutor() {
         t('confirmar_baja_titulo'),
         t('confirmar_baja_mensaje', { rating: seleccion }),
         [
-          { text: t('comun:boton.cancelar'), style: 'cancel' },
+          { text: t('comun:cancelar'), style: 'cancel' },
           {
             text: t('comun:aceptar'),
             onPress: () => {
@@ -166,7 +166,7 @@ export default function CuidadorEvaluaTutor() {
         <Text style={{ color: COLOR.TEXTO }}>Paseo no encontrado</Text>
         <Spacer size={16} />
         <Button
-          title={t('comun:boton.cancelar')}
+          title={t('comun:cancelar')}
           onPress={volverDashboard}
           variant="secundario"
         />

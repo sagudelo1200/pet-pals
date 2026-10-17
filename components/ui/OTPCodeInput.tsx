@@ -107,6 +107,7 @@ export function OTPCodeInput({
       await onComplete(codigoAValidar)
       setCodigo('')
     } catch (err: any) {
+      console.warn('[OTPCodeInput.handleSubmit] Error manejado:', err)
       setLocalError(err.message || 'Código incorrecto')
       setCodigo('')
       inputRef.current?.focus()

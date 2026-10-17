@@ -56,7 +56,8 @@ export const LoadingPanel: React.FC<LoadingPanelProps> = ({
           const arr = i18n.t(path, { returnObjects: true }) as unknown
           if (Array.isArray(arr)) return arr as string[]
         }
-      } catch {
+      } catch (err) {
+        console.warn('[LoadingPanel.loadFromI18n] Error manejado:', err)
         /* ignore */
       }
       return undefined

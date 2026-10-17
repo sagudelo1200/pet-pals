@@ -83,7 +83,9 @@
     "error_red": "Connection error. Check your internet",
     "error_validacion": "The provided data is not valid",
     "error_cargar": "Error loading walks",
-    "motivo_requerido": "A reason is required for this action"
+    "motivo_requerido": "A reason is required for this action",
+    "mascota_no_disponible": "Pet not available",
+    "MASCOTA_YA_TIENE_PASEO": "This pet already has an active walk right now."
   },
   "boton_solicitar": "Request walk",
   "flujo": {
@@ -306,7 +308,12 @@
     "codigo_validado": "✓ Code validated",
     "todos_validados": "All validated",
     "copiar_codigo": "Copy code",
-    "copiado": "Copied"
+    "copiado": "Copied",
+    "titulo_entrega": "Delivery Code",
+    "comparte_codigo_entrega_desc": "Show this code to the owner when you return the pet",
+    "esperando_tutor": "Waiting for the owner to validate the code...",
+    "cerrar": "Close",
+    "continuar": "Continue"
   },
   "momentos": {
     "registrar": "What just happened?",

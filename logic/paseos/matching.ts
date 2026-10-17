@@ -104,6 +104,7 @@ export class LogicMatching {
       // El horario del cuidador debe estar contenido en el horario de la plataforma
       return inicio >= plataformaMin && fin <= plataformaMax && inicio < fin
     } catch (_e) {
+      console.warn('[matching.esHorarioLaboralValido] Error manejado:', _e)
       return false
     }
   }

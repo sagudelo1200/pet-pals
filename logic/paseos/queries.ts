@@ -78,6 +78,7 @@ export function obtenerQueryMonitorPaseoGlobal(uid: string): Query {
     where('estado', 'in', [
       ESTADOS_PASEO.CONFIRMADO,
       ESTADOS_PASEO.EN_CAMINO,
+      ESTADOS_PASEO.EN_PUNTO_RECOGIDA,
       ESTADOS_PASEO.EN_PROGRESO,
       ESTADOS_PASEO.FINALIZADO,
     ]),

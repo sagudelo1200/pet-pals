@@ -83,7 +83,9 @@
     "error_red": "Error de conexión. Verifica tu internet",
     "error_validacion": "Los datos proporcionados no son válidos",
     "error_cargar": "Error al cargar los paseos",
-    "motivo_requerido": "Se requiere un motivo para esta acción"
+    "motivo_requerido": "Se requiere un motivo para esta acción",
+    "mascota_no_disponible": "Mascota no disponible",
+    "MASCOTA_YA_TIENE_PASEO": "Esta mascota ya tiene un paseo activo en este momento."
   },
   "boton_solicitar": "Solicitar paseo",
   "flujo": {
@@ -308,7 +310,12 @@
     "codigo_validado": "✓ Código validado",
     "todos_validados": "Todos validados",
     "copiar_codigo": "Copiar código",
-    "copiado": "Copiado"
+    "copiado": "Copiado",
+    "titulo_entrega": "Código de Entrega",
+    "comparte_codigo_entrega_desc": "Muestra este código al tutor al entregar la mascota",
+    "esperando_tutor": "Esperando que el tutor valide el código...",
+    "cerrar": "Cerrar",
+    "continuar": "Continuar"
   },
   "momentos": {
     "registrar": "¿Qué pasó?",

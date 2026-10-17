@@ -12,7 +12,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useRoute, useNavigation } from '@react-navigation/native'
 import { useTranslation } from 'react-i18next'
-import { Ionicons } from '@expo/vector-icons'
+import { FontAwesome5 } from '@expo/vector-icons'
 
 import { useEdicionMascota } from '@/hooks/useEdicionMascota'
 import { calcularCompletitud } from '@/logic/mascotas/calcularCompletitud'
@@ -127,8 +127,8 @@ export const EdicionMascota = () => {
   if (!mascota || !editedData) {
     return (
       <SafeAreaView style={styles.errorContainer}>
-        <Ionicons
-          name="alert-circle-outline"
+        <FontAwesome5 solid
+          name="exclamation-circle"
           size={48}
           color={COLOR.ERROR}
           style={{ marginBottom: 16 }}
@@ -155,7 +155,7 @@ export const EdicionMascota = () => {
             onPress={() => navigation.goBack()}
             style={styles.backButton}
           >
-            <Ionicons name="chevron-back" size={28} color={COLOR.PRIMARIO} />
+            <FontAwesome5 solid name="chevron-left" size={28} color={COLOR.PRIMARIO} />
           </TouchableOpacity>
 
           <Text style={styles.headerTitle}>
@@ -248,8 +248,8 @@ export const EdicionMascota = () => {
         {completitud && completitud.nivel >= 2 && (
           <View style={styles.readyBannerContainer}>
             <View style={styles.readyBannerContent}>
-              <Ionicons
-                name="checkmark-circle"
+              <FontAwesome5 solid
+                name="check-circle"
                 size={32}
                 color={COLOR.EXITO}
                 style={{ marginRight: 12 }}
@@ -303,7 +303,7 @@ export const EdicionMascota = () => {
               }}
               activeOpacity={0.7}
             >
-              <Ionicons name="paw" size={18} color="#fff" />
+              <FontAwesome5 solid name="paw" size={18} color="#fff" />
               <Text style={styles.requestWalkButtonText}>
                 {t('mascotas:editar.solicitar_paseo')}
               </Text>
@@ -326,7 +326,7 @@ export const EdicionMascota = () => {
             <ActivityIndicator size="small" color="#fff" />
           ) : (
             <>
-              <Ionicons name="checkmark-done" size={20} color="#fff" />
+              <FontAwesome5 solid name="check-double" size={20} color="#fff" />
               <Text style={styles.saveButtonText}>
                 {t('mascotas:editar.guardar')}
               </Text>
@@ -434,7 +434,7 @@ const AccordionSection: React.FC<AccordionSectionProps> = ({
           )}
         </View>
 
-        <Ionicons
+        <FontAwesome5 solid
           name={isExpanded ? 'chevron-up' : 'chevron-down'}
           size={24}
           color={COLOR.PRIMARIO}

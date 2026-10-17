@@ -7,6 +7,7 @@ import type {
   EstadoOperacionEconomica,
   TipoEventoOperacionEconomica,
 } from '@/models/operacionesEconomicas'
+import type { AdaptadorPago } from '@/logic/operacionesEconomicas/pagos/AdaptadorPago'
 import {
   crearOperacion,
   actualizarOperacion,
@@ -18,7 +19,8 @@ import {
   actualizarObligacion,
   obtenerObligacion,
 } from '@/services/firebase/firestore/colecciones/operacionesEconomicas'
-import { validateI1 } from '@/logic/operacionesEconomicas'
+// Importar directamente de invariantes para evitar ciclo de require con index.ts
+import { validateI1 } from '@/logic/operacionesEconomicas/invariantes'
 
 /**
  * Helpers privados para separación de responsabilidades
@@ -55,7 +57,8 @@ export async function crearOperacionEconomica(
   tutorId: string,
   valorAcordado: number,
   remuneracionMandatario: number,
-  recursosAdministrados: number
+  recursosAdministrados: number,
+  paseoId?: string
 ): Promise<string> {
   const op: Omit<OperacionEconomica, 'id'> = {
     tutor_id: tutorId,
@@ -64,6 +67,7 @@ export async function crearOperacionEconomica(
     recursos_administrados: recursosAdministrados,
     estado: 'ENCARGADA',
     creado_en: Timestamp.now(),
+    ...(paseoId && { paseo_id: paseoId }),
   }
 
   if (!validateI1({ ...op, id: 'temp' })) {
@@ -127,44 +131,138 @@ export async function registrarServicioEjecutado(
     'SERVICIO_EJECUTADO',
     detalle || 'Servicio ejecutado'
   )
+
+  // FASE 3: Crear Obligación #2 si existe cuidador asignado
+  // Obligación: Paw-Path debe pagar al Cuidador por el servicio
+  if (op.cuidador_id) {
+    try {
+      await generarObligacion(
+        operacionId,
+        'paw-path', // Deudor: Paw-Path
+        op.cuidador_id, // Acreedor: Cuidador asignado
+        'Pago por servicio de paseo ejecutado', // Concepto
+        op.recursos_administrados // Valor: 90% del precio
+      )
+      // TODO: Notificar al cuidador que tiene una obligación pendiente de liquidación semanal
+      console.log(
+        `[FASE3] Obligación #2 creada: Paw-Path debe pagar $${op.recursos_administrados?.toLocaleString()} al cuidador ${op.cuidador_id}`
+      )
+    } catch (err) {
+      console.warn('[FASE3] Error creando Obligación #2 para cuidador:', err)
+      // No fallar si la obligación del cuidador falla (es no-bloqueante)
+    }
+  }
 }
 
 /**
  * 4. Registrar recaudo (evento RECAUDO con MovimientoFinanciero)
  */
+/**
+ * 4. Registrar recaudo (FASE 4.1: Solicitar pago a tutor)
+ * Dispara solicitud de pago con la pasarela
+ * Transiciona EJECUTADA → (espera confirmación de pago)
+ */
 export async function registrarRecaudo(
   operacionId: string,
-  valor: number,
-  origen: string,
-  referenciaOrigen: string
-): Promise<string> {
+  adaptadorPago: AdaptadorPago
+): Promise<{ referencia: string; url?: string }> {
   const op = await obtenerOperacion(operacionId)
   if (!op) throw new Error(`Operación ${operacionId} no existe`)
-  if (esEstadoTerminal(op.estado)) {
-    throw new Error('No se puede registrar recaudo en operación terminal')
+
+  // Validar que esté en estado correcto
+  if (op.estado !== 'EJECUTADA') {
+    throw new Error(
+      `No se puede cobrar operación en estado ${op.estado}. Debe estar EJECUTADA.`
+    )
   }
 
-  const movimiento: Omit<MovimientoFinanciero, 'id'> = {
-    operacion_id: operacionId,
-    tipo: 'RECAUDO',
-    valor,
-    sentido: 'ENTRADA',
-    origen,
-    referencia_origen: referenciaOrigen,
-    creado_en: Timestamp.now(),
+  try {
+    // 1. Solicitar pago a adaptador (Wompi, Mercado Pago, etc)
+    const resultadoPago = await adaptadorPago.iniciarPago({
+      operacion_id: operacionId,
+      monto: op.valor_acordado,
+      tutor_id: op.tutor_id,
+    })
+
+    // 2. Registrar movimiento como PENDIENTE (esperando confirmación)
+    await registrarMovimiento({
+      operacion_id: operacionId,
+      tipo: 'PAGO_INICIADO',
+      valor: op.valor_acordado,
+      sentido: 'ENTRADA',
+      origen: 'TUTOR',
+      referencia_origen: resultadoPago.referencia,
+      creado_en: Timestamp.now(),
+    })
+
+    // 3. Registrar evento
+    await crearEvento({
+      operacion_id: operacionId,
+      tipo: 'PAGO_INICIADO',
+      detalle: `Solicitud de pago por $${op.valor_acordado.toLocaleString()}`,
+      timestamp: Timestamp.now(),
+    })
+
+    console.log(
+      `[RECAUDO] Pago iniciado para operación ${operacionId}, referencia: ${resultadoPago.referencia}`
+    )
+
+    return {
+      referencia: resultadoPago.referencia,
+      url: resultadoPago.url,
+    }
+  } catch (err) {
+    console.warn(`[RECAUDO] Error iniciando pago para ${operacionId}:`, err)
+    throw err
   }
+}
 
-  const movId = await registrarMovimiento(movimiento)
+/**
+ * 4.1 Confirmar recaudo (FASE 4.1: Pago confirmado por pasarela)
+ * Se ejecuta cuando pasarela notifica que pago fue aprobado (webhook)
+ * Transiciona EJECUTADA → RECAUDADA
+ */
+export async function confirmarRecaudo(
+  operacionId: string,
+  referenciaPago: string,
+  adaptadorPago: AdaptadorPago
+): Promise<void> {
+  const op = await obtenerOperacion(operacionId)
+  if (!op) throw new Error(`Operación ${operacionId} no existe`)
 
-  await actualizarEstadoYRegistrarEvento(
-    operacionId,
-    'RECAUDADA',
-    'RECAUDO',
-    `Recaudo de $${valor} desde ${origen}`,
-    { movimiento_id: movId }
-  )
+  try {
+    // 1. Confirmar con adaptador que pago es válido
+    const confirmacion = await adaptadorPago.confirmarPago(referenciaPago)
 
-  return movId
+    if (!confirmacion.exito) {
+      // Pago rechazado
+      await crearEvento({
+        operacion_id: operacionId,
+        tipo: 'PAGO_RECHAZADO',
+        detalle: confirmacion.mensaje,
+        timestamp: Timestamp.now(),
+      })
+      throw new Error(`Pago rechazado: ${confirmacion.mensaje}`)
+    }
+
+    // 2. Transicionar estado EJECUTADA → RECAUDADA
+    await actualizarEstadoYRegistrarEvento(
+      operacionId,
+      'RECAUDADA',
+      'RECAUDO',
+      `Pago confirmado: ${confirmacion.transactionId || referenciaPago}`
+    )
+
+    console.log(
+      `[RECAUDO] Operación ${operacionId} transicionada a RECAUDADA. Referencia: ${referenciaPago}`
+    )
+
+    // 3. TODO: Notificar al tutor vía email/push que pago fue procesado
+    // TODO: Preparar para liquidación semanal (FASE siguiente)
+  } catch (err) {
+    console.warn(`[RECAUDO] Error confirmando pago para ${operacionId}:`, err)
+    throw err
+  }
 }
 
 /**

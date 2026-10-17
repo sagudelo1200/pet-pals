@@ -67,7 +67,8 @@ export const GestorUbicacionFisica = {
    * Abre la configuración de la app para que el usuario active permisos.
    */
   async abrirConfiguracion() {
-    await Location.enableNetworkProviderAsync().catch(() => {})
+    await Location.enableNetworkProviderAsync().catch((err: unknown) => {
+      console.warn('[dispositivo.abrirConfiguracion] Error manejado:', err)})
     // En Expo no hay una API directa simple para abrir 'ajustes de permisos' exacta
     // pero podemos sugerir el uso de Linking de react-native.
   },

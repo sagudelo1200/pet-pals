@@ -85,7 +85,7 @@ export const alCrearEvaluacion = onDocumentCreated(
           const contraparteId =
             tipo === 'evaluacion_cuidador' ?
               `evaluacion_tutor_${objetivoId}_${actorId}_${contextoId}` :
-              `evaluacion_cuidador_${objetivoId}_${actorId}`;
+              `evaluacion_cuidador_${objetivoId}_${actorId}_${contextoId}`;
 
           const contraparteSnap = await db
             .doc(`evaluaciones/${contraparteId}`)

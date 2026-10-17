@@ -81,6 +81,7 @@ export const MascotasProvider: React.FC<{ children: ReactNode }> = ({
         try {
           unsubscribeRef.current()
         } catch (_err) {
+          console.warn('[MascotasContext.MascotasProvider] Error manejado:', _err)
           // Error al desuscribirse
         }
         unsubscribeRef.current = null
@@ -101,6 +102,7 @@ export const MascotasProvider: React.FC<{ children: ReactNode }> = ({
         try {
           unsubscribeRef.current()
         } catch (_err) {
+          console.warn('[MascotasContext.MascotasProvider] Error manejado:', _err)
           // Error al desuscribirse
         }
         unsubscribeRef.current = null
@@ -138,6 +140,7 @@ export const MascotasProvider: React.FC<{ children: ReactNode }> = ({
         try {
           unsubscribeRef.current()
         } catch (_err) {
+          console.warn('[MascotasContext.MascotasProvider] Error manejado:', _err)
           // Error al desuscribirse en cleanup
         }
         unsubscribeRef.current = null

@@ -8,22 +8,23 @@ import {
   cerrarOperacion,
   cancelarOperacion,
 } from '../casosDeUso'
+import { MockAdaptador } from '../pagos/MockAdaptador'
 
 // Mock Firestore
 jest.mock(
   '@/services/firebase/firestore/colecciones/operacionesEconomicas',
   () => ({
-    crearOperacion: jest.fn(async op => `op-${Date.now()}`),
+    crearOperacion: jest.fn(async (_op: any) => `op-${Date.now()}`),
     actualizarOperacion: jest.fn(async () => {}),
-    obtenerOperacion: jest.fn(async id => null),
+    obtenerOperacion: jest.fn(async (_id: string): Promise<any> => null),
     crearEvento: jest.fn(async () => `evt-${Date.now()}`),
-    obtenerEventosOperacion: jest.fn(async () => []),
+    obtenerEventosOperacion: jest.fn(async (): Promise<any[]> => []),
     registrarMovimiento: jest.fn(async () => `mov-${Date.now()}`),
-    listarMovimientosOperacion: jest.fn(async () => []),
+    listarMovimientosOperacion: jest.fn(async (): Promise<any[]> => []),
     crearObligacion: jest.fn(async () => `oblig-${Date.now()}`),
-    listarObligacionesPendientes: jest.fn(async () => []),
+    listarObligacionesPendientes: jest.fn(async (): Promise<any[]> => []),
     actualizarObligacion: jest.fn(async () => {}),
-    obtenerObligacion: jest.fn(async () => null),
+    obtenerObligacion: jest.fn(async (): Promise<any> => null),
   })
 )
 
@@ -151,6 +152,52 @@ describe('Casos de Uso - Operaciones Económicas', () => {
         estado: 'RECAUDADA',
       })
     })
+
+    // FASE 3: Test para crear Obligación #2 cuando hay cuidador
+    it('FASE 3: Debe crear Obligación #2 (Paw-Path → Cuidador) cuando hay cuidador asignado', async () => {
+      obtenerOperacion.mockResolvedValue({
+        id: 'op-1',
+        estado: 'ENCARGADA',
+        cuidador_id: 'cuidador-1',
+        recursos_administrados: 45000,
+      })
+      crearObligacion.mockResolvedValue('oblig-2')
+
+      await registrarServicioEjecutado('op-1', 'Paseo finalizado')
+
+      // Verificar que se creó Obligación #2
+      // crearObligacion es llamada con un objeto Obligacion
+      expect(crearObligacion).toHaveBeenCalledWith(
+        expect.objectContaining({
+          operacion_id: 'op-1',
+          deudor: 'paw-path',
+          acreedor: 'cuidador-1',
+          concepto: 'Pago por servicio de paseo ejecutado',
+          valor: 45000,
+          estado: 'PENDIENTE',
+        })
+      )
+      expect(crearObligacion).toHaveBeenCalled()
+    })
+
+    it('FASE 3: No debe crear Obligación si no hay cuidador asignado', async () => {
+      obtenerOperacion.mockResolvedValue({
+        id: 'op-1',
+        estado: 'ENCARGADA',
+        cuidador_id: undefined, // Sin cuidador
+      })
+
+      jest.clearAllMocks()
+      obtenerOperacion.mockResolvedValue({
+        id: 'op-1',
+        estado: 'ENCARGADA',
+        cuidador_id: undefined,
+      })
+
+      await registrarServicioEjecutado('op-1')
+
+      expect(crearObligacion).not.toHaveBeenCalled()
+    })
   })
 
   describe('registrarRecaudo', () => {
@@ -158,23 +205,29 @@ describe('Casos de Uso - Operaciones Económicas', () => {
       obtenerOperacion.mockResolvedValue({
         id: 'op-1',
         estado: 'EJECUTADA',
+        valor_acordado: 50000,
+        tutor_id: 'tutor-1',
       })
+      crearEvento.mockResolvedValue('evt-1')
       registrarMovimiento.mockResolvedValue('mov-1')
 
-      const movId = await registrarRecaudo('op-1', 50000, 'WOMPI', 'TXN-123')
+      const adaptador = new MockAdaptador()
+      const resultado = await registrarRecaudo('op-1', adaptador)
 
+      expect(resultado.referencia).toBeDefined()
       expect(registrarMovimiento).toHaveBeenCalledWith(
         expect.objectContaining({
           operacion_id: 'op-1',
-          tipo: 'RECAUDO',
-          valor: 50000,
+          tipo: 'PAGO_INICIADO',
           sentido: 'ENTRADA',
         })
       )
-      expect(actualizarOperacion).toHaveBeenCalledWith('op-1', {
-        estado: 'RECAUDADA',
-      })
-      expect(movId).toBe('mov-1')
+      expect(crearEvento).toHaveBeenCalledWith(
+        expect.objectContaining({
+          operacion_id: 'op-1',
+          tipo: 'PAGO_INICIADO',
+        })
+      )
     })
   })
 

@@ -35,6 +35,7 @@ import {
 import { MisMascotasPreview } from '@/components/tutor/dashboard/MisMascotasPreview'
 import { ProximoPaseoPreview } from '@/components/tutor/dashboard/ProximoPaseoPreview'
 import { ActividadRecientePreview } from '@/components/tutor/dashboard/ActividadRecientePreview'
+import { HistorialObligacionesTutor } from '@/components/tutor'
 
 // Componentes de Dominio
 import { SolicitarPaseoModal } from '@/components/paseos/SolicitarPaseoModal'
@@ -153,11 +154,6 @@ const Dashboard: React.FC = () => {
   const handleAbrirPaseos = useCallback(() => {
     // @ts-ignore
     navigation.navigate('Paseos')
-  }, [navigation])
-
-  const handleAbrirExplorador = useCallback(() => {
-    // @ts-ignore
-    navigation.navigate('Explorador')
   }, [navigation])
 
   const handleVerDetallesPaseo = useCallback(() => {
@@ -372,11 +368,6 @@ const Dashboard: React.FC = () => {
               leftIconName="history"
               onPress={handleAbrirPaseos}
             />
-            <Chip
-              label={t('tutor:dashboard.explorar')}
-              leftIconName="map-marker"
-              onPress={handleAbrirExplorador}
-            />
           </View>
         </Animated.View>
 
@@ -404,6 +395,17 @@ const Dashboard: React.FC = () => {
               onPresionar={handleVerDetalleActividad}
             />
           )}
+        </Animated.View>
+
+        <Spacer size={theme.SIZES.BASE} />
+
+        {/* ===== SECCIÓN 5: DEUDAS Y OBLIGACIONES (FASE 4) ===== */}
+        <Animated.View style={[styles.section, actividadAnim]}>
+          <HistorialObligacionesTutor
+            onPagarTodos={() => {
+              handleSolicitarPaseo() // Por ahora, redirige a solicitar paseo
+            }}
+          />
         </Animated.View>
 
         <Spacer size={theme.SIZES.BASE * 2} />

@@ -7,7 +7,7 @@ import {
   TouchableOpacity,
   Animated,
 } from 'react-native'
-import { Ionicons } from '@expo/vector-icons'
+import { FontAwesome5 } from '@expo/vector-icons'
 import { useTranslation } from 'react-i18next'
 import { COLOR } from '@/constants'
 import { Button, Spacer } from '@/components/ui'
@@ -109,7 +109,7 @@ export const PaseoFinalizadoCard: React.FC<PaseoFinalizadoCardProps> = ({
         {/* Icono de éxito alegre */}
         <View style={styles.iconContainer}>
           <View style={styles.iconCircle}>
-            <Ionicons name="happy" size={60} color={COLOR.EXITO} />
+            <FontAwesome5 solid name="smile" size={60} color={COLOR.EXITO} />
           </View>
           {/* Confetti decorativo */}
           {[...Array(12)].map((_, i) => (
@@ -172,8 +172,9 @@ export const PaseoFinalizadoCard: React.FC<PaseoFinalizadoCardProps> = ({
                 style={styles.starButton}
                 disabled={enviado || enviando}
               >
-                <Ionicons
-                  name={star <= rating ? 'star' : 'star-outline'}
+                <FontAwesome5
+                  solid={star <= rating}
+                  name="star"
                   size={40}
                   color={star <= rating ? COLOR.ORO : COLOR.SUBTEXTO}
                 />
@@ -221,7 +222,7 @@ export const PaseoFinalizadoCard: React.FC<PaseoFinalizadoCardProps> = ({
           {/* Impacto tras confirmar */}
           {enviado && (
             <View style={styles.impacto}>
-              <Ionicons name="checkmark-circle" size={20} color={COLOR.EXITO} />
+              <FontAwesome5 solid name="check-circle" size={20} color={COLOR.EXITO} />
               <Text style={styles.impactoTexto}>
                 {nuevoPromedio != null
                   ? t('paseos:finalizado.nuevo_promedio', {

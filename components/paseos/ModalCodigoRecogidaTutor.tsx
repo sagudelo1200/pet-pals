@@ -21,6 +21,8 @@ interface ModalCodigoRecogidaTutorProps {
   // onConfirmar: acción cuando el tutor confirma la llegada
   onConfirmar: () => void
   onCancelar?: () => void
+  // 'entrega': mismo modal con roles invertidos (el cuidador muestra el código)
+  tipo?: 'recogida' | 'entrega'
 }
 
 export function ModalCodigoRecogidaTutor({
@@ -30,8 +32,10 @@ export function ModalCodigoRecogidaTutor({
   esUnicoTutor = false,
   onConfirmar,
   onCancelar,
+  tipo = 'recogida',
 }: ModalCodigoRecogidaTutorProps) {
   const { t } = useTranslation()
+  const esEntrega = tipo === 'entrega'
   const [copiado, setCopiado] = useState(false)
 
   useEffect(() => {
@@ -67,6 +71,10 @@ export function ModalCodigoRecogidaTutor({
   }
 
   const handleCancelarPress = () => {
+    if (esEntrega) {
+      onCancelar && onCancelar()
+      return
+    }
     Alert.alert(
       t('comun:atencion'),
       t('paseos:validacion_codigo.cancelar_confirmacion') ||
@@ -86,12 +94,16 @@ export function ModalCodigoRecogidaTutor({
             {/* Header */}
             <View style={styles.header}>
               <Text style={styles.titulo}>
-                {t('paseos:validacion_codigo.titulo_tutor') ||
-                  'Código de Recogida'}
+                {esEntrega
+                  ? t('paseos:validacion_codigo.titulo_entrega')
+                  : t('paseos:validacion_codigo.titulo_tutor') ||
+                    'Código de Recogida'}
               </Text>
               <Text style={styles.subtitulo}>
-                {t('paseos:validacion_codigo.comparte_codigo_desc') ||
-                  'Comparte este código con el cuidador cuando llegue'}
+                {esEntrega
+                  ? t('paseos:validacion_codigo.comparte_codigo_entrega_desc')
+                  : t('paseos:validacion_codigo.comparte_codigo_desc') ||
+                    'Comparte este código con el cuidador cuando llegue'}
               </Text>
             </View>
 
@@ -127,7 +139,9 @@ export function ModalCodigoRecogidaTutor({
             {!codigoValidado && (
               <View style={styles.validacionPendiente}>
                 <Text style={styles.validacionPendienteTexto}>
-                  ⏳ Esperando que el cuidador valide el código...
+                  {esEntrega
+                    ? `⏳ ${t('paseos:validacion_codigo.esperando_tutor')}`
+                    : '⏳ Esperando que el cuidador valide el código...'}
                 </Text>
               </View>
             )}
@@ -147,7 +161,9 @@ export function ModalCodigoRecogidaTutor({
                   onPress={handleCancelarPress}
                 >
                   <Text style={styles.botonSecundarioTexto}>
-                    {t('paseos:validacion_codigo.cancelar')}
+                    {esEntrega
+                      ? t('paseos:validacion_codigo.cerrar')
+                      : t('paseos:validacion_codigo.cancelar')}
                   </Text>
                 </TouchableOpacity>
               )}
@@ -162,7 +178,9 @@ export function ModalCodigoRecogidaTutor({
                 disabled={!codigoValidado}
               >
                 <Text style={styles.botonPrimarioTexto}>
-                  {t('paseos:validacion_codigo.confirmar_entrega')}
+                  {esEntrega
+                    ? t('paseos:validacion_codigo.continuar')
+                    : t('paseos:validacion_codigo.confirmar_entrega')}
                 </Text>
               </TouchableOpacity>
             </View>

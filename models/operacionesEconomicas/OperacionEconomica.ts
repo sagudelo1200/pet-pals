@@ -36,6 +36,7 @@ export interface OperacionEconomica {
   // Actores
   tutor_id: string
   cuidador_id?: string
+  paseo_id?: string // Paseo que originó la operación (lo usan las reglas)
 
   // Composición económica (INVARIANTE I1)
   valor_acordado: number

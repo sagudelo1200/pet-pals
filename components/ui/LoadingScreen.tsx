@@ -36,7 +36,8 @@ const LoadingScreen: FC<LoadingScreenProps> = ({
           const arr = i18n.t(path, { returnObjects: true }) as unknown
           if (Array.isArray(arr)) return arr as string[]
         }
-      } catch {
+      } catch (err) {
+        console.warn('[LoadingScreen.loadFromI18n] Error manejado:', err)
         /* ignore */
       }
       return undefined

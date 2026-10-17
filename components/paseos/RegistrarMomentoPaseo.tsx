@@ -7,7 +7,7 @@ import {
   Pressable,
   ScrollView,
 } from 'react-native'
-import { MaterialCommunityIcons as Icon } from '@expo/vector-icons'
+import { FontAwesome5 } from '@expo/vector-icons'
 import { useTranslation } from 'react-i18next'
 import { COLOR } from '@/constants'
 import { ServicioPaseo } from '@/services/firebase'
@@ -146,7 +146,7 @@ const RegistrarMomentoPaseo: React.FC<RegistrarMomentoPaseoProps> = ({
                       {t('paseos:momentos.mascota.subtitulo')}
                     </Text>
                   </View>
-                  <Icon name="chevron-right" size={24} color={COLOR.PRIMARIO} />
+                  <FontAwesome5 solid name="chevron-right" size={24} color={COLOR.PRIMARIO} />
                 </Pressable>
 
                 <Pressable
@@ -162,7 +162,7 @@ const RegistrarMomentoPaseo: React.FC<RegistrarMomentoPaseoProps> = ({
                       {t('paseos:momentos.lugar.subtitulo')}
                     </Text>
                   </View>
-                  <Icon name="chevron-right" size={24} color={COLOR.PRIMARIO} />
+                  <FontAwesome5 solid name="chevron-right" size={24} color={COLOR.PRIMARIO} />
                 </Pressable>
 
                 <Pressable
@@ -178,7 +178,7 @@ const RegistrarMomentoPaseo: React.FC<RegistrarMomentoPaseoProps> = ({
                       {t('paseos:momentos.recuerdo.subtitulo')}
                     </Text>
                   </View>
-                  <Icon name="chevron-right" size={24} color={COLOR.PRIMARIO} />
+                  <FontAwesome5 solid name="chevron-right" size={24} color={COLOR.PRIMARIO} />
                 </Pressable>
 
                 <Pressable
@@ -194,7 +194,7 @@ const RegistrarMomentoPaseo: React.FC<RegistrarMomentoPaseoProps> = ({
                       {t('paseos:momentos.novedad.subtitulo')}
                     </Text>
                   </View>
-                  <Icon name="chevron-right" size={24} color={COLOR.PRIMARIO} />
+                  <FontAwesome5 solid name="chevron-right" size={24} color={COLOR.PRIMARIO} />
                 </Pressable>
               </>
             )}
@@ -206,7 +206,7 @@ const RegistrarMomentoPaseo: React.FC<RegistrarMomentoPaseoProps> = ({
                   style={styles.btnVolver}
                   onPress={() => setPantalla('principal')}
                 >
-                  <Icon name="chevron-left" size={20} color={COLOR.PRIMARIO} />
+                  <FontAwesome5 solid name="chevron-left" size={20} color={COLOR.PRIMARIO} />
                   <Text style={styles.textVolver}>Volver</Text>
                 </Pressable>
 
@@ -236,7 +236,7 @@ const RegistrarMomentoPaseo: React.FC<RegistrarMomentoPaseoProps> = ({
                   style={styles.btnVolver}
                   onPress={() => setPantalla('principal')}
                 >
-                  <Icon name="chevron-left" size={20} color={COLOR.PRIMARIO} />
+                  <FontAwesome5 solid name="chevron-left" size={20} color={COLOR.PRIMARIO} />
                   <Text style={styles.textVolver}>Volver</Text>
                 </Pressable>
 
@@ -266,7 +266,7 @@ const RegistrarMomentoPaseo: React.FC<RegistrarMomentoPaseoProps> = ({
                   style={styles.btnVolver}
                   onPress={() => setPantalla('principal')}
                 >
-                  <Icon name="chevron-left" size={20} color={COLOR.PRIMARIO} />
+                  <FontAwesome5 solid name="chevron-left" size={20} color={COLOR.PRIMARIO} />
                   <Text style={styles.textVolver}>Volver</Text>
                 </Pressable>
 
@@ -298,7 +298,7 @@ const RegistrarMomentoPaseo: React.FC<RegistrarMomentoPaseoProps> = ({
                   style={styles.btnVolver}
                   onPress={() => setPantalla('principal')}
                 >
-                  <Icon name="chevron-left" size={20} color={COLOR.PRIMARIO} />
+                  <FontAwesome5 solid name="chevron-left" size={20} color={COLOR.PRIMARIO} />
                   <Text style={styles.textVolver}>Volver</Text>
                 </Pressable>
 

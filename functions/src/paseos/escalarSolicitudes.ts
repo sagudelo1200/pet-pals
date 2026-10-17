@@ -3,14 +3,14 @@
  *
  * Estrategia de BAJO COSTO:
  * - onCrearPaseoDirecto: Trigger cuando se crea paseo DIRECTA
- *   └─→ Crea Cloud Task con delay de 10 minutos (escalada programada)
+ *   └─→ Crea Cloud Task con delay de 30 minutos (escalada programada)
  * - escalarPaseoIndividual: HTTP function ejecutada por Cloud Tasks
  *   └─→ Escala el paseo específico (borra id_cuidador)
  *
  * Ventajas vs Scheduler cada minuto:
  * ✓ Costo: ~$0.01-0.05/mes vs ~$0.50-1/mes (50x más barato)
  * ✓ Sin polling: Solo ejecuta cuando es necesario
- * ✓ Latencia exacta: 10 minutos ± 1 segundo
+ * ✓ Latencia exacta: 30 minutos ± 1 segundo
  * ✓ Escalable: Miles de solicitudes sin overhead
  */
 
@@ -18,6 +18,7 @@ import {onDocumentCreated} from 'firebase-functions/v2/firestore';
 import {onRequest} from 'firebase-functions/v2/https';
 import * as admin from 'firebase-admin';
 import {CloudTasksClient} from '@google-cloud/tasks';
+import {cuentaServicioTasks} from '../evaluaciones/cloudTasks';
 
 if (!admin.apps || admin.apps.length === 0) {
   admin.initializeApp();
@@ -28,7 +29,7 @@ const db = admin.firestore();
 // Configuración de Cloud Tasks
 const LOCATION = 'us-central1';
 const QUEUE_NAME = 'escaladas-directas';
-const ESCALADA_DELAY_SECONDS = 600; // 10 minutos
+const ESCALADA_DELAY_SECONDS = 1800; // 30 minutos
 
 // Inicializar CloudTasksClient de forma lazy (solo cuando se necesite)
 let tasksClient: CloudTasksClient | null = null;
@@ -41,10 +42,10 @@ const getTasksClient = (): CloudTasksClient => {
 
 /**
  * TRIGGER 1: Se dispara cuando se crea un paseo PENDIENTE con id_cuidador (DIRECTA)
- * Crea una Cloud Task programada para 10 minutos después
+ * Crea una Cloud Task programada para 30 minutos después
  */
 export const onCrearPaseoDirecto = onDocumentCreated(
-  'operaciones',
+  'operaciones/{operacionId}',
   async (event) => {
     const paseo = event.data?.data() as Record<string, unknown>;
     const paseoId = event.data?.id;
@@ -98,7 +99,7 @@ export const onCrearPaseoDirecto = onDocumentCreated(
           body: Buffer.from(JSON.stringify(payload)).toString('base64'),
           // OIDC token para autenticación segura
           oidcToken: {
-            serviceAccountEmail: `firebase-adminsdk@${projectId}.iam.gserviceaccount.com`,
+            serviceAccountEmail: cuentaServicioTasks(projectId),
           },
         },
         scheduleTime: {
@@ -129,7 +130,8 @@ export const onCrearPaseoDirecto = onDocumentCreated(
  * Escala un paseo específico: borra id_cuidador para hacerlo ABIERTA
  */
 export const escalarPaseoIndividual = onRequest(
-  {cors: false},
+  // Privada: solo la invoca Cloud Tasks con token OIDC (ver cuentaServicioTasks)
+  {cors: false, invoker: 'private'},
   async (req, res) => {
     // Validar que sea POST
     if (req.method !== 'POST') {
@@ -198,7 +200,7 @@ export const escalarPaseoIndividual = onRequest(
         transaction.set(eventRef, {
           evento: 'ESCALADA_AUTOMATICA',
           payload: {
-            razon: 'Cuidador no respondió en los primeros 10 minutos',
+            razon: 'Cuidador no respondió en los primeros 30 minutos',
             cuidador_anterior: cuidadorOriginal,
             cuidador_anterior_nombre: cuidadorNombre,
           },

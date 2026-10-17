@@ -320,9 +320,9 @@ export async function enriquecerContextoConAPIs(
 
   try {
     // Paralelo: ejecutar todas las promesas
-    const elevacionProm = fetchElevacion(lat, lng).catch((): any => null)
-    const climaProm = fetchClima(lat, lng).catch((): any => null)
-    const direccionProm = fetchDireccion(lat, lng).catch((): any => null)
+    const elevacionProm = fetchElevacion(lat, lng).catch((err: unknown): any => { console.warn('[enriquecimientoTerritorial.elevacionProm] Error manejado:', err); return null })
+    const climaProm = fetchClima(lat, lng).catch((err: unknown): any => { console.warn('[enriquecimientoTerritorial.climaProm] Error manejado:', err); return null })
+    const direccionProm = fetchDireccion(lat, lng).catch((err: unknown): any => { console.warn('[enriquecimientoTerritorial.direccionProm] Error manejado:', err); return null })
 
     const [elevacionRes, climaRes, direccionRes] = await Promise.all([
       elevacionProm,

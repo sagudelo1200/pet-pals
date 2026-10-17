@@ -12,7 +12,9 @@ export type TipoEventoOperacionEconomica =
   | 'OPERACION_ENCARGADA' // Tutor encarga, Paw-Path acepta
   | 'CUIDADOR_ASIGNADO' // Paw-Path asigna un ejecutor
   | 'SERVICIO_EJECUTADO' // Cuidador completó la ejecución
-  | 'RECAUDO' // Dinero recibido (entrada financiera)
+  | 'PAGO_INICIADO' // FASE 4.1: Se solicita pago a pasarela (esperando confirmación)
+  | 'PAGO_RECHAZADO' // FASE 4.1: Pasarela rechazó el pago
+  | 'RECAUDO' // Dinero recibido (entrada financiera confirmada)
   | 'OBLIGACION_GENERADA' // Se generó un compromiso de pago
   | 'PAGO_TERCERO' // Se ejecutó un pago (salida financiera)
   | 'OPERACION_CANCELADA' // La operación fue cancelada

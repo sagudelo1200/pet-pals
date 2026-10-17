@@ -78,7 +78,8 @@ export function useRutaARecogida({
               await AsyncStorage.removeItem(cacheKey)
             }
           }
-        } catch {
+        } catch (err) {
+          console.warn('[useRutaARecogida.cargarRuta] Error manejado:', err)
           // Ignorar error de cache y proceder con API call
         }
 

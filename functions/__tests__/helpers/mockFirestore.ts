@@ -34,6 +34,7 @@ function valorEnRuta(obj: unknown, ruta: string): unknown {
 
 export function crearMockDb(): any {
   const docs = new Map<string, Record<string, unknown>>();
+  let autoId = 0;
 
   const db: any = {
     __docs: docs,
@@ -46,6 +47,7 @@ export function crearMockDb(): any {
     doc(path: string) {
       const ref = {
         path,
+        id: path.split('/').pop() as string,
         async get(): Promise<MockDocSnap> {
           return {exists: docs.has(path), data: () => docs.get(path)};
         },
@@ -81,8 +83,9 @@ export function crearMockDb(): any {
       const filtros: Array<{ campo: string; op: string; valor: unknown }> = [];
       const queryObj = {
         path,
-        doc(id: string) {
-          return db.doc(`${path}/${id}`);
+        // Sin id: genera uno automático (como Firestore)
+        doc(id?: string) {
+          return db.doc(`${path}/${id ?? `auto-${++autoId}`}`);
         },
         where(campo: string, op: string, valor: unknown) {
           filtros.push({campo, op, valor});
@@ -124,10 +127,24 @@ export function crearMockDb(): any {
             });
             if (cumple) resultado.push({id: resto, data: () => data});
           }
-          return {docs: resultado};
+          return {
+            docs: resultado,
+            empty: resultado.length === 0,
+            forEach: (cb: (d: (typeof resultado)[number]) => void) =>
+              resultado.forEach(cb),
+          };
         },
       };
       return queryObj;
+    },
+    // Transacción secuencial: suficiente para tests unitarios
+    async runTransaction<T>(cb: (tx: any) => Promise<T>): Promise<T> {
+      return cb({
+        get: (ref: any) => ref.get(),
+        update: (ref: any, data: Record<string, unknown>) => ref.update(data),
+        set: (ref: any, data: Record<string, unknown>, opts?: { merge?: boolean }) =>
+          ref.set(data, opts),
+      });
     },
     batch() {
       const ops: Array<() => void> = [];

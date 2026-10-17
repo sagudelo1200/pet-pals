@@ -36,6 +36,7 @@ export const useCambiarRol = () => {
           await cambiarRolActivo(nuevoRol)
         }
       } catch (_e) {
+        console.warn('[useCambiarRol.cambiarRol] Error manejado:', _e)
         // ignore
       }
 

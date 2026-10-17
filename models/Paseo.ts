@@ -231,9 +231,10 @@ export interface PayloadIncidente {
  * ARQUITECTURA: Operacion es la abstracción genérica.
  * Paseo es una especialización que implementa Operacion con tipo='paseo'
  */
-export interface Paseo extends Operacion {
+export interface Paseo extends Operacion, BaseModel {
   // Reafirmar tipo específico
   tipo: 'paseo'
+  estado: ESTADOS_PASEO
 
   // Campos específicos de Paseo (heredan de Operacion pero especializados)
   id_cuidador?: string
@@ -312,4 +313,11 @@ export interface Paseo extends Operacion {
   timestamp_pago_solicitado?: Date
   /** Timestamp de cuando se confirma el pago (cuando el cuidador acepta). */
   timestamp_pago_confirmado?: Date
+
+  /**
+   * VALIDACIÓN DE RECEPCIÓN DEL SERVICIO (FASE 4)
+   * Cuando el tutor confirma que recibió el servicio con código.
+   * Este timestamp marca cuando se transiciona FINALIZADO → COMPLETADO.
+   */
+  timestamp_validacion_tutor?: Date
 }

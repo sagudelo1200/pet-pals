@@ -155,6 +155,7 @@ const Paseos: React.FC = () => {
                           mascotaId: undefined,
                         })
                       } catch (_e) {
+                        console.warn('[Paseos.onPress] Error manejado:', _e)
                         // ignore
                       }
                     },
@@ -179,6 +180,7 @@ const Paseos: React.FC = () => {
             forzarMascotaInicial: false,
           })
         } catch (_e) {
+          console.warn('[Paseos.Paseos] Error manejado:', _e)
           // ignore if not supported
         }
       }

@@ -18,7 +18,7 @@ import { StackScreenProps } from '@react-navigation/stack'
 import { useTranslation } from 'react-i18next'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import MapView, { Marker, Polyline, AnimatedRegion } from 'react-native-maps'
-import { Ionicons } from '@expo/vector-icons'
+import { FontAwesome5 } from '@expo/vector-icons'
 import * as Haptics from 'expo-haptics'
 import { BlurView } from 'expo-blur'
 import { COLOR } from '@/constants'
@@ -30,11 +30,14 @@ import { useRutaARecogida } from '@/hooks/paseos/useRutaARecogida'
 import { Button, Mapa, Icon } from '@/components/ui'
 import { BannerUbicacion } from '@/components/comun/BannerUbicacion'
 import { ModalIngresarCodigo } from '@/components/paseos/ModalIngresarCodigo'
+import { ModalCodigoRecogidaTutor } from '@/components/paseos/ModalCodigoRecogidaTutor'
+import { FinalizarPaseoModal } from '@/components/paseos/FinalizarPaseoModal'
 import RegistrarMomentoPaseo from '@/components/paseos/RegistrarMomentoPaseo'
 import { useBitacoraPaseo } from '@/hooks/useBitacoraPaseo'
 import type { AuthStackParamList } from '@/navigation/types'
 import { densificarRuta } from '@/services/geo'
 import { GestorPaseos } from '@/logic/paseos'
+import type { EVENTOS_PASEO } from '@/logic/paseos/maquinaEstados'
 import { ServicioPaseo } from '@/services/firebase/firestore/colecciones/paseo'
 
 type ControlPaseoRouteProp = RouteProp<AuthStackParamList, 'ControlPaseo'>
@@ -99,6 +102,21 @@ const ControlPaseo: React.FC = () => {
   // Estado para modal de registrar momento (bitácora)
   const [mostrarRegistrarMomento, setMostrarRegistrarMomento] = useState(false)
 
+  // Estado para modal de finalización de paseo (captura de foto)
+  const [mostrarFinalizarModal, setMostrarFinalizarModal] = useState(false)
+  const [mostrarCodigoEntrega, setMostrarCodigoEntrega] = useState(false)
+
+  // Código de entrega (espejo de la recogida): el cuidador lo muestra al tutor
+  const codigosEntrega = paseo?.codigos_entrega_por_tutor || {}
+  const validadosEntrega = paseo?.codigo_entrega_validado_por_tutor || {}
+  const tutoresEntrega = Object.keys(codigosEntrega)
+  const tutorEntregaPendiente = tutoresEntrega.find(
+    tId => validadosEntrega[tId] !== true
+  )
+  const entregaValidada = tutoresEntrega.length > 0 && !tutorEntregaPendiente
+  const codigoEntregaActual =
+    codigosEntrega[tutorEntregaPendiente ?? tutoresEntrega[0]]
+
   // Hook para obtener bitácoras en tiempo real
   const { cargando: _cargandoBitacoras } = useBitacoraPaseo(paseoId)
 
@@ -144,6 +162,7 @@ const ControlPaseo: React.FC = () => {
             700
           )
         } catch (_e) {
+          console.warn('[ControlPaseo.ControlPaseo] Error manejado:', _e)
           // ignore
         }
       }
@@ -350,12 +369,7 @@ const ControlPaseo: React.FC = () => {
   ): {
     label: string
     icon: string
-    evento:
-      | 'INICIAR_RUTA'
-      | 'INICIAR_PASEO'
-      | 'FINALIZAR_PASEO'
-      | 'LLEGAR_PUNTO_RECOGIDA'
-      | null
+    evento: EVENTOS_PASEO | null
     color: string
   } | null => {
     const estadoColor =
@@ -441,6 +455,13 @@ const ControlPaseo: React.FC = () => {
       return
     }
 
+    // FASE 4: Si está en EN_PROGRESO, mostrar modal de finalización (captura foto)
+    // Antes de cambiar a FINALIZADO
+    if (paseo.estado === ESTADOS_PASEO.EN_PROGRESO) {
+      setMostrarFinalizarModal(true)
+      return
+    }
+
     // CONFIRMADO: cambiar directamente a EN_CAMINO (cuidador se va a buscar)
     if (paseo.estado === ESTADOS_PASEO.CONFIRMADO) {
       if (config.evento) {
@@ -456,7 +477,7 @@ const ControlPaseo: React.FC = () => {
         setShowSuccess(true)
       }
     } else if (paseo.estado === ESTADOS_PASEO.FINALIZADO) {
-      setShowSuccess(true)
+      setMostrarCodigoEntrega(true)
     }
   }
 
@@ -534,9 +555,7 @@ const ControlPaseo: React.FC = () => {
         // Post-paseo: continuar al registro de la mascota (observación) y
         // luego a la evaluación del tutor. Si el cuidador omite, vuelve al
         // Dashboard desde esas pantallas.
-        onClose={() =>
-          navigation.navigate('ObservacionMascota', { paseoId })
-        }
+        onClose={() => navigation.navigate('ObservacionMascota', { paseoId })}
         tiempo={tiempoTranscurrido}
         mascota={paseo.mascota_nombre_visual}
       />
@@ -745,7 +764,7 @@ const ControlPaseo: React.FC = () => {
                 ]}
               >
                 {estadoCompletado(est) && (
-                  <Ionicons name="checkmark" size={12} color={COLOR.TEXTO} />
+                  <FontAwesome5 solid name="check" size={12} color={COLOR.TEXTO} />
                 )}
               </View>
               {index < ESTADOS_FLUJO.length - 1 && (
@@ -909,6 +928,39 @@ const ControlPaseo: React.FC = () => {
         esUnicoTutor={mascotasPorTutor.length === 1}
       />
 
+      {/* FASE 4: Modal de finalización de paseo (EN_PROGRESO -> FINALIZADO) */}
+      <FinalizarPaseoModal
+        visible={mostrarFinalizarModal}
+        paseoId={paseoId}
+        operacionId={paseo?.operacion_economica_id}
+        nombreMascota={paseo?.mascota_nombre_visual || 'Mascota'}
+        nombreTutor={paseo?.tutor_ids?.[0] || 'Tutor'}
+        duracionMinutos={Math.floor(
+          parseInt(tiempoTranscurrido.split(':')[0]) * 60 +
+            parseInt(tiempoTranscurrido.split(':')[1])
+        )}
+        onSuccess={async () => {
+          setMostrarFinalizarModal(false)
+          await cambiarEstado('FINALIZAR_PASEO')
+          setMostrarCodigoEntrega(true)
+        }}
+        onDismiss={() => setMostrarFinalizarModal(false)}
+      />
+
+      {/* Código de entrega: el cuidador lo muestra y el tutor lo valida */}
+      <ModalCodigoRecogidaTutor
+        tipo="entrega"
+        visible={mostrarCodigoEntrega}
+        codigo={codigoEntregaActual}
+        codigoValidado={entregaValidada}
+        esUnicoTutor={tutoresEntrega.length === 1}
+        onConfirmar={() => {
+          setMostrarCodigoEntrega(false)
+          setShowSuccess(true)
+        }}
+        onCancelar={() => setMostrarCodigoEntrega(false)}
+      />
+
       {/* Modal para registrar momento del paseo (bitácora) */}
       <RegistrarMomentoPaseo
         visible={mostrarRegistrarMomento}
@@ -964,7 +1016,7 @@ const HeaderContent: React.FC<{
       onPress={() => navigation.goBack()}
       style={styles.headerButton}
     >
-      <Ionicons name="arrow-back" size={24} color={COLOR.TEXTO} />
+      <FontAwesome5 solid name="arrow-left" size={24} color={COLOR.TEXTO} />
     </TouchableOpacity>
 
     <View style={styles.headerCenter}>
@@ -1007,7 +1059,7 @@ const HeaderContent: React.FC<{
     </View>
 
     <TouchableOpacity onPress={onChat} style={styles.headerButton}>
-      <Ionicons name="chatbubble" size={24} color={COLOR.TEXTO} />
+      <FontAwesome5 solid name="comment" size={24} color={COLOR.TEXTO} />
     </TouchableOpacity>
   </View>
 )
@@ -1047,7 +1099,7 @@ const SuccessOverlay: React.FC<{
         ]}
       >
         <View style={styles.successIconCircle}>
-          <Ionicons name="checkmark-done" size={60} color={COLOR.EXITO} />
+          <FontAwesome5 solid name="check-double" size={60} color={COLOR.EXITO} />
         </View>
         <Text style={styles.successTitle}>
           {t('paseos:control.gran_trabajo')}

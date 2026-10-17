@@ -344,6 +344,25 @@ describe('alCrearEvaluacion (trigger)', () => {
     expect(db.__docs.get('evaluaciones/evaluacion_tutor_cuidador-1_tutor-1_p1').revelada).toBe(true);
   });
 
+  test('doble ciego: revela AMBAS cuando el cuidador evalúa segundo', async () => {
+    // El tutor evaluó primero (id generado por crearEvaluacion)
+    const evalTutor = evaluacionDoc({id: 'evaluacion_cuidador_tutor-1_cuidador-1_p1'});
+    db.__seed('evaluaciones/evaluacion_cuidador_tutor-1_cuidador-1_p1', evalTutor);
+    const evalCuidador = evaluacionDoc({
+      id: 'e2',
+      tipo: 'evaluacion_tutor',
+      actor: {tipo: 'usuario', id: 'cuidador-1'},
+      objetivo: {tipo: 'usuario', id: 'tutor-1'},
+      datos: {rating: 4, comentario: ''},
+    });
+    db.__seed('evaluaciones/e2', evalCuidador);
+
+    await trigger(evento(evalCuidador));
+
+    expect(db.__docs.get('evaluaciones/e2').revelada).toBe(true);
+    expect(db.__docs.get('evaluaciones/evaluacion_cuidador_tutor-1_cuidador-1_p1').revelada).toBe(true);
+  });
+
   test('doble ciego: no aplica a evaluacion_mascota', async () => {
     const doc = evaluacionDoc({
       id: 'e1',

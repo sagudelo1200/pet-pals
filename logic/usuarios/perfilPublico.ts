@@ -116,48 +116,61 @@ export class GestorPerfilPublico {
         ? ((perfilActual.data as any)?.h3_r8 ?? null)
         : null
 
-      // Solo procesar cambio si h3 cambió
-      if (h3OrigenAnterior && h3OrigenAnterior !== h3OrigenNuevo) {
-        const perfil = perfilActual.data
+      const perfil = perfilActual.data
 
-        // Construir datos sin undefined (solo incluir campos si existen)
-        const datosEntrada = {
-          nombre: (datos as any).nombre ?? perfil?.nombre ?? '',
-          rating_promedio:
-            (datos as any).rating_promedio ?? perfil?.rating_promedio ?? 0,
-          tarifa_por_hora:
-            (datos as any).tarifa_por_hora ?? perfil?.tarifa_por_hora ?? 0,
-        } as any
+      // Construir datos sin undefined (solo incluir campos si existen)
+      const datosEntrada = {
+        nombre: (datos as any).nombre ?? perfil?.nombre ?? '',
+        rating_promedio:
+          (datos as any).rating_promedio ?? perfil?.rating_promedio ?? 0,
+        tarifa_por_hora:
+          (datos as any).tarifa_por_hora ?? perfil?.tarifa_por_hora ?? 0,
+      } as any
 
-        // Agregar campos opcionales solo si existen
-        const fotoParaGuardar = (datos as any).foto ?? perfil?.foto
-        if (fotoParaGuardar) {
-          datosEntrada.foto = fotoParaGuardar
-        }
+      // Agregar campos opcionales solo si existen
+      const fotoParaGuardar = (datos as any).foto ?? perfil?.foto
+      if (fotoParaGuardar) {
+        datosEntrada.foto = fotoParaGuardar
+      }
 
-        if (perfil?.insignias_verificacion) {
-          datosEntrada.insignias_verificacion = perfil.insignias_verificacion
-        }
+      if (perfil?.insignias_verificacion) {
+        datosEntrada.insignias_verificacion = perfil.insignias_verificacion
+      }
 
-        const horarioParaGuardar =
-          (datos as any).horario_semanal ?? perfil?.horario_semanal
-        if (horarioParaGuardar) {
-          datosEntrada.horario_semanal = horarioParaGuardar
-        }
+      const horarioParaGuardar =
+        (datos as any).horario_semanal ?? perfil?.horario_semanal
+      if (horarioParaGuardar) {
+        datosEntrada.horario_semanal = horarioParaGuardar
+      }
 
-        // Usar orquestador: operación atómica con retry automático
-        const exito = await H3TerritorialOrchestrator.procesarCambioCobertura(
+      let exito: boolean
+      if (h3OrigenAnterior && h3OrigenAnterior === h3OrigenNuevo) {
+        // Misma zona: refrescar los datos del índice (horario, foto...)
+        // en las mismas celdas, sin alterar los contadores de zona
+        const celdas = perfil?.celdas_cobertura?.length
+          ? perfil.celdas_cobertura
+          : celdasDeCobertura(h3OrigenNuevo)
+        exito = await H3TerritorialOrchestrator.procesarCambioCoberturaManuales(
           uid,
           h3OrigenNuevo,
-          h3OrigenAnterior,
+          celdas,
+          celdas,
           datosEntrada
         )
+      } else {
+        // Primera vez (sin zona previa) o cambio de zona: escribir / migrar
+        exito = await H3TerritorialOrchestrator.procesarCambioCobertura(
+          uid,
+          h3OrigenNuevo,
+          h3OrigenAnterior ?? undefined,
+          datosEntrada
+        )
+      }
 
-        if (!exito) {
-          console.warn(
-            `[h3] Fallo migrar cobertura para ${uid}: ${h3OrigenAnterior} → ${h3OrigenNuevo}`
-          )
-        }
+      if (!exito) {
+        console.warn(
+          `[h3] Fallo sincronizar cobertura para ${uid}: ${h3OrigenAnterior} → ${h3OrigenNuevo}`
+        )
       }
     }
 

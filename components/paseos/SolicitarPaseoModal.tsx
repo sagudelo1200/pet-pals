@@ -145,6 +145,7 @@ export const SolicitarPaseoModal = ({
       try {
         onConfirm()
       } catch (_e) {
+        console.warn('[SolicitarPaseoModal.handleConfirmacionFinal] Error manejado:', _e)
         // ignorar errores del callback del padre
       }
     }

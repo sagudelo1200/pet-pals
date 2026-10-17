@@ -213,6 +213,19 @@ export const GestorAuth = {
             'Error creando usuario Firestore tras Google Auth:',
             resCreacion.error
           )
+          // Rollback (mismo criterio que registrarConCorreo)
+          try {
+            await deleteUser(user)
+          } catch (authDelErr) {
+            console.error(
+              'Rollback: error eliminando usuario en Auth (Google):',
+              authDelErr
+            )
+          }
+          return {
+            success: false,
+            error: resCreacion.error || ERR.COMUN.ERROR_DESCONOCIDO,
+          }
         } else {
           try {
             await ServicioPerfilPublico.guardarConId(user.uid, {

@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useEffect } from 'react'
 import { View, Text, StyleSheet, Pressable, Modal } from 'react-native'
-import { MaterialCommunityIcons as Icon } from '@expo/vector-icons'
+import { FontAwesome5 } from '@expo/vector-icons'
 import { useTranslation } from 'react-i18next'
 import Screen from '@/components/ui/Screen'
 import { COLOR } from '@/constants'
@@ -525,7 +525,7 @@ const ExplorarLibremente = ({ navigation }: any) => {
           style={styles.btnBack}
           onPress={() => navigation.navigate('ExplorerRoot' as never)}
         >
-          <Icon name="close" size={24} color={COLOR.HUESO} />
+          <FontAwesome5 solid name="times" size={24} color={COLOR.HUESO} />
         </Pressable>
 
         <View style={styles.headerInfo}>
@@ -550,7 +550,7 @@ const ExplorarLibremente = ({ navigation }: any) => {
             style={styles.floatingBtn}
             onPress={() => setModalActivo('mascotas')}
           >
-            <Icon name="dog" size={24} color={COLOR.HUESO} />
+            <FontAwesome5 solid name="dog" size={24} color={COLOR.HUESO} />
             <Text style={styles.floatingBtnLabel}>
               {t('explorador:mascotas_observadas')}
             </Text>
@@ -561,7 +561,7 @@ const ExplorarLibremente = ({ navigation }: any) => {
             style={styles.floatingBtn}
             onPress={() => setModalActivo('interesados')}
           >
-            <Icon name="account-multiple" size={24} color={COLOR.HUESO} />
+            <FontAwesome5 solid name="users" size={24} color={COLOR.HUESO} />
             <Text style={styles.floatingBtnLabel}>
               {t('explorador:personas_interesadas')}
             </Text>
@@ -572,7 +572,7 @@ const ExplorarLibremente = ({ navigation }: any) => {
             style={styles.floatingBtn}
             onPress={() => setModalActivo('aliado')}
           >
-            <Icon name="handshake" size={24} color={COLOR.HUESO} />
+            <FontAwesome5 solid name="handshake" size={24} color={COLOR.HUESO} />
             <Text style={styles.floatingBtnLabel}>
               {t('explorador:aliado_negocio')}
             </Text>
@@ -583,7 +583,7 @@ const ExplorarLibremente = ({ navigation }: any) => {
             style={styles.floatingBtn}
             onPress={() => setModalActivo('seguridad')}
           >
-            <Icon name="shield-alert" size={24} color={COLOR.HUESO} />
+            <FontAwesome5 solid name="shield-alt" size={24} color={COLOR.HUESO} />
             <Text style={styles.floatingBtnLabel}>
               {t('explorador:seguridad_riesgo')}
             </Text>
@@ -594,7 +594,7 @@ const ExplorarLibremente = ({ navigation }: any) => {
             style={styles.floatingBtn}
             onPress={() => setModalActivo('nota')}
           >
-            <Icon name="note-multiple" size={24} color={COLOR.HUESO} />
+            <FontAwesome5 solid name="sticky-note" size={24} color={COLOR.HUESO} />
             <Text style={styles.floatingBtnLabel}>
               {t('explorador:nota_rapida')}
             </Text>
@@ -621,7 +621,7 @@ const ExplorarLibremente = ({ navigation }: any) => {
           onPress={finalizarExploracion}
           disabled={eventosCapturados.length === 0 || captureLoading}
         >
-          <Icon name="check-circle" size={20} color={COLOR.HUESO} />
+          <FontAwesome5 solid name="check-circle" size={20} color={COLOR.HUESO} />
           <Text style={styles.btnFinalizarText}>
             {captureLoading
               ? t('comun:guardando')

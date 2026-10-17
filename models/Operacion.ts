@@ -26,6 +26,8 @@ export type TipoOperacion = 'paseo' | 'guarderia' | 'vet' | 'transporte'
 export const ESTADOS_OPERACION = {
   PENDIENTE: 'PENDIENTE', // Operación solicitada, espera confirmación
   CONFIRMADO: 'CONFIRMADO', // Operación aceptada
+  EN_CAMINO: 'EN_CAMINO', // Paseo: cuidador en camino a la recogida
+  EN_PUNTO_RECOGIDA: 'EN_PUNTO_RECOGIDA', // Paseo: cuidador en el punto de recogida
   EN_PROGRESO: 'EN_PROGRESO', // Operación en ejecución
   FINALIZADO: 'FINALIZADO', // Operación completada/terminada
   COMPLETADO: 'COMPLETADO', // Operación validada (listo para pagos)

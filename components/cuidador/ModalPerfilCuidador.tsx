@@ -46,7 +46,8 @@ export function ModalPerfilCuidador({
       .then(res => {
         if (activo && res.success && res.data) setResumen(res.data)
       })
-      .catch(() => {
+      .catch((err: unknown) => {
+        console.warn('[ModalPerfilCuidador.ModalPerfilCuidador] Error manejado:', err)
         // Sin resumen: la sección de reseñas simplemente no se muestra
       })
     return () => {
@@ -99,7 +100,7 @@ export function ModalPerfilCuidador({
       } else {
         // Estrella vacía
         estrellas.push(
-          <Icon key={i} name="star-o" size={16} color={COLOR.INACTIVO} />
+          <Icon key={i} name="star" type="regular" size={16} color={COLOR.INACTIVO} />
         )
       }
     }

@@ -118,5 +118,7 @@
     },
     "mes": "Mes",
     "año": "Año"
-  }
+  },
+  "algo_salio_mal": "Algo salió mal",
+  "enviando": "Enviando"
 }

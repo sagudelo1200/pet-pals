@@ -35,7 +35,7 @@ interface Props {
 const SolicitudModal: React.FC<Props> = ({ visible, paseo, onClose }) => {
   const { t } = useTranslation()
   const navigation = useNavigation<any>()
-  const { acciones, gestion } = useGestorPaseoActivo()
+  const { gestion } = useGestorPaseoActivo()
   const [loading, setLoading] = useState(false)
   const [mascotas, setMascotas] = useState<any[]>([])
   const [loadingMascotas, setLoadingMascotas] = useState(false)
@@ -77,6 +77,7 @@ const SolicitudModal: React.FC<Props> = ({ visible, paseo, onClose }) => {
           .filter(Boolean)
         if (mounted && partes.length > 0) setExpediente(partes.join(' · '))
       } catch (_e) {
+        console.warn('[SolicitudModal.cargar] Error manejado:', _e)
         // Sin expediente: se omite
       }
     }
@@ -127,6 +128,7 @@ const SolicitudModal: React.FC<Props> = ({ visible, paseo, onClose }) => {
           setLoadingTutor(false)
         }
       } catch (_e) {
+        console.warn('[SolicitudModal.load] Error manejado:', _e)
         // ignore
       } finally {
         if (mounted) setLoadingMascotas(false)
@@ -161,14 +163,18 @@ const SolicitudModal: React.FC<Props> = ({ visible, paseo, onClose }) => {
     setLoading(true)
     try {
       gestion.seleccionar(paseo)
-      const res = await acciones.aceptar()
+      // aceptarSolicitud: doble reserva, auditoría y asignación económica
+      const res: any = await GestorPaseos.aceptarSolicitud(paseo.id)
       setLoading(false)
       if (res.success) {
         onClose()
         navigation.navigate('ControlPaseo', { paseoId: paseo.id })
       } else {
         gestion.limpiar()
-        Alert.alert(t('comun:error'), res.error || t('comun:error_desconocido'))
+        Alert.alert(
+          t('comun:error'),
+          res.detalles || res.error || t('comun:error_desconocido')
+        )
       }
     } catch (_e) {
       setLoading(false)
@@ -194,6 +200,7 @@ const SolicitudModal: React.FC<Props> = ({ visible, paseo, onClose }) => {
               try {
                 await GestorPaseos.rechazarPaseo(paseo.id)
               } catch (_e) {
+                console.warn('[SolicitudModal.onPress] Error manejado:', _e)
                 // ignore
               }
               setLoading(false)

@@ -48,6 +48,7 @@ import {
   Timestamp,
   getDoc,
   addDoc,
+  limit,
 } from 'firebase/firestore'
 import { db } from '@/firebase.config'
 
@@ -383,15 +384,15 @@ export class ServicioPaseo {
       if (evento === 'bitacora') {
         try {
           const eventosCol = collection(db, COLLECTION_NAME, paseoId, 'eventos')
-          const q = query(
-            eventosCol,
-            where('tipoEvento', '==', 'bitacora'),
-            orderBy('creado_en', 'desc')
-          )
+          // El campo persistido es `evento`; se filtra en memoria para no
+          // requerir un índice compuesto
+          const q = query(eventosCol, orderBy('creado_en', 'desc'), limit(20))
           const snapshot = await getDocs(q)
           const eventosRecientes = snapshot.docs
-            .slice(0, 5)
             .map(doc => doc.data() as any)
+            .filter(e => e.evento === 'bitacora')
+            .slice(0, 5)
+            .map(e => ({ ...e, tipoEvento: e.evento }))
             .reverse()
 
           const eventoTemporal = {
@@ -443,6 +444,13 @@ export class ServicioPaseo {
         evento,
         payload: payloadLimpio,
         actor: currentUser.uid,
+        ...(hechoTerritorial && {
+          hechoTerritorial: this.limpiarUndefined(hechoTerritorial),
+        }),
+        ...(contextoTerritorial && {
+          contextoTerritorial: this.limpiarUndefined(contextoTerritorial),
+        }),
+        ...(patronInferido && { patron_inferido: patronInferido }),
         ...camposSistema,
       }
 
@@ -610,6 +618,121 @@ export class ServicioPaseo {
         return { success: false, error: errorMsg }
       }
 
+      return { success: false, error: mapFirebaseError(e) }
+    }
+  }
+
+  /**
+   * Valida código de entrega POR TUTOR (espejo de la recogida con roles
+   * invertidos: el cuidador muestra el código y el tutor lo ingresa).
+   * Operación atómica: verifica código, actualiza intentos y, cuando todos
+   * los tutores del paseo validaron, transiciona FINALIZADO → COMPLETADO.
+   */
+  static async validarCodigoEntregaPorTutor(
+    paseoId: string,
+    tutorId: string,
+    codigoIngresado: string
+  ): Promise<
+    | { success: true; completado: boolean }
+    | { success: false; error: string; intentosFallidos?: number }
+  > {
+    const uid = ServicioAuth.obtenerUsuarioActual()?.uid
+    if (!uid) return { success: false, error: ERR.COMUN.NO_AUTENTICADO }
+
+    if (!validarFormatoCodigo(codigoIngresado)) {
+      return { success: false, error: 'CODIGO_ENTREGA_FORMATO_INVALIDO' }
+    }
+
+    const paseoRef = doc(db, COLLECTION_NAME, paseoId)
+
+    try {
+      return await runTransaction(db, async tx => {
+        const paseoSnap = await tx.get(paseoRef)
+
+        if (!paseoSnap.exists()) {
+          throw new Error(ERR.PASEOS.PASEO_NO_ENCONTRADO)
+        }
+
+        const paseoData = paseoSnap.data()
+        if (paseoData.estado !== ESTADOS_PASEO.FINALIZADO) {
+          throw new Error(ERR.PASEOS.ESTADO_NO_ESPERADO)
+        }
+
+        const codigosEntregaPorTutor = (paseoData.codigos_entrega_por_tutor ||
+          {}) as Record<string, string>
+        const intentosFallidos =
+          ((paseoData.intentos_fallidos_entrega_por_tutor || {})[tutorId] ||
+            0) as number
+
+        if (!codigosEntregaPorTutor[tutorId]) {
+          throw new Error('CODIGO_ENTREGA_NO_ENCONTRADO')
+        }
+
+        if (intentosFallidos >= 3) {
+          throw new Error('CODIGO_ENTREGA_BLOQUEADO')
+        }
+
+        const camposSistema = camposSistemaActualizar(uid)
+
+        if (codigoIngresado === codigosEntregaPorTutor[tutorId]) {
+          const validados = {
+            ...(paseoData.codigo_entrega_validado_por_tutor || {}),
+            [tutorId]: true,
+          }
+          const todosValidados = Object.keys(codigosEntregaPorTutor).every(
+            tId => validados[tId] === true
+          )
+
+          tx.update(paseoRef, {
+            codigo_entrega_validado_por_tutor: validados,
+            timestamp_validacion_entrega_por_tutor: {
+              ...(paseoData.timestamp_validacion_entrega_por_tutor || {}),
+              [tutorId]: Timestamp.now(),
+            },
+            intentos_fallidos_entrega_por_tutor: {
+              ...(paseoData.intentos_fallidos_entrega_por_tutor || {}),
+              [tutorId]: 0,
+            },
+            ...(todosValidados && {
+              estado: ESTADOS_PASEO.COMPLETADO,
+              timestamp_validacion_tutor: Timestamp.now(),
+            }),
+            ...camposSistema,
+          })
+
+          return { success: true as const, completado: todosValidados }
+        }
+
+        const nuevoIntento = intentosFallidos + 1
+        tx.update(paseoRef, {
+          intentos_fallidos_entrega_por_tutor: {
+            ...(paseoData.intentos_fallidos_entrega_por_tutor || {}),
+            [tutorId]: nuevoIntento,
+          },
+          ...camposSistema,
+        })
+
+        return {
+          success: false as const,
+          error:
+            nuevoIntento >= 3
+              ? 'CODIGO_ENTREGA_BLOQUEADO'
+              : 'CODIGO_ENTREGA_INCORRECTO',
+          intentosFallidos: nuevoIntento,
+        }
+      })
+    } catch (e: any) {
+      const errorMsg = e?.message || ''
+      if (
+        [
+          'CODIGO_ENTREGA_NO_ENCONTRADO',
+          'CODIGO_ENTREGA_BLOQUEADO',
+          ERR.PASEOS.ESTADO_NO_ESPERADO,
+          ERR.PASEOS.PASEO_NO_ENCONTRADO,
+        ].includes(errorMsg)
+      ) {
+        return { success: false, error: errorMsg }
+      }
       return { success: false, error: mapFirebaseError(e) }
     }
   }

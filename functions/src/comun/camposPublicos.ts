@@ -57,7 +57,8 @@ export function extraerDatosUsuarioDesdeEvento(
     try {
       const res = (maybeSnapshot as () => unknown)();
       return (res as Record<string, unknown>) ?? {};
-    } catch {
+    } catch (err) {
+      console.warn('[camposPublicos.extraerDatosUsuario] Error manejado:', err);
       return {};
     }
   }
@@ -93,7 +94,8 @@ export function extraerAntesYDespuesDesdeEvento(event: unknown): {
     if (typeof maybeSnapshot === 'function') {
       try {
         return (maybeSnapshot as () => unknown)() as Record<string, unknown>;
-      } catch {
+      } catch (err) {
+        console.warn('[camposPublicos.resolve] Error manejado:', err);
         return {};
       }
     }

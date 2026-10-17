@@ -85,6 +85,12 @@ export const useRegistroConsentimiento =
       try {
         setCargandoConsentimiento(true)
         const resultado = await aceptarConsentimiento('DATOS_PERSONALES')
+        if (!resultado.exito) {
+          console.warn(
+            '[useRegistroConsentimiento] DATOS_PERSONALES no registrado:',
+            resultado.error
+          )
+        }
         return resultado.exito
       } catch (err) {
         console.error('[useRegistroConsentimiento]', err)

@@ -131,6 +131,7 @@ export function useDetallesZonaH3(h3_r8: string | null): DetallesZonaH3 {
                 mascota_nombre = mascotasSnap.docs[0].data().nombre || 'Mascota'
               }
             } catch (_e) {
+              console.warn('[useDetallesZonaH3.cargarDetalles] Error manejado:', _e)
               // Si hay error, usar valor por defecto
             }
           }

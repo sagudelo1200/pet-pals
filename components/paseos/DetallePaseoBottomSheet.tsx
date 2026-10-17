@@ -6,6 +6,7 @@ import {
   View,
   ActivityIndicator,
   Animated,
+  Alert,
 } from 'react-native'
 import { useNavigation } from '@react-navigation/native'
 import { BottomSheet, Button, Icon, Avatar } from '@/components/ui'
@@ -13,6 +14,7 @@ import { COLOR } from '@/constants'
 import { Paseo, ESTADOS_PASEO } from '@/models/Paseo'
 import { useTranslation } from 'react-i18next'
 import { GestorPerfilPublico } from '@/logic/usuarios/perfilPublico'
+import { GestorPaseos } from '@/logic/paseos'
 import { PerfilPublico } from '@/models/PerfilPublico'
 
 interface Props {
@@ -137,6 +139,7 @@ const DetallePaseoBottomSheet: React.FC<Props> = ({
       try {
         onClose()
       } catch (_e) {
+        console.warn('[DetallePaseoBottomSheet.DetallePaseoBottomSheet] Error manejado:', _e)
         // ignore
       }
       // Dejamos una pequeña pausa para permitir animación de cierre
@@ -150,6 +153,32 @@ const DetallePaseoBottomSheet: React.FC<Props> = ({
   }, [paseo?.estado, visible, paseo?.id, navigation, onClose])
 
   if (!paseo) return null
+
+  // Cancelación por el tutor (usa cancelarPaseoAsync del gestor de paseo activo)
+  const handleCancelarSolicitud = () => {
+    Alert.alert(
+      t('paseos:cancelacion.cancelar'),
+      t('paseos:cancelacion.confirmar_cancelar'),
+      [
+        { text: t('comun:no'), style: 'cancel' },
+        {
+          text: t('comun:si'),
+          style: 'destructive',
+          onPress: async () => {
+            GestorPaseos.paseoActivo.setPaseoActivo(paseo)
+            const res = await GestorPaseos.paseoActivo.cancelarPaseoAsync(
+              'CANCELADO_POR_TUTOR'
+            )
+            if (!res.success) {
+              Alert.alert(t('comun:error'), res.error || t('comun:error'))
+              return
+            }
+            onClose()
+          },
+        },
+      ]
+    )
+  }
 
   const renderPendiente = () => (
     <View style={styles.content}>
@@ -223,10 +252,7 @@ const DetallePaseoBottomSheet: React.FC<Props> = ({
         <Button
           variant="ghost"
           title={t('comun:acciones.cancelar_solicitud')}
-          onPress={() => {
-            // TODO: Implementar cancelación
-            onClose()
-          }}
+          onPress={handleCancelarSolicitud}
           style={styles.cancelButton}
           textStyle={{ color: COLOR.ERROR }}
         />
@@ -364,7 +390,7 @@ const DetallePaseoBottomSheet: React.FC<Props> = ({
             ]}
           >
             <Icon
-              name={esCancelado ? 'x' : 'check'}
+              name={esCancelado ? 'times' : 'check'}
               size={32}
               color={esCancelado ? COLOR.ERROR : COLOR.EXITO}
             />

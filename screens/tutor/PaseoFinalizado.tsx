@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react'
+import React, { useCallback, useState } from 'react'
 import { StyleSheet, View, Text, ActivityIndicator, Alert } from 'react-native'
 import {
   useRoute,
@@ -11,6 +11,7 @@ import { useDoc } from '@/hooks/useDoc'
 import { Button, Spacer } from '@/components/ui'
 import type { AuthStackParamList } from '@/navigation/types'
 import { PaseoFinalizadoCard } from '@/components/paseos/PaseoFinalizadoCard'
+import { ModalValidacionEntrega, PantallaPago } from '@/components/tutor'
 import { useAuth } from '@/context/AuthContext'
 import { useEnviarEvaluacionCuidador } from '@/hooks/paseos/useEnviarEvaluacionCuidador'
 
@@ -28,6 +29,10 @@ export default function PaseoFinalizado() {
   const { t } = useTranslation('evaluaciones')
   const { paseoId } = route.params
   const { data: paseo, cargando: loading } = useDoc<any>('operaciones', paseoId)
+
+  // Estados para controlar el flujo: Validación → Pago → Calificación
+  const [entregaValidada, setEntregaValidada] = useState(false)
+  const [pagoProcesado, setPagoProcesado] = useState(false)
 
   const cuidadorId = paseo?.id_cuidador
   const { ratingPrevio, enviando, enviado, nuevoPromedio, enviar } =
@@ -91,21 +96,50 @@ export default function PaseoFinalizado() {
   return (
     <View style={styles.container}>
       <View style={styles.contentContainer}>
-        <PaseoFinalizadoCard
-          mascotaNombre={paseo.mascota_nombre_visual}
-          cuidadorNombre={paseo.cuidador_nombre_visual}
-          onClose={() => navigation.navigate('TutorApp')}
-          onRate={handleRate}
-          ratingPrevio={ratingPrevio}
-          enviando={enviando}
-          enviado={enviado}
-          nuevoPromedio={nuevoPromedio}
-        />
-        {enviando && (
-          <View style={styles.loadingOverlay}>
-            <ActivityIndicator size="large" color={COLOR.PRIMARIO} />
-            <Text style={styles.loadingText}>{t('registrando')}</Text>
-          </View>
+        {/* FASE 4: Validación de entrega (si no está validada aún) */}
+        {!entregaValidada && paseo.estado !== 'COMPLETADO' ? (
+          <ModalValidacionEntrega
+            visible={true}
+            paseoId={paseoId}
+            tutorId={user?.uid || ''}
+            nombreMascota={paseo?.mascota_nombre_visual || 'Mascota'}
+            nombreCuidador={paseo?.cuidador_nombre_visual || 'Cuidador'}
+            onSuccess={() => setEntregaValidada(true)}
+            onDismiss={() => navigation.navigate('TutorApp')}
+          />
+        ) : !pagoProcesado ? (
+          // FASE 4.1: Pago (si se validó pero aún no pagó)
+          <PantallaPago
+            operacionId={paseo?.operacion_economica_id || ''}
+            monto={paseo?.precio || 0}
+            nombreMascota={paseo?.mascota_nombre_visual || 'Mascota'}
+            nombreCuidador={paseo?.cuidador_nombre_visual || 'Cuidador'}
+            onPaymentSuccess={(referencia: string) => {
+              console.log('[PaseoFinalizado] Pago iniciado, referencia:', referencia)
+              setPagoProcesado(true)
+            }}
+            onCancel={() => navigation.navigate('TutorApp')}
+          />
+        ) : (
+          // Calificación (después de validar y pagar)
+          <>
+            <PaseoFinalizadoCard
+              mascotaNombre={paseo.mascota_nombre_visual}
+              cuidadorNombre={paseo.cuidador_nombre_visual}
+              onClose={() => navigation.navigate('TutorApp')}
+              onRate={handleRate}
+              ratingPrevio={ratingPrevio}
+              enviando={enviando}
+              enviado={enviado}
+              nuevoPromedio={nuevoPromedio}
+            />
+            {enviando && (
+              <View style={styles.loadingOverlay}>
+                <ActivityIndicator size="large" color={COLOR.PRIMARIO} />
+                <Text style={styles.loadingText}>{t('registrando')}</Text>
+              </View>
+            )}
+          </>
         )}
       </View>
     </View>

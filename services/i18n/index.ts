@@ -10,7 +10,8 @@ function detectDeviceLanguage(): string {
     const Localization = require('expo-localization') as { locale: string }
     const locale = (Localization?.locale || 'es').split('-')[0]
     return locale
-  } catch {
+  } catch (err) {
+    console.warn('[index.detectDeviceLanguage] Error manejado:', err)
     return 'es'
   }
 }
@@ -92,7 +93,8 @@ export function tError(code: ErrorCode, vars?: Record<string, unknown>) {
           }
         }
       }
-    } catch {
+    } catch (err) {
+      console.warn('[index.tError] Error manejado:', err)
       /* ignore */
     }
 
@@ -100,7 +102,8 @@ export function tError(code: ErrorCode, vars?: Record<string, unknown>) {
     const keyComun = `comun:errores.${String(code)}`
     if (i18n.exists(keyComun))
       return i18n.t(keyComun, { defaultValue: String(code), ...vars })
-  } catch {
+  } catch (err) {
+    console.warn('[index.tError] Error manejado:', err)
     /* ignore */
   }
 
@@ -160,10 +163,12 @@ export function tErrorMaybe(
           }
         }
       }
-    } catch {
+    } catch (err) {
+      console.warn('[index.tErrorMaybe] Error manejado:', err)
       /* ignore */
     }
-  } catch {
+  } catch (err) {
+    console.warn('[index.tErrorMaybe] Error manejado:', err)
     /* ignore */
   }
 
@@ -171,7 +176,8 @@ export function tErrorMaybe(
   try {
     const keyComun = `comun:errores.${codeOrMessage}`
     if (i18n.exists(keyComun)) return i18n.t(keyComun, vars)
-  } catch {
+  } catch (err) {
+    console.warn('[index.tErrorMaybe] Error manejado:', err)
     /* ignore */
   }
 

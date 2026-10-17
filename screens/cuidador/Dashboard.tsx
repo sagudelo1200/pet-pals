@@ -10,6 +10,10 @@ import { useTranslation } from 'react-i18next'
 import { useNavigation, useFocusEffect } from '@react-navigation/native'
 import { COLOR } from '@/constants'
 import { EstadisticaCard } from '@/components/cuidador/EstadisticaCard'
+import {
+  DashboardAsignaciones,
+  MisGananciasCuidador,
+} from '@/components/cuidador'
 import { useEstadisticasCuidador } from '@/hooks/cuidador/useEstadisticasCuidador'
 import { useAgendaCuidador } from '@/hooks/cuidador/useAgendaCuidador'
 import { useFeedbackRecibido } from '@/hooks/cuidador/useFeedbackRecibido'
@@ -209,6 +213,35 @@ const Dashboard: React.FC = () => {
                 />
               ))
             : renderEmptyState()}
+        </View>
+
+        {/* FASE 4.1: Mis Ganancias */}
+        <View style={styles.section}>
+          <MisGananciasCuidador
+            onVerDetalles={() => {
+              // Navegar a detalle de ganancias o histórico
+              console.log('Ver detalles de ganancias')
+            }}
+          />
+        </View>
+
+        {/* FASE 4: Dashboard de Asignaciones (alternativo a próximos paseos) */}
+        <View style={styles.section}>
+          <DashboardAsignaciones
+            onAceptarPaseo={(paseoId: string) => {
+              console.log('Aceptar paseo:', paseoId)
+            }}
+            onRechazarPaseo={(paseoId: string) => {
+              console.log('Rechazar paseo:', paseoId)
+            }}
+            onFinalizarPaseo={(paseoId: string) => {
+              console.log('Finalizar paseo:', paseoId)
+            }}
+            onVerDetalles={(paseoId: string) => {
+              setDetallePaseoId(paseoId)
+              setDetalleVisible(true)
+            }}
+          />
         </View>
       </ScrollView>
       <DetallePaseoBottomSheet

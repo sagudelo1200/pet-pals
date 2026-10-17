@@ -254,6 +254,7 @@ export const SeleccionarCuidadorPaso = ({
                 setFranjasCuidador([])
               }
             } catch (_err) {
+              console.warn('[SeleccionarCuidadorPaso.cargarPerfilYPropuestas] Error manejado:', _err)
               setFranjasCuidador([])
             }
           } else {

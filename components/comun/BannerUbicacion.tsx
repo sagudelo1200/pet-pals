@@ -6,7 +6,7 @@ import {
   TouchableOpacity,
   Platform,
 } from 'react-native'
-import { Ionicons } from '@expo/vector-icons'
+import { FontAwesome5 } from '@expo/vector-icons'
 import { COLOR } from '@/constants'
 import * as IntentLauncher from 'expo-intent-launcher'
 import * as Linking from 'expo-linking'
@@ -30,7 +30,7 @@ export const BannerUbicacion: React.FC<Props> = ({ mensaje, style }) => {
   return (
     <View style={[styles.container, style]}>
       <View style={styles.content}>
-        <Ionicons name="alert-circle" size={22} color={COLOR.TEXTO} />
+        <FontAwesome5 solid name="exclamation-circle" size={22} color={COLOR.TEXTO} />
         <Text style={[styles.text, { color: COLOR.TEXTO }]}>{mensaje}</Text>
       </View>
       <TouchableOpacity style={styles.button} onPress={abrirAjustes}>

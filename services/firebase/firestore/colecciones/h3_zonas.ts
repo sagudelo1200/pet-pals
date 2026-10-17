@@ -137,7 +137,8 @@ export class ServicioZonasH3 {
     try {
       const snap = await getDoc(doc(db, COLECCION, h3_r9))
       return snap.exists() ? (snap.data() as ZonaH3) : null
-    } catch {
+    } catch (err) {
+      console.warn('[h3_zonas.obtenerZona] Error manejado:', err)
       return null
     }
   }

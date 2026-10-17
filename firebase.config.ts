@@ -1,25 +1,12 @@
 import { initializeApp, type FirebaseOptions } from 'firebase/app'
 // @ts-ignore
-import { initializeAuth } from 'firebase/auth'
+import { initializeAuth, getReactNativePersistence } from 'firebase/auth'
 import { getFirestore } from 'firebase/firestore'
 import { getDatabase } from 'firebase/database'
 import { getFunctions } from 'firebase/functions'
 import Constants from 'expo-constants'
-
-let ReactNativeAsyncStorage: any = null
-let getReactNativePersistence: any = null
-
-// Importar persistencia solo en React Native
-if (typeof global !== 'undefined' && global.nativeRequire) {
-  try {
-    ReactNativeAsyncStorage =
-      require('@react-native-async-storage/async-storage').default
-    const authRN = require('firebase/auth')
-    getReactNativePersistence = authRN.getReactNativePersistence
-  } catch (_e) {
-    // Fallback para tests
-  }
-}
+// Persistencia de la sesión entre reinicios de la app
+import ReactNativeAsyncStorage from '@react-native-async-storage/async-storage'
 
 // Se asegura de que el objeto extra y firebase existan y tengan la estructura esperada.
 const firebaseConfig = Constants.expoConfig?.extra?.firebase as FirebaseOptions
@@ -41,13 +28,14 @@ try {
 
   // Inicializar Auth con persistencia de React Native (solo si está disponible)
   try {
-    auth = initializeAuth(
-      app,
-      getReactNativePersistence && ReactNativeAsyncStorage
-        ? { persistence: getReactNativePersistence(ReactNativeAsyncStorage) }
-        : {}
-    )
+    if (getReactNativePersistence && ReactNativeAsyncStorage) {
+      const persistence = getReactNativePersistence(ReactNativeAsyncStorage)
+      auth = initializeAuth(app, { persistence })
+    } else {
+      auth = initializeAuth(app, {})
+    }
   } catch (_e) {
+    console.warn('[firebase.config] initializeAuth falló (Auth no disponible):', _e)
     // En tests o ambientes donde Firebase no está completamente disponible, usar un mock
     auth = {} as any
   }
@@ -56,6 +44,7 @@ try {
   rtdb = getDatabase(app)
   functions = getFunctions(app)
 } catch (_e) {
+  console.warn('[firebase.config] initializeApp falló (Firebase no disponible):', _e)
   // En ambiente de tests sin configuración de Firebase, usar objetos mock
   auth = {} as any
   db = {} as any

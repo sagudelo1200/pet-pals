@@ -17,11 +17,11 @@ import type {
   Obligacion,
 } from '@/models/operacionesEconomicas'
 
-const OPERACIONES_COL = 'operacionesEconomicas'
-const EVENTOS_COL = 'eventosEconomicos'
-const MOVIMIENTOS_COL = 'movimientosFinancieros'
+const OPERACIONES_COL = 'operaciones_economicas'
+const EVENTOS_COL = 'eventos_economicos'
+const MOVIMIENTOS_COL = 'movimientos_financieros'
 const OBLIGACIONES_COL = 'obligaciones'
-const DEDUP_COL = 'deduplicacionMovimientos'
+const DEDUP_COL = 'deduplicacion_movimientos'
 
 /**
  * Crear operación económica
@@ -109,7 +109,7 @@ export async function obtenerEventosOperacion(
  */
 export async function registrarMovimiento(
   movimiento: Omit<MovimientoFinanciero, 'id'>,
-  hashFn: (str: string) => string = defaultHash
+  hashFn: (_str: string) => string = defaultHash
 ): Promise<string> {
   const dedupKey = hashFn(
     `${movimiento.origen}:${movimiento.referencia_origen}`

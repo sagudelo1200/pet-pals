@@ -19,12 +19,11 @@ import { paseoActivo } from './gestor'
 import { registrarAuditoria } from '@/logic/operaciones/auditoria'
 import { collection, query, where, orderBy, getDocs } from 'firebase/firestore'
 import { db } from '@/firebase.config'
-import { coordsAH3 } from '@/services/geo'
-import { H3TerritorialOrchestrator } from '@/services/h3'
 import {
   crearOperacionEconomica,
   generarObligacion,
   asignarCuidador,
+  registrarServicioEjecutado,
 } from '@/logic/operacionesEconomicas/casosDeUso'
 
 // ---------- Helpers de denormalización ----------
@@ -83,12 +82,18 @@ function prepararDataPaseoMascota(
  * @param duracion Duración en minutos
  * @returns {error: string} si hay overlap, {success: true} si está libre
  */
+// Firestore devuelve Timestamp; los callers pueden pasar Date o Timestamp
+function aFecha(valor: any): Date {
+  return valor?.toDate ? valor.toDate() : new Date(valor)
+}
+
 async function validarNoDoubleBooking(
   uid: string,
-  fechaInicio: Date,
+  fechaInicioRaw: Date,
   duracion: number
 ) {
   try {
+    const fechaInicio = aFecha(fechaInicioRaw)
     // Query: paseos del cuidador en estados activos
     const agendaQuery = query(
       collection(db, 'operaciones'),
@@ -97,6 +102,7 @@ async function validarNoDoubleBooking(
       where('estado', 'in', [
         ESTADOS_PASEO.CONFIRMADO,
         ESTADOS_PASEO.EN_CAMINO,
+        ESTADOS_PASEO.EN_PUNTO_RECOGIDA,
         ESTADOS_PASEO.EN_PROGRESO,
       ]),
       orderBy('fecha_hora_inicio', 'asc')
@@ -107,8 +113,9 @@ async function validarNoDoubleBooking(
 
     for (const doc of docs.docs) {
       const paseoExistente = doc.data() as Paseo
+      const inicioExistente = aFecha(paseoExistente.fecha_hora_inicio)
       const finExistente = new Date(
-        paseoExistente.fecha_hora_inicio.getTime() +
+        inicioExistente.getTime() +
           (paseoExistente.duracion_estimada || 0) * 60000
       )
 
@@ -116,14 +123,13 @@ async function validarNoDoubleBooking(
       const bufferMs = 5 * 60 * 1000
       const overlapDetectado =
         fechaInicio < new Date(finExistente.getTime() + bufferMs) &&
-        fechaFin >
-          new Date(paseoExistente.fecha_hora_inicio.getTime() - bufferMs)
+        fechaFin > new Date(inicioExistente.getTime() - bufferMs)
 
       if (overlapDetectado) {
         return {
           success: false,
           error: 'DOBLE_BOOKING_DETECTADO',
-          detalles: `Tienes otro paseo de ${paseoExistente.duracion_estimada}min a las ${paseoExistente.fecha_hora_inicio.toLocaleTimeString('es-AR')}`,
+          detalles: `Tienes otro paseo de ${paseoExistente.duracion_estimada}min a las ${inicioExistente.toLocaleTimeString('es-AR')}`,
         }
       }
     }
@@ -148,22 +154,23 @@ async function validarNoSolapamientoPorMascota(
   mascotaId: string,
   fechaInicio: Date,
   duracion: number,
-  _uid: string
+  uid: string
 ) {
   try {
     const estadosActivos = [
       ESTADOS_PASEO.PENDIENTE,
       ESTADOS_PASEO.CONFIRMADO,
       ESTADOS_PASEO.EN_CAMINO,
+      ESTADOS_PASEO.EN_PUNTO_RECOGIDA,
       ESTADOS_PASEO.EN_PROGRESO,
     ]
 
-    // MULTI-TUTOR: Busca TODOS los paseos activos de la mascota, sin importar quién los creó.
-    // Esto previene que múltiples tutores de la misma mascota creen paseos solapados.
+    // Paseos activos propios (las reglas solo permiten listar lo propio);
+    // el filtro por mascota se hace en memoria para no requerir otro índice
     const q = query(
       collection(db, 'operaciones'),
       where('tipo', '==', 'paseo'),
-      where('mascota_ids', 'array-contains', mascotaId),
+      where('creado_por', '==', uid),
       where('estado', 'in', estadosActivos)
     )
 
@@ -172,7 +179,8 @@ async function validarNoSolapamientoPorMascota(
 
     for (const doc of docs.docs) {
       const paseoExistente = doc.data() as Paseo
-      const inicioExistente = new Date(paseoExistente.fecha_hora_inicio)
+      if (!(paseoExistente.mascota_ids || []).includes(mascotaId)) continue
+      const inicioExistente = aFecha(paseoExistente.fecha_hora_inicio)
       const finExistente = new Date(
         inicioExistente.getTime() +
           (paseoExistente.duracion_estimada || 0) * 60000
@@ -336,6 +344,9 @@ export async function crearConMascotas(
   const tutoresIniciales = [uid]
   const codigosRecogidaPorTutor =
     generarCodigosRecogidaPorTutor(tutoresIniciales)
+  // Código de entrega: mismo formato que la recogida (6 dígitos por tutor)
+  const codigosEntregaPorTutor =
+    generarCodigosRecogidaPorTutor(tutoresIniciales)
 
   const paseoRes = await ServicioPaseo.crear({
     ...(data as any),
@@ -346,7 +357,7 @@ export async function crearConMascotas(
     codigos_recogida_por_tutor: codigosRecogidaPorTutor,
     codigo_recogida_validado_por_tutor: {},
     intentos_fallidos_recogida_por_tutor: {},
-    codigos_entrega_por_tutor: {},
+    codigos_entrega_por_tutor: codigosEntregaPorTutor,
     codigo_entrega_validado_por_tutor: {},
     intentos_fallidos_entrega_por_tutor: {},
     ...visualData,
@@ -363,32 +374,6 @@ export async function crearConMascotas(
       payloadMascotas
     )
     if (!addRes.success) return { success: false, error: (addRes as any).error }
-  }
-
-  // Registrar demanda en la zona H3 de inicio (con retry automático)
-  const lat = (locObj as any)?.coordenadas?.latitude
-  const lng = (locObj as any)?.coordenadas?.longitude
-  if (lat && lng) {
-    const celdaR9 = coordsAH3(lat, lng, 9)
-
-    if (celdaR9) {
-      const exito = await H3TerritorialOrchestrator.procesarEventoPaseo(
-        celdaR9,
-        'EN_PROGRESO',
-        {
-          paseo_uid: paseoRes.data?.id,
-          tutor_uid: uid,
-          mascota_ids: mascotasData?.map(m => m.id),
-        }
-      )
-
-      if (!exito) {
-        console.warn(
-          '[h3] Fallo registrar demanda al crear paseo:',
-          paseoRes.data?.id
-        )
-      }
-    }
   }
 
   // Registrar auditoría: paseo creado
@@ -419,7 +404,8 @@ export async function crearConMascotas(
           uid, // tutorId: el tutor que solicita el paseo
           precio, // valorAcordado: precio total
           remuneracion_mandatario, // remuneracion_mandatario: 10% para Paw-Path
-          recursos_administrados // recursos_administrados: 90% para el cuidador
+          recursos_administrados, // recursos_administrados: 90% para el cuidador
+          paseoRes.data.id // paseo_id: permite al cuidador asignarse (reglas)
         )
 
         if (opEcon) {
@@ -683,6 +669,56 @@ export async function iniciarPaseo(paseoId: string) {
   return res
 }
 
+/**
+ * FASE 4: Validar Recepción del Servicio por Tutor
+ * Tutor confirma que recibió la mascota con código
+ * Transiciona FINALIZADO → COMPLETADO
+ * Prepara para cobro (FASE 4.1)
+ */
+export async function validarRecepcionTutor(
+  paseoId: string,
+  tutorId: string,
+  codigoEntrega: string
+) {
+  const current = ServicioAuth.obtenerUsuarioActual()
+  const uid = current?.uid
+  if (!uid) return { success: false, error: ERR.COMUN.NO_AUTENTICADO }
+  // Solo el propio tutor valida la entrega de sus mascotas
+  if (uid !== tutorId)
+    return { success: false, error: ERR.COMUN.PERMISOS_INSUFICIENTES }
+
+  const res = await ServicioPaseo.validarCodigoEntregaPorTutor(
+    paseoId,
+    tutorId,
+    codigoEntrega
+  )
+
+  if (!res.success && 'error' in res) {
+    const mensajes: Record<string, string> = {
+      CODIGO_ENTREGA_FORMATO_INVALIDO: 'El código debe tener 6 dígitos',
+      CODIGO_ENTREGA_NO_ENCONTRADO:
+        'No hay código de entrega generado para este tutor',
+      CODIGO_ENTREGA_BLOQUEADO:
+        'Máximo de intentos excedido. Contacta al cuidador.',
+      CODIGO_ENTREGA_INCORRECTO: `Código incorrecto. Intentos restantes: ${3 - (res.intentosFallidos ?? 0)}`,
+      [ERR.PASEOS.ESTADO_NO_ESPERADO]:
+        'El paseo debe estar FINALIZADO para validar la entrega',
+    }
+    return { success: false, error: mensajes[res.error] || res.error }
+  }
+
+  await ServicioPaseo.registrarEvento(paseoId, 'VALIDAR_ENTREGA_TUTOR', {
+    tutor_id: tutorId,
+    completado: res.completado,
+    ...(res.completado && {
+      estado_anterior: 'FINALIZADO',
+      estado_nuevo: 'COMPLETADO',
+    }),
+  }).catch(e => console.warn('Error registrando evento VALIDAR_ENTREGA_TUTOR:', e))
+
+  return { success: true }
+}
+
 export async function finalizarPaseo(paseoId: string) {
   const current = ServicioAuth.obtenerUsuarioActual()
   const uid = current?.uid
@@ -714,6 +750,25 @@ export async function finalizarPaseo(paseoId: string) {
       estado_anterior: 'EN_PROGRESO',
       estado_nuevo: 'FINALIZADO',
     })
+
+    // FASE 3: Registrar servicio ejecutado en la OperacionEconomica
+    if (paseo.operacion_economica_id) {
+      try {
+        await registrarServicioEjecutado(
+          paseo.operacion_economica_id,
+          `Servicio ejecutado para paseo ${paseoId}`
+        )
+
+        // TODO: Notificar a tutor que servicio fue completado
+        // TODO: Notificar a cuidador que tiene obligación pendiente de liquidación semanal
+        console.log(
+          `[FASE3] Paseo ${paseoId} finalizado. OperacionEconomica ${paseo.operacion_economica_id} transicionada a EJECUTADA.`
+        )
+      } catch (err) {
+        console.warn('[FASE3] Error registrando servicio ejecutado:', err)
+        // No fallar si el registro económico falla (es no-bloqueante)
+      }
+    }
   }
   return res
 }
@@ -786,6 +841,23 @@ export async function agregarMascota(paseoId: string, mascotaId: string) {
     }
     actualizacionesIntentos['intentos_fallidos_recogida_por_tutor'] = {
       ...(paseo.intentos_fallidos_recogida_por_tutor || {}),
+      [uid]: 0,
+    }
+  }
+
+  // Igual para el código de entrega
+  const codigosEntregaActuales = paseo.codigos_entrega_por_tutor || {}
+  if (!codigosEntregaActuales[uid]) {
+    actualizacionesCodigos['codigos_entrega_por_tutor'] = {
+      ...codigosEntregaActuales,
+      ...generarCodigosRecogidaPorTutor([uid]),
+    }
+    actualizacionesValidacion['codigo_entrega_validado_por_tutor'] = {
+      ...(paseo.codigo_entrega_validado_por_tutor || {}),
+      [uid]: false,
+    }
+    actualizacionesIntentos['intentos_fallidos_entrega_por_tutor'] = {
+      ...(paseo.intentos_fallidos_entrega_por_tutor || {}),
       [uid]: 0,
     }
   }

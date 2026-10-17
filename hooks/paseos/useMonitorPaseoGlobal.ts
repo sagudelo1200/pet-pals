@@ -61,10 +61,8 @@ export function useMonitorPaseoGlobal() {
     }
   }, [paseo?.estado, paseo?.id])
 
-  const handleClose = async () => {
-    if (paseo?.id) {
-      await GestorPaseos.completarPaseo(paseo.id)
-    }
+  // El paseo se completa al validar el código de entrega (PaseoFinalizado)
+  const handleClose = () => {
     setShowFinishedModal(false)
     GestorPaseos.paseoActivo.limpiarPaseoActivo()
   }

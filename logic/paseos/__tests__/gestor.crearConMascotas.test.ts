@@ -191,7 +191,8 @@ describe('crearConMascotas', () => {
       'tutor1', // tutorId
       precio, // valorAcordado
       Math.round(precio * 0.1), // remuneracion_mandatario (10%)
-      Math.round(precio * 0.9) // recursos_administrados (90%)
+      Math.round(precio * 0.9), // recursos_administrados (90%)
+      'p1' // paseo_id
     )
 
     // Verificar que se actualiza el paseo con operacion_economica_id
@@ -210,5 +211,114 @@ describe('crearConMascotas', () => {
     )
 
     expect(res.success).toBe(true)
+  })
+  describe('Códigos, territorio y solapamiento', () => {
+    const fechaPaseo = new Date(2030, 0, 14, 10, 0, 0)
+    const dataPaseo = {
+      tipo_paseo: 'solicitado',
+      estado: 'PENDIENTE',
+      fecha_hora_inicio: fechaPaseo,
+      duracion_estimada: 60,
+    }
+
+    function prepararHappyPath() {
+      void (ServicioAuth.obtenerUsuarioActual as jest.Mock).mockReturnValue({
+        uid: 'tutor1',
+      })
+      void (ServicioCrudBase.obtenerPorId as jest.Mock).mockResolvedValue({
+        success: true,
+        data: { id: 'm1', creado_por: 'tutor1', nombre: 'Fido' },
+      })
+      void (ServicioPaseo.crear as jest.Mock).mockResolvedValue({
+        success: true,
+        data: { id: 'p1' },
+      })
+      void (
+        ServicioPaseoMascota.commitMascotasBatch as jest.Mock
+      ).mockResolvedValue({ success: true })
+    }
+
+    test('genera códigos de recogida y de entrega de 6 dígitos para el tutor', async () => {
+      prepararHappyPath()
+
+      await crearConMascotas(dataPaseo as any, ['m1'])
+
+      const creado = (ServicioPaseo.crear as jest.Mock).mock.calls[0][0]
+      expect(creado.codigos_recogida_por_tutor.tutor1).toMatch(/^\d{6}$/)
+      expect(creado.codigos_entrega_por_tutor.tutor1).toMatch(/^\d{6}$/)
+      expect(creado.codigo_entrega_validado_por_tutor).toEqual({})
+      expect(creado.intentos_fallidos_entrega_por_tutor).toEqual({})
+    })
+
+    test('crear el paseo no suma paseos_activos en H3 (solo al iniciar)', async () => {
+      prepararHappyPath()
+      const { H3TerritorialOrchestrator } = require('@/services/h3')
+
+      await crearConMascotas(
+        {
+          ...dataPaseo,
+          ubicacion_inicio: {
+            id: 'u1',
+            direccion_formateada: 'Calle 1',
+            coordenadas: { latitude: 4.65, longitude: -74.06 },
+          },
+        } as any,
+        ['m1']
+      )
+
+      expect(H3TerritorialOrchestrator.procesarEventoPaseo).not.toHaveBeenCalled()
+    })
+
+    test('detecta solapamiento de la misma mascota (fechas como Timestamp)', async () => {
+      prepararHappyPath()
+      const { getDocs } = require('firebase/firestore')
+      ;(getDocs as jest.Mock).mockResolvedValue({
+        docs: [
+          {
+            data: () => ({
+              mascota_ids: ['m1'],
+              fecha_hora_inicio: { toDate: () => new Date(2030, 0, 14, 10, 30) },
+              duracion_estimada: 30,
+            }),
+          },
+        ],
+      })
+
+      const res = await crearConMascotas(dataPaseo as any, ['m1'])
+
+      expect(res.success).toBe(false)
+      expect(res.error).toBe('DOBLE_BOOKING_MASCOTA')
+      expect(ServicioPaseo.crear).not.toHaveBeenCalled()
+    })
+
+    test('ignora paseos activos del tutor que no incluyen esa mascota', async () => {
+      prepararHappyPath()
+      const { getDocs } = require('firebase/firestore')
+      ;(getDocs as jest.Mock).mockResolvedValue({
+        docs: [
+          {
+            data: () => ({
+              mascota_ids: ['otra'],
+              fecha_hora_inicio: { toDate: () => new Date(2030, 0, 14, 10, 30) },
+              duracion_estimada: 30,
+            }),
+          },
+        ],
+      })
+
+      const res = await crearConMascotas(dataPaseo as any, ['m1'])
+
+      expect(res.success).toBe(true)
+    })
+
+    test('la consulta de solapamiento se limita a paseos propios (reglas de Firestore)', async () => {
+      prepararHappyPath()
+      const { where } = require('firebase/firestore')
+
+      await crearConMascotas(dataPaseo as any, ['m1'])
+
+      expect(where).toHaveBeenCalledWith('creado_por', '==', 'tutor1')
+      expect(where).not.toHaveBeenCalledWith('mascota_ids', 'array-contains', 'm1')
+    })
   })
 })

@@ -27,7 +27,8 @@ const db = admin.firestore();
  * ============================================================================
  */
 export const revelarEvaluacionVencida = onRequest(
-  {cors: false},
+  // Privada: solo la invoca Cloud Tasks con token OIDC (ver cuentaServicioTasks)
+  {cors: false, invoker: 'private'},
   async (req, res) => {
     // Solo Cloud Tasks hace POST
     if (req.method !== 'POST') {

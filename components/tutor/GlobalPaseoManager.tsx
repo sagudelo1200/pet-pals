@@ -51,7 +51,7 @@ export const GlobalPaseoManager = () => {
           t('evaluaciones:confirmar_baja_titulo'),
           t('evaluaciones:confirmar_baja_mensaje', { rating }),
           [
-            { text: t('comun:boton.cancelar'), style: 'cancel' },
+            { text: t('comun:cancelar'), style: 'cancel' },
             {
               text: t('comun:aceptar'),
               onPress: () => {
@@ -67,15 +67,18 @@ export const GlobalPaseoManager = () => {
     [enviando, enviado, enviar, t]
   )
 
-  const onClose = async () => {
+  const onClose = () => {
+    const id = paseoId
+    handleClose()
     try {
-      await handleClose()
+      // Entrega (código) → pago → calificación
+      if (id) {
+        navigation.navigate('PaseoFinalizado', { paseoId: id })
+      } else {
+        navigation.navigate('TutorApp')
+      }
     } catch (_e) {
-      // Se ignora: se navega igual
-    }
-    try {
-      navigation.navigate('TutorApp')
-    } catch (_e) {
+      console.warn('[GlobalPaseoManager.onClose] Error manejado:', _e)
       // Se ignora si el contexto de navegación difiere
     }
   }

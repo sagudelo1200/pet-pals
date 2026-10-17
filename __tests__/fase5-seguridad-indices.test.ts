@@ -22,7 +22,6 @@ import {
   orderBy,
   getDocs,
   Query,
-  QueryConstraint,
 } from 'firebase/firestore'
 import { db } from '../firebase.config'
 import type { OperacionEconomica } from '../models/operacionesEconomicas/OperacionEconomica'
@@ -241,21 +240,40 @@ describe.skip('ÍNDICE 4: eventos_economicos (operacion_id, timestamp) - AUDITOR
  */
 
 describe('RESUMEN: Validación de reglas Firestore FASE 5', () => {
-  it('debería confirmar que las 4 colecciones están accesibles', () => {
-    // Este test solo valida que las colecciones existen en la estructura
-    // No ejecuta queries reales
-    console.log('✅ Estructura de FASE 5 lista:')
-    console.log('   - operacionesEconomicas')
-    console.log('   - eventosEconomicos (subcolección)')
-    console.log('   - movimientosFinancieros')
-    console.log('   - obligaciones')
-    console.log('')
-    console.log('Próximos pasos:')
-    console.log('1. Ejecutar este test contra emulator o staging')
-    console.log('2. Capturar los errores de índice que Firebase genera')
-    console.log('3. Usar los comandos sugeridos para crear índices')
-    console.log('4. Reproducir el test contra producción')
+  // Protege contra el desalineamiento entre los nombres de colección que
+  // escribe el cliente y los que cubren las reglas (deny por defecto).
+  // Jest se ejecuta desde la raíz del proyecto
+  const fs = require('fs')
+  const leer = (rel: string): string => fs.readFileSync(rel, 'utf8')
 
-    expect(true).toBe(true)
+  it('cada colección del servicio económico tiene reglas en firestore.rules', () => {
+    const servicio = leer(
+      'services/firebase/firestore/colecciones/operacionesEconomicas.ts'
+    )
+    const reglas = leer('firestore.rules')
+    const colecciones = (servicio.match(/const \w+_COL = '[^']+'/g) || []).map(
+      (linea: string) => linea.split('\'')[1]
+    )
+
+    expect(colecciones).toEqual(
+      expect.arrayContaining([
+        'operaciones_economicas',
+        'eventos_economicos',
+        'movimientos_financieros',
+        'obligaciones',
+        'deduplicacion_movimientos',
+      ])
+    )
+    for (const col of colecciones) {
+      expect(reglas).toMatch(new RegExp(`match /${col}/[{]`))
+    }
+  })
+
+  it('las reglas nunca dan acceso por request.auth == null', () => {
+    const reglas = leer('firestore.rules')
+      .split('\n')
+      .filter((l: string) => !l.trim().startsWith('//'))
+      .join('\n')
+    expect(reglas).not.toMatch(/request\.auth\s*==\s*null/)
   })
 })

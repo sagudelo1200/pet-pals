@@ -43,7 +43,7 @@ const AuthNavigator: React.FC = () => {
 
   // ÚNICO EFECTO: Orquesta todo el flujo de navegación de autenticación
   useEffect(() => {
-    const pendingTimeouts: number[] = []
+    const pendingTimeouts: ReturnType<typeof setTimeout>[] = []
 
     // Si no hay usuario, no hacer nada (mostrar login)
     if (!user) {
@@ -179,6 +179,7 @@ const AuthNavigator: React.FC = () => {
       setMostrarSeleccionarRol(false)
       // El efecto de navegación detectará el cambio en rolActivo y navegará
     } catch (_error) {
+      console.warn('[AuthNavigator.manejarSeleccionarRol] Error manejado:', _error)
       // Error al cambiar rol, mantener modal abierto
     }
   }

@@ -28,6 +28,18 @@ export function elegirDelayRevelacion(): number {
   return dias * 24 * 60 * 60 * 1000;
 }
 
+/**
+ * Cuenta de servicio con la que Cloud Tasks firma el token OIDC al invocar
+ * las HTTP functions privadas. Configurable con TASKS_SA_EMAIL (functions/.env);
+ * por defecto, la cuenta de servicio de App Engine del proyecto.
+ * Debe tener rol `roles/run.invoker` sobre las functions invocadas.
+ */
+export function cuentaServicioTasks(projectId: string): string {
+  return (
+    process.env.TASKS_SA_EMAIL || `${projectId}@appspot.gserviceaccount.com`
+  );
+}
+
 let tasksClient: CloudTasksClient | null = null;
 const getTasksClient = (): CloudTasksClient => {
   if (!tasksClient) {
@@ -57,7 +69,7 @@ export async function programarRevelacion(evaluacionId: string): Promise<void> {
       body: Buffer.from(JSON.stringify({evaluacionId})).toString('base64'),
       // Autenticación: solo Cloud Tasks (mismo patrón que escalarSolicitudes)
       oidcToken: {
-        serviceAccountEmail: `firebase-adminsdk@${projectId}.iam.gserviceaccount.com`,
+        serviceAccountEmail: cuentaServicioTasks(projectId),
       },
     },
     scheduleTime: {seconds: tiempoEjecucion},

@@ -46,7 +46,8 @@ export function usePublicarUbicacion(
         console.warn('[GPS] Error deteniendo tracking de fondo:', err)
       }
     } finally {
-      await AsyncStorage.removeItem('@task_active_ride').catch(() => {})
+      await AsyncStorage.removeItem('@task_active_ride').catch((err: unknown) => {
+        console.warn('[usePublicarUbicacion.detenerTracking] Error manejado:', err)})
     }
   }, [])
 

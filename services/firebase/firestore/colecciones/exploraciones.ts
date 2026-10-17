@@ -150,7 +150,7 @@ export class ServicioExploracionTerritorial {
   ): Promise<CrudResult<ExploracionTerritorial[]>> {
     return ServicioCrudBase.buscar<ExploracionTerritorial>(
       this.COLLECTION,
-      'creado_por',
+      'id_explorador',
       userId
     )
   }
@@ -193,7 +193,7 @@ export class ServicioExploracionTerritorial {
     const exploracionesRef = collection(db, this.COLLECTION)
     const q = query(
       exploracionesRef,
-      where('creado_por', '==', userId),
+      where('id_explorador', '==', userId),
       orderBy('creado_en', 'desc')
     )
 

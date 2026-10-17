@@ -98,15 +98,28 @@ export function validateI4(movimientos: MovimientoFinanciero[]): boolean {
 /**
  * I5: Cierre de operación
  * No puede cerrarse si existen obligaciones PENDIENTE
+ *
+ * Sobrecarga: validateI5(operacion, obligaciones) O validateI5(obligaciones)
  */
 export function validateI5(
-  operacion: OperacionEconomica,
-  obligaciones: Obligacion[]
+  operacionOrObligaciones: OperacionEconomica | Obligacion[],
+  maybeObligaciones?: Obligacion[]
 ): boolean {
-  if (operacion.estado !== 'CERRADA') {
-    return true
+  // Forma 1: validateI5(operacion, obligaciones)
+  if ('estado' in operacionOrObligaciones) {
+    const operacion = operacionOrObligaciones as OperacionEconomica
+    const obligaciones = maybeObligaciones || []
+
+    if (operacion.estado !== 'CERRADA') {
+      return true
+    }
+
+    const tienePendiente = obligaciones.some(o => o.estado === 'PENDIENTE')
+    return !tienePendiente
   }
 
+  // Forma 2: validateI5(obligaciones)
+  const obligaciones = operacionOrObligaciones as Obligacion[]
   const tienePendiente = obligaciones.some(o => o.estado === 'PENDIENTE')
   return !tienePendiente
 }

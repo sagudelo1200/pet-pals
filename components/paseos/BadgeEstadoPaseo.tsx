@@ -2,7 +2,7 @@ import { View, Text, StyleSheet } from 'react-native'
 import { useTranslation } from 'react-i18next'
 import { COLOR } from '@/constants/Theme'
 import { ESTADOS_PASEO } from '@/models/Paseo'
-import { Feather } from '@expo/vector-icons'
+import { FontAwesome5 } from '@expo/vector-icons'
 
 interface Props {
   estado: ESTADOS_PASEO
@@ -34,7 +34,7 @@ export const BadgeEstadoPaseo = ({ estado }: Props) => {
         return {
           bg: ruta.fondo,
           text: ruta.primario,
-          icon: 'map-pin',
+          icon: 'map-marker-alt',
         }
       }
       case ESTADOS_PASEO.EN_PROGRESO: {
@@ -42,7 +42,7 @@ export const BadgeEstadoPaseo = ({ estado }: Props) => {
         return {
           bg: prog.fondo,
           text: prog.primario,
-          icon: 'activity',
+          icon: 'walking',
         }
       }
       case ESTADOS_PASEO.FINALIZADO: {
@@ -67,14 +67,14 @@ export const BadgeEstadoPaseo = ({ estado }: Props) => {
         return {
           bg: err.fondo,
           text: err.primario,
-          icon: 'x-circle',
+          icon: 'times-circle',
         }
       }
       default:
         return {
           bg: COLOR.INACTIVO,
           text: COLOR.SUBTEXTO,
-          icon: 'help-circle',
+          icon: 'question-circle',
         }
     }
   }
@@ -83,7 +83,7 @@ export const BadgeEstadoPaseo = ({ estado }: Props) => {
 
   return (
     <View style={[styles.container, { backgroundColor: bg }]}>
-      <Feather name={icon as any} size={14} color={text} style={styles.icon} />
+      <FontAwesome5 solid name={icon as any} size={14} color={text} style={styles.icon} />
       <Text style={[styles.text, { color: text }]}>
         {t(`paseos.estados.${estado}`, estado)}
       </Text>

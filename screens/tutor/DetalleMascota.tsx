@@ -92,7 +92,8 @@ const DetalleMascota: React.FC = () => {
         if (!activo) return
         setResumenMascota(res.success ? (res.data ?? null) : null)
       })
-      .catch(() => {
+      .catch((err: unknown) => {
+        console.warn('[DetalleMascota.DetalleMascota] Error manejado:', err)
         if (activo) setResumenMascota(null)
       })
     return () => {

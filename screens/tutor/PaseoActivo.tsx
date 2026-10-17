@@ -14,7 +14,7 @@ import { useTranslation } from 'react-i18next'
 import { useFocusEffect } from '@react-navigation/native'
 import { StackScreenProps } from '@react-navigation/stack'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { Ionicons } from '@expo/vector-icons'
+import { FontAwesome5 } from '@expo/vector-icons'
 import { BlurView } from 'expo-blur'
 import { Mapa, Icon, Spacer, Button } from '@/components/ui'
 import { TerritorialCard } from '@/components/comun/TerritorialCard'
@@ -225,6 +225,7 @@ export default function PaseoActivo({ route, navigation }: Props) {
         try {
           liveLoopRef.current.stop()
         } catch (_e) {
+          console.warn('[PaseoActivo.PaseoActivo] Error manejado:', _e)
           // ignore
         }
         liveLoopRef.current = null
@@ -578,7 +579,7 @@ export default function PaseoActivo({ route, navigation }: Props) {
                   { backgroundColor: estadoConfig.fondo },
                 ]}
               >
-                <Ionicons
+                <FontAwesome5 solid
                   name={estadoIcono(paseo.estado)}
                   size={20}
                   color={estadoConfig.primario}
@@ -673,17 +674,17 @@ export default function PaseoActivo({ route, navigation }: Props) {
 function estadoIcono(estado: ESTADOS_PASEO) {
   switch (estado) {
     case ESTADOS_PASEO.CONFIRMADO:
-      return 'checkmark-circle'
+      return 'check-circle'
     case ESTADOS_PASEO.EN_CAMINO:
       return 'bicycle'
     case ESTADOS_PASEO.EN_PUNTO_RECOGIDA:
-      return 'location'
+      return 'map-marker-alt'
     case ESTADOS_PASEO.EN_PROGRESO:
-      return 'walk'
+      return 'walking'
     case ESTADOS_PASEO.FINALIZADO:
       return 'flag'
     default:
-      return 'help'
+      return 'question-circle'
   }
 }
 
@@ -710,7 +711,7 @@ const HeaderContent = ({
       style={styles.backBtn}
       onPress={() => navigation.goBack()}
     >
-      <Ionicons name="chevron-back" size={24} color={COLOR.TEXTO} />
+      <FontAwesome5 solid name="chevron-left" size={24} color={COLOR.TEXTO} />
     </TouchableOpacity>
     <View style={styles.headerInfo}>
       <View style={styles.liveContainer}>

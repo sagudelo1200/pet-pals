@@ -63,13 +63,25 @@ export class ServicioAuditoria {
       entidad_tipo: params.entidad_tipo,
       entidad_id: params.entidad_id,
       tipo_evento: params.tipo_evento,
-      cambios: params.cambios,
       actor: params.actor,
       timestamp: Timestamp.now(),
-      id_operacion: params.id_operacion,
-      id_correlacion: params.id_correlacion,
-      ip: params.ip,
-      user_agent: params.user_agent,
+    }
+
+    // Solo incluir campos opcionales si existen (Firestore rechaza undefined)
+    if (params.cambios !== undefined) {
+      (eventoAuditoria as any).cambios = params.cambios
+    }
+    if (params.id_operacion !== undefined) {
+      (eventoAuditoria as any).id_operacion = params.id_operacion
+    }
+    if (params.id_correlacion !== undefined) {
+      (eventoAuditoria as any).id_correlacion = params.id_correlacion
+    }
+    if (params.ip !== undefined) {
+      (eventoAuditoria as any).ip = params.ip
+    }
+    if (params.user_agent !== undefined) {
+      (eventoAuditoria as any).user_agent = params.user_agent
     }
 
     const colRef = collection(db, COLLECTION_NAME)

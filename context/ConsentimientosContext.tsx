@@ -266,6 +266,10 @@ export const ConsentimientosProvider: React.FC<
     } catch (err) {
       const mensajeError =
         err instanceof Error ? err.message : 'Error desconocido'
+      console.warn(
+        `[ConsentimientosContext] registrarConsentimiento(${tipo_documento}, ${estado}) falló:`,
+        err
+      )
       setError(mensajeError)
       return {
         exito: false,

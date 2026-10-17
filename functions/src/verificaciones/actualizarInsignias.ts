@@ -2,10 +2,6 @@ import {
   onDocumentCreated,
   onDocumentUpdated,
 } from 'firebase-functions/v2/firestore';
-import type {
-  FirestoreEvent,
-  QueryDocumentSnapshot,
-} from 'firebase-functions/v2/firestore';
 import * as admin from 'firebase-admin';
 
 if (!admin.apps || admin.apps.length === 0) {
@@ -20,11 +16,8 @@ const db = admin.firestore();
  */
 export const actualizarInsignias = onDocumentCreated(
   'verificaciones/{docId}',
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  async (
-    event: FirestoreEvent<QueryDocumentSnapshot | undefined, { docId: string }>
-  ) => {
-    await procesarActualizacionInsignias(event);
+  async (event) => {
+    await procesarActualizacionInsignias(event.data?.data());
   }
 );
 
@@ -33,9 +26,11 @@ export const actualizarInsignias = onDocumentCreated(
  */
 export const actualizarInsigniasOnUpdate = onDocumentUpdated(
   'verificaciones/{docId}',
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  async (event: FirestoreEvent<any, { docId: string }>) => {
-    await procesarActualizacionInsignias(event);
+  async (event) => {
+    await procesarActualizacionInsignias(
+      event.data?.after.data(),
+      event.data?.before.data()
+    );
   }
 );
 
@@ -43,14 +38,10 @@ export const actualizarInsigniasOnUpdate = onDocumentUpdated(
  * Procesa actualización de insignias para un usuario
  */
 async function procesarActualizacionInsignias(
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  event: any
+  nuevoDoc: admin.firestore.DocumentData | undefined,
+  docAnterior?: admin.firestore.DocumentData
 ): Promise<void> {
   try {
-    const nuevoDoc = (event.data as QueryDocumentSnapshot)?.data();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const docAnterior = (event as any).before?.data?.();
-
     // Si el documento no existe, ignorar
     if (!nuevoDoc) {
       return;
@@ -107,6 +98,7 @@ async function procesarActualizacionInsignias(
       );
     }
   } catch (error) {
+    console.warn('[actualizarInsignias] Error manejado:', error);
     return;
   }
 }

@@ -18,6 +18,7 @@
     "check:i18n": "node ./scripts/check-i18n-keys.js",
     "check:todomain": "node ./scripts/check-toDomain.js",
     "firebase:cleanup": "node ./scripts/firebase-cleanup.js",
+    "seed:consentimientos": "node ./scripts/seed-consentimientos.js",
     "cleanup:functions": "node ./scripts/cleanup-cloud-functions.js"
   },
   "repository": {
@@ -49,6 +50,7 @@
     "expo-intent-launcher": "~13.0.8",
     "expo-linear-gradient": "~15.0.8",
     "expo-linking": "~8.0.11",
+    "expo-localization": "~17.0.9",
     "expo-location": "~19.0.8",
     "expo-modules-core": "^3.0.29",
     "expo-splash-screen": "~31.0.13",

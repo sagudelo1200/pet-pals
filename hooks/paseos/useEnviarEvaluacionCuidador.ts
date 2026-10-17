@@ -54,7 +54,8 @@ export function useEnviarEvaluacionCuidador(
               : 0,
         })
       })
-      .catch(() => {
+      .catch((err: unknown) => {
+        console.warn('[useEnviarEvaluacionCuidador.useEnviarEvaluacionCuidador] Error manejado:', err)
         // Sin reputación disponible: se omite la prueba social
       })
 

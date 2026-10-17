@@ -193,6 +193,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                   }
                 }
               } catch (_error) {
+                console.warn('[AuthContext.unsubscribe] Error manejado:', _error)
                 // Silencioso en errores
                 if (!isMountedRef.current) return
                 if (roles_data.length === 1) {
@@ -202,6 +203,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             }
           }
         } catch (_error) {
+          console.warn('[AuthContext.unsubscribe] Error manejado:', _error)
           if (isMountedRef.current) {
             setUser(null)
             setProfile(null)
@@ -279,6 +281,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           setPerfilPublico(res.data)
         }
       } catch (_err) {
+        console.warn('[AuthContext.recargarPerfilPublico] Error manejado:', _err)
         // Silencioso en errores
       }
     }
@@ -361,12 +364,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             }
             return true
           } catch (_error) {
+            console.warn('[AuthContext.cambiarRolActivo] Error manejado:', _error)
             return false
           }
         } else {
           return false
         }
       } catch (_err) {
+        console.warn('[AuthContext.cambiarRolActivo] Error manejado:', _err)
         return false
       } finally {
         cambiarRolEnProgreso.current = null

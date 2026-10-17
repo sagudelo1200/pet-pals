@@ -94,6 +94,7 @@ export class ServicioChat {
         // Otro tipo de error: no reintentar, retornar inmediatamente
         return result
       } catch (err) {
+        console.warn('[chat.obtenerPorPaseoId] Error manejado:', err)
         ultimoError = String(err)
         if (intento < maxReintentos) {
           await new Promise(r => setTimeout(r, delayMs))

@@ -7,7 +7,7 @@ import {
   Pressable,
   Animated,
 } from 'react-native'
-import { MaterialCommunityIcons as Icon } from '@expo/vector-icons'
+import { FontAwesome5 } from '@expo/vector-icons'
 import { useTranslation } from 'react-i18next'
 import Screen from '@/components/ui/Screen'
 import { COLOR } from '@/constants'
@@ -82,7 +82,7 @@ const ResumenExploracion = ({ route, navigation }: any) => {
               },
             ]}
           >
-            <Icon name="check-circle" size={80} color="#FFF" />
+            <FontAwesome5 solid name="check-circle" size={80} color="#FFF" />
           </Animated.View>
           <Text style={styles.successTitle}>
             🌟 {t('explorador:exploracion_completada')}
@@ -132,7 +132,7 @@ const ResumenExploracion = ({ route, navigation }: any) => {
           <View style={styles.eventosList}>
             {eventosPorTipo.mascotas > 0 && (
               <View style={styles.eventoItem}>
-                <Icon name="dog" size={20} color={COLOR.ENFASIS} />
+                <FontAwesome5 solid name="dog" size={20} color={COLOR.ENFASIS} />
                 <Text style={styles.eventoText}>
                   {t('explorador:mascotas_observadas')} (
                   {eventosPorTipo.mascotas})
@@ -142,7 +142,7 @@ const ResumenExploracion = ({ route, navigation }: any) => {
 
             {eventosPorTipo.interesados > 0 && (
               <View style={styles.eventoItem}>
-                <Icon name="account-multiple" size={20} color={COLOR.ENFASIS} />
+                <FontAwesome5 solid name="users" size={20} color={COLOR.ENFASIS} />
                 <Text style={styles.eventoText}>
                   {t('explorador:personas_interesadas')} (
                   {eventosPorTipo.interesados})
@@ -152,7 +152,7 @@ const ResumenExploracion = ({ route, navigation }: any) => {
 
             {eventosPorTipo.aliado > 0 && (
               <View style={styles.eventoItem}>
-                <Icon name="handshake" size={20} color={COLOR.ENFASIS} />
+                <FontAwesome5 solid name="handshake" size={20} color={COLOR.ENFASIS} />
                 <Text style={styles.eventoText}>
                   {t('explorador:aliado_negocio')} ({eventosPorTipo.aliado})
                 </Text>
@@ -161,7 +161,7 @@ const ResumenExploracion = ({ route, navigation }: any) => {
 
             {eventosPorTipo.seguridad > 0 && (
               <View style={styles.eventoItem}>
-                <Icon name="shield-alert" size={20} color={COLOR.ENFASIS} />
+                <FontAwesome5 solid name="shield-alt" size={20} color={COLOR.ENFASIS} />
                 <Text style={styles.eventoText}>
                   {t('explorador:seguridad_riesgo')} ({eventosPorTipo.seguridad}
                   )
@@ -171,7 +171,7 @@ const ResumenExploracion = ({ route, navigation }: any) => {
 
             {eventosPorTipo.nota > 0 && (
               <View style={styles.eventoItem}>
-                <Icon name="note-multiple" size={20} color={COLOR.ENFASIS} />
+                <FontAwesome5 solid name="sticky-note" size={20} color={COLOR.ENFASIS} />
                 <Text style={styles.eventoText}>
                   {t('explorador:nota_rapida')} ({eventosPorTipo.nota})
                 </Text>
@@ -245,7 +245,7 @@ const ResumenExploracion = ({ route, navigation }: any) => {
           <Text style={styles.sectionTitle}>💡 {t('explorador:insights')}</Text>
 
           <View style={styles.insightCard}>
-            <Icon name="lightbulb" size={20} color={COLOR.ENFASIS} />
+            <FontAwesome5 solid name="lightbulb" size={20} color={COLOR.ENFASIS} />
             <View style={{ flex: 1 }}>
               <Text style={styles.insightTitle}>
                 {t('explorador:zona_activa_detectada')}
@@ -272,7 +272,7 @@ const ResumenExploracion = ({ route, navigation }: any) => {
             style={styles.btnPrimario}
             onPress={() => navigation.navigate('ExplorarLibremente')}
           >
-            <Icon name="plus-circle" size={20} color="#FFF" />
+            <FontAwesome5 solid name="plus-circle" size={20} color="#FFF" />
             <Text style={styles.btnPrimarioText}>
               {t('explorador:nueva_exploracion')}
             </Text>

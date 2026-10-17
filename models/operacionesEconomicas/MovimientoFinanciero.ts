@@ -12,6 +12,7 @@ import type { Timestamp } from 'firebase/firestore'
  */
 export type TipoMovimientoFinanciero =
   | 'RECAUDO' // Dinero recibido de Tutor / entrada de caja
+  | 'PAGO_INICIADO' // Pago solicitado a la pasarela (registrarRecaudo)
   | 'PAGO' // Dinero pagado a tercero (cuidador, proveedor, etc.)
   | 'REEMBOLSO' // Dinero devuelto (ej. por cancelación, sobrepago)
   | 'AJUSTE' // Corrección: comisiones, cargos administrativos, etc.

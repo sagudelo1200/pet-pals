@@ -16,13 +16,7 @@
  * - Deduplicación: Mismo movimiento dos veces rechazado (Invariante I4)
  */
 
-import { Timestamp } from 'firebase/firestore'
-import type {
-  OperacionEconomica,
-  MovimientoFinanciero,
-  Obligacion,
-  EventoOperacionEconomica,
-} from '@/models/operacionesEconomicas'
+import type { Obligacion } from '@/models/operacionesEconomicas'
 import {
   crearOperacionEconomica,
   asignarCuidador,
@@ -33,32 +27,29 @@ import {
   cerrarOperacion,
   cancelarOperacion,
 } from '@/logic/operacionesEconomicas/casosDeUso'
-import {
-  validateI1,
-  validateI5,
-} from '@/logic/operacionesEconomicas/invariantes'
+import { MockAdaptador } from '@/logic/operacionesEconomicas/pagos/MockAdaptador'
 
 // Mock Firestore
 jest.mock(
   '@/services/firebase/firestore/colecciones/operacionesEconomicas',
   () => ({
-    crearOperacion: jest.fn(async op => {
+    crearOperacion: jest.fn(async (_op: any) => {
       const opId = `op-${Date.now()}`
       return opId
     }),
-    actualizarOperacion: jest.fn(async (id, updates) => {
+    actualizarOperacion: jest.fn(async (id: string, updates: any) => {
       // Simular actualización
       return { id, ...updates }
     }),
-    obtenerOperacion: jest.fn(async id => null),
-    crearEvento: jest.fn(async evt => `evt-${Date.now()}`),
-    registrarMovimiento: jest.fn(async mov => `mov-${Date.now()}`),
-    crearObligacion: jest.fn(async oblig => `oblig-${Date.now()}`),
-    listarObligacionesPendientes: jest.fn(async () => []),
-    actualizarObligacion: jest.fn(async (id, updates) => {
+    obtenerOperacion: jest.fn(async (_id: string): Promise<any> => null),
+    crearEvento: jest.fn(async (_evt: any) => `evt-${Date.now()}`),
+    registrarMovimiento: jest.fn(async (_mov: any) => `mov-${Date.now()}`),
+    crearObligacion: jest.fn(async (_oblig: any) => `oblig-${Date.now()}`),
+    listarObligacionesPendientes: jest.fn(async (): Promise<any[]> => []),
+    actualizarObligacion: jest.fn(async (id: string, updates: any) => {
       return { id, ...updates }
     }),
-    obtenerObligacion: jest.fn(async id => null),
+    obtenerObligacion: jest.fn(async (_id: string): Promise<any> => null),
   })
 )
 
@@ -85,6 +76,24 @@ describe('FASE 6: Máquina de Estados - Operaciones Económicas', () => {
   })
 
   // ==================== TRANSICIONES DE ESTADO ====================
+
+  describe('Invariantes sobre lo persistido', () => {
+    it('La operación creada cumple I1 y no puede cerrarse con obligaciones pendientes (I5)', async () => {
+      crearOperacion.mockResolvedValue('op-inv-1')
+      await crearOperacionEconomica('tutor-1', 50000, 5000, 45000)
+
+      // Las invariantes están mockeadas en esta suite: usar la implementación real
+      const { validateI1, validateI5 } = jest.requireActual(
+        '@/logic/operacionesEconomicas/invariantes'
+      )
+      const opCreada = { ...crearOperacion.mock.calls[0][0], id: 'op-inv-1' }
+      expect(validateI1(opCreada)).toBe(true)
+
+      const pendiente = { estado: 'PENDIENTE' } as Obligacion
+      expect(validateI5({ ...opCreada, estado: 'CERRADA' }, [pendiente])).toBe(false)
+      expect(validateI5({ ...opCreada, estado: 'CERRADA' }, [])).toBe(true)
+    })
+  })
 
   describe('Máquina de Estados', () => {
     describe('Estado ENCARGADA', () => {
@@ -157,17 +166,23 @@ describe('FASE 6: Máquina de Estados - Operaciones Económicas', () => {
         obtenerOperacion.mockResolvedValue({
           id: 'op-1',
           estado: 'EJECUTADA',
+          valor_acordado: 50000,
+          tutor_id: 'tutor-1',
         })
+        crearEvento.mockResolvedValue('evt-1')
         registrarMovimiento.mockResolvedValue('mov-1')
 
-        await registrarRecaudo('op-1', 50000, 'WOMPI', 'TXN-123')
+        const adaptador = new MockAdaptador()
+        const resultado = await registrarRecaudo('op-1', adaptador)
 
-        expect(actualizarOperacion).toHaveBeenCalledWith(
-          'op-1',
+        // Verificar que se registró evento PAGO_INICIADO
+        expect(crearEvento).toHaveBeenCalledWith(
           expect.objectContaining({
-            estado: 'RECAUDADA',
+            operacion_id: 'op-1',
+            tipo: 'PAGO_INICIADO',
           })
         )
+        expect(resultado.referencia).toBeDefined()
       })
 
       it('Debe mantener estado EJECUTADA si ya fue pagado (RECAUDADA → EJECUTADA)', async () => {
@@ -309,15 +324,19 @@ describe('FASE 6: Máquina de Estados - Operaciones Económicas', () => {
         })
         await registrarServicioEjecutado('op-gold-1')
 
-        // 4. Registrar recaudo (EJECUTADA → RECAUDADA)
+        // 4. Registrar recaudo (EJECUTADA → PAGO_INICIADO)
         obtenerOperacion.mockResolvedValueOnce({
           id: 'op-gold-1',
           estado: 'EJECUTADA',
+          valor_acordado: 50000,
+          tutor_id: 'juan-tutor',
         })
+        crearEvento.mockResolvedValueOnce('evt-gold-1')
         registrarMovimiento.mockResolvedValueOnce('mov-gold-1')
-        await registrarRecaudo('op-gold-1', 50000, 'WOMPI', 'TXN-GOLD-001')
+        const adaptador = new MockAdaptador()
+        await registrarRecaudo('op-gold-1', adaptador)
 
-        // 5. Cerrar operación (RECAUDADA → CERRADA)
+        // 5. Cerrar operacion (RECAUDADA → CERRADA)
         obtenerOperacion.mockResolvedValueOnce({
           id: 'op-gold-1',
           estado: 'RECAUDADA',
@@ -326,10 +345,8 @@ describe('FASE 6: Máquina de Estados - Operaciones Económicas', () => {
         await cerrarOperacion('op-gold-1')
 
         // Verificar secuencia de eventos
-        expect(crearEvento).toHaveBeenCalledTimes(
-          4 // OPERACION_ENCARGADA, CUIDADOR_ASIGNADO, SERVICIO_EJECUTADO, RECAUDO, (CERRADA sin evento?)
-        )
-        expect(actualizarOperacion).toHaveBeenCalledTimes(4)
+        expect(crearEvento).toHaveBeenCalledTimes(4)
+        expect(actualizarOperacion).toHaveBeenCalledTimes(3)
       })
     })
 
@@ -343,6 +360,7 @@ describe('FASE 6: Máquina de Estados - Operaciones Económicas', () => {
           5000,
           45000
         )
+        expect(opId).toBe('op-early-1')
 
         // 2. Asignar cuidador
         obtenerOperacion.mockResolvedValueOnce({
@@ -351,20 +369,25 @@ describe('FASE 6: Máquina de Estados - Operaciones Económicas', () => {
         })
         await asignarCuidador('op-early-1', 'carlos-cuidador')
 
-        // 3. Registrar recaudo ANTES de servicio (EN_EJECUCION → RECAUDADA)
+        // 3. Ejecutar servicio PRIMERO (EN_EJECUCION → EJECUTADA)
         obtenerOperacion.mockResolvedValueOnce({
           id: 'op-early-1',
           estado: 'EN_EJECUCION',
         })
-        registrarMovimiento.mockResolvedValueOnce('mov-early-1')
-        await registrarRecaudo('op-early-1', 50000, 'WOMPI', 'TXN-EARLY-001')
+        crearEvento.mockResolvedValueOnce('evt-exec-1')
+        await registrarServicioEjecutado('op-early-1')
 
-        // 4. Registrar servicio (RECAUDADA → EJECUTADA? No, debería mantener RECAUDADA)
+        // 4. Luego cobrar (EJECUTADA → PAGO_INICIADO)
         obtenerOperacion.mockResolvedValueOnce({
           id: 'op-early-1',
-          estado: 'RECAUDADA',
+          estado: 'EJECUTADA',
+          valor_acordado: 50000,
+          tutor_id: 'maria-tutor',
         })
-        await registrarServicioEjecutado('op-early-1')
+        crearEvento.mockResolvedValueOnce('evt-early-1')
+        registrarMovimiento.mockResolvedValueOnce('mov-early-1')
+        const adaptador = new MockAdaptador()
+        await registrarRecaudo('op-early-1', adaptador)
 
         // 5. Cerrar
         obtenerOperacion.mockResolvedValueOnce({
@@ -467,7 +490,7 @@ describe('FASE 6: Máquina de Estados - Operaciones Económicas', () => {
         obtenerOperacion.mockResolvedValueOnce(null)
 
         await expect(
-          registrarRecaudo('op-inexistente', 50000, 'WOMPI', 'TXN-123')
+          registrarRecaudo('op-inexistente', new MockAdaptador())
         ).rejects.toThrow('no existe')
       })
 

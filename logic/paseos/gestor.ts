@@ -336,11 +336,7 @@ export class GestorPaseoActivo {
       // Marcar zona como en operación activa (con retry automático)
       const celdaR8 = extraerCeldaH3DePaseo(this._paseo.original)
       if (celdaR8) {
-        const celdaR9 = coordsAH3(
-          (this._paseo.original as any)?.ubicacion_inicio?.lat || 0,
-          (this._paseo.original as any)?.ubicacion_inicio?.lng || 0,
-          9
-        )
+        const celdaR9 = extraerCeldaH3DePaseo(this._paseo.original, 9)
 
         if (celdaR9) {
           const exito = await H3TerritorialOrchestrator.procesarEventoPaseo(
@@ -403,11 +399,7 @@ export class GestorPaseoActivo {
       // Paseo terminado: actualizar zona (con retry automático)
       const celdaR8 = extraerCeldaH3DePaseo(this._paseo.original)
       if (celdaR8) {
-        const celdaR9 = coordsAH3(
-          (this._paseo.original as any)?.ubicacion_inicio?.lat || 0,
-          (this._paseo.original as any)?.ubicacion_inicio?.lng || 0,
-          9
-        )
+        const celdaR9 = extraerCeldaH3DePaseo(this._paseo.original, 9)
 
         if (celdaR9) {
           const exito = await H3TerritorialOrchestrator.procesarEventoPaseo(
@@ -466,19 +458,20 @@ export class GestorPaseoActivo {
       return { success: false, error: 'TRANSICION_INVALIDA' }
     }
 
+    const estadoPrevio = this._paseo.estado
     const res = await ServicioPaseo.actualizar(this._paseo.id, {
       estado: 'CANCELADO',
     } as any)
 
     if (res.success) {
-      // Paseo cancelado: revertir demanda (con retry automático)
-      const celdaR8 = extraerCeldaH3DePaseo(this._paseo.original)
+      // Paseo cancelado: revertir paseos_activos solo si había iniciado
+      // (el incremento ocurre únicamente al pasar a EN_PROGRESO)
+      const celdaR8 =
+        estadoPrevio === ESTADOS_PASEO.EN_PROGRESO
+          ? extraerCeldaH3DePaseo(this._paseo.original)
+          : null
       if (celdaR8) {
-        const celdaR9 = coordsAH3(
-          (this._paseo.original as any)?.ubicacion_inicio?.lat || 0,
-          (this._paseo.original as any)?.ubicacion_inicio?.lng || 0,
-          9
-        )
+        const celdaR9 = extraerCeldaH3DePaseo(this._paseo.original, 9)
 
         if (celdaR9) {
           const exito = await H3TerritorialOrchestrator.procesarEventoPaseo(
@@ -529,12 +522,15 @@ export const paseoActivo = new GestorPaseoActivo()
 
 // Extrae la celda H3 de la ubicación de inicio de un paseo activo
 function extraerCeldaH3DePaseo(
-  original: Partial<Paseo> | null | undefined
+  original: Partial<Paseo> | null | undefined,
+  resolucion?: number
 ): string | null {
   if (!original) return null
   const inicio = original.ubicacion_inicio
   if (!inicio || typeof inicio === 'string') return null
   const coords = (inicio as any)?.coordenadas
   if (!coords?.latitude || !coords?.longitude) return null
-  return coordsAH3(coords.latitude, coords.longitude)
+  return resolucion
+    ? coordsAH3(coords.latitude, coords.longitude, resolucion)
+    : coordsAH3(coords.latitude, coords.longitude)
 }

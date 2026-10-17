@@ -1,11 +1,4 @@
-import {
-  describe,
-  it,
-  expect,
-  beforeEach,
-  afterEach,
-  jest,
-} from '@jest/globals'
+/* eslint-env jest */
 import {
   registrarAuditoria,
   obtenerHistorialOperacion,
@@ -124,7 +117,7 @@ describe('FASE 0: Auditoría', () => {
     })
 
     it('debería incluir id_correlacion para trazabilidad', async () => {
-      ;(ServicioAuditoria.registrar as jest.Mock).mockResolvedValue(
+      (ServicioAuditoria.registrar as jest.Mock).mockResolvedValue(
         'EVENTO-004'
       )
 
@@ -145,7 +138,7 @@ describe('FASE 0: Auditoría', () => {
     })
 
     it('debería capturar contexto (IP, user_agent)', async () => {
-      ;(ServicioAuditoria.registrar as jest.Mock).mockResolvedValue(
+      (ServicioAuditoria.registrar as jest.Mock).mockResolvedValue(
         'EVENTO-005'
       )
 
@@ -213,7 +206,7 @@ describe('FASE 0: Auditoría', () => {
     })
 
     it('debería retornar lista vacía si no hay eventos', async () => {
-      ;(ServicioAuditoria.obtenerPorOperacion as jest.Mock).mockResolvedValue(
+      (ServicioAuditoria.obtenerPorOperacion as jest.Mock).mockResolvedValue(
         []
       )
 
@@ -280,7 +273,7 @@ describe('FASE 0: Auditoría', () => {
 
   describe('Tipos de eventos soportados', () => {
     it('debería soportar ENTIDAD_CREADA', async () => {
-      ;(ServicioAuditoria.registrar as jest.Mock).mockResolvedValue(
+      (ServicioAuditoria.registrar as jest.Mock).mockResolvedValue(
         'EVENTO-006'
       )
 
@@ -296,7 +289,7 @@ describe('FASE 0: Auditoría', () => {
     })
 
     it('debería soportar ENTIDAD_MODIFICADA', async () => {
-      ;(ServicioAuditoria.registrar as jest.Mock).mockResolvedValue(
+      (ServicioAuditoria.registrar as jest.Mock).mockResolvedValue(
         'EVENTO-007'
       )
 
@@ -312,7 +305,7 @@ describe('FASE 0: Auditoría', () => {
     })
 
     it('debería soportar ENTIDAD_ELIMINADA', async () => {
-      ;(ServicioAuditoria.registrar as jest.Mock).mockResolvedValue(
+      (ServicioAuditoria.registrar as jest.Mock).mockResolvedValue(
         'EVENTO-008'
       )
 
@@ -327,7 +320,7 @@ describe('FASE 0: Auditoría', () => {
     })
 
     it('debería soportar CAMBIO_ESTADO', async () => {
-      ;(ServicioAuditoria.registrar as jest.Mock).mockResolvedValue(
+      (ServicioAuditoria.registrar as jest.Mock).mockResolvedValue(
         'EVENTO-009'
       )
 
@@ -343,7 +336,7 @@ describe('FASE 0: Auditoría', () => {
     })
 
     it('debería soportar ERROR', async () => {
-      ;(ServicioAuditoria.registrar as jest.Mock).mockResolvedValue(
+      (ServicioAuditoria.registrar as jest.Mock).mockResolvedValue(
         'EVENTO-010'
       )
 
@@ -372,7 +365,7 @@ describe('FASE 0: Auditoría', () => {
     ] as const
 
     it.each(entidades)('debería soportar entidad_tipo: %s', async tipo => {
-      ;(ServicioAuditoria.registrar as jest.Mock).mockResolvedValue(
+      (ServicioAuditoria.registrar as jest.Mock).mockResolvedValue(
         'EVENTO-011'
       )
 
@@ -393,7 +386,7 @@ describe('FASE 0: Auditoría', () => {
 
   describe('Validaciones', () => {
     it('debería permitir cambios opcionales (no incluidos si es ENTIDAD_CREADA)', async () => {
-      ;(ServicioAuditoria.registrar as jest.Mock).mockResolvedValue(
+      (ServicioAuditoria.registrar as jest.Mock).mockResolvedValue(
         'EVENTO-012'
       )
 
@@ -417,7 +410,7 @@ describe('FASE 0: Auditoría', () => {
     })
 
     it('debería permitir id_operacion opcional', async () => {
-      ;(ServicioAuditoria.registrar as jest.Mock).mockResolvedValue(
+      (ServicioAuditoria.registrar as jest.Mock).mockResolvedValue(
         'EVENTO-013'
       )
 
@@ -440,7 +433,7 @@ describe('FASE 0: Auditoría', () => {
     })
 
     it('debería capturar actor por defecto si es SISTEMA', async () => {
-      ;(ServicioAuditoria.registrar as jest.Mock).mockResolvedValue(
+      (ServicioAuditoria.registrar as jest.Mock).mockResolvedValue(
         'EVENTO-014'
       )
 

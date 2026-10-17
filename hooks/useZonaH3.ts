@@ -69,6 +69,7 @@ export function useZonaH3(h3_r9?: string): UseZonaH3Result {
         try {
           unsubscribe()
         } catch (_err) {
+          console.warn('[useZonaH3.useZonaH3] Error manejado:', _err)
           // Ignorar errores en cleanup
         }
       }

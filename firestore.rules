@@ -197,11 +197,23 @@ service cloud.firestore {
       );
     }
 
+    // Roles que un usuario puede agregarse a sí mismo (agregarRol): nunca admin
+    function roles_agregados_permitidos() {
+      return !('roles' in request.resource.data) ||
+      request.resource.data.roles.toSet()
+      .difference(resource.data.get('roles', []).toSet())
+      .hasOnly(['tutor', 'cuidador', 'explorador']);
+    }
+
     // USUARIOS
     match /usuarios/{uid} {
       allow read: if autenticado() && (es_mismo_uid(uid) || es_admin());
-      allow create: if puede_crear_valido() && es_mismo_uid(uid) && usuario_es_mayor_edad();
-      allow update: if puede_actualizar_valido() && (es_mismo_uid(uid) || es_admin());
+      allow create: if puede_crear_valido() && es_mismo_uid(uid) && usuario_es_mayor_edad()
+        && request.resource.data.roles.hasOnly(['tutor', 'cuidador', 'explorador']);
+      allow update: if puede_actualizar_valido() && (
+      es_admin() ||
+      (es_mismo_uid(uid) && roles_agregados_permitidos())
+      );
       allow delete: if es_admin();
     }
 
@@ -215,7 +227,7 @@ service cloud.firestore {
 
       allow update: if puede_actualizar_valido()
         && (
-      // Admin (request.auth == null): acceso total
+      // Admin: acceso total
       es_admin() ||
       // Usuario propietario: puede actualizar PERO insignias_verificacion debe quedar igual
       (resource.data.creado_por == request.auth.uid && 
@@ -304,7 +316,13 @@ service cloud.firestore {
       // MULTI-TUTOR: Permitir queries para detectar solapamiento de mascotas
       // Los tutores necesitan leer paseos activos de sus mascotas sin importar quién los creó
       // Restricción: solo consultas (list), no acceso a documento específico
-      allow list: if autenticado();
+      // Listar solo lo propio, lo asignado o solicitudes PENDIENTE
+      allow list: if autenticado() && (
+      resource.data.creado_por == request.auth.uid ||
+      resource.data.id_cuidador == request.auth.uid ||
+      resource.data.estado == 'PENDIENTE' ||
+      es_admin()
+      );
 
       allow create: if puede_crear_valido()
         && (!('id_cuidador' in request.resource.data) || 
@@ -409,7 +427,8 @@ service cloud.firestore {
       request.resource.data.actualizado_en is timestamp &&
       es_actor_paseo_doc(get_operacion_doc(operacionId)) &&
       solo_campos_permitidos([
-      'evento','payload','actor','creado_por','creado_en','actualizado_por','actualizado_en'
+      'evento','payload','actor','creado_por','creado_en','actualizado_por','actualizado_en',
+      'hechoTerritorial','contextoTerritorial','patron_inferido'
       ]);
 
       // Solo admin puede modificar o borrar eventos
@@ -548,11 +567,11 @@ service cloud.firestore {
       allow read: if autenticado() && request.auth.uid == uid;
 
       // Escritura: Solo Cloud Functions pueden crear/actualizar
-      // (from firebaseRule: request.auth == null OR es_admin)
-      allow write: if request.auth == null || es_admin();
+      // (Admin SDK ignora las reglas; desde el cliente solo admin)
+      allow write: if es_admin();
 
       // Eliminación: Solo Cloud Functions (TTL) o admin
-      allow delete: if request.auth == null || es_admin();
+      allow delete: if es_admin();
     }
 
     // VERIFICACIONES (Auditoría y gestión de verificaciones)
@@ -569,11 +588,11 @@ service cloud.firestore {
 
       // Creación: SOLO Cloud Functions
       // (Nunca desde el cliente directo: cliente llama validarOTP, que crea el doc)
-      allow create: if request.auth == null || es_admin();
+      allow create: if es_admin();
 
       // Actualización: SOLO Cloud Functions o admin
       // (Transiciones de estado, revalidaciones, rechazos)
-      allow update: if request.auth == null || es_admin();
+      allow update: if es_admin();
 
       // Eliminación: SOLO admin
       // (Revocación de verificaciones, auditoría)
@@ -721,9 +740,9 @@ service cloud.firestore {
       // LECTURA: Solo admin puede ver la auditoría completa
       allow read: if autenticado() && es_admin();
 
-      // CREACIÓN: Solo Cloud Functions o admin pueden crear eventos de auditoría
-      // (desde la aplicación: registrarAuditoria() es llamada desde logic/)
-      allow create: if request.auth == null || es_admin();
+      // CREACIÓN: registrarAuditoria() se llama desde el cliente (logic/);
+      // solo puede registrar eventos a su propio nombre
+      allow create: if autenticado() && request.resource.data.actor == request.auth.uid;
 
       // ACTUALIZACIÓN: NO permitida (auditoría es inmutable)
       allow update: if false;
@@ -737,34 +756,61 @@ service cloud.firestore {
     // OPERACIONES ECONÓMICAS
     // /operaciones_economicas/{operacion_id}
     // Documento base que fija términos del encargo entre tutor, cuidador y Paw-Path
+    // Tutor o cuidador asignado de una operación económica
+    function es_participante_op(opId) {
+      let op = get(/databases/$(database)/documents/operaciones_economicas/$(opId)).data;
+      return autenticado() && (
+      op.tutor_id == request.auth.uid ||
+      op.get('cuidador_id', null) == request.auth.uid
+      );
+    }
+
+    // El usuario es el cuidador que aceptó el paseo vinculado a la operación
+    function es_cuidador_del_paseo(op) {
+      return op.get('paseo_id', null) != null &&
+      get(/databases/$(database)/documents/operaciones/$(op.paseo_id)).data.get('id_cuidador', null) == request.auth.uid;
+    }
+
     match /operaciones_economicas/{operacion_id} {
-      // LECTURA: 
-      // - Tutor: solo su propia operación
-      // - Cuidador: operaciones asignadas a él
-      // - Admin: todas
+      // LECTURA: tutor, cuidador asignado, cuidador del paseo vinculado o admin
       allow read: if autenticado() && (
       resource.data.tutor_id == request.auth.uid ||
-      (resource.data.cuidador_id != null && resource.data.cuidador_id == request.auth.uid) ||
+      resource.data.get('cuidador_id', null) == request.auth.uid ||
+      es_cuidador_del_paseo(resource.data) ||
       es_admin()
       );
 
-      // CREACIÓN: Solo tutor (creador) puede crear operación
+      // CREACIÓN: Solo tutor (creador); valida la invariante I1 en servidor
       allow create: if autenticado() &&
       request.resource.data.tutor_id == request.auth.uid &&
       request.resource.data.estado == 'ENCARGADA' &&
       request.resource.data.valor_acordado > 0 &&
       request.resource.data.remuneracion_mandatario >= 0 &&
-      request.resource.data.recursos_administrados_en_ejecucion >= 0 &&
+      request.resource.data.recursos_administrados >= 0 &&
+      request.resource.data.valor_acordado ==
+      request.resource.data.remuneracion_mandatario + request.resource.data.recursos_administrados &&
       request.resource.data.creado_en is timestamp &&
-      (request.resource.data.cuidador_id == null || request.resource.data.cuidador_id is string);
+      request.resource.data.get('cuidador_id', null) == null;
 
-      // ACTUALIZACIÓN: Tutor puede actualizar estado (ej: asignar cuidador, cancelar)
-      // Cuidador puede confirmar ejecución
+      // ACTUALIZACIÓN: los montos y el tutor son inmutables
+      // - Tutor: estado / cancelación
+      // - Cuidador del paseo: asignarse una sola vez (asignarCuidador)
+      // - Cuidador asignado: marcar ejecución (registrarServicioEjecutado)
       allow update: if autenticado() &&
-      puede_actualizar_valido() &&
+      request.resource.data.tutor_id == resource.data.tutor_id &&
+      request.resource.data.valor_acordado == resource.data.valor_acordado &&
+      request.resource.data.remuneracion_mandatario == resource.data.remuneracion_mandatario &&
+      request.resource.data.recursos_administrados == resource.data.recursos_administrados &&
       (
-      (resource.data.tutor_id == request.auth.uid) ||
-      (resource.data.cuidador_id == request.auth.uid) ||
+      (resource.data.tutor_id == request.auth.uid &&
+      request.resource.data.diff(resource.data).affectedKeys().hasOnly(['estado', 'cancelado_en', 'cancelado_por'])) ||
+      (resource.data.get('cuidador_id', null) == null &&
+      request.resource.data.cuidador_id == request.auth.uid &&
+      es_cuidador_del_paseo(resource.data) &&
+      request.resource.data.diff(resource.data).affectedKeys().hasOnly(['cuidador_id'])) ||
+      (resource.data.get('cuidador_id', null) == request.auth.uid &&
+      request.resource.data.diff(resource.data).affectedKeys().hasOnly(['estado']) &&
+      request.resource.data.estado in ['EJECUTADA', 'RECAUDADA']) ||
       es_admin()
       );
 
@@ -773,13 +819,12 @@ service cloud.firestore {
 
       // SUBCOLECCIÓN: Eventos Económicos
       match /eventos_economicos/{evento_id} {
-        // LECTURA: Quienes pueden leer la operación padre pueden leer sus eventos
-        allow read: if autenticado() && get(/databases/$(database)/documents/operaciones_economicas/$(operacion_id)).data.tutor_id == request.auth.uid ||
-        get(/databases/$(database)/documents/operaciones_economicas/$(operacion_id)).data.cuidador_id == request.auth.uid ||
-        es_admin();
+        // LECTURA: participantes de la operación padre
+        allow read: if es_participante_op(operacion_id) || es_admin();
 
-        // CREACIÓN: Sistema (backend) crea eventos al registrar cambios
-        allow create: if request.auth == null || es_admin();
+        // CREACIÓN: participantes, solo para su propia operación
+        allow create: if es_participante_op(operacion_id) &&
+        request.resource.data.operacion_id == operacion_id;
 
         // ACTUALIZACIÓN: NO permitida (eventos inmutables)
         allow update: if false;
@@ -798,14 +843,13 @@ service cloud.firestore {
       // - Contador: acceso de lectura (auditoría financiera)
       // - Admin: acceso total
       allow read: if autenticado() && (
-      (resource.data.operacion_id != null && 
-      resource.data.operacion_id in get(/databases/$(database)/documents/operaciones_economicas/$(resource.data.operacion_id)).data.tutor_id) ||
+      es_participante_op(resource.data.operacion_id) ||
       tiene_rol_actual('contador') ||
       es_admin()
       );
 
-      // CREACIÓN: Backend (Cloud Functions) crea movimientos
-      allow create: if request.auth == null || es_admin();
+      // CREACIÓN: participantes de la operación (registrarRecaudo / ejecutarPago)
+      allow create: if es_participante_op(request.resource.data.operacion_id) || es_admin();
 
       // ACTUALIZACIÓN: NO permitida (trazabilidad inmutable)
       allow update: if false;
@@ -823,20 +867,28 @@ service cloud.firestore {
       // - Contador (auditoría)
       // - Admin
       allow read: if autenticado() && (
-      (resource.data.operacion_id != null && 
-      resource.data.operacion_id in get(/databases/$(database)/documents/operaciones_economicas/$(resource.data.operacion_id)).data.tutor_id) ||
+      resource.data.deudor == request.auth.uid ||
+      resource.data.acreedor == request.auth.uid ||
       tiene_rol_actual('contador') ||
       es_admin()
       );
 
-      // CREACIÓN: Backend registra obligaciones al capturar fondos
-      allow create: if request.auth == null || es_admin();
+      // CREACIÓN: participantes de la operación, siempre en estado PENDIENTE
+      allow create: if es_participante_op(request.resource.data.operacion_id) &&
+      request.resource.data.estado == 'PENDIENTE';
 
-      // ACTUALIZACIÓN: Backend marca como CUMPLIDA cuando se paga
-      allow update: if request.auth == null || es_admin();
+      // ACTUALIZACIÓN: solo admin (marcar CUMPLIDA / ANULADA)
+      allow update: if es_admin();
 
       // ELIMINACIÓN: Solo admin
       allow delete: if es_admin();
+    }
+
+    // DEDUPLICACIÓN DE MOVIMIENTOS (idempotencia de registrarMovimiento)
+    match /deduplicacion_movimientos/{dedupKey} {
+      allow get: if autenticado();
+      allow create: if autenticado();
+      allow update, delete: if false;
     }
   }
 }

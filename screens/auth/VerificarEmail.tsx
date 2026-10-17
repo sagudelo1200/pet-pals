@@ -52,6 +52,9 @@ const VerificarEmail: React.FC = () => {
 
   // Ref para evitar setState después de desmontaje
   const isMountedRef = useRef(true)
+  // Valor siempre actualizado del perfil público para el sondeo post-OTP
+  const perfilPublicoRef = useRef(authContext.perfilPublico)
+  perfilPublicoRef.current = authContext.perfilPublico
 
   useEffect(() => {
     return () => {
@@ -235,9 +238,9 @@ const VerificarEmail: React.FC = () => {
             // Pequeño delay antes de verificar (200ms) - permite que el trigger execute
             await new Promise(resolve => setTimeout(resolve, 200))
 
-            // Verificar si la insignia está presente (acceso directo a authContext)
+            // Verificar si la insignia está presente (valor actualizado vía ref)
             const emailVerificadoAhora =
-              authContext.perfilPublico?.insignias_verificacion?.includes(
+              perfilPublicoRef.current?.insignias_verificacion?.includes(
                 'EMAIL'
               )
             if (emailVerificadoAhora) {
@@ -275,7 +278,7 @@ const VerificarEmail: React.FC = () => {
         }
       }
     },
-    [user?.uid, recargarUsuarioAuth, recargarPerfilPublico, authContext, t]
+    [user?.uid, recargarUsuarioAuth, recargarPerfilPublico, t]
   )
 
   const handleReenviarOtp = useCallback(async () => {
