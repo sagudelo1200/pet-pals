@@ -7,8 +7,10 @@ import {Configuration, SendApi, type V1SendRequest} from 'hostinger-mail-api-sdk
  * 1. SendGrid (principal)
  * 2. Hostinger Mail API (fallback), si SendGrid falla por cualquier motivo
  *
- * Ambos salen desde la misma dirección. En Hostinger el remitente es el propio
- * buzón: HOSTINGER_MAILBOX_ID debe ser el del buzón REMITENTE_EMAIL.
+ * SendGrid envía desde REMITENTE_EMAIL (alias; requiere dominio autenticado).
+ * Hostinger envía siempre desde el buzón real del token: HOSTINGER_MAILBOX_ID es
+ * el resourceId (GET /api/v1/me) del buzón info@paw-path.com.co, no un email.
+ * Los alias no aparecen en la API, por eso el fallback sale desde info@.
  */
 
 export const REMITENTE_EMAIL = 'no-responder@paw-path.com.co';

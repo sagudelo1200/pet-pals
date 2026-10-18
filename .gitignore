@@ -1,7 +1,7 @@
 node_modules/**/*
 .expo/*
 npm-debug.*
-package-lock.json
+# package-lock.json se versiona: fija las versiones exactas (builds reproducibles)
 yarn.lock
 *.jks
 *.p12

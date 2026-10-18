@@ -74,6 +74,8 @@ function sembrarOtp(datos: Record<string, unknown> = {}) {
   });
 }
 
+const AUTH_U1 = {uid: 'u1', token: {email: 'a@b.co'}};
+
 describe('enviarOTP', () => {
   beforeEach(() => {
     db.__reset();
@@ -89,18 +91,55 @@ describe('enviarOTP', () => {
   });
 
   it('rechaza un uid distinto al autenticado', async () => {
-    const res = await enviar({auth: {uid: 'otro'}, data: {email: 'a@b.co', uid: 'u1'}});
+    const res = await enviar({auth: {uid: 'otro', token: {email: 'a@b.co'}}, data: {uid: 'u1'}});
     expect(res).toEqual({success: false, error: expect.stringContaining('UID')});
   });
 
   it('rechaza un email con formato inválido', async () => {
-    const res = await enviar({auth: {uid: 'u1'}, data: {email: 'no-es-email', uid: 'u1'}});
+    const res = await enviar({
+      auth: {uid: 'u1', token: {email: 'no-es-email'}},
+      data: {uid: 'u1'},
+    });
     expect(res.success).toBe(false);
     expect(sgMail.send).not.toHaveBeenCalled();
   });
 
+  it('rechaza una cuenta sin email', async () => {
+    const res = await enviar({auth: {uid: 'u1', token: {}}, data: {uid: 'u1'}});
+    expect(res).toEqual({success: false, error: 'La cuenta no tiene un email asociado'});
+    expect(sgMail.send).not.toHaveBeenCalled();
+  });
+
+  it('envía al email de la cuenta e ignora el email que manda la app', async () => {
+    const res = await enviar({auth: AUTH_U1, data: {uid: 'u1', email: 'otro@atacante.co'}});
+
+    expect(res.success).toBe(true);
+    expect(sgMail.send).toHaveBeenCalledWith(expect.objectContaining({to: 'a@b.co'}));
+    expect(db.__docs.get('otp_codes/u1').email).toBe('a@b.co');
+  });
+
+  it('no reenvía si ya hay un código sin usar de hace menos de 60 s', async () => {
+    sembrarOtp({codigo: '111111', creado_en: mockTimestamp(AHORA - 30_000)});
+
+    const res = await enviar({auth: AUTH_U1, data: {uid: 'u1'}});
+
+    expect(res.success).toBe(true);
+    expect(sgMail.send).not.toHaveBeenCalled();
+    expect(db.__docs.get('otp_codes/u1').codigo).toBe('111111');
+  });
+
+  it('sí reenvía pasados 60 s o si el código anterior ya se usó', async () => {
+    sembrarOtp({codigo: '111111', creado_en: mockTimestamp(AHORA - 61_000)});
+    await enviar({auth: AUTH_U1, data: {uid: 'u1'}});
+    expect(sgMail.send).toHaveBeenCalledTimes(1);
+
+    sembrarOtp({codigo: '222222', utilizado: true, creado_en: mockTimestamp(AHORA - 5_000)});
+    await enviar({auth: AUTH_U1, data: {uid: 'u1'}});
+    expect(sgMail.send).toHaveBeenCalledTimes(2);
+  });
+
   it('guarda un código de 6 dígitos, sin usar y con 0 intentos, y lo envía', async () => {
-    const res = await enviar({auth: {uid: 'u1'}, data: {email: 'a@b.co', uid: 'u1'}});
+    const res = await enviar({auth: AUTH_U1, data: {uid: 'u1'}});
 
     expect(res.success).toBe(true);
     const otp = db.__docs.get('otp_codes/u1');
@@ -124,7 +163,7 @@ describe('enviarOTP', () => {
       response: {body: {errors: [{message: 'Maximum credits exceeded'}]}},
     });
 
-    const res = await enviar({auth: {uid: 'u1'}, data: {email: 'a@b.co', uid: 'u1'}});
+    const res = await enviar({auth: AUTH_U1, data: {uid: 'u1'}});
 
     expect(res.success).toBe(true);
     expect(hostinger.__sendEmail).toHaveBeenCalledWith(
@@ -136,7 +175,7 @@ describe('enviarOTP', () => {
   it('reenviar reemplaza el código anterior y reinicia los intentos', async () => {
     sembrarOtp({codigo: '000000', intentos_fallidos: 3});
 
-    await enviar({auth: {uid: 'u1'}, data: {email: 'a@b.co', uid: 'u1'}});
+    await enviar({auth: AUTH_U1, data: {uid: 'u1'}});
 
     expect(db.__docs.get('otp_codes/u1').intentos_fallidos).toBe(0);
   });
@@ -144,7 +183,7 @@ describe('enviarOTP', () => {
   it('si fallan ambos proveedores informa los dos motivos', async () => {
     sgMail.send.mockRejectedValueOnce({response: {body: {errors: [{message: 'cuota'}]}}});
 
-    const res = await enviar({auth: {uid: 'u1'}, data: {email: 'a@b.co', uid: 'u1'}});
+    const res = await enviar({auth: AUTH_U1, data: {uid: 'u1'}});
 
     expect(res).toEqual({
       success: false,

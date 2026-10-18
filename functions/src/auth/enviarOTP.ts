@@ -10,10 +10,13 @@ if (!admin.apps || admin.apps.length === 0) {
 
 const db = admin.firestore();
 const MINUTOS_EXPIRACION = 10;
+// Mismo plazo que el botón "Reenviar" de la app (RETRASO_REENVIO_OTP_SEGUNDOS)
+const SEGUNDOS_ENTRE_ENVIOS = 60;
 
 // Interfaces para tipado
+// `email` se ignora: el código se envía siempre al email de la cuenta autenticada
 interface EnviarOTPRequest {
-  email: string
+  email?: string
   uid: string
 }
 
@@ -40,12 +43,20 @@ export const enviarOTP = functions.https.onCall(
         } as EnviarOTPResponse;
       }
 
-      const {email, uid} = request.data as EnviarOTPRequest;
+      const {uid} = request.data as EnviarOTPRequest;
+      const email = request.auth.token?.email as string | undefined;
 
-      if (!email || !uid) {
+      if (!uid) {
         return {
           success: false,
-          error: 'Email y UID son requeridos',
+          error: 'UID es requerido',
+        } as EnviarOTPResponse;
+      }
+
+      if (!email) {
+        return {
+          success: false,
+          error: 'La cuenta no tiene un email asociado',
         } as EnviarOTPResponse;
       }
 
@@ -64,25 +75,43 @@ export const enviarOTP = functions.https.onCall(
         } as EnviarOTPResponse;
       }
 
-      const otp = String(randomInt(0, 1000000)).padStart(6, '0');
       const ahora = admin.firestore.Timestamp.now();
+      const otpRef = db.collection('otp_codes').doc(uid);
+
+      // Límite de envíos: si hay un código sin usar enviado hace menos de
+      // SEGUNDOS_ENTRE_ENVIOS, no se envía otro (evita gastar créditos y abuso)
+      const otpPrevio = (await otpRef.get()).data();
+      const creadoPrevio = otpPrevio?.creado_en?.toMillis?.();
+      if (
+        otpPrevio &&
+        !otpPrevio.utilizado &&
+        typeof creadoPrevio === 'number' &&
+        ahora.toMillis() - creadoPrevio < SEGUNDOS_ENTRE_ENVIOS * 1000
+      ) {
+        functions.logger.info(`[enviarOTP] Envío omitido por límite (UID: ${uid})`);
+        return {
+          success: true,
+          mensaje:
+            'Ya te enviamos un código hace un momento. Revisa tu bandeja de entrada.',
+          minutosExpiracion: MINUTOS_EXPIRACION,
+        } as EnviarOTPResponse;
+      }
+
+      const otp = String(randomInt(0, 1000000)).padStart(6, '0');
       const expiraEn = new Date(
         ahora.toDate().getTime() + MINUTOS_EXPIRACION * 60000
       );
 
-      await db
-        .collection('otp_codes')
-        .doc(uid)
-        .set({
-          id: uid,
-          email: email,
-          codigo: otp,
-          utilizado: false,
-          intentos_fallidos: 0,
-          creado_en: ahora,
-          expira_en: admin.firestore.Timestamp.fromDate(expiraEn),
-          ttl: admin.firestore.Timestamp.fromDate(expiraEn),
-        });
+      await otpRef.set({
+        id: uid,
+        email: email,
+        codigo: otp,
+        utilizado: false,
+        intentos_fallidos: 0,
+        creado_en: ahora,
+        expira_en: admin.firestore.Timestamp.fromDate(expiraEn),
+        ttl: admin.firestore.Timestamp.fromDate(expiraEn),
+      });
 
       // SendGrid con fallback a Hostinger (ver comun/email)
       let proveedor: string;

@@ -563,8 +563,10 @@ service cloud.firestore {
     // Almacena OTPs de 6 dígitos para verificación de email.
     // Se eliminan automáticamente después de 10 minutos (TTL en Firestore).
     match /otp_codes/{uid} {
-      // Lectura: Solo el usuario autenticado puede leer su propio OTP
-      allow read: if autenticado() && request.auth.uid == uid;
+      // Lectura: nadie desde el cliente (el documento contiene el código; si el
+      // usuario pudiera leerlo, verificaría el email sin recibirlo). Solo las
+      // Cloud Functions enviarOTP/validarOTP lo usan (Admin SDK).
+      allow read: if false;
 
       // Escritura: Solo Cloud Functions pueden crear/actualizar
       // (Admin SDK ignora las reglas; desde el cliente solo admin)

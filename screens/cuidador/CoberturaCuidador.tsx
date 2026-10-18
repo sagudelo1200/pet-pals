@@ -139,7 +139,6 @@ export default function CoberturaCuidador() {
         subtitle="Toca los hexágonos para activar o desactivar"
       />
 
-      {/* @ts-expect-error - WebView type conflict with react-native globals */}
       <WebView
         ref={webViewRef}
         source={{ html: htmlSource! }}
