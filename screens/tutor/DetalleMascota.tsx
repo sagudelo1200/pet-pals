@@ -116,29 +116,35 @@ const DetalleMascota: React.FC = () => {
   } = useCompatibilidadEditor(mascotaNormalizada)
 
   // Hooks
-  const { slideAnim, opacityAnim, panResponder, isExpanded, cerrar } =
-    useAnimacionModal({
-      onClose: () => {
-        if (cambiosRealizados) {
-          // Navegar explícitamente al Tab de Tutor -> Mascotas
+  const {
+    slideAnim,
+    opacityAnim,
+    panResponder,
+    isExpanded,
+    alHacerScroll,
+    cerrar,
+  } = useAnimacionModal({
+    onClose: () => {
+      if (cambiosRealizados) {
+        // Navegar explícitamente al Tab de Tutor -> Mascotas
+        void (navigation as any).navigate('TutorApp', {
+          screen: 'Mascotas',
+          params: { refresh: Date.now() },
+        })
+      } else {
+        if (navigation.canGoBack()) {
+          navigation.goBack()
+        } else {
           void (navigation as any).navigate('TutorApp', {
             screen: 'Mascotas',
-            params: { refresh: Date.now() },
           })
-        } else {
-          if (navigation.canGoBack()) {
-            navigation.goBack()
-          } else {
-            void (navigation as any).navigate('TutorApp', {
-              screen: 'Mascotas',
-            })
-          }
         }
-      },
-      onCollapse: () => {
-        scrollViewRef.current?.scrollTo({ y: 0, animated: true })
-      },
-    })
+      }
+    },
+    onCollapse: () => {
+      scrollViewRef.current?.scrollTo({ y: 0, animated: true })
+    },
+  })
 
   const {
     mascota,
@@ -299,6 +305,8 @@ const DetalleMascota: React.FC = () => {
             contentContainerStyle={styles.scrollContent}
             showsVerticalScrollIndicator={false}
             scrollEnabled={isExpanded}
+            onScroll={alHacerScroll}
+            scrollEventThrottle={16}
           >
             {/* Imagen Hero */}
             <HeroMascota

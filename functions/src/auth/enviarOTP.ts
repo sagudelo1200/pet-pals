@@ -1,5 +1,5 @@
 import * as functions from 'firebase-functions';
-import * as admin from 'firebase-admin';
+import admin from '../comun/firebaseAdminCompat';
 import {randomInt} from 'crypto';
 import {injectOTPData} from './emailTemplates';
 import {enviarEmail, describirErrorEmail, SECRETOS_EMAIL} from '../comun/email';

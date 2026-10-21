@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react'
-import { Alert, Platform, Text, View, StyleSheet } from 'react-native'
+import { Alert, Text, View, StyleSheet } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Button, Card, Icon, Avatar } from '@/components/ui'
 import Screen from '@/components/ui/Screen'
@@ -30,11 +30,6 @@ const MiCuenta = () => {
   const correo = user?.email ?? (profile as any)?.correo ?? '—'
   const nombre = user?.displayName ?? (profile as any)?.nombre ?? '—'
   const foto = user?.photoURL ?? (profile as any)?.foto
-
-  const TAB_BAR_HEIGHT =
-    Platform.OS === 'ios'
-      ? Math.max(insets.bottom + 65, 85)
-      : Math.max(insets.bottom + 60, 75)
 
   const handleLogout = useCallback(async () => {
     const result = await cerrarSesion()
@@ -123,10 +118,7 @@ const MiCuenta = () => {
     <Screen
       scroll={true}
       scrollProps={{ showsVerticalScrollIndicator: false }}
-      contentContainerStyle={[
-        styles.scrollContent,
-        { paddingBottom: TAB_BAR_HEIGHT },
-      ]}
+      contentContainerStyle={styles.scrollContent}
       style={styles.container}
     >
       {/* Header Grande con Gradiente */}
@@ -293,24 +285,23 @@ const MiCuenta = () => {
           </Text>
           <PanelPrivacidadConsentimientos />
         </View>
-      </View>
 
-      {/* Botón Cerrar Sesión - FIJO en la parte inferior */}
-      <View
-        style={[
-          styles.logoutButtonContainer,
-          { paddingBottom: Math.max(insets.bottom, 8) },
-        ]}
-      >
-        <Button
-          title={t('perfil:cerrar_sesion')}
-          variant="ghost"
-          textStyle={{ color: COLOR.ERROR }}
-          style={styles.logoutButton}
-          onPress={handleLogout}
-          loading={cargandoAuth}
-          icon="sign-out-alt"
-        />
+        <View
+          style={[
+            styles.logoutButtonContainer,
+            { marginBottom: Math.max(insets.bottom, 8) },
+          ]}
+        >
+          <Button
+            title={t('perfil:cerrar_sesion')}
+            variant="ghost"
+            textStyle={{ color: COLOR.ERROR }}
+            style={styles.logoutButton}
+            onPress={handleLogout}
+            loading={cargandoAuth}
+            icon="sign-out-alt"
+          />
+        </View>
       </View>
     </Screen>
   )
@@ -322,7 +313,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLOR.BASE,
   },
   scrollContent: {
-    flex: 1,
+    flexGrow: 1,
   },
   headerGradient: {
     paddingBottom: 40,
@@ -364,7 +355,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   content: {
-    flex: 1,
     paddingHorizontal: 16,
     paddingTop: 12,
   },
@@ -395,11 +385,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   logoutButtonContainer: {
-    paddingHorizontal: 16,
-    paddingTop: 8,
-    backgroundColor: COLOR.BASE,
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(0,0,0,0.05)',
+    marginTop: 20,
   },
   logoutButton: {
     borderWidth: 1,

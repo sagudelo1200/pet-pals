@@ -191,7 +191,7 @@ export const MatchingDebugOverlay: React.FC<MatchingDebugOverlayProps> = ({
                       <Text
                         style={[
                           styles.cardName,
-                          { color: cuidador.final ? '#333' : '#999' },
+                          { color: cuidador.final ? COLOR.TEXTO : COLOR.SUBTEXTO },
                         ]}
                       >
                         {cuidador.nombre}
@@ -211,7 +211,7 @@ export const MatchingDebugOverlay: React.FC<MatchingDebugOverlayProps> = ({
                           <View
                             style={[
                               styles.badge,
-                              { backgroundColor: '#4CAF50' },
+                              { backgroundColor: COLOR.ENFASIS },
                             ]}
                           >
                             <Text style={styles.badgeText}>Horario ✓</Text>
@@ -251,8 +251,8 @@ export const MatchingDebugOverlay: React.FC<MatchingDebugOverlayProps> = ({
                             styles.checkmark,
                             {
                               backgroundColor: cuidador.enZonaH3
-                                ? '#4CAF50'
-                                : '#f44336',
+                                ? COLOR.ENFASIS
+                                : COLOR.ERROR,
                             },
                           ]}
                         >
@@ -269,8 +269,8 @@ export const MatchingDebugOverlay: React.FC<MatchingDebugOverlayProps> = ({
                             styles.checkmark,
                             {
                               backgroundColor: cuidador.horario.pasa
-                                ? '#4CAF50'
-                                : '#f44336',
+                                ? COLOR.ENFASIS
+                                : COLOR.ERROR,
                             },
                           ]}
                         >
@@ -299,8 +299,8 @@ export const MatchingDebugOverlay: React.FC<MatchingDebugOverlayProps> = ({
                             styles.checkmark,
                             {
                               backgroundColor: cuidador.disponibilidad.pasa
-                                ? '#4CAF50'
-                                : '#f44336',
+                                ? COLOR.ENFASIS
+                                : COLOR.ERROR,
                             },
                           ]}
                         >
@@ -325,7 +325,7 @@ export const MatchingDebugOverlay: React.FC<MatchingDebugOverlayProps> = ({
                           style={[
                             styles.finalText,
                             {
-                              color: cuidador.final ? '#4CAF50' : '#f44336',
+                              color: cuidador.final ? COLOR.ENFASIS : COLOR.ERROR,
                             },
                           ]}
                         >
@@ -373,7 +373,7 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontSize: 12,
-    color: '#aaa',
+    color: COLOR.SUBTEXTO,
   },
   closeBtn: {
     width: 44,
@@ -385,7 +385,7 @@ const styles = StyleSheet.create({
   },
   closeBtnText: {
     fontSize: 24,
-    color: '#f44336',
+    color: COLOR.ERROR,
     fontWeight: 'bold',
   },
   content: {
@@ -417,7 +417,7 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 12,
-    color: '#aaa',
+    color: COLOR.SUBTEXTO,
     marginBottom: 2,
   },
   value: {
@@ -428,7 +428,7 @@ const styles = StyleSheet.create({
   },
   noData: {
     fontSize: 12,
-    color: '#999',
+    color: COLOR.SUBTEXTO,
     fontStyle: 'italic',
   },
   statsRow: {
@@ -450,7 +450,7 @@ const styles = StyleSheet.create({
   },
   statLabel: {
     fontSize: 10,
-    color: '#aaa',
+    color: COLOR.SUBTEXTO,
     marginTop: 2,
   },
   cuidadorCard: {
@@ -492,7 +492,7 @@ const styles = StyleSheet.create({
   },
   expandIcon: {
     fontSize: 14,
-    color: '#aaa',
+    color: COLOR.SUBTEXTO,
     marginLeft: 8,
   },
   cardDetails: {
@@ -513,7 +513,7 @@ const styles = StyleSheet.create({
   },
   detailLabel: {
     fontSize: 12,
-    color: '#aaa',
+    color: COLOR.SUBTEXTO,
     flex: 1,
   },
   detailValue: {

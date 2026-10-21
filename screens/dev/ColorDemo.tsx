@@ -184,6 +184,7 @@ const ColorDemo: React.FC = () => {
   return (
     <Screen
       scroll
+      teclado
       style={styles.container}
       contentContainerStyle={styles.content}
     >

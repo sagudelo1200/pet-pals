@@ -93,7 +93,9 @@
     "cargando": "Cargando...",
     "errores": {
       "fecha_hora_requerida": "Fecha y hora requeridas",
-      "ubicacion_requerida": "Ubicación de inicio requerida"
+      "ubicacion_requerida": "Ubicación de inicio requerida",
+      "bloqueo_financiero": "Tienes un pago pendiente vencido. Págalo para solicitar nuevos paseos.",
+      "sin_politica_comercial": "Los precios no están disponibles en este momento. Intenta más tarde."
     }
   },
   "pasos": {

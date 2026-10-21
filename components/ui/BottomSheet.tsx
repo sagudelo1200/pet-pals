@@ -6,12 +6,11 @@ import {
   Pressable,
   Animated,
   Dimensions,
-  Platform,
-  KeyboardAvoidingView,
   ViewStyle,
 } from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { COLOR } from '@/constants'
+import AjusteTeclado from './AjusteTeclado'
 
 interface BottomSheetProps {
   visible: boolean
@@ -20,7 +19,16 @@ interface BottomSheetProps {
   height?: number | string
   showBackdrop?: boolean
   closeable?: boolean
+  /**
+   * Se llama cuando la hoja terminó de abrir. Úsalo para enfocar un campo:
+   * en Android, autoFocus dentro de un Modal a veces enfoca sin abrir el
+   * teclado porque la ventana del modal aún no está activa.
+   */
+  onAbierto?: () => void
 }
+
+// Espacio bajo el contenido, además del borde seguro del dispositivo
+const MARGEN_INFERIOR = 16
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window')
 
@@ -31,7 +39,9 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
   height = 'auto',
   showBackdrop = true,
   closeable = true,
+  onAbierto,
 }) => {
+  const insets = useSafeAreaInsets()
   const slideAnim = useRef(new Animated.Value(SCREEN_HEIGHT)).current
   const opacityAnim = useRef(new Animated.Value(0)).current
   const [showModal, setShowModal] = useState(visible)
@@ -51,7 +61,9 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
           duration: 300,
           useNativeDriver: true,
         }),
-      ]).start()
+      ]).start(({ finished }) => {
+        if (finished) onAbierto?.()
+      })
     } else {
       Animated.parallel([
         Animated.timing(slideAnim, {
@@ -104,19 +116,29 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
           <Pressable style={styles.backdropPress} onPress={handleClose} />
         </Animated.View>
 
-        <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        {/*
+          'padding' empuja la hoja hacia arriba lo que el teclado la tapa
+          ('height' la encogía y la hacía bajar antes de subir). Con
+          edge-to-edge la ventana del modal no se redimensiona sola en
+          Android; si en alguna versión lo hiciera, el solapamiento calculado
+          es 0 y no hay doble ajuste.
+        */}
+        <AjusteTeclado
+          behavior="padding"
           style={{ width: '100%', justifyContent: 'flex-end' }}
-          keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 45}
         >
           <Animated.View style={[styles.sheet, dynamicSheetStyle]}>
-            <SafeAreaView edges={['bottom']} style={styles.safeArea}>
+            <View
+              style={[
+                styles.safeArea,
+                { paddingBottom: insets.bottom + MARGEN_INFERIOR },
+              ]}
+            >
               <View style={styles.handle} />
               <View style={styles.content}>{children}</View>
-              <View style={{ height: Platform.OS === 'ios' ? 45 : 63 }} />
-            </SafeAreaView>
+            </View>
           </Animated.View>
-        </KeyboardAvoidingView>
+        </AjusteTeclado>
       </View>
     </Modal>
   )

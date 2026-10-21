@@ -6,7 +6,8 @@
  * - Paseos completados sin pagar (PENDIENTE)
  * - Paseos ya pagados (CUMPLIDA)
  * - Total a pagar
- * - Botón "Pagar todos"
+ * - Botón "Pagar" por paseo (abre PantallaPago)
+ * - Aviso de bloqueo si hay cobros vencidos
  */
 
 import React, { useEffect, useState, useMemo } from 'react'
@@ -16,6 +17,7 @@ import {
   Text,
   Pressable,
   ActivityIndicator,
+  Modal,
 } from 'react-native'
 import { collection, query, where } from 'firebase/firestore'
 import { db } from '@/firebase.config'
@@ -26,14 +28,13 @@ import Icon from '@/components/ui/Icon'
 import { useCollection } from '@/hooks'
 import type { Obligacion } from '@/models/operacionesEconomicas'
 import { ServicioAuth } from '@/services/firebase'
+import { useBloqueoFinanciero } from '@/hooks/comercial'
+import { formatearCOP } from '@/logic/comercial'
+import { PantallaPago } from './PantallaPago'
 
-interface HistorialObligacionesTutorProps {
-  onPagarTodos?: () => void
-}
-
-export const HistorialObligacionesTutor: React.FC<
-  HistorialObligacionesTutorProps
-> = ({ onPagarTodos }) => {
+export const HistorialObligacionesTutor: React.FC = () => {
+  const { bloqueado } = useBloqueoFinanciero()
+  const [pagando, setPagando] = useState<Obligacion | null>(null)
   const [obligaciones, setObligaciones] = useState<Obligacion[]>([])
   const [loading, setLoading] = useState(true)
   const [totalPendiente, setTotalPendiente] = useState(0)
@@ -155,6 +156,25 @@ export const HistorialObligacionesTutor: React.FC<
             </Text>
           </View>
         )}
+
+        {item.estado === 'PENDIENTE' && (
+          <Pressable
+            style={styles.botonPagarTodos}
+            onPress={() => setPagando(item)}
+          >
+            <LinearGradient
+              colors={[COLOR.PRIMARIO, `${COLOR.PRIMARIO}80`]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.gradientButton}
+            >
+              <Icon name="credit-card" size={16} color="white" />
+              <Text style={styles.botonTexto}>
+                Pagar {formatearCOP(item.valor)}
+              </Text>
+            </LinearGradient>
+          </Pressable>
+        )}
       </Card>
     )
   }
@@ -236,23 +256,16 @@ export const HistorialObligacionesTutor: React.FC<
             )}
           </View>
 
-          {/* Botón pagar todos */}
-          {tieneObligacionesPendientes && (
+          {/* Aviso de bloqueo por cobros vencidos */}
+          {bloqueado && (
             <View style={styles.footer}>
-              <Pressable style={styles.botonPagarTodos} onPress={onPagarTodos}>
-                <LinearGradient
-                  colors={[COLOR.PRIMARIO, `${COLOR.PRIMARIO}80`]}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
-                  style={styles.gradientButton}
-                >
-                  <Icon name="credit-card" size={20} color="white" />
-                  <Text style={styles.botonTexto}>
-                    Pagar Todos ({totalPendiente.toLocaleString()})
-                  </Text>
-                  <Icon name="chevron-right" size={20} color="white" />
-                </LinearGradient>
-              </Pressable>
+              <View style={styles.avisoBloqueo}>
+                <Icon name="lock" size={16} color={COLOR.ERROR} />
+                <Text style={styles.avisoBloqueoTexto}>
+                  Tienes un pago vencido. Mientras no lo pagues no podrás
+                  solicitar nuevos paseos.
+                </Text>
+              </View>
             </View>
           )}
         </>
@@ -291,11 +304,40 @@ export const HistorialObligacionesTutor: React.FC<
           </LinearGradient>
         </View>
       )}
+
+      <Modal
+        visible={!!pagando}
+        animationType="slide"
+        onRequestClose={() => setPagando(null)}
+      >
+        {pagando && (
+          <PantallaPago
+            operacionId={pagando.operacion_id}
+            nombreMascota="tu mascota"
+            nombreCuidador="tu cuidador"
+            onPagado={() => setPagando(null)}
+            onCancel={() => setPagando(null)}
+          />
+        )}
+      </Modal>
     </View>
   )
 }
 
 const styles = StyleSheet.create({
+  avisoBloqueo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    padding: 12,
+    borderRadius: 8,
+    backgroundColor: `${COLOR.ERROR}10`,
+  },
+  avisoBloqueoTexto: {
+    flex: 1,
+    fontSize: 13,
+    color: COLOR.ERROR,
+  },
   container: {
     flex: 1,
     backgroundColor: COLOR.SECUNDARIO,

@@ -93,7 +93,9 @@
     "cargando": "Loading...",
     "errores": {
       "fecha_hora_requerida": "Date and time required",
-      "ubicacion_requerida": "Start location required"
+      "ubicacion_requerida": "Start location required",
+      "bloqueo_financiero": "You have an overdue payment. Pay it to request new walks.",
+      "sin_politica_comercial": "Prices are not available right now. Please try later."
     }
   },
   "pasos": {

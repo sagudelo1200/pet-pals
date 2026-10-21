@@ -4,6 +4,13 @@
 
 import * as mockFirestore from '../helpers/mockFirestore';
 
+// El código usa comun/firebaseAdminCompat (firebase-admin v14 modular): se
+// le entrega el mismo mock de firebase-admin para no cargar el SDK real
+jest.mock('../../src/comun/firebaseAdminCompat', () => ({
+  __esModule: true,
+  default: jest.requireMock('firebase-admin'),
+}));
+
 jest.mock('firebase-admin', () => {
   const db = mockFirestore.crearMockDb();
   return {
@@ -158,7 +165,8 @@ describe('escalarPaseoIndividual (HTTP invocado por Cloud Tasks)', () => {
 
     expect(res.json).toHaveBeenCalledWith(expect.objectContaining({success: true}));
     const paseo = db.__docs.get('operaciones/p1');
-    expect(paseo.id_cuidador).toEqual(mockFirestore.MOCK_FIELD_VALUE.delete());
+    // FieldValue.delete() elimina el campo: la solicitud queda sin cuidador
+    expect(paseo).not.toHaveProperty('id_cuidador');
     expect(paseo.actualizado_por).toBe('SISTEMA_ESCALADA');
 
     const eventos = [...db.__docs.entries()].filter(([p]) =>

@@ -11,7 +11,7 @@
  *   node scripts/firebase-cleanup.js
  *   npm run firebase:cleanup
  *
- * Requiere firebase-admin instalado en functions/ (npm install dentro de /functions).
+ * Requiere firebase-admin (en la raíz o en functions/).
  */
 
 const path = require('path')
@@ -19,15 +19,21 @@ const readline = require('readline')
 
 // ── Cargar firebase-admin ────────────────────────────────────────────────────
 let admin
+let getFirestore
 try {
   admin = require('firebase-admin')
+  ;({ getFirestore } = require('firebase-admin/firestore'))
 } catch {
   try {
     admin = require(path.resolve(__dirname, '../functions/node_modules/firebase-admin'))
+    ;({ getFirestore } = require(path.resolve(
+      __dirname,
+      '../functions/node_modules/firebase-admin/firestore',
+    )))
   } catch {
     console.error(
       '\n❌  firebase-admin no encontrado.\n' +
-        '    Instala las dependencias ejecutando: cd functions && npm install\n',
+        '    Instala dependencias en la raíz (npm install) o en functions (cd functions && npm install)\n',
     )
     process.exit(1)
   }
@@ -35,12 +41,16 @@ try {
 
 // ── Credenciales ─────────────────────────────────────────────────────────────
 const credentials = require('./firebaseCredentials.json')
+const cert = admin.cert || admin.credential?.cert
+if (typeof cert !== 'function') {
+  throw new Error('No se encontró admin.cert/admin.credential.cert en firebase-admin')
+}
 
 admin.initializeApp({
-  credential: admin.credential.cert(credentials),
+  credential: cert(credentials),
 })
 
-const db = admin.firestore()
+const db = getFirestore()
 
 // ── Utilidades de consola ────────────────────────────────────────────────────
 const rl = readline.createInterface({ input: process.stdin, output: process.stdout })

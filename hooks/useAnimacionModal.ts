@@ -4,6 +4,8 @@ import {
   PanResponder,
   Dimensions,
   useWindowDimensions,
+  type NativeScrollEvent,
+  type NativeSyntheticEvent,
 } from 'react-native'
 
 const { height: INITIAL_HEIGHT } = Dimensions.get('window')
@@ -26,6 +28,13 @@ export const useAnimacionModal = ({
   useEffect(() => {
     isExpandedRef.current = isExpanded
   }, [isExpanded])
+
+  // ¿El contenido scrollable está arriba del todo? Solo entonces un arrastre
+  // hacia abajo colapsa el modal; si no, ese gesto desplaza el contenido
+  const scrollEnTopeRef = useRef(true)
+  const alHacerScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+    scrollEnTopeRef.current = e.nativeEvent.contentOffset.y <= 0
+  }
 
   // Constante para el estado parcial (altura oculta inicialmente)
   // Calculado para dejar visible aprox 465px (Imagen + Info + Botones)
@@ -82,10 +91,10 @@ export const useAnimacionModal = ({
         // Umbral mínimo de movimiento
         if (Math.abs(dy) < 10) return false
 
-        // Si está expandido, solo capturar si el movimiento es hacia abajo (colapsar)
-        // Si es hacia arriba (dy < 0), dejamos que el ScrollView maneje el scroll del contenido
+        // Expandido: solo colapsar con un arrastre hacia abajo y con el
+        // contenido arriba del todo; en cualquier otro caso scrollea el contenido
         if (expanded) {
-          return dy > 0
+          return dy > 0 && scrollEnTopeRef.current
         }
 
         // Si no está expandido, capturamos cualquier movimiento vertical
@@ -156,6 +165,7 @@ export const useAnimacionModal = ({
     opacityAnim,
     panResponder,
     isExpanded,
+    alHacerScroll,
     expandir,
     colapsar,
     cerrar,

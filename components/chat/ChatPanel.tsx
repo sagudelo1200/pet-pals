@@ -6,13 +6,12 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Text,
-  KeyboardAvoidingView,
-  Platform,
 } from 'react-native'
 import { FlashList, type FlashListRef } from '@shopify/flash-list'
 import { useTranslation } from 'react-i18next'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { BottomSheet } from '@/components/ui/BottomSheet'
+import AjusteTeclado from '@/components/ui/AjusteTeclado'
 import { Icon } from '@/components/ui'
 import { Mensaje } from '@/models/Chat'
 import { useMensajesPaseo } from '@/hooks/chat/useMensajesPaseo'
@@ -165,10 +164,7 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
       height="80%"
       showBackdrop={true}
     >
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={{ flex: 1 }}
-      >
+      <AjusteTeclado behavior="padding" style={{ flex: 1 }}>
         <View style={[styles.container, { paddingBottom: insets.bottom }]}>
           <View style={styles.header}>
             <View style={styles.headerContent}>
@@ -249,7 +245,7 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
             </TouchableOpacity>
           </View>
         </View>
-      </KeyboardAvoidingView>
+      </AjusteTeclado>
     </BottomSheet>
   )
 }

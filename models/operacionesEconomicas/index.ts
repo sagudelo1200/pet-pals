@@ -24,4 +24,26 @@ export type {
   SentidoMovimientoFinanciero,
 } from './MovimientoFinanciero'
 
-export type { Obligacion, EstadoObligacion } from './Obligacion'
+export type { EstadoObligacion } from './Obligacion'
+
+export { idOperacionEconomica } from './OperacionEconomica'
+
+export type { Obligacion, TipoObligacion } from './Obligacion'
+
+export type { Liquidacion, EstadoLiquidacion } from './Liquidacion'
+
+export type {
+  PoliticaComercial,
+  PoliticaServicio,
+  PoliticaCobro,
+  PoliticaLiquidacion,
+  PoliticaImpuestos,
+  PoliticaContable,
+  DatosPoliticaComercial,
+} from './PoliticaComercial'
+
+export type {
+  DocumentoContable,
+  TipoDocumentoContable,
+  LineaDocumento,
+} from './DocumentoContable'

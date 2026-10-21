@@ -1,6 +1,6 @@
 /* eslint-disable camelcase */
 import {onDocumentUpdated} from 'firebase-functions/v2/firestore';
-import * as admin from 'firebase-admin';
+import admin from '../comun/firebaseAdminCompat';
 
 if (!admin.apps.length) admin.initializeApp();
 

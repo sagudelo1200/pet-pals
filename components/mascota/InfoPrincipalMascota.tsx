@@ -115,7 +115,7 @@ export const InfoPrincipalMascota: React.FC<InfoPrincipalMascotaProps> = ({
                       name="dog"
                       size={editedData.genero === 'macho' ? 32 : 28}
                       color={
-                        editedData.genero === 'macho' ? '#3498db' : '#7f8c8d'
+                        editedData.genero === 'macho' ? '#3498db' : COLOR.SUBTEXTO
                       }
                     />
                     <Text
@@ -141,7 +141,7 @@ export const InfoPrincipalMascota: React.FC<InfoPrincipalMascotaProps> = ({
                       name="dog"
                       size={editedData.genero === 'hembra' ? 32 : 28}
                       color={
-                        editedData.genero === 'hembra' ? '#f06292' : '#7f8c8d'
+                        editedData.genero === 'hembra' ? '#f06292' : COLOR.SUBTEXTO
                       }
                       style={{ transform: [{ scaleX: -1 }] }}
                     />

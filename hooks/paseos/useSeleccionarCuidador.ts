@@ -1,8 +1,9 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useAuth } from '@/context/AuthContext'
 import { GestorPerfilPublico } from '@/logic/usuarios/perfilPublico'
 import { LogicMatching } from '@/logic/paseos/matching'
-import { STANDARD_SERVICE_PRICE } from '@/constants'
+import { usePoliticaComercial } from '@/hooks/comercial'
+import { formatearCOP } from '@/logic/comercial'
 import {
   coordsAH3,
   distanciaKmEntreH3,
@@ -291,7 +292,7 @@ export const useSeleccionarCuidador = (
             imagen: perfil.foto || 'https://via.placeholder.com/69',
             calificacion: cal,
             distancia: distanciaTexto,
-            tarifa: `$${STANDARD_SERVICE_PRICE.toLocaleString()}/hr`,
+            tarifa: '',
             insignias: perfil.insignias_verificacion ?? [],
             estado: 'disponible' as const,
             motivo: undefined as undefined,
@@ -321,7 +322,7 @@ export const useSeleccionarCuidador = (
             imagen: perfil.foto || 'https://via.placeholder.com/69',
             calificacion: cal,
             distancia: distanciaTexto,
-            tarifa: `$${STANDARD_SERVICE_PRICE.toLocaleString()}/hr`,
+            tarifa: '',
             insignias: perfil.insignias_verificacion ?? [],
             estado: 'otro_horario' as const,
             motivo: generarMotivo(perfil),
@@ -353,8 +354,16 @@ export const useSeleccionarCuidador = (
     setCuidadorSeleccionado(id)
   }
 
+  // Tarifa global de la política comercial vigente
+  const { politica } = usePoliticaComercial()
+  const cuidadoresConTarifa = useMemo(() => {
+    const base = politica?.por_tipo.paseo.precio.base_por_hora
+    const tarifa = base ? `${formatearCOP(base)}/hr` : '—'
+    return cuidadores.map(c => ({ ...c, tarifa }))
+  }, [cuidadores, politica])
+
   return {
-    cuidadores,
+    cuidadores: cuidadoresConTarifa,
     cargando,
     error,
     cuidadorSeleccionado,

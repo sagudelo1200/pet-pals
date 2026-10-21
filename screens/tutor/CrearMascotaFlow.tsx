@@ -1,5 +1,12 @@
 import React, { useRef, useEffect, useState } from 'react'
-import { View, StyleSheet, Text, Alert, Animated } from 'react-native'
+import {
+  View,
+  StyleSheet,
+  Text,
+  Alert,
+  Animated,
+  type TextInput as RNTextInput,
+} from 'react-native'
 import { useTranslation } from 'react-i18next'
 import { COLOR } from '@/constants'
 import {
@@ -82,6 +89,7 @@ export const CrearMascotaFlow: React.FC<CrearMascotaFlowProps> = ({
 
   // Animation values
   const avatarScale = useRef(new Animated.Value(1)).current
+  const nombreRef = useRef<RNTextInput>(null)
 
   // Limpiar estado cuando el modal se cierra
   useEffect(() => {
@@ -219,7 +227,7 @@ export const CrearMascotaFlow: React.FC<CrearMascotaFlowProps> = ({
                 value={datosMascota.nombre || ''}
                 onChangeText={text => actualizarCampo('nombre', text)}
                 placeholder={t('mascotas:crear.paso1.placeholder')}
-                autoFocus
+                ref={nombreRef}
                 returnKeyType="next"
                 onSubmitEditing={handleContinuar}
               />
@@ -341,7 +349,12 @@ export const CrearMascotaFlow: React.FC<CrearMascotaFlowProps> = ({
   }
 
   return (
-    <BottomSheet visible={visible} onClose={onClose}>
+    <BottomSheet
+      visible={visible}
+      onClose={onClose}
+      // Foco al terminar de abrir (autoFocus en un Modal no siempre abre el teclado)
+      onAbierto={() => nombreRef.current?.focus()}
+    >
       {/* Barra de progreso minimalista */}
       <View style={styles.progressBar}>
         <View

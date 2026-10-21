@@ -160,6 +160,7 @@ describe('CONTABILIDAD: Reportes & Reconciliación', () => {
         {
           id: 'obl-1',
           operacion_id: 'op-1',
+          tipo: 'PAGO_CUIDADOR',
           deudor: 'paw-path',
           acreedor: 'carlos-cuidador',
           concepto: 'Pago paseo 1',
@@ -170,6 +171,7 @@ describe('CONTABILIDAD: Reportes & Reconciliación', () => {
         {
           id: 'obl-2',
           operacion_id: 'op-2',
+          tipo: 'PAGO_CUIDADOR',
           deudor: 'paw-path',
           acreedor: 'carlos-cuidador',
           concepto: 'Pago paseo 2',
@@ -180,6 +182,7 @@ describe('CONTABILIDAD: Reportes & Reconciliación', () => {
         {
           id: 'obl-3',
           operacion_id: 'op-3',
+          tipo: 'PAGO_CUIDADOR',
           deudor: 'paw-path',
           acreedor: 'sofia-cuidadora',
           concepto: 'Pago paseo 3',
@@ -209,6 +212,7 @@ describe('CONTABILIDAD: Reportes & Reconciliación', () => {
         {
           id: 'obl-1',
           operacion_id: 'op-1',
+          tipo: 'PAGO_CUIDADOR',
           deudor: 'paw-path',
           acreedor: 'carlos',
           concepto: 'Paseo 1',
@@ -219,6 +223,7 @@ describe('CONTABILIDAD: Reportes & Reconciliación', () => {
         {
           id: 'obl-2',
           operacion_id: 'op-2',
+          tipo: 'PAGO_CUIDADOR',
           deudor: 'paw-path',
           acreedor: 'carlos',
           concepto: 'Paseo 2',
@@ -230,6 +235,7 @@ describe('CONTABILIDAD: Reportes & Reconciliación', () => {
         {
           id: 'obl-3',
           operacion_id: 'op-3',
+          tipo: 'PAGO_CUIDADOR',
           deudor: 'paw-path',
           acreedor: 'carlos',
           concepto: 'Paseo 3',
@@ -256,6 +262,7 @@ describe('CONTABILIDAD: Reportes & Reconciliación', () => {
         {
           id: 'obl-1',
           operacion_id: 'op-1',
+          tipo: 'PAGO_CUIDADOR',
           deudor: 'paw-path',
           acreedor: 'carlos',
           concepto: 'Semana 1',
@@ -266,6 +273,7 @@ describe('CONTABILIDAD: Reportes & Reconciliación', () => {
         {
           id: 'obl-2',
           operacion_id: 'op-2',
+          tipo: 'PAGO_CUIDADOR',
           deudor: 'paw-path',
           acreedor: 'sofia',
           concepto: 'Semana 1',
@@ -364,6 +372,7 @@ describe('CONTABILIDAD: Reportes & Reconciliación', () => {
         {
           id: 'obl-1',
           operacion_id: 'op-1',
+          tipo: 'PAGO_CUIDADOR',
           deudor: 'paw-path',
           acreedor: 'cuidador',
           concepto: 'Pago',

@@ -11,7 +11,9 @@ import {
 } from 'react-native'
 import { useNavigation } from '@react-navigation/native'
 import { useTranslation } from 'react-i18next'
-import { COLOR, STANDARD_SERVICE_PRICE } from '@/constants'
+import { COLOR } from '@/constants'
+import { usePoliticaComercial } from '@/hooks/comercial'
+import { formatearCOP } from '@/logic/comercial'
 import Screen from '@/components/ui/Screen'
 import ScreenHeader from '@/components/ui/ScreenHeader'
 import Button from '@/components/ui/Button'
@@ -48,6 +50,8 @@ const PerfilCuidador: React.FC = () => {
   const { t } = useTranslation()
   const navigation = useNavigation<Nav>()
   const { user, profile } = useAuth()
+  const { politica } = usePoliticaComercial()
+  const tarifaBase = politica?.por_tipo.paseo.precio.base_por_hora
 
   const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
@@ -202,7 +206,7 @@ const PerfilCuidador: React.FC = () => {
   const [tab, setTab] = useState<'datos' | 'horario'>('datos')
 
   return (
-    <Screen style={styles.container}>
+    <Screen teclado style={styles.container}>
       <ScreenHeader
         title={t('perfil:editar.titulo')}
         subtitle={t('perfil:editar.subtitulo')}
@@ -277,7 +281,7 @@ const PerfilCuidador: React.FC = () => {
               ]}
             >
               <Text style={styles.disabledTarifa}>
-                ${STANDARD_SERVICE_PRICE.toLocaleString('es-CO')} /{' '}
+                {tarifaBase ? formatearCOP(tarifaBase) : '—'} /{' '}
                 {t('cuidador:perfil.hora')}
               </Text>
               <Text style={styles.tarifaHint}>

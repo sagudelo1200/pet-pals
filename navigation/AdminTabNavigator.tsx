@@ -4,6 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
 import AdminDashboard from '@/screens/admin/AdminDashboard'
 import TerritorioVivo from '@/screens/admin/TerritorioVivo'
+import AdminEconomia from '@/screens/admin/AdminEconomia'
 import MiCuenta from '@/screens/comun/MiCuenta'
 import { Icon } from '@/components/ui'
 import { COLOR } from '@/constants'
@@ -51,6 +52,16 @@ const AdminTabNavigator: React.FC = () => {
           tabBarLabel: 'Dashboard',
           tabBarIcon: ({ color, size }) => (
             <Icon name="cog" color={color} size={size} />
+          ),
+        }}
+      />
+      <Tab.Screen
+        name="AdminEconomia"
+        component={AdminEconomia}
+        options={{
+          tabBarLabel: 'Economía',
+          tabBarIcon: ({ color, size }) => (
+            <Icon name="dollar-sign" color={color} size={size} />
           ),
         }}
       />

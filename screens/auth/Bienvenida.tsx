@@ -99,7 +99,6 @@ const Bienvenida: FC = () => {
     <Screen
       style={styles.container}
       contentContainerStyle={styles.content}
-      disableDismiss
     >
       <LinearGradient
         colors={[COLOR.BASE, COLOR.BLOQUE]}

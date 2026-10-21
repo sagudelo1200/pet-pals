@@ -6,11 +6,8 @@ import { GestorUbicaciones } from '@/logic/ubicaciones'
 import { confirmarReservaPaseo } from '@/logic/paseos/confirmador'
 import { useAuth } from '@/context/AuthContext'
 import type { Ubicacion } from '@/models/Ubicacion'
-import {
-  STANDARD_SERVICE_PRICE,
-  USE_GLOBAL_SERVICE_PRICE,
-  EXTRA_PER_ADDITIONAL_PET,
-} from '@/constants'
+import { usePoliticaComercial, useBloqueoFinanciero } from '@/hooks/comercial'
+import { calcularPrecioPaseo, desglosarCobro } from '@/logic/comercial'
 
 interface ConfirmarPaseoProps {
   mascotaIds: string[]
@@ -93,25 +90,35 @@ export const useConfirmarPaseo = ({
     cargarDatos()
   }, [cuidadorId, direccionId])
 
-  // Cálculo simple de costos
-  // Usar precio global temporal si la feature está activada
-  const tarifaBase = USE_GLOBAL_SERVICE_PRICE
-    ? STANDARD_SERVICE_PRICE
-    : cuidador?.tarifa || STANDARD_SERVICE_PRICE
-  const tarifaMascotaAdicional = EXTRA_PER_ADDITIONAL_PET // Tarifa adicional por mascota extra
-  const numMascotas = mascotas.length
-  const duracionMinutos = duracion || 60
-  const factorDuracion = duracionMinutos / 60
-
-  // Si es más de una, sumamos extra por cada adicional
-  const totalBase =
-    numMascotas > 0
-      ? tarifaBase + (numMascotas - 1) * tarifaMascotaAdicional
-      : 0
-
-  const total = totalBase * factorDuracion
+  // Precio estimado con la política comercial vigente (el servidor cobra
+  // con la misma fórmula al validar la entrega). Sin política no hay precio:
+  // la pantalla lo indica en vez de mostrar $0
+  const { politica, error: errorPolitica } = usePoliticaComercial()
+  const { bloqueado } = useBloqueoFinanciero()
+  const desglose = politica
+    ? desglosarCobro(
+        politica.por_tipo.paseo,
+        politica.impuestos,
+        calcularPrecioPaseo(
+          politica.por_tipo.paseo,
+          mascotas.length,
+          duracion || 60
+        )
+      )
+    : null
+  const total = desglose?.valor_acordado ?? 0
 
   const confirmarReserva = useCallback(async () => {
+    if (bloqueado) {
+      setError(t('paseos:flujo.errores.bloqueo_financiero'))
+      return false
+    }
+    if (!politica) {
+      setError(
+        errorPolitica || t('paseos:flujo.errores.sin_politica_comercial')
+      )
+      return false
+    }
     setLoading(true)
     setError(null)
     try {
@@ -157,6 +164,9 @@ export const useConfirmarPaseo = ({
     mascotaIds,
     user,
     t,
+    bloqueado,
+    politica,
+    errorPolitica,
   ])
 
   return {
@@ -164,6 +174,8 @@ export const useConfirmarPaseo = ({
     cuidador,
     direccion,
     total,
+    desglose,
+    bloqueado,
     loading,
     error,
     confirmarReserva,

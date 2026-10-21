@@ -14,6 +14,7 @@ import { PaseoFinalizadoCard } from '@/components/paseos/PaseoFinalizadoCard'
 import { ModalValidacionEntrega, PantallaPago } from '@/components/tutor'
 import { useAuth } from '@/context/AuthContext'
 import { useEnviarEvaluacionCuidador } from '@/hooks/paseos/useEnviarEvaluacionCuidador'
+import { idOperacionEconomica } from '@/models/operacionesEconomicas'
 
 type RouteProps = RouteProp<AuthStackParamList, 'PaseoFinalizado'>
 
@@ -33,6 +34,7 @@ export default function PaseoFinalizado() {
   // Estados para controlar el flujo: Validación → Pago → Calificación
   const [entregaValidada, setEntregaValidada] = useState(false)
   const [pagoProcesado, setPagoProcesado] = useState(false)
+  const marcarPagado = useCallback(() => setPagoProcesado(true), [])
 
   const cuidadorId = paseo?.id_cuidador
   const { ratingPrevio, enviando, enviado, nuevoPromedio, enviar } =
@@ -97,7 +99,11 @@ export default function PaseoFinalizado() {
     <View style={styles.container}>
       <View style={styles.contentContainer}>
         {/* FASE 4: Validación de entrega (si no está validada aún) */}
-        {!entregaValidada && paseo.estado !== 'COMPLETADO' ? (
+        {/* Validada si: la acaba de validar, ya la había validado este tutor
+            (paseo compartido esperando a otros) o el paseo ya está COMPLETADO */}
+        {!entregaValidada &&
+        paseo.codigo_entrega_validado_por_tutor?.[user?.uid || ''] !== true &&
+        paseo.estado !== 'COMPLETADO' ? (
           <ModalValidacionEntrega
             visible={true}
             paseoId={paseoId}
@@ -110,15 +116,12 @@ export default function PaseoFinalizado() {
         ) : !pagoProcesado ? (
           // FASE 4.1: Pago (si se validó pero aún no pagó)
           <PantallaPago
-            operacionId={paseo?.operacion_economica_id || ''}
-            monto={paseo?.precio || 0}
+            operacionId={idOperacionEconomica(paseoId, user?.uid || '')}
             nombreMascota={paseo?.mascota_nombre_visual || 'Mascota'}
             nombreCuidador={paseo?.cuidador_nombre_visual || 'Cuidador'}
-            onPaymentSuccess={(referencia: string) => {
-              console.log('[PaseoFinalizado] Pago iniciado, referencia:', referencia)
-              setPagoProcesado(true)
-            }}
-            onCancel={() => navigation.navigate('TutorApp')}
+            onPagado={marcarPagado}
+            // "Pagar después": sigue a la calificación; la deuda queda en su historial
+            onCancel={marcarPagado}
           />
         ) : (
           // Calificación (después de validar y pagar)

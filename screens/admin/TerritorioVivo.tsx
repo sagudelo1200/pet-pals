@@ -225,7 +225,7 @@ const styles = StyleSheet.create({
     width: 320,
     backgroundColor: COLOR.BASE,
     borderLeftWidth: 1,
-    borderLeftColor: '#1F2D2A',
+    borderLeftColor: COLOR.BORDE,
     position: 'relative',
   },
   botónCerrar: {

@@ -377,7 +377,7 @@ const VerificarEmail: React.FC = () => {
   }
 
   return (
-    <Screen contentContainerStyle={styles.screenContent}>
+    <Screen scroll teclado contentContainerStyle={styles.screenContent}>
       {/* Banner de feedback de envío */}
       {mensajeEnvio && (
         <View
@@ -512,7 +512,7 @@ export default VerificarEmail
 
 const styles = StyleSheet.create({
   screenContent: {
-    flex: 1,
+    flexGrow: 1,
   },
   /* Banner de feedback (éxito/error) */
   bannerFeedback: {

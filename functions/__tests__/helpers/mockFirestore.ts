@@ -32,9 +32,26 @@ function valorEnRuta(obj: unknown, ruta: string): unknown {
     );
 }
 
+// Aplica cambios respetando FieldValue.delete() (elimina el campo)
+function aplicarCambios(
+  base: Record<string, unknown>,
+  cambios: Record<string, unknown>
+): Record<string, unknown> {
+  const resultado = {...base};
+  for (const [k, v] of Object.entries(cambios)) {
+    if ((v as {__mock?: string} | null)?.__mock === 'FieldValue.delete') {
+      delete resultado[k];
+    } else {
+      resultado[k] = v;
+    }
+  }
+  return resultado;
+}
+
 export function crearMockDb(): any {
   const docs = new Map<string, Record<string, unknown>>();
   let autoId = 0;
+  let colaTransacciones: Promise<unknown> = Promise.resolve();
 
   const db: any = {
     __docs: docs,
@@ -62,7 +79,7 @@ export function crearMockDb(): any {
           opts?: { merge?: boolean }
         ): Promise<void> {
           if (opts?.merge) {
-            docs.set(path, {...(docs.get(path) || {}), ...data});
+            docs.set(path, aplicarCambios(docs.get(path) || {}, data));
           } else {
             docs.set(path, {...data});
           }
@@ -71,7 +88,7 @@ export function crearMockDb(): any {
           if (!docs.has(path)) {
             throw errorConCodigo('not-found', 'document not found');
           }
-          docs.set(path, {...docs.get(path)!, ...data});
+          docs.set(path, aplicarCambios(docs.get(path)!, data));
         },
         collection(sub: string) {
           return db.collection(`${path}/${sub}`);
@@ -137,14 +154,18 @@ export function crearMockDb(): any {
       };
       return queryObj;
     },
-    // Transacción secuencial: suficiente para tests unitarios
+    // Transacciones serializadas (una a la vez), como garantiza Firestore:
+    // dos transacciones en paralelo nunca leen el mismo estado previo
     async runTransaction<T>(cb: (tx: any) => Promise<T>): Promise<T> {
-      return cb({
+      const ejecutar = () => cb({
         get: (ref: any) => ref.get(),
         update: (ref: any, data: Record<string, unknown>) => ref.update(data),
         set: (ref: any, data: Record<string, unknown>, opts?: { merge?: boolean }) =>
           ref.set(data, opts),
       });
+      const resultado = colaTransacciones.then(ejecutar, ejecutar);
+      colaTransacciones = resultado.then(() => undefined, () => undefined);
+      return resultado;
     },
     batch() {
       const ops: Array<() => void> = [];

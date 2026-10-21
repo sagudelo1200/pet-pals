@@ -1,4 +1,4 @@
-import * as admin from 'firebase-admin';
+import admin from '../comun/firebaseAdminCompat';
 import {Timestamp} from 'firebase-admin/firestore';
 import {gridDisk} from 'h3-js';
 

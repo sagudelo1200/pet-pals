@@ -1,5 +1,5 @@
 import {onDocumentUpdated} from 'firebase-functions/v2/firestore';
-import * as admin from 'firebase-admin';
+import admin from '../comun/firebaseAdminCompat';
 import {Timestamp} from 'firebase-admin/firestore';
 
 if (!admin.apps || admin.apps.length === 0) {

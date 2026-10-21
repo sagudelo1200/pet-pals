@@ -10,7 +10,9 @@ import {
 import { BlurView } from 'expo-blur'
 import { useTranslation } from 'react-i18next'
 import { Avatar, Icon } from '@/components/ui'
-import { COLOR, STANDARD_SERVICE_PRICE } from '@/constants'
+import { COLOR } from '@/constants'
+import { usePoliticaComercial } from '@/hooks/comercial'
+import { formatearCOP } from '@/logic/comercial'
 import type { PerfilPublico } from '@/models/PerfilPublico'
 import { ServicioResumenEvaluacion } from '@/services/firebase'
 import type { ResumenEvaluacion } from '@/models/ResumenEvaluacion'
@@ -34,6 +36,8 @@ export function ModalPerfilCuidador({
   onCerrar,
 }: ModalPerfilCuidadorProps) {
   const { t } = useTranslation()
+  const { politica } = usePoliticaComercial()
+  const tarifaBase = politica?.por_tipo.paseo.precio.base_por_hora
 
   // Reseñas públicas del cuidador (solo mutuamente reveladas, sin identidad)
   const [resumen, setResumen] = useState<ResumenEvaluacion | null>(null)
@@ -248,7 +252,7 @@ export function ModalPerfilCuidador({
                   style={{ marginRight: 8 }}
                 />
                 <Text style={styles.tarifaTexto}>
-                  ${STANDARD_SERVICE_PRICE.toLocaleString('es-CO')}
+                  {tarifaBase ? formatearCOP(tarifaBase) : '—'}
                 </Text>
                 <Text style={styles.tarifaLabel}>
                   {' '}

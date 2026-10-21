@@ -246,26 +246,36 @@ describe('RESUMEN: Validación de reglas Firestore FASE 5', () => {
   const fs = require('fs')
   const leer = (rel: string): string => fs.readFileSync(rel, 'utf8')
 
-  it('cada colección del servicio económico tiene reglas en firestore.rules', () => {
-    const servicio = leer(
-      'services/firebase/firestore/colecciones/operacionesEconomicas.ts'
-    )
+  it('cada colección del motor económico tiene reglas y es de solo lectura para clientes', () => {
+    const tipos = leer('functions/src/economia/tipos.ts')
     const reglas = leer('firestore.rules')
-    const colecciones = (servicio.match(/const \w+_COL = '[^']+'/g) || []).map(
+    const bloque = tipos.slice(
+      tipos.indexOf('export const COLECCION'),
+      tipos.indexOf('} as const')
+    )
+    const colecciones = (bloque.match(/: '[^']+'/g) || []).map(
       (linea: string) => linea.split('\'')[1]
     )
 
     expect(colecciones).toEqual(
       expect.arrayContaining([
         'operaciones_economicas',
-        'eventos_economicos',
         'movimientos_financieros',
         'obligaciones',
         'deduplicacion_movimientos',
+        'liquidaciones',
+        'politicas_comerciales',
+        'configuracion',
       ])
     )
-    for (const col of colecciones) {
-      expect(reglas).toMatch(new RegExp(`match /${col}/[{]`))
+    for (const col of [...colecciones, 'eventos_economicos']) {
+      const inicio = reglas.search(new RegExp(`match /${col}/[{]`))
+      expect(inicio).toBeGreaterThan(-1)
+      // La primera regla de escritura del bloque niega al cliente
+      const resto = reglas.slice(inicio)
+      expect(resto.slice(0, resto.indexOf('allow write') + 30)).toMatch(
+        /allow (read, )?write: if false;/
+      )
     }
   })
 

@@ -164,7 +164,7 @@ export default function Mascotas({ navigation }: any) {
   return (
     <Screen
       contentContainerStyle={{ flex: 1 }}
-      floating={<Fab onPress={handleAbrirCrear} style={styles.fab} />}
+      floating={<Fab onPress={handleAbrirCrear} />}
     >
       <ScreenHeader
         title={t('mascotas:lista.titulo')}
@@ -217,15 +217,8 @@ const styles = StyleSheet.create({
   },
   list: {
     padding: 15,
-    paddingBottom: 100,
+    paddingBottom: 80,
     gap: 12,
-  },
-  fab: {
-    position: 'absolute',
-    bottom: 90,
-    right: 21,
-    zIndex: 1000,
-    elevation: 9,
   },
   skeletonCard: {
     backgroundColor: COLOR.BLOQUE,

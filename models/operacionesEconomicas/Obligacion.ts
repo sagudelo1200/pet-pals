@@ -14,6 +14,12 @@ export type EstadoObligacion =
   | 'ANULADA' // Cancelada sin ejecutar (ej. por cancelación de operación)
 
 /**
+ * COBRO_TUTOR: el tutor debe a Paw-Path el valor del servicio.
+ * PAGO_CUIDADOR: Paw-Path debe al cuidador los recursos administrados.
+ */
+export type TipoObligacion = 'COBRO_TUTOR' | 'PAGO_CUIDADOR'
+
+/**
  * @property id - ID único
  * @property operacion_id - Operación que generó la obligación
  * @property deudor - ID de quién debe
@@ -28,6 +34,8 @@ export type EstadoObligacion =
 export interface Obligacion {
   id: string
   operacion_id: string
+  operacion_servicio_id?: string
+  tipo: TipoObligacion
 
   // Partes del compromiso
   deudor: string
@@ -42,4 +50,11 @@ export interface Obligacion {
   creado_en: Timestamp
   cumplido_en?: Timestamp
   movimiento_cumplido_id?: string
+
+  // Cobranza (COBRO_TUTOR)
+  recordatorios_enviados?: number
+
+  // Liquidación (PAGO_CUIDADOR)
+  cobro_recaudado?: boolean
+  liquidacion_id?: string
 }

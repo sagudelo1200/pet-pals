@@ -205,14 +205,25 @@ service cloud.firestore {
       .hasOnly(['tutor', 'cuidador', 'explorador']);
     }
 
+    // La actualización no toca ninguno de estos campos
+    function no_cambia(campos) {
+      return !request.resource.data.diff(resource.data).affectedKeys().hasAny(campos);
+    }
+
+    // El usuario autenticado no tiene cobros vencidos (lo marca el servidor)
+    function sin_bloqueo_financiero() {
+      return doc_usuario().data.get('bloqueo_financiero', null) == null;
+    }
+
     // USUARIOS
     match /usuarios/{uid} {
       allow read: if autenticado() && (es_mismo_uid(uid) || es_admin());
       allow create: if puede_crear_valido() && es_mismo_uid(uid) && usuario_es_mayor_edad()
-        && request.resource.data.roles.hasOnly(['tutor', 'cuidador', 'explorador']);
+        && request.resource.data.roles.hasOnly(['tutor', 'cuidador', 'explorador'])
+        && !('bloqueo_financiero' in request.resource.data);
       allow update: if puede_actualizar_valido() && (
       es_admin() ||
-      (es_mismo_uid(uid) && roles_agregados_permitidos())
+      (es_mismo_uid(uid) && roles_agregados_permitidos() && no_cambia(['bloqueo_financiero']))
       );
       allow delete: if es_admin();
     }
@@ -326,10 +337,13 @@ service cloud.firestore {
 
       allow create: if puede_crear_valido()
         && (!('id_cuidador' in request.resource.data) || 
-      request.resource.data.id_cuidador != request.auth.uid);
+      request.resource.data.id_cuidador != request.auth.uid)
+        && !('politica_version' in request.resource.data)
+        && sin_bloqueo_financiero();
 
       // OPTIMIZADO: Validaciones en orden de costo (baratas primero)
-      allow update: if puede_actualizar_valido() && (
+      // politica_version la fija el servidor y define con qué tarifas se cobra
+      allow update: if puede_actualizar_valido() && (no_cambia(['politica_version']) || es_admin()) && (
       // Caso 1: El Creador actualiza (validación más barata - solo request.auth.uid)
       resource.data.creado_por == request.auth.uid ||
 
@@ -382,6 +396,7 @@ service cloud.firestore {
       // Primero verificar si es el usuario que se está agregando (barato)
       (request.resource.data.id_usuario == request.auth.uid && 
       request.resource.data.id_mascota == mascotaId &&
+      sin_bloqueo_financiero() &&
       puede_unirse_a_paseo_doc(get_operacion_doc(operacionId))) ||
       // Luego verificar si es actor (requiere get)
       es_actor_paseo_doc(get_operacion_doc(operacionId))
@@ -753,12 +768,11 @@ service cloud.firestore {
       allow delete: if es_admin();
     }
 
-    // ===== NUEVA FASE 5: OPERACIONES ECONÓMICAS =====
+    // ===== ECONOMÍA =====
+    // Todo lo económico lo escribe solo el servidor (Cloud Functions de
+    // functions/src/economia, Admin SDK). Los clientes únicamente leen.
 
-    // OPERACIONES ECONÓMICAS
-    // /operaciones_economicas/{operacion_id}
-    // Documento base que fija términos del encargo entre tutor, cuidador y Paw-Path
-    // Tutor o cuidador asignado de una operación económica
+    // Tutor o cuidador de una operación económica
     function es_participante_op(opId) {
       let op = get(/databases/$(database)/documents/operaciones_economicas/$(opId)).data;
       return autenticado() && (
@@ -767,130 +781,79 @@ service cloud.firestore {
       );
     }
 
-    // El usuario es el cuidador que aceptó el paseo vinculado a la operación
-    function es_cuidador_del_paseo(op) {
-      return op.get('paseo_id', null) != null &&
-      get(/databases/$(database)/documents/operaciones/$(op.paseo_id)).data.get('id_cuidador', null) == request.auth.uid;
-    }
-
     match /operaciones_economicas/{operacion_id} {
-      // LECTURA: tutor, cuidador asignado, cuidador del paseo vinculado o admin
       allow read: if autenticado() && (
       resource.data.tutor_id == request.auth.uid ||
       resource.data.get('cuidador_id', null) == request.auth.uid ||
-      es_cuidador_del_paseo(resource.data) ||
+      tiene_rol_actual('contador') ||
       es_admin()
       );
+      allow write: if false;
 
-      // CREACIÓN: Solo tutor (creador); valida la invariante I1 en servidor
-      allow create: if autenticado() &&
-      request.resource.data.tutor_id == request.auth.uid &&
-      request.resource.data.estado == 'ENCARGADA' &&
-      request.resource.data.valor_acordado > 0 &&
-      request.resource.data.remuneracion_mandatario >= 0 &&
-      request.resource.data.recursos_administrados >= 0 &&
-      request.resource.data.valor_acordado ==
-      request.resource.data.remuneracion_mandatario + request.resource.data.recursos_administrados &&
-      request.resource.data.creado_en is timestamp &&
-      request.resource.data.get('cuidador_id', null) == null;
-
-      // ACTUALIZACIÓN: los montos y el tutor son inmutables
-      // - Tutor: estado / cancelación
-      // - Cuidador del paseo: asignarse una sola vez (asignarCuidador)
-      // - Cuidador asignado: marcar ejecución (registrarServicioEjecutado)
-      allow update: if autenticado() &&
-      request.resource.data.tutor_id == resource.data.tutor_id &&
-      request.resource.data.valor_acordado == resource.data.valor_acordado &&
-      request.resource.data.remuneracion_mandatario == resource.data.remuneracion_mandatario &&
-      request.resource.data.recursos_administrados == resource.data.recursos_administrados &&
-      (
-      (resource.data.tutor_id == request.auth.uid &&
-      request.resource.data.diff(resource.data).affectedKeys().hasOnly(['estado', 'cancelado_en', 'cancelado_por'])) ||
-      (resource.data.get('cuidador_id', null) == null &&
-      request.resource.data.cuidador_id == request.auth.uid &&
-      es_cuidador_del_paseo(resource.data) &&
-      request.resource.data.diff(resource.data).affectedKeys().hasOnly(['cuidador_id'])) ||
-      (resource.data.get('cuidador_id', null) == request.auth.uid &&
-      request.resource.data.diff(resource.data).affectedKeys().hasOnly(['estado']) &&
-      request.resource.data.estado in ['EJECUTADA', 'RECAUDADA']) ||
-      es_admin()
-      );
-
-      // ELIMINACIÓN: Solo admin
-      allow delete: if es_admin();
-
-      // SUBCOLECCIÓN: Eventos Económicos
+      // Eventos económicos (auditoría inmutable)
       match /eventos_economicos/{evento_id} {
-        // LECTURA: participantes de la operación padre
-        allow read: if es_participante_op(operacion_id) || es_admin();
-
-        // CREACIÓN: participantes, solo para su propia operación
-        allow create: if es_participante_op(operacion_id) &&
-        request.resource.data.operacion_id == operacion_id;
-
-        // ACTUALIZACIÓN: NO permitida (eventos inmutables)
-        allow update: if false;
-
-        // ELIMINACIÓN: Solo admin
-        allow delete: if es_admin();
+        allow read: if es_participante_op(operacion_id) ||
+        tiene_rol_actual('contador') || es_admin();
+        allow write: if false;
       }
     }
 
-    // MOVIMIENTOS FINANCIEROS (Transacciones de dinero)
-    // /movimientos_financieros/{movimiento_id}
-    // Registro de cada ingreso/egreso con trazabilidad completa
+    // MOVIMIENTOS FINANCIEROS (dinero que entra o sale)
     match /movimientos_financieros/{movimiento_id} {
-      // LECTURA:
-      // - Tutor de la operación: puede leer movimientos de su operación
-      // - Contador: acceso de lectura (auditoría financiera)
-      // - Admin: acceso total
       allow read: if autenticado() && (
       es_participante_op(resource.data.operacion_id) ||
       tiene_rol_actual('contador') ||
       es_admin()
       );
-
-      // CREACIÓN: participantes de la operación (registrarRecaudo / ejecutarPago)
-      allow create: if es_participante_op(request.resource.data.operacion_id) || es_admin();
-
-      // ACTUALIZACIÓN: NO permitida (trazabilidad inmutable)
-      allow update: if false;
-
-      // ELIMINACIÓN: Solo admin (raro, casos legales)
-      allow delete: if es_admin();
+      allow write: if false;
     }
 
-    // OBLIGACIONES (Deudas y compromisos bilaterales)
-    // /obligaciones/{obligacion_id}
-    // Mapeo de quién debe a quién, con estados de cumplimiento
+    // OBLIGACIONES (quién debe a quién)
     match /obligaciones/{obligacion_id} {
-      // LECTURA:
-      // - Tutor involucrado en la operación
-      // - Contador (auditoría)
-      // - Admin
       allow read: if autenticado() && (
       resource.data.deudor == request.auth.uid ||
       resource.data.acreedor == request.auth.uid ||
       tiene_rol_actual('contador') ||
       es_admin()
       );
-
-      // CREACIÓN: participantes de la operación, siempre en estado PENDIENTE
-      allow create: if es_participante_op(request.resource.data.operacion_id) &&
-      request.resource.data.estado == 'PENDIENTE';
-
-      // ACTUALIZACIÓN: solo admin (marcar CUMPLIDA / ANULADA)
-      allow update: if es_admin();
-
-      // ELIMINACIÓN: Solo admin
-      allow delete: if es_admin();
+      allow write: if false;
     }
 
-    // DEDUPLICACIÓN DE MOVIMIENTOS (idempotencia de registrarMovimiento)
+    // DEDUPLICACIÓN DE MOVIMIENTOS (uso interno del servidor)
     match /deduplicacion_movimientos/{dedupKey} {
-      allow get: if autenticado();
-      allow create: if autenticado();
-      allow update, delete: if false;
+      allow read, write: if false;
+    }
+
+    // DOCUMENTOS CONTABLES (fuente de verdad de Paw-Path; Siigo los refleja)
+    // El tercero ve sus documentos (facturas, recibos, documentos soporte)
+    match /documentos_contables/{documento_id} {
+      allow read: if autenticado() && (
+      resource.data.tercero.uid == request.auth.uid ||
+      tiene_rol_actual('contador') ||
+      es_admin()
+      );
+      allow write: if false;
+    }
+
+    // LIQUIDACIONES A CUIDADORES
+    match /liquidaciones/{liquidacion_id} {
+      allow read: if autenticado() && (
+      resource.data.cuidador_id == request.auth.uid ||
+      tiene_rol_actual('contador') ||
+      es_admin()
+      );
+      allow write: if false;
+    }
+
+    // POLÍTICA COMERCIAL (precios, comisión, cobro, liquidación)
+    // Lectura para mostrar precios; se publica con el callable de admin.
+    match /politicas_comerciales/{version} {
+      allow read: if autenticado();
+      allow write: if false;
+    }
+    match /configuracion/{docId} {
+      allow read: if autenticado();
+      allow write: if false;
     }
   }
 }

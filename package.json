@@ -19,6 +19,7 @@
     "check:todomain": "node ./scripts/check-toDomain.js",
     "firebase:cleanup": "node ./scripts/firebase-cleanup.js",
     "seed:consentimientos": "node ./scripts/seed-consentimientos.js",
+    "seed:politica-comercial": "node ./scripts/seed-politica-comercial.js",
     "cleanup:functions": "node ./scripts/cleanup-cloud-functions.js"
   },
   "repository": {
@@ -88,6 +89,7 @@
     "eslint": "^8.57.1",
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-native": "^5.0.0",
+    "firebase-admin": "^14.5.0",
     "jest": "^29.6.1",
     "prettier": "^3.6.2",
     "react-native-svg-transformer": "^1.5.2",

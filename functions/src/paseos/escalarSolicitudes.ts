@@ -16,9 +16,10 @@
 
 import {onDocumentCreated} from 'firebase-functions/v2/firestore';
 import {onRequest} from 'firebase-functions/v2/https';
-import * as admin from 'firebase-admin';
+import admin from '../comun/firebaseAdminCompat';
 import {CloudTasksClient} from '@google-cloud/tasks';
 import {cuentaServicioTasks} from '../evaluaciones/cloudTasks';
+import {esTareaDuplicada, nombreTarea} from '../economia/tareas';
 
 if (!admin.apps || admin.apps.length === 0) {
   admin.initializeApp();
@@ -92,6 +93,8 @@ export const onCrearPaseoDirecto = onDocumentCreated(
         QUEUE_NAME
       );
       const task = {
+        // Una sola escalada por paseo aunque el disparador se repita
+        name: `${parent}/tasks/${nombreTarea(`escalada-${paseoId}`)}`,
         httpRequest: {
           httpMethod: 'POST' as const,
           url: functionUrl,
@@ -107,8 +110,14 @@ export const onCrearPaseoDirecto = onDocumentCreated(
         },
       };
 
-      // Crear la tarea en la queue
-      await tasksClientInstance.createTask({parent, task});
+      // Crear la tarea en la queue (si ya existía, el disparador se repitió)
+      try {
+        await tasksClientInstance.createTask({parent, task});
+      } catch (error) {
+        if (!esTareaDuplicada(error)) throw error;
+        console.log(`[CloudTasks] Escalada de ${paseoId} ya estaba programada`);
+        return;
+      }
 
       console.log(
         `[CloudTasks] ✅ Escalada programada para paseo ${paseoId} ` +

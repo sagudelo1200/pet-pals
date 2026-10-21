@@ -1,4 +1,4 @@
-import * as admin from 'firebase-admin';
+import admin from './firebaseAdminCompat';
 
 type UsuarioData = {
   nombre?: string | null

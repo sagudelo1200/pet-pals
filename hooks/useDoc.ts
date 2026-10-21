@@ -26,33 +26,28 @@ export function useDoc<T extends BaseModel = any>(
   idOrOptions?: string | { listen?: boolean },
   maybeOptions?: { listen?: boolean }
 ) {
-  // Normalize arguments with memoization to prevent infinite loops
-  const { docRef, listen } = useMemo(() => {
-    let isListen = false
-    let ref: DocumentReference
+  // Normalizar a valores primitivos: así un objeto de opciones creado en
+  // cada render ({ listen: true }) no cambia la referencia ni re-suscribe
+  // (evita bucles "Maximum update depth exceeded")
+  const opciones =
+    typeof idOrOptions === 'object' && idOrOptions !== null
+      ? idOrOptions
+      : maybeOptions
+  const listen = !!opciones?.listen
+  const id = typeof idOrOptions === 'string' ? idOrOptions : ''
 
+  const docRef = useMemo<DocumentReference>(() => {
     if (
       typeof refOrCollection === 'object' &&
       refOrCollection !== null &&
       'path' in refOrCollection
     ) {
       // Called with DocumentReference
-      ref = refOrCollection as DocumentReference
-      if (typeof idOrOptions === 'object' && idOrOptions !== null)
-        isListen = !!idOrOptions.listen
-    } else {
-      // Called with collectionName, id, options?
-      const collectionName = refOrCollection as string
-      const id = typeof idOrOptions === 'string' ? idOrOptions : ''
-      const options = (maybeOptions ??
-        (typeof idOrOptions === 'object' ? idOrOptions : undefined)) as
-        | { listen?: boolean }
-        | undefined
-      isListen = !!options?.listen
-      ref = doc(db, collectionName, id)
+      return refOrCollection as DocumentReference
     }
-    return { docRef: ref, listen: isListen }
-  }, [refOrCollection, idOrOptions, maybeOptions])
+    // Called with collectionName, id, options?
+    return doc(db, refOrCollection as string, id)
+  }, [refOrCollection, id])
 
   const [data, setData] = useState<T | undefined>(undefined)
   const [cargando, setCargando] = useState<boolean>(true)

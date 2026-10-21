@@ -9,7 +9,7 @@
  */
 
 import {onCall, HttpsError} from 'firebase-functions/v2/https';
-import * as admin from 'firebase-admin';
+import admin from '../comun/firebaseAdminCompat';
 import * as crypto from 'crypto';
 
 if (!admin.apps.length) admin.initializeApp();

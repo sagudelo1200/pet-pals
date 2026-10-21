@@ -16,12 +16,6 @@ jest.mock('@/services/firebase', () => ({
   },
 }))
 
-// Mock para operaciones económicas (FASE 1)
-jest.mock('@/logic/operacionesEconomicas/casosDeUso', () => ({
-  crearOperacionEconomica: jest.fn(),
-  generarObligacion: jest.fn(),
-}))
-
 // Mock para auditoría y territorio
 jest.mock('@/logic/operaciones/auditoria', () => ({
   registrarAuditoria: jest.fn().mockResolvedValue({ success: true }),
@@ -147,13 +141,8 @@ describe('crearConMascotas', () => {
     expect(res.data).toEqual(paseoMock.data)
   })
 
-  // FASE 1: Test para verificar creación de OperacionEconomica
-  test('FASE 1: crea OperacionEconomica cuando se crea paseo con precio', async () => {
-    const crearOperacionEconomica =
-      require('@/logic/operacionesEconomicas/casosDeUso').crearOperacionEconomica
-    const generarObligacion =
-      require('@/logic/operacionesEconomicas/casosDeUso').generarObligacion
-
+  // La economía la genera el servidor al finalizar: el cliente no escribe nada
+  test('crear paseo no escribe registros económicos desde el cliente', async () => {
     void (ServicioAuth.obtenerUsuarioActual as jest.Mock).mockReturnValue({
       uid: 'tutor1',
     })
@@ -161,57 +150,32 @@ describe('crearConMascotas', () => {
       success: true,
       data: { id: 'm1', creado_por: 'tutor1', nombre: 'Fido', foto: 'f.jpg' },
     })
-
-    const paseoMock = { success: true, data: { id: 'p1' } }
-    void (ServicioPaseo.crear as jest.Mock).mockResolvedValue(paseoMock)
-    void (ServicioPaseo.actualizar as jest.Mock).mockResolvedValue({
+    void (ServicioPaseo.crear as jest.Mock).mockResolvedValue({
       success: true,
+      data: { id: 'p1' },
     })
     void (
       ServicioPaseoMascota.commitMascotasBatch as jest.Mock
     ).mockResolvedValue({ success: true })
 
-    // Mock OperacionEconomica
-    void (crearOperacionEconomica as jest.Mock).mockResolvedValue('op1') // Retorna directamente el ID string
-    void (generarObligacion as jest.Mock).mockResolvedValue({ success: true })
-
-    const precio = 50000
-    const data = {
-      tipo_paseo: 'solicitado',
-      estado: 'PENDIENTE',
-      fecha_hora_inicio: new Date(),
-      duracion_estimada: 60,
-      precio,
-    }
-
-    const res = await crearConMascotas(data as any, ['m1'])
-
-    // Verificar que se creó la OperacionEconomica con desglose correcto
-    expect(crearOperacionEconomica).toHaveBeenCalledWith(
-      'tutor1', // tutorId
-      precio, // valorAcordado
-      Math.round(precio * 0.1), // remuneracion_mandatario (10%)
-      Math.round(precio * 0.9), // recursos_administrados (90%)
-      'p1' // paseo_id
-    )
-
-    // Verificar que se actualiza el paseo con operacion_economica_id
-    expect(ServicioPaseo.actualizar).toHaveBeenCalledWith('p1', {
-      operacion_economica_id: 'op1',
-      timestamp_pago_solicitado: expect.any(Date),
-    })
-
-    // Verificar que se genera la obligación del tutor
-    expect(generarObligacion).toHaveBeenCalledWith(
-      'op1', // operacionId
-      'tutor1', // deudor
-      'paw-path', // acreedor
-      'Pago por servicio de paseo', // concepto
-      precio // valor
+    const res = await crearConMascotas(
+      {
+        tipo_paseo: 'solicitado',
+        estado: 'PENDIENTE',
+        fecha_hora_inicio: new Date(),
+        duracion_estimada: 60,
+        precio: 50000,
+      } as any,
+      ['m1']
     )
 
     expect(res.success).toBe(true)
+    const actualizaciones = (ServicioPaseo.actualizar as jest.Mock).mock.calls
+    for (const [, cambios] of actualizaciones) {
+      expect(cambios).not.toHaveProperty('operacion_economica_id')
+    }
   })
+
   describe('Códigos, territorio y solapamiento', () => {
     const fechaPaseo = new Date(2030, 0, 14, 10, 0, 0)
     const dataPaseo = {

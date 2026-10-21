@@ -1,5 +1,5 @@
 import {onRequest} from 'firebase-functions/v2/https';
-import * as admin from 'firebase-admin';
+import admin from '../comun/firebaseAdminCompat';
 import {Timestamp} from 'firebase-admin/firestore';
 import {calcularYGuardarResumen} from './reputacion';
 

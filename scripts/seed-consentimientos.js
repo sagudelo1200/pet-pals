@@ -21,16 +21,28 @@ const crypto = require('crypto')
 const path = require('path')
 
 let admin
+let getFirestore
+let FieldValue
 try {
   admin = require('firebase-admin')
+  ;({ getFirestore, FieldValue } = require('firebase-admin/firestore'))
 } catch (_e) {
   admin = require(path.resolve(__dirname, '../functions/node_modules/firebase-admin'))
+  ;({ getFirestore, FieldValue } = require(path.resolve(
+    __dirname,
+    '../functions/node_modules/firebase-admin/firestore',
+  )))
 }
 
 const credentials = require('./firebaseCredentials.json')
 
-admin.initializeApp({ credential: admin.credential.cert(credentials) })
-const db = admin.firestore()
+const cert = admin.cert || admin.credential?.cert
+if (typeof cert !== 'function') {
+  throw new Error('No se encontró admin.cert/admin.credential.cert en firebase-admin')
+}
+
+admin.initializeApp({ credential: cert(credentials) })
+const db = getFirestore()
 
 const COLECCION = 'documentos_consentimientos'
 const ACTOR = 'sistema-seed'
@@ -88,7 +100,7 @@ async function main() {
     }
 
     const id = `${doc.tipo_documento}_v1`
-    const ahora = admin.firestore.FieldValue.serverTimestamp()
+    const ahora = FieldValue.serverTimestamp()
     const datos = {
       id,
       tipo_documento: doc.tipo_documento,

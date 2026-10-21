@@ -932,7 +932,6 @@ const ControlPaseo: React.FC = () => {
       <FinalizarPaseoModal
         visible={mostrarFinalizarModal}
         paseoId={paseoId}
-        operacionId={paseo?.operacion_economica_id}
         nombreMascota={paseo?.mascota_nombre_visual || 'Mascota'}
         nombreTutor={paseo?.tutor_ids?.[0] || 'Tutor'}
         duracionMinutos={Math.floor(

@@ -133,7 +133,7 @@ export const ChatScreen: React.FC = () => {
   }
 
   return (
-    <Screen>
+    <Screen teclado>
       <ScreenHeader
         title={t('chat:titulo') || 'Chat'}
         showBack={true}

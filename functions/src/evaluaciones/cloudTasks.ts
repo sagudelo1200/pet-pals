@@ -61,7 +61,11 @@ export async function programarRevelacion(evaluacionId: string): Promise<void> {
   const functionUrl = `https://${LOCATION}-${projectId}.cloudfunctions.net/${fnName}`;
   const tiempoEjecucion = Math.floor((Date.now() + elegirDelayRevelacion()) / 1000);
 
+  const client = getTasksClient();
+  const parent = client.queuePath(projectId, LOCATION, QUEUE_NAME);
   const task = {
+    // Una sola revelación por evaluación aunque el disparador se repita
+    name: `${parent}/tasks/${nombreTareaRevelacion(evaluacionId)}`,
     httpRequest: {
       httpMethod: 'POST' as const,
       url: functionUrl,
@@ -75,9 +79,19 @@ export async function programarRevelacion(evaluacionId: string): Promise<void> {
     scheduleTime: {seconds: tiempoEjecucion},
   };
 
-  const client = getTasksClient();
-  await client.createTask({
-    parent: client.queuePath(projectId, LOCATION, QUEUE_NAME),
-    task,
-  });
+  try {
+    await client.createTask({parent, task});
+  } catch (error) {
+    // ALREADY_EXISTS (6): ya estaba programada
+    if ((error as {code?: number})?.code !== 6) throw error;
+  }
+}
+
+/**
+ * Nombre de la tarea de revelación (solo letras, números, - y _).
+ * @param {string} evaluacionId Evaluación.
+ * @return {string} Nombre.
+ */
+export function nombreTareaRevelacion(evaluacionId: string): string {
+  return `revelacion-${evaluacionId}`.replace(/[^A-Za-z0-9_-]/g, '_');
 }

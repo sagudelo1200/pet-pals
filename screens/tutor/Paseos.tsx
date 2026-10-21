@@ -243,7 +243,7 @@ const Paseos: React.FC = () => {
   return (
     <Screen
       style={styles.container}
-      floating={<ValidatedFab onPress={handleSolicitar} style={styles.fab} />}
+      floating={<ValidatedFab onPress={handleSolicitar} />}
     >
       <ScreenHeader
         title={t('paseos:titulo')}
@@ -350,7 +350,7 @@ const styles = StyleSheet.create({
   },
   listContent: {
     paddingHorizontal: 20,
-    paddingBottom: 160,
+    paddingBottom: 80,
     flexGrow: 1,
   },
   emptyState: {
@@ -362,13 +362,6 @@ const styles = StyleSheet.create({
     marginTop: 20,
     color: COLOR.SUBTEXTO,
     textAlign: 'center',
-  },
-  fab: {
-    position: 'absolute',
-    bottom: 90,
-    right: 20,
-    zIndex: 1000,
-    elevation: 9,
   },
 })
 

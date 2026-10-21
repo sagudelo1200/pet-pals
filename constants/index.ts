@@ -17,11 +17,6 @@ export {
 
 export { utils, COLOR, SPACING }
 export {
-  STANDARD_SERVICE_PRICE,
-  USE_GLOBAL_SERVICE_PRICE,
-  EXTRA_PER_ADDITIONAL_PET,
-} from './pricing'
-export {
   TipoConsentimiento,
   CONSENTIMIENTOS_METADATOS,
   obtenerObligatorios,

@@ -5,6 +5,7 @@ import {
   TouchableOpacity,
   TextInput,
   Platform,
+  useWindowDimensions,
 } from 'react-native'
 import { Text } from 'galio-framework'
 import { Region } from 'react-native-maps'
@@ -42,6 +43,10 @@ export const CrearDireccionSheet: React.FC<CrearDireccionSheetProps> = ({
   onGuardar,
 }) => {
   const { t } = useTranslation()
+  // Mapa proporcional a la pantalla: así mapa + tarjeta + botón caben en la
+  // hoja (máx. 90% del alto) también en teléfonos de pantalla corta
+  const { height: altoPantalla } = useWindowDimensions()
+  const altoMapa = Math.min(300, Math.max(160, Math.round(altoPantalla * 0.3)))
   const [step, setStep] = useState<Step>('BUSQUEDA')
 
   const [seleccion, setSeleccion] = useState<DetalleUbicacion | null>(null)
@@ -212,7 +217,7 @@ export const CrearDireccionSheet: React.FC<CrearDireccionSheetProps> = ({
 
       case 'MAPA_CONFIRMACION':
         return (
-          <View style={{ height: 500 }}>
+          <View>
             <View style={styles.stepHeader}>
               <TouchableOpacity onPress={() => setStep('BUSQUEDA')}>
                 <Icon name="arrow-left" size={24} color={COLOR.TEXTO} />
@@ -235,7 +240,7 @@ export const CrearDireccionSheet: React.FC<CrearDireccionSheetProps> = ({
                 zoomEnabled
                 rotateEnabled={false} // Evitar que el mapa gire al hacer zoom
                 pitchEnabled={false} // Evitar inclinación accidental
-                alto={300}
+                alto={altoMapa}
                 pinCentro
                 zoom={18}
                 // Usamos key para que se remonte si cambia la region inicial (reset)

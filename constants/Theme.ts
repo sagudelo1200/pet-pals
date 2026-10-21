@@ -21,47 +21,47 @@ export const COLOR = {
     PENDIENTE: {
       primario: '#6B7280', // Gris
       fondo: '#6B728015',
-      texto: '#374151',
+      texto: '#D1D5DB',
     },
     CONFIRMADO: {
       primario: '#3B82F6', // Azul info
       fondo: '#3B82F615',
-      texto: '#1E40AF',
+      texto: '#93C5FD',
     },
     EN_CAMINO: {
       primario: '#F59E0B', // Ámbar
       fondo: '#F59E0B15',
-      texto: '#D97706',
+      texto: '#FCD34D',
     },
     EN_PUNTO_RECOGIDA: {
       primario: '#A855F7', // Púrpura - Punto de recogida
       fondo: '#A855F715',
-      texto: '#7E22CE',
+      texto: '#D8B4FE',
     },
     EN_PROGRESO: {
       primario: '#10B981', // Verde éxito
       fondo: '#10B98115',
-      texto: '#059669',
+      texto: '#6EE7B7',
     },
     FINALIZADO: {
       primario: '#6366F1', // Índigo
       fondo: '#6366F115',
-      texto: '#4F46E5',
+      texto: '#A5B4FC',
     },
     COMPLETADO: {
       primario: '#10B981', // Verde éxito
       fondo: '#10B98115',
-      texto: '#059669',
+      texto: '#6EE7B7',
     },
     CANCELADO: {
       primario: '#EF4444', // Rojo error
       fondo: '#EF444415',
-      texto: '#DC2626',
+      texto: '#FCA5A5',
     },
     ERROR: {
       primario: '#EF4444',
       fondo: '#EF444415',
-      texto: '#DC2626',
+      texto: '#FCA5A5',
     },
   },
 } as const

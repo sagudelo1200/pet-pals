@@ -51,7 +51,7 @@ export const ConfirmarPaseoPaso = ({
     mascotas,
     cuidador,
     direccion,
-    total,
+    desglose,
     loading,
     error,
     confirmarReserva,
@@ -84,12 +84,9 @@ export const ConfirmarPaseoPaso = ({
     cerrar,
   } = useCuidadorPerfilModal()
 
-  const COMPARTIDO_DISCOUNT = 0.15 // 15% descuento para paseos compartidos
   // Feature flag temporal: desactivar funcionalidad de paseo compartido en MVP
   const PASEO_COMPARTIDO_FEATURE = false
-  const subtotal = total
-  const descuento = esCompartido ? subtotal * COMPARTIDO_DISCOUNT : 0
-  const totalConDescuento = subtotal - descuento
+  const cop = (v: number) => `$${v.toLocaleString('es-CO')}`
 
   const confirmarReservaInterno = async () => {
     const success = await confirmarReserva()
@@ -247,14 +244,6 @@ export const ConfirmarPaseoPaso = ({
           <View style={[styles.section, { marginBottom: 4 }]}>
             {PASEO_COMPARTIDO_FEATURE && (
               <>
-                <View style={styles.savingsBannerCompact}>
-                  <Icon name="check-circle" size={14} color={COLOR.EXITO} />
-                  <Text style={styles.savingsTextCompact}>
-                    {t('paseos:pasos.confirmar.ahorro_mensaje', {
-                      descuento: Math.round(COMPARTIDO_DISCOUNT * 100),
-                    })}
-                  </Text>
-                </View>
                 <View style={{ marginTop: 4 }}>
                   <Switch
                     value={esCompartido}
@@ -281,34 +270,32 @@ export const ConfirmarPaseoPaso = ({
               {t('paseos:pasos.confirmar.costo_servicio')}
             </Text>
 
-            {/* Desglose: Paw-Path */}
-            <View style={styles.priceRowCompact}>
-              <Text style={styles.priceLabel}>Paw-Path (10%)</Text>
-              <Text style={styles.priceValue}>
-                ${Math.round(subtotal * 0.1).toLocaleString()}
+            {/* Desglose según la política comercial vigente (el mismo cálculo
+                que hace el servidor al cobrar) */}
+            {desglose ? (
+              <>
+                <View style={styles.priceRowCompact}>
+                  <Text style={styles.priceLabel}>
+                    Paw-Path
+                    {desglose.iva_comision > 0 ? ' (incluye IVA)' : ''}
+                  </Text>
+                  <Text style={styles.priceValue}>
+                    {cop(desglose.remuneracion_mandatario)}
+                  </Text>
+                </View>
+                <View style={[styles.priceRowCompact, { marginBottom: 8 }]}>
+                  <Text style={styles.priceLabel}>
+                    {t('paseos:pasos.confirmar.resumen_cuidador')}
+                  </Text>
+                  <Text style={styles.priceValue}>
+                    {cop(desglose.recursos_administrados)}
+                  </Text>
+                </View>
+              </>
+            ) : (
+              <Text style={[styles.priceLabel, { marginBottom: 8 }]}>
+                {t('paseos:flujo.errores.sin_politica_comercial')}
               </Text>
-            </View>
-
-            {/* Desglose: Cuidador */}
-            <View style={[styles.priceRowCompact, { marginBottom: 8 }]}>
-              <Text style={styles.priceLabel}>
-                {t('paseos:pasos.confirmar.resumen_cuidador')} (90%)
-              </Text>
-              <Text style={styles.priceValue}>
-                ${Math.round(subtotal * 0.9).toLocaleString()}
-              </Text>
-            </View>
-
-            {/* Descuento por paseo compartido (si aplica) */}
-            {esCompartido && PASEO_COMPARTIDO_FEATURE && (
-              <View style={styles.priceRowCompact}>
-                <Text style={[styles.priceLabel, styles.discountText]}>
-                  {t('paseos:pasos.confirmar.descuento_compartido')}
-                </Text>
-                <Text style={[styles.priceValue, styles.discountText]}>
-                  -${descuento.toLocaleString()}
-                </Text>
-              </View>
             )}
           </View>
 
@@ -318,7 +305,7 @@ export const ConfirmarPaseoPaso = ({
               {t('paseos:pasos.confirmar.total')}
             </Text>
             <Text style={styles.totalValue}>
-              ${totalConDescuento.toLocaleString()}
+              {desglose ? cop(desglose.valor_acordado) : '—'}
             </Text>
           </View>
         </Card>
@@ -336,6 +323,7 @@ export const ConfirmarPaseoPaso = ({
             variant="primario"
             onPress={handleConfirmar}
             loading={loading}
+            disabled={loading || !desglose}
             style={{ flex: 1.2 }}
           />
         </View>
@@ -455,20 +443,6 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: COLOR.PRIMARIO,
   },
-  savingsBannerCompact: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(76, 175, 80, 0.1)',
-    padding: 6,
-    borderRadius: 6,
-    gap: 6,
-  },
-  savingsTextCompact: {
-    fontSize: 11,
-    color: COLOR.EXITO,
-    fontWeight: '700',
-    flex: 1,
-  },
   priceSectionCompact: {
     marginBottom: 4,
   },
@@ -485,9 +459,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: COLOR.TEXTO,
     fontWeight: '500',
-  },
-  discountText: {
-    color: COLOR.EXITO,
   },
   actions: {
     flexDirection: 'row',

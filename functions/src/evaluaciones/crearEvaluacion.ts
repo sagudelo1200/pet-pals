@@ -1,5 +1,5 @@
 import {onCall, HttpsError} from 'firebase-functions/v2/https';
-import * as admin from 'firebase-admin';
+import admin from '../comun/firebaseAdminCompat';
 
 if (!admin.apps || admin.apps.length === 0) {
   admin.initializeApp();

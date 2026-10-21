@@ -4,11 +4,10 @@ import {
   Text,
   StyleSheet,
   Alert,
-  ScrollView,
   TextInput,
 } from 'react-native'
 import { COLOR } from '@/constants'
-import { Button } from '@/components/ui'
+import { Button, Screen } from '@/components/ui'
 import { ServicioPublicarConsentimiento } from '@/services/firebase/consentimientos/publicarNuevaVersion'
 
 const AdminDashboard: React.FC = () => {
@@ -55,7 +54,7 @@ const AdminDashboard: React.FC = () => {
   }
 
   return (
-    <ScrollView style={styles.container}>
+    <Screen scroll teclado contentContainerStyle={styles.contenido}>
       <Text style={styles.titulo}>Panel de Administración</Text>
       <Text style={styles.subtitulo}>
         Publicar Nueva Versión de Consentimiento
@@ -106,14 +105,12 @@ const AdminDashboard: React.FC = () => {
           {'\n'}• Se dispara sincronización en tiempo real
         </Text>
       </View>
-    </ScrollView>
+    </Screen>
   )
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLOR.BASE,
+  contenido: {
     padding: 24,
   },
   titulo: {

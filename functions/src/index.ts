@@ -32,3 +32,17 @@ export {revelarEvaluacionVencida} from './evaluaciones/revelarEvaluacion';
 export {registrarConsentimiento} from './consentimientos/registrarConsentimiento';
 export {publicarNuevaVersion} from './consentimientos/publicarNuevaVersion';
 export {alPublicarNuevaVersion} from './consentimientos/alPublicarNuevaVersion';
+
+// Economía (cobros, pagos, liquidaciones y política comercial)
+export {
+  alCrearPaseoEconomia,
+  alValidarEntregaEconomia,
+  iniciarPagoOperacion,
+  confirmarPagoOperacion,
+  publicarPoliticaComercial,
+  generarLiquidacionesAhora,
+  pagarLiquidacion,
+  reenviarDocumentoContable,
+  revisarCobroTutor,
+  ejecutarCorteLiquidacion,
+} from './economia/funciones';

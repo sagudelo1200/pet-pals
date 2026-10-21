@@ -11,7 +11,8 @@
  */
 
 import {onCall, HttpsError} from 'firebase-functions/v2/https';
-import * as admin from 'firebase-admin';
+import admin from '../comun/firebaseAdminCompat';
+import type {FirestoreTimestamp} from '../comun/firebaseAdminCompat';
 import {
   transicionValida,
   type EstadoBase,
@@ -234,7 +235,7 @@ export const registrarConsentimiento = onCall(
         const timestamp = admin.firestore.Timestamp.now();
         const ahora = timestamp.toDate();
 
-        let fechaProximaReconfirmacion: admin.firestore.Timestamp | null = null;
+        let fechaProximaReconfirmacion: FirestoreTimestamp | null = null;
         if (
           estado === 'ACEPTADO' &&
           documento.requiere_reconfirmacion_meses &&

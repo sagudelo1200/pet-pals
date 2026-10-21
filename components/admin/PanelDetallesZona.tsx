@@ -50,7 +50,7 @@ export const PanelDetallesZona: React.FC<PanelDetallesZonaProps> = ({
       case 'en_operacion':
         return '#F59E0B'
       case 'sin_cobertura':
-        return '#C96B67'
+        return COLOR.ERROR
       case 'saturada':
         return '#EF4444'
       default:
@@ -197,24 +197,24 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: COLOR.BASE,
     borderLeftWidth: 1,
-    borderLeftColor: '#1F2D2A',
+    borderLeftColor: COLOR.BORDE,
   },
   header: {
     backgroundColor: '#0A3F37',
     paddingHorizontal: SPACING.base,
     paddingVertical: SPACING.md,
     borderBottomWidth: 1,
-    borderBottomColor: '#1F2D2A',
+    borderBottomColor: COLOR.BORDE,
   },
   titulo: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#2DB391',
+    color: COLOR.ENFASIS,
     marginBottom: 4,
   },
   zonaId: {
     fontSize: 12,
-    color: '#98A7A4',
+    color: COLOR.SUBTEXTO,
     fontFamily: 'monospace',
   },
   scroll: {
@@ -228,7 +228,7 @@ const styles = StyleSheet.create({
   seccionTitulo: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#EBF4F2',
+    color: COLOR.TEXTO,
     marginBottom: SPACING.sm,
   },
   grid: {
@@ -239,11 +239,11 @@ const styles = StyleSheet.create({
   stat: {
     flex: 1,
     minWidth: '45%',
-    backgroundColor: '#121918',
+    backgroundColor: COLOR.BLOQUE,
     padding: SPACING.sm,
     borderRadius: 6,
     borderWidth: 1,
-    borderColor: '#1F2D2A',
+    borderColor: COLOR.BORDE,
   },
   estadoBadge: {
     paddingVertical: SPACING.sm,
@@ -258,21 +258,21 @@ const styles = StyleSheet.create({
   },
   statLabel: {
     fontSize: 11,
-    color: '#98A7A4',
+    color: COLOR.SUBTEXTO,
     marginBottom: 4,
   },
   statValor: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#2DB391',
+    color: COLOR.ENFASIS,
   },
   itemCuidador: {
-    backgroundColor: '#121918',
+    backgroundColor: COLOR.BLOQUE,
     padding: SPACING.sm,
     marginBottom: SPACING.xs,
     borderRadius: 6,
     borderWidth: 1,
-    borderColor: '#1F2D2A',
+    borderColor: COLOR.BORDE,
   },
   cuidadorInfo: {
     marginBottom: SPACING.xs,
@@ -280,7 +280,7 @@ const styles = StyleSheet.create({
   cuidadorNombre: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#EBF4F2',
+    color: COLOR.TEXTO,
   },
   badge: {
     fontSize: 10,
@@ -296,15 +296,15 @@ const styles = StyleSheet.create({
   },
   horario: {
     fontSize: 11,
-    color: '#98A7A4',
+    color: COLOR.SUBTEXTO,
   },
   itemSolicitud: {
-    backgroundColor: '#121918',
+    backgroundColor: COLOR.BLOQUE,
     padding: SPACING.sm,
     marginBottom: SPACING.xs,
     borderRadius: 6,
     borderWidth: 1,
-    borderColor: '#1F2D2A',
+    borderColor: COLOR.BORDE,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
@@ -312,16 +312,16 @@ const styles = StyleSheet.create({
   mascotaNombre: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#EBF4F2',
+    color: COLOR.TEXTO,
     marginBottom: 2,
   },
   tutorNombre: {
     fontSize: 11,
-    color: '#98A7A4',
+    color: COLOR.SUBTEXTO,
   },
   horaSolicitud: {
     fontSize: 11,
-    color: '#2DB391',
+    color: COLOR.ENFASIS,
     fontWeight: '600',
   },
   textoVacio: {
@@ -332,7 +332,7 @@ const styles = StyleSheet.create({
   },
   textoError: {
     fontSize: 12,
-    color: '#C96B67',
+    color: COLOR.ERROR,
     paddingVertical: SPACING.md,
   },
 })

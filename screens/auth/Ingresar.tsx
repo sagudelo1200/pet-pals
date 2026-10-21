@@ -151,7 +151,12 @@ const Ingresar: React.FC = () => {
   }, [])
 
   return (
-    <Screen contentContainerStyle={styles.content} style={styles.container}>
+    <Screen
+      scroll
+      teclado
+      contentContainerStyle={styles.content}
+      style={styles.container}
+    >
       {/* Círculo decorativo */}
       <View style={styles.decorativeCircle} />
 
@@ -252,8 +257,10 @@ const styles = StyleSheet.create({
   kav: {
     flex: 1,
   },
+  // flexGrow (no flex: 1): centra el formulario y permite desplazarlo si no
+  // cabe (pantallas pequeñas o con el teclado abierto)
   content: {
-    flex: 1,
+    flexGrow: 1,
     paddingHorizontal: 24,
     justifyContent: 'center',
   },

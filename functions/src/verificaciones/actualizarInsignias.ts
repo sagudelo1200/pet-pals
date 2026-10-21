@@ -2,7 +2,8 @@ import {
   onDocumentCreated,
   onDocumentUpdated,
 } from 'firebase-functions/v2/firestore';
-import * as admin from 'firebase-admin';
+import admin from '../comun/firebaseAdminCompat';
+import type {FirestoreDocumentData} from '../comun/firebaseAdminCompat';
 
 if (!admin.apps || admin.apps.length === 0) {
   admin.initializeApp();
@@ -38,8 +39,8 @@ export const actualizarInsigniasOnUpdate = onDocumentUpdated(
  * Procesa actualización de insignias para un usuario
  */
 async function procesarActualizacionInsignias(
-  nuevoDoc: admin.firestore.DocumentData | undefined,
-  docAnterior?: admin.firestore.DocumentData
+  nuevoDoc: FirestoreDocumentData | undefined,
+  docAnterior?: FirestoreDocumentData
 ): Promise<void> {
   try {
     // Si el documento no existe, ignorar

@@ -2,7 +2,6 @@ import React, { useMemo, useCallback, useState } from 'react'
 import {
   StyleSheet,
   View,
-  Platform,
   ScrollView,
   RefreshControl,
   Alert,
@@ -401,11 +400,7 @@ const Dashboard: React.FC = () => {
 
         {/* ===== SECCIÓN 5: DEUDAS Y OBLIGACIONES (FASE 4) ===== */}
         <Animated.View style={[styles.section, actividadAnim]}>
-          <HistorialObligacionesTutor
-            onPagarTodos={() => {
-              handleSolicitarPaseo() // Por ahora, redirige a solicitar paseo
-            }}
-          />
+          <HistorialObligacionesTutor />
         </Animated.View>
 
         <Spacer size={theme.SIZES.BASE * 2} />
@@ -456,7 +451,7 @@ const styles = StyleSheet.create({
   },
   content: {
     padding: theme.SIZES.BASE,
-    paddingBottom: Platform.OS === 'android' ? 120 : theme.SIZES.BASE * 2,
+    paddingBottom: theme.SIZES.BASE * 2,
   },
   section: {
     marginBottom: theme.SIZES.BASE,

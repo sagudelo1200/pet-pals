@@ -304,15 +304,12 @@ export interface Paseo extends Operacion, BaseModel {
   intentos_fallidos_entrega_por_tutor?: Record<string, number>
 
   /**
-   * OPERACIÓN ECONÓMICA (FASE 1)
-   * Referencia a la OperacionEconomica creada cuando se solicita el paseo.
-   * Esta operación registra el contrato entre tutor y cuidador.
+   * ECONOMÍA
+   * Versión de la política comercial con la que se cobrará (la fija el
+   * servidor al crear el paseo). La operación económica de cada tutor nace
+   * cuando valida el código de entrega: id `${paseo.id}_${tutorId}`.
    */
-  operacion_economica_id?: string
-  /** Timestamp de cuando se solicita el pago (cuando se crea el paseo). */
-  timestamp_pago_solicitado?: Date
-  /** Timestamp de cuando se confirma el pago (cuando el cuidador acepta). */
-  timestamp_pago_confirmado?: Date
+  politica_version?: number
 
   /**
    * VALIDACIÓN DE RECEPCIÓN DEL SERVICIO (FASE 4)

@@ -1,24 +1,26 @@
 /**
- * PantallaPago - FASE 4.1
- * Tutor ve el monto y paga con Wompi/MercadoPago
+ * PantallaPago
+ * El tutor paga su paseo (después de recibir la mascota).
  *
  * Flujo:
- * 1. Mostrar monto y detalles
- * 2. Clic "PAGAR" → registrarRecaudo() → obtiene URL de Wompi
- * 3. Abre WebView con URL
- * 4. Usuario paga en Wompi
- * 5. Wompi envía webhook → confirmarRecaudo()
- * 6. Notificación: "Pago confirmado"
+ * 1. El servidor generó el cobro al finalizar el paseo (monto real)
+ * 2. "Pagar ahora" → iniciarPagoOperacion: la pasarela devuelve una
+ *    referencia (y una URL si redirige, como Wompi)
+ * 3. Con URL se abre el checkout; al cerrarlo se confirma
+ * 4. confirmarPagoOperacion: el servidor consulta a la pasarela y registra
+ *    el recaudo (el cliente nunca marca un pago como hecho)
+ *
+ * "Pagar después" está permitido: tras el plazo de la política comercial el
+ * tutor no podrá solicitar nuevos paseos hasta pagar.
  */
 
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import {
   StyleSheet,
   View,
   Text,
   Pressable,
   ActivityIndicator,
-  Alert,
   ScrollView,
 } from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
@@ -26,91 +28,100 @@ import { WebView } from 'react-native-webview'
 import { COLOR } from '@/constants'
 import Card from '@/components/ui/Card'
 import Icon from '@/components/ui/Icon'
-import { registrarRecaudo } from '@/logic/operacionesEconomicas'
-import { MockAdaptador } from '@/logic/operacionesEconomicas/pagos/MockAdaptador'
+import { useOperacionEconomica } from '@/hooks/comercial'
+import { formatearCOP } from '@/logic/comercial'
+import {
+  ServicioEconomia,
+  mensajeErrorEconomia,
+} from '@/services/firebase/economia'
 
 interface PantallaPagoProps {
   operacionId: string
-  monto: number
   nombreMascota: string
   nombreCuidador: string
-  onPaymentSuccess: (_referencia: string) => void
+  onPagado: () => void
   onCancel: () => void
 }
 
 export const PantallaPago: React.FC<PantallaPagoProps> = ({
   operacionId,
-  monto,
   nombreMascota,
   nombreCuidador,
-  onPaymentSuccess,
+  onPagado,
   onCancel,
 }) => {
+  const { operacion, error: errorOperacion } =
+    useOperacionEconomica(operacionId)
   const [loading, setLoading] = useState(false)
   const [paymentUrl, setPaymentUrl] = useState<string | null>(null)
-  const [referencia, setReferencia] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
 
-  const adaptador = new MockAdaptador() // TODO: Reemplazar con WompiAdapter real
+  const pagada =
+    operacion?.estado === 'RECAUDADA' || operacion?.estado === 'CERRADA'
 
-  const handleIniciarPago = async () => {
+  // Si ya estaba pagada (o se confirma en otro dispositivo), continuar
+  useEffect(() => {
+    if (pagada) onPagado()
+  }, [pagada, onPagado])
+
+  const confirmar = async () => {
     setLoading(true)
-    setError(null)
-
     try {
-      const resultado = await registrarRecaudo(operacionId, adaptador)
-
-      setReferencia(resultado.referencia)
-
-      if (resultado.url) {
-        // URL real de Wompi
-        setPaymentUrl(resultado.url)
-      } else {
-        // En desarrollo (MockAdaptador), simular pago exitoso
-        Alert.alert(
-          '✅ Pago Simulado',
-          `Referencia: ${resultado.referencia}\n\nEn producción, abrirá Wompi aquí.`,
-          [
-            {
-              text: 'OK',
-              onPress: () => {
-                onPaymentSuccess(resultado.referencia)
-              },
-            },
-          ]
-        )
+      const res = await ServicioEconomia.confirmarPago({ operacionId })
+      if (res.estado === 'RECHAZADO') {
+        setError(res.mensaje || 'El pago fue rechazado. Intenta de nuevo.')
+      } else if (res.estado === 'PENDIENTE') {
+        setError('Tu pago está en proceso. Te avisaremos al confirmarse.')
       }
+      // APROBADO: el listener de la operación dispara onPagado
     } catch (err) {
-      console.error('[PantallaPago] Error:', err)
-      const mensaje = err instanceof Error ? err.message : 'Error desconocido'
-      setError(mensaje)
-      Alert.alert('❌ Error', mensaje)
+      setError(mensajeErrorEconomia(err))
     } finally {
       setLoading(false)
     }
   }
 
-  const handleWebViewMessage = (event: any) => {
-    const data = JSON.parse(event.nativeEvent.data)
-
-    if (data.status === 'success') {
-      Alert.alert(
-        '✅ Pago Confirmado',
-        'Tu pago ha sido procesado exitosamente.',
-        [
-          {
-            text: 'OK',
-            onPress: () => {
-              if (referencia) onPaymentSuccess(referencia)
-            },
-          },
-        ]
-      )
-      setPaymentUrl(null)
-    } else if (data.status === 'error') {
-      setError('El pago fue rechazado. Intenta de nuevo.')
-      setPaymentUrl(null)
+  const handleIniciarPago = async () => {
+    setLoading(true)
+    setError(null)
+    try {
+      const { url } = await ServicioEconomia.iniciarPago({ operacionId })
+      if (url) {
+        setPaymentUrl(url)
+        setLoading(false)
+        return
+      }
+      // Pasarela sin redirección (mock): confirmar de inmediato
+      await confirmar()
+    } catch (err) {
+      setError(mensajeErrorEconomia(err))
+      setLoading(false)
     }
+  }
+
+  const cerrarCheckout = () => {
+    setPaymentUrl(null)
+    void confirmar()
+  }
+
+  if (!operacion) {
+    return (
+      <View style={[styles.container, styles.centrado]}>
+        {errorOperacion ? (
+          <>
+            <Text style={styles.errorText}>{errorOperacion}</Text>
+            <Pressable style={styles.botonCancelar} onPress={onCancel}>
+              <Text style={styles.botonCancelarText}>Volver</Text>
+            </Pressable>
+          </>
+        ) : (
+          <>
+            <ActivityIndicator color={COLOR.PRIMARIO} />
+            <Text style={styles.subtitulo}>Preparando tu cobro...</Text>
+          </>
+        )}
+      </View>
+    )
   }
 
   // Mostrar WebView de Wompi
@@ -118,18 +129,14 @@ export const PantallaPago: React.FC<PantallaPagoProps> = ({
     return (
       <View style={styles.container}>
         <View style={styles.header}>
-          <Pressable onPress={() => setPaymentUrl(null)}>
+          <Pressable onPress={cerrarCheckout}>
             <Icon name="times" size={24} color="white" />
           </Pressable>
           <Text style={styles.headerTitle}>Pago Seguro</Text>
           <View style={{ width: 24 }} />
         </View>
 
-        <WebView
-          source={{ uri: paymentUrl }}
-          onMessage={handleWebViewMessage}
-          style={styles.webview}
-        />
+        <WebView source={{ uri: paymentUrl }} style={styles.webview} />
       </View>
     )
   }
@@ -167,52 +174,19 @@ export const PantallaPago: React.FC<PantallaPagoProps> = ({
             style={styles.montoGradient}
           >
             <Text style={styles.montoLabel}>Monto a pagar</Text>
-            <Text style={styles.montoValor}>${monto.toLocaleString()}</Text>
+            <Text style={styles.montoValor}>
+              {formatearCOP(operacion.valor_acordado)}
+            </Text>
             <Text style={styles.montoDetalle}>
+              {operacion.detalle_precio
+                ? `${operacion.detalle_precio.num_mascotas} mascota(s) · ${operacion.detalle_precio.duracion_minutos} min · `
+                : ''}
               Incluye servicio de cuidado y comisión de plataforma
+              {operacion.iva_comision > 0
+                ? ` (IVA de la comisión: ${formatearCOP(operacion.iva_comision)})`
+                : ''}
             </Text>
           </LinearGradient>
-        </Card>
-
-        {/* Métodos de pago */}
-        <Card style={styles.card}>
-          <Text style={styles.seccionTitulo}>Método de pago</Text>
-          <Pressable
-            style={[styles.metodoButton, { marginBottom: 12 }]}
-            disabled={loading}
-          >
-            <LinearGradient
-              colors={['#FF5733', '#FF8A50']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={styles.metodoBadge}
-            >
-              <Icon name="credit-card" size={20} color="white" />
-            </LinearGradient>
-            <View style={styles.metodoInfo}>
-              <Text style={styles.metodoNombre}>Wompi</Text>
-              <Text style={styles.metodoDetalle}>
-                Tarjeta de crédito/débito
-              </Text>
-            </View>
-            <Icon name="chevron-right" size={20} color={COLOR.SUBTEXTO} />
-          </Pressable>
-
-          <Pressable style={styles.metodoButton} disabled={loading}>
-            <LinearGradient
-              colors={['#FFB81C', '#FFC849']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={styles.metodoBadge}
-            >
-              <Icon name="credit-card" size={20} color="white" />
-            </LinearGradient>
-            <View style={styles.metodoInfo}>
-              <Text style={styles.metodoNombre}>Mercado Pago</Text>
-              <Text style={styles.metodoDetalle}>Billetera digital</Text>
-            </View>
-            <Icon name="chevron-right" size={20} color={COLOR.SUBTEXTO} />
-          </Pressable>
         </Card>
 
         {/* Seguridad */}
@@ -238,7 +212,7 @@ export const PantallaPago: React.FC<PantallaPagoProps> = ({
             onPress={onCancel}
             disabled={loading}
           >
-            <Text style={styles.botonCancelarText}>Cancelar</Text>
+            <Text style={styles.botonCancelarText}>Pagar después</Text>
           </Pressable>
 
           <Pressable
@@ -273,6 +247,12 @@ const styles = StyleSheet.create({
   },
   headerContent: {
     alignItems: 'center',
+  },
+  centrado: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 16,
+    padding: 24,
   },
   headerTitle: {
     fontSize: 16,
@@ -342,42 +322,6 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: COLOR.SUBTEXTO,
     textAlign: 'center',
-  },
-  seccionTitulo: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: COLOR.TEXTO,
-    marginBottom: 12,
-  },
-  metodoButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 14,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: `${COLOR.SUBTEXTO}20`,
-    gap: 12,
-  },
-  metodoBadge: {
-    width: 48,
-    height: 48,
-    borderRadius: 10,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  metodoInfo: {
-    flex: 1,
-  },
-  metodoNombre: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: COLOR.TEXTO,
-    marginBottom: 2,
-  },
-  metodoDetalle: {
-    fontSize: 12,
-    color: COLOR.SUBTEXTO,
   },
   seguridad: {
     flexDirection: 'row',

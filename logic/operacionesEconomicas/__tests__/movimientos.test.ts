@@ -20,7 +20,7 @@ describe('MOVIMIENTOS FINANCIEROS: Auditoría de Dinero', () => {
       const movimiento: MovimientoFinanciero = {
         id: 'mov-1',
         operacion_id: 'op-1',
-        tipo: 'PAGO_INICIADO',
+        tipo: 'RECAUDO',
         valor: 100,
         sentido: 'ENTRADA',
         origen: 'TUTOR',
@@ -270,7 +270,7 @@ describe('MOVIMIENTOS FINANCIEROS: Auditoría de Dinero', () => {
         {
           id: 'mov-1',
           operacion_id: operacionId,
-          tipo: 'PAGO_INICIADO',
+          tipo: 'RECAUDO',
           valor: 100,
           sentido: 'ENTRADA',
           origen: 'TUTOR',

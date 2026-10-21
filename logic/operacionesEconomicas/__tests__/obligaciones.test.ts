@@ -16,6 +16,7 @@ describe('OBLIGACIONES: Las 3 deudas del sistema', () => {
       const deuda: Obligacion = {
         id: 'obl-1',
         operacion_id: 'op-1',
+        tipo: 'COBRO_TUTOR',
         deudor: 'juan-tutor',
         acreedor: 'paw-path',
         concepto: 'Pago por paseo',
@@ -33,6 +34,7 @@ describe('OBLIGACIONES: Las 3 deudas del sistema', () => {
       const deuda: Obligacion = {
         id: 'obl-1',
         operacion_id: 'op-1',
+        tipo: 'COBRO_TUTOR',
         deudor: 'juan-tutor',
         acreedor: 'paw-path',
         concepto: 'Pago por paseo',
@@ -60,6 +62,7 @@ describe('OBLIGACIONES: Las 3 deudas del sistema', () => {
       const deuda: Obligacion = {
         id: 'obl-1',
         operacion_id: 'op-1',
+        tipo: 'COBRO_TUTOR',
         deudor: 'juan-tutor',
         acreedor: 'paw-path',
         concepto: 'Pago por paseo',
@@ -85,6 +88,7 @@ describe('OBLIGACIONES: Las 3 deudas del sistema', () => {
       const deuda: Obligacion = {
         id: 'obl-2',
         operacion_id: 'op-1',
+        tipo: 'PAGO_CUIDADOR',
         deudor: 'paw-path',
         acreedor: 'carlos-cuidador',
         concepto: 'Pago por servicio ejecutado',
@@ -110,6 +114,7 @@ describe('OBLIGACIONES: Las 3 deudas del sistema', () => {
       const deuda: Obligacion = {
         id: 'obl-2',
         operacion_id: 'op-1',
+        tipo: 'PAGO_CUIDADOR',
         deudor: 'paw-path',
         acreedor: 'carlos-cuidador',
         concepto: 'Pago por servicio ejecutado',
@@ -151,6 +156,7 @@ describe('OBLIGACIONES: Las 3 deudas del sistema', () => {
       const comision: Obligacion = {
         id: 'obl-3',
         operacion_id: 'op-1',
+        tipo: 'PAGO_CUIDADOR',
         deudor: 'paw-path', // Paw-Path "debe" a sí misma
         acreedor: 'paw-path', // Pero también es acreedora
         concepto: 'Comisión operativa',
@@ -185,6 +191,7 @@ describe('OBLIGACIONES: Las 3 deudas del sistema', () => {
         {
           id: 'obl-juan',
           operacion_id: 'op-1',
+          tipo: 'COBRO_TUTOR',
           deudor: 'juan-tutor',
           acreedor: 'paw-path',
           concepto: 'Pago paseo',
@@ -195,6 +202,7 @@ describe('OBLIGACIONES: Las 3 deudas del sistema', () => {
         {
           id: 'obl-carlos',
           operacion_id: 'op-1',
+          tipo: 'PAGO_CUIDADOR',
           deudor: 'paw-path',
           acreedor: 'carlos-cuidador',
           concepto: 'Pago cuidador',
@@ -217,6 +225,7 @@ describe('OBLIGACIONES: Las 3 deudas del sistema', () => {
         {
           id: 'obl-juan',
           operacion_id: 'op-1',
+          tipo: 'COBRO_TUTOR',
           deudor: 'juan-tutor',
           acreedor: 'paw-path',
           concepto: 'Pago paseo',
@@ -228,6 +237,7 @@ describe('OBLIGACIONES: Las 3 deudas del sistema', () => {
         {
           id: 'obl-carlos',
           operacion_id: 'op-1',
+          tipo: 'PAGO_CUIDADOR',
           deudor: 'paw-path',
           acreedor: 'carlos-cuidador',
           concepto: 'Pago cuidador',
@@ -251,6 +261,7 @@ describe('OBLIGACIONES: Las 3 deudas del sistema', () => {
         {
           id: 'obl-juan',
           operacion_id: 'op-1',
+          tipo: 'COBRO_TUTOR',
           deudor: 'juan-tutor',
           acreedor: 'paw-path',
           concepto: 'Pago paseo',

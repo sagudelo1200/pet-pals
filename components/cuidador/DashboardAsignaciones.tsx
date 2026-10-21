@@ -107,17 +107,17 @@ export const DashboardAsignaciones: React.FC<
       },
       EN_CAMINO: {
         icon: 'play-circle',
-        color: '#FF9500',
+        color: COLOR.ALERTA,
         label: 'En camino',
       },
       EN_PUNTO_RECOGIDA: {
         icon: 'map-pin',
-        color: '#FF9500',
+        color: COLOR.ALERTA,
         label: 'En punto de recogida',
       },
       EN_PROGRESO: {
         icon: 'play-circle',
-        color: '#FF9500',
+        color: COLOR.ALERTA,
         label: 'En progreso',
       },
       FINALIZADO: {
@@ -127,7 +127,7 @@ export const DashboardAsignaciones: React.FC<
       },
       COMPLETADO: {
         icon: 'award',
-        color: '#7C3AED',
+        color: COLOR.INFO,
         label: 'Completado',
       },
     }
@@ -308,7 +308,7 @@ export const DashboardAsignaciones: React.FC<
             <Card style={[styles.statCard, styles.statEnProgreso]}>
               <View style={styles.statIcon}>
                 <LinearGradient
-                  colors={['#FF9500', '#FFB84D']}
+                  colors={[COLOR.ALERTA, `${COLOR.ALERTA}B3`]}
                   style={styles.statIconGradient}
                 >
                   <Icon name="play-circle" size={20} color="white" />
@@ -378,7 +378,7 @@ const styles = StyleSheet.create({
   },
   statEnProgreso: {
     borderLeftWidth: 4,
-    borderLeftColor: '#FF9500',
+    borderLeftColor: COLOR.ALERTA,
   },
   statIcon: {
     marginBottom: 4,

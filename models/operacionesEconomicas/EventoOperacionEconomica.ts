@@ -17,6 +17,9 @@ export type TipoEventoOperacionEconomica =
   | 'RECAUDO' // Dinero recibido (entrada financiera confirmada)
   | 'OBLIGACION_GENERADA' // Se generó un compromiso de pago
   | 'PAGO_TERCERO' // Se ejecutó un pago (salida financiera)
+  | 'FACTURA_EMITIDA' // Se emitió la factura electrónica
+  | 'FACTURA_FALLIDA' // La facturación falló (el recaudo se mantiene)
+  | 'OPERACION_CERRADA' // Sin obligaciones pendientes
   | 'OPERACION_CANCELADA' // La operación fue cancelada
 
 /**

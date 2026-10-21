@@ -4,9 +4,10 @@
  *
  * Muestra:
  * - Total de paseos completados
- * - Ganancia total este mes
+ * - Ganancia total
  * - Dinero pendiente vs liquidado
- * - Próxima liquidación (viernes)
+ * - Próxima liquidación (día de pago de la política comercial); solo se
+ *   liquida lo que el tutor ya pagó si la política lo exige
  */
 
 import React, { useEffect, useState, useMemo } from 'react'
@@ -26,6 +27,7 @@ import Icon from '@/components/ui/Icon'
 import { useCollection } from '@/hooks'
 import type { Obligacion } from '@/models/operacionesEconomicas'
 import { ServicioAuth } from '@/services/firebase'
+import { usePoliticaComercial } from '@/hooks/comercial'
 
 interface MisGananciasCuidadorProps {
   onVerDetalles?: () => void
@@ -40,8 +42,11 @@ export const MisGananciasCuidador: React.FC<MisGananciasCuidadorProps> = ({
     totalLiquidado: 0,
     paseosPendientes: 0,
     paseosLiquidados: 0,
+    totalListo: 0,
   })
   const [loading, setLoading] = useState(true)
+  const { politica } = usePoliticaComercial()
+  const soloRecaudadas = politica?.liquidacion.solo_recaudadas ?? true
 
   const cuidadorId = ServicioAuth.obtenerUsuarioActual()?.uid
 
@@ -55,7 +60,9 @@ export const MisGananciasCuidador: React.FC<MisGananciasCuidadorProps> = ({
   }, [cuidadorId])
 
   // Hook para obtener obligaciones donde cuidador es acreedor (sus ganancias)
-  const { data: obligacionesData } = useCollection(obligacionesQuery)
+  const { data: obligacionesData } = useCollection(obligacionesQuery, {
+    listen: true,
+  })
 
   useEffect(() => {
     if (obligacionesData) {
@@ -68,6 +75,10 @@ export const MisGananciasCuidador: React.FC<MisGananciasCuidadorProps> = ({
       const totalPendiente = pendientes.reduce((sum, o) => sum + o.valor, 0)
       const totalLiquidado = cumplidas.reduce((sum, o) => sum + o.valor, 0)
       const totalGanancia = totalPendiente + totalLiquidado
+      // Lo que entra en la próxima liquidación (el resto espera el pago del tutor)
+      const totalListo = pendientes
+        .filter(o => !soloRecaudadas || o.cobro_recaudado)
+        .reduce((sum, o) => sum + o.valor, 0)
 
       setGanancia({
         totalGanancia,
@@ -75,16 +86,19 @@ export const MisGananciasCuidador: React.FC<MisGananciasCuidadorProps> = ({
         totalLiquidado,
         paseosPendientes: pendientes.length,
         paseosLiquidados: cumplidas.length,
+        totalListo,
       })
 
       setLoading(false)
     }
-  }, [obligacionesData])
+  }, [obligacionesData, soloRecaudadas])
 
   const getProximaLiquidacion = () => {
+    if (!politica) return 'Por definir'
     const hoy = new Date()
     const diaSemana = hoy.getDay()
-    const diasFaltantes = (5 - diaSemana + 7) % 7 // 5 = viernes
+    const diaPago = politica.liquidacion.dia_pago
+    const diasFaltantes = (diaPago - diaSemana + 7) % 7
 
     const proximaFecha = new Date(hoy)
     proximaFecha.setDate(
@@ -122,7 +136,7 @@ export const MisGananciasCuidador: React.FC<MisGananciasCuidadorProps> = ({
       >
         <View style={styles.headerPrincipal}>
           <View>
-            <Text style={styles.labelPrincipal}>Tu Ganancia Este Mes</Text>
+            <Text style={styles.labelPrincipal}>Tus Ganancias</Text>
             <Text style={styles.valorPrincipal}>
               ${ganancia.totalGanancia.toLocaleString()}
             </Text>
@@ -214,19 +228,19 @@ export const MisGananciasCuidador: React.FC<MisGananciasCuidadorProps> = ({
           </View>
         </Card>
 
-        <Card style={[styles.cardDetalle, { borderLeftColor: '#FF9500' }]}>
+        <Card style={[styles.cardDetalle, { borderLeftColor: COLOR.ALERTA }]}>
           <View style={styles.cardDetalleContent}>
             <View style={styles.cardDetalleIcono}>
               <LinearGradient
-                colors={['#FF950030', '#FF950010']}
+                colors={[`${COLOR.ALERTA}30`, `${COLOR.ALERTA}10`]}
                 style={styles.gradienteIcono}
               >
-                <Icon name="clock" size={18} color="#FF9500" />
+                <Icon name="clock" size={18} color={COLOR.ALERTA} />
               </LinearGradient>
             </View>
             <View style={styles.cardDetalleInfo}>
               <Text style={styles.cardDetalleLabel}>Por Cobrar</Text>
-              <Text style={[styles.cardDetalleValor, { color: '#FF9500' }]}>
+              <Text style={[styles.cardDetalleValor, { color: COLOR.ALERTA }]}>
                 {ganancia.paseosPendientes}
               </Text>
             </View>
@@ -239,27 +253,33 @@ export const MisGananciasCuidador: React.FC<MisGananciasCuidadorProps> = ({
         <View style={styles.liquidacionContent}>
           <View style={styles.liquidacionIcono}>
             <LinearGradient
-              colors={['#7C3AED30', '#7C3AED10']}
+              colors={[`${COLOR.INFO}30`, `${COLOR.INFO}10`]}
               style={styles.liquidacionGradiente}
             >
-              <Icon name="calendar" size={18} color="#7C3AED" />
+              <Icon name="calendar" size={18} color={COLOR.INFO} />
             </LinearGradient>
           </View>
 
           <View style={styles.liquidacionInfo}>
             <Text style={styles.liquidacionLabel}>Próxima liquidación</Text>
             <Text style={styles.liquidacionFecha}>
-              {getProximaLiquidacion()} a las 18:00
+              {getProximaLiquidacion()}
             </Text>
-            {ganancia.totalPendiente > 0 && (
+            {ganancia.totalListo > 0 && (
               <Text style={styles.liquidacionEstimado}>
-                Se transferirá ${ganancia.totalPendiente.toLocaleString()}
+                Se transferirá ${ganancia.totalListo.toLocaleString()}
+              </Text>
+            )}
+            {ganancia.totalPendiente > ganancia.totalListo && (
+              <Text style={styles.liquidacionEstimado}>
+                Esperando pago del tutor: $
+                {(ganancia.totalPendiente - ganancia.totalListo).toLocaleString()}
               </Text>
             )}
           </View>
 
           <View style={styles.liquidacionFecha2}>
-            <Icon name="chevron-right" size={20} color="#7C3AED" />
+            <Icon name="chevron-right" size={20} color={COLOR.INFO} />
           </View>
         </View>
       </Card>

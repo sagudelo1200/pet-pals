@@ -18,8 +18,10 @@ import {
   Pressable,
   ActivityIndicator,
   Alert,
+  ScrollView,
 } from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { COLOR } from '@/constants'
 import Card from '@/components/ui/Card'
 import Icon from '@/components/ui/Icon'
@@ -45,6 +47,7 @@ export const ModalValidacionEntrega: React.FC<ModalValidacionEntregaProps> = ({
   onSuccess,
   onDismiss,
 }) => {
+  const insets = useSafeAreaInsets()
   const {
     codigo,
     loading,
@@ -119,109 +122,121 @@ export const ModalValidacionEntrega: React.FC<ModalValidacionEntregaProps> = ({
           style={styles.background}
         >
           <View style={styles.content}>
-            <Pressable style={styles.closeButton} onPress={onDismiss}>
-              <Icon name="times" size={24} color={COLOR.SUBTEXTO} />
-            </Pressable>
-
-            <View style={styles.header}>
-              <View style={styles.iconContainer}>
-                <LinearGradient
-                  colors={[COLOR.EXITO, `${COLOR.EXITO}80`]}
-                  style={styles.checkIcon}
-                >
-                  <Icon name="check-circle" size={48} color="white" />
-                </LinearGradient>
-              </View>
-              <Text style={styles.titulo}>Validar Entrega</Text>
-              <Text style={styles.subtitulo}>
-                {nombreMascota} fue entregado correctamente por {nombreCuidador}
-              </Text>
-            </View>
-
-            <Card style={styles.card}>
-              <Text style={styles.instruccion}>
-                Ingresa el código de 6 dígitos recibido
-              </Text>
-
-              {/* Input visual */}
-              <View style={styles.digitContainer}>
-                <DigitInput index={0} />
-                <DigitInput index={1} />
-                <DigitInput index={2} />
-                <DigitInput index={3} />
-                <DigitInput index={4} />
-                <DigitInput index={5} />
-              </View>
-
-              {/* Teclado numérico */}
-              <View style={styles.keypad}>
-                <View style={styles.row}>
-                  <DigitButton digit="1" />
-                  <DigitButton digit="2" />
-                  <DigitButton digit="3" />
-                </View>
-                <View style={styles.row}>
-                  <DigitButton digit="4" />
-                  <DigitButton digit="5" />
-                  <DigitButton digit="6" />
-                </View>
-                <View style={styles.row}>
-                  <DigitButton digit="7" />
-                  <DigitButton digit="8" />
-                  <DigitButton digit="9" />
-                </View>
-                <View style={styles.row}>
-                  <Pressable
-                    style={[styles.numberButton, styles.clearButton]}
-                    onPress={resetear}
-                    disabled={loading}
-                  >
-                    <Text style={styles.clearText}>AC</Text>
-                  </Pressable>
-                  <DigitButton digit="0" />
-                  <Pressable
-                    style={[styles.numberButton, styles.backspaceButton]}
-                    onPress={handleBorrar}
-                    disabled={loading || codigo.length === 0}
-                  >
-                    <Icon name="backspace" size={20} color={COLOR.SUBTEXTO} />
-                  </Pressable>
-                </View>
-              </View>
-
-              {/* Error */}
-              {error && (
-                <View style={styles.errorContainer}>
-                  <Icon name="exclamation-circle" size={16} color={COLOR.ERROR} />
-                  <Text style={styles.errorText}>{error}</Text>
-                </View>
-              )}
-
-              {/* Intentos */}
-              <Text style={styles.intentos}>
-                Intentos restantes: {intentosRestantes}/3
-              </Text>
-
-              {/* Botón validar */}
-              <Pressable
-                style={[
-                  styles.botonValidar,
-                  (loading || codigo.length !== 6 || bloqueado) &&
-                    styles.botonDisabled,
-                ]}
-                onPress={handleConfirmar}
-                disabled={loading || codigo.length !== 6 || bloqueado}
-              >
-                {loading ? (
-                  <ActivityIndicator color="white" />
-                ) : (
-                  <>
-                    <Icon name="check" size={20} color="white" />
-                    <Text style={styles.botonText}>Validar Código</Text>
-                  </>
-                )}
+            {/* Scroll de respaldo: en pantallas cortas el botón sigue accesible */}
+            <ScrollView
+              bounces={false}
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={{ paddingBottom: insets.bottom + 16 }}
+            >
+              <Pressable style={styles.closeButton} onPress={onDismiss}>
+                <Icon name="times" size={24} color={COLOR.SUBTEXTO} />
               </Pressable>
-            </Card>
+
+              <View style={styles.header}>
+                <View style={styles.iconContainer}>
+                  <LinearGradient
+                    colors={[COLOR.EXITO, `${COLOR.EXITO}80`]}
+                    style={styles.checkIcon}
+                  >
+                    <Icon name="check-circle" size={32} color="white" />
+                  </LinearGradient>
+                </View>
+                <Text style={styles.titulo}>Validar Entrega</Text>
+                <Text style={styles.subtitulo}>
+                  {nombreMascota} fue entregado correctamente por{' '}
+                  {nombreCuidador}
+                </Text>
+              </View>
+
+              <Card style={styles.card}>
+                <Text style={styles.instruccion}>
+                  Ingresa el código de 6 dígitos recibido
+                </Text>
+
+                {/* Input visual */}
+                <View style={styles.digitContainer}>
+                  <DigitInput index={0} />
+                  <DigitInput index={1} />
+                  <DigitInput index={2} />
+                  <DigitInput index={3} />
+                  <DigitInput index={4} />
+                  <DigitInput index={5} />
+                </View>
+
+                {/* Teclado numérico */}
+                <View style={styles.keypad}>
+                  <View style={styles.row}>
+                    <DigitButton digit="1" />
+                    <DigitButton digit="2" />
+                    <DigitButton digit="3" />
+                  </View>
+                  <View style={styles.row}>
+                    <DigitButton digit="4" />
+                    <DigitButton digit="5" />
+                    <DigitButton digit="6" />
+                  </View>
+                  <View style={styles.row}>
+                    <DigitButton digit="7" />
+                    <DigitButton digit="8" />
+                    <DigitButton digit="9" />
+                  </View>
+                  <View style={styles.row}>
+                    <Pressable
+                      style={[styles.numberButton, styles.clearButton]}
+                      onPress={resetear}
+                      disabled={loading}
+                    >
+                      <Text style={styles.clearText}>AC</Text>
+                    </Pressable>
+                    <DigitButton digit="0" />
+                    <Pressable
+                      style={[styles.numberButton, styles.backspaceButton]}
+                      onPress={handleBorrar}
+                      disabled={loading || codigo.length === 0}
+                    >
+                      <Icon name="backspace" size={20} color={COLOR.SUBTEXTO} />
+                    </Pressable>
+                  </View>
+                </View>
+
+                {/* Error */}
+                {error && (
+                  <View style={styles.errorContainer}>
+                    <Icon
+                      name="exclamation-circle"
+                      size={16}
+                      color={COLOR.ERROR}
+                    />
+                    <Text style={styles.errorText}>{error}</Text>
+                  </View>
+                )}
+
+                {/* Intentos */}
+                <Text style={styles.intentos}>
+                  Intentos restantes: {intentosRestantes}/3
+                </Text>
+
+                {/* Botón validar */}
+                <Pressable
+                  style={[
+                    styles.botonValidar,
+                    (loading || codigo.length !== 6 || bloqueado) &&
+                      styles.botonDisabled,
+                  ]}
+                  onPress={handleConfirmar}
+                  disabled={loading || codigo.length !== 6 || bloqueado}
+                >
+                  {loading ? (
+                    <ActivityIndicator color="white" />
+                  ) : (
+                    <>
+                      <Icon name="check" size={20} color="white" />
+                      <Text style={styles.botonText}>Validar Código</Text>
+                    </>
+                  )}
+                </Pressable>
+              </Card>
+            </ScrollView>
           </View>
         </LinearGradient>
       </View>
@@ -238,13 +253,12 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   content: {
-    backgroundColor: 'white',
+    backgroundColor: COLOR.BLOQUE,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     paddingTop: 16,
     paddingHorizontal: 16,
-    paddingBottom: 32,
-    minHeight: '80%',
+    maxHeight: '94%',
   },
   closeButton: {
     alignSelf: 'flex-end',
@@ -252,20 +266,20 @@ const styles = StyleSheet.create({
   },
   header: {
     alignItems: 'center',
-    marginBottom: 24,
-  },
-  iconContainer: {
     marginBottom: 16,
   },
+  iconContainer: {
+    marginBottom: 12,
+  },
   checkIcon: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
     justifyContent: 'center',
     alignItems: 'center',
   },
   titulo: {
-    fontSize: 24,
+    fontSize: 22,
     fontWeight: '700',
     color: COLOR.TEXTO,
     marginBottom: 8,
@@ -282,14 +296,14 @@ const styles = StyleSheet.create({
   instruccion: {
     fontSize: 14,
     color: COLOR.SUBTEXTO,
-    marginBottom: 20,
+    marginBottom: 14,
     textAlign: 'center',
   },
   digitContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
     gap: 8,
-    marginBottom: 32,
+    marginBottom: 20,
   },
   digitBox: {
     width: 44,
@@ -315,9 +329,11 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     gap: 8,
   },
+  // Altura fija: con aspectRatio 1 las teclas eran cuadradas a todo el ancho
+  // (~90 px) y el teclado empujaba el botón fuera de la pantalla
   numberButton: {
     flex: 1,
-    aspectRatio: 1,
+    height: 52,
     borderRadius: 12,
     backgroundColor: COLOR.SECUNDARIO,
     justifyContent: 'center',

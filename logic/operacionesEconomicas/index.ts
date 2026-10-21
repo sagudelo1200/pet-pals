@@ -1,3 +1,7 @@
+/**
+ * Invariantes del modelo económico (I1-I5), puras y reutilizables.
+ * Las escrituras económicas las hace solo el servidor: functions/src/economia.
+ */
 export {
   validateI1,
   validateI2,
@@ -5,15 +9,3 @@ export {
   validateI4,
   validateI5,
 } from './invariantes'
-
-// Exportar funciones de casosDeUso sin re-exportar desde index (evita ciclo de require)
-export {
-  crearOperacionEconomica,
-  asignarCuidador,
-  registrarServicioEjecutado,
-  registrarRecaudo,
-  generarObligacion,
-  ejecutarPago,
-  cerrarOperacion,
-  cancelarOperacion,
-} from './casosDeUso'

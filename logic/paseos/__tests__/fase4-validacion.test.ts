@@ -25,10 +25,6 @@ jest.mock('@/logic/paseos/gestor', () => ({
   },
 }))
 
-jest.mock('@/logic/operacionesEconomicas/casosDeUso', () => ({
-  registrarServicioEjecutado: jest.fn(),
-}))
-
 import { validarRecepcionTutor } from '@/logic/paseos/casosDeUso'
 
 describe('FASE 4: Validar Recepción del Servicio', () => {

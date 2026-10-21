@@ -26,12 +26,6 @@ jest.mock('@/logic/operaciones/auditoria', () => ({
   registrarAuditoria: jest.fn(),
 }))
 
-jest.mock('@/logic/operacionesEconomicas/casosDeUso', () => ({
-  crearOperacionEconomica: jest.fn(),
-  generarObligacion: jest.fn(),
-  asignarCuidador: jest.fn(),
-  registrarServicioEjecutado: jest.fn(),
-}))
 
 jest.mock('firebase/firestore', () => ({
   collection: jest.fn(),
@@ -45,10 +39,6 @@ jest.mock('firebase/firestore', () => ({
 import { aceptarSolicitud, finalizarPaseo } from '@/logic/paseos/casosDeUso'
 import { ServicioAuth, ServicioPaseo } from '@/services/firebase'
 import { registrarAuditoria } from '@/logic/operaciones/auditoria'
-import {
-  asignarCuidador,
-  registrarServicioEjecutado,
-} from '@/logic/operacionesEconomicas/casosDeUso'
 import { getDocs, where } from 'firebase/firestore'
 import { ESTADOS_PASEO } from '@/models/Paseo'
 
@@ -69,7 +59,6 @@ function paseoPendiente(overrides: Record<string, unknown> = {}) {
     fecha_hora_inicio: ts(enMinutos(15)),
     duracion_estimada: 30,
     precio: 18000,
-    operacion_economica_id: 'op-1',
     ...overrides,
   }
 }
@@ -102,11 +91,10 @@ describe('Tier 1: aceptarSolicitud', () => {
     })
     mock(ServicioPaseo.registrarEvento).mockResolvedValue({ success: true })
     mock(registrarAuditoria).mockResolvedValue('aud-1')
-    mock(asignarCuidador).mockResolvedValue(undefined)
     agenda()
   })
 
-  it('confirma el paseo y asigna el cuidador a la operación económica', async () => {
+  it('confirma el paseo con el cuidador asignado', async () => {
     const res = await aceptarSolicitud('paseo-1')
 
     expect(res.success).toBe(true)
@@ -116,30 +104,9 @@ describe('Tier 1: aceptarSolicitud', () => {
       ESTADOS_PASEO.CONFIRMADO,
       expect.objectContaining({ id_cuidador: 'cuidador-1' })
     )
-    expect(asignarCuidador).toHaveBeenCalledWith('op-1', 'cuidador-1')
     expect(registrarAuditoria).toHaveBeenCalledWith(
       expect.objectContaining({ tipo_evento: 'CAMBIO_ESTADO', actor: 'cuidador-1' })
     )
-  })
-
-  it('no asigna operación económica si el paseo no tiene una', async () => {
-    mock(ServicioPaseo.obtenerPorId).mockResolvedValue({
-      success: true,
-      data: paseoPendiente({ operacion_economica_id: undefined }),
-    })
-
-    const res = await aceptarSolicitud('paseo-1')
-
-    expect(res.success).toBe(true)
-    expect(asignarCuidador).not.toHaveBeenCalled()
-  })
-
-  it('un fallo al asignar la operación económica no bloquea la aceptación', async () => {
-    mock(asignarCuidador).mockRejectedValue(new Error('permission-denied'))
-
-    const res = await aceptarSolicitud('paseo-1')
-
-    expect(res.success).toBe(true)
   })
 
   it('rechaza aceptar un paseo propio', async () => {
@@ -294,7 +261,7 @@ describe('Tier 1: aceptarSolicitud', () => {
   })
 })
 
-describe('Tier 1: finalizarPaseo registra el servicio ejecutado', () => {
+describe('Tier 1: finalizarPaseo', () => {
   beforeEach(() => {
     jest.clearAllMocks()
     mock(ServicioAuth.obtenerUsuarioActual).mockReturnValue({ uid: 'cuidador-1' })
@@ -306,10 +273,10 @@ describe('Tier 1: finalizarPaseo registra el servicio ejecutado', () => {
       success: true,
     })
     mock(ServicioPaseo.registrarEvento).mockResolvedValue({ success: true })
-    mock(registrarServicioEjecutado).mockResolvedValue(undefined)
   })
 
-  it('transiciona EN_PROGRESO → FINALIZADO y registra el servicio económico', async () => {
+  // El cobro y el pago al cuidador los genera el servidor al entrar a FINALIZADO
+  it('transiciona EN_PROGRESO → FINALIZADO', async () => {
     const res = await finalizarPaseo('paseo-1')
 
     expect(res.success).toBe(true)
@@ -319,18 +286,6 @@ describe('Tier 1: finalizarPaseo registra el servicio ejecutado', () => {
       ESTADOS_PASEO.FINALIZADO,
       expect.objectContaining({ fecha_fin_real: 'SERVER_TS' })
     )
-    expect(registrarServicioEjecutado).toHaveBeenCalledWith(
-      'op-1',
-      expect.stringContaining('paseo-1')
-    )
-  })
-
-  it('un fallo económico no revierte la finalización', async () => {
-    mock(registrarServicioEjecutado).mockRejectedValue(new Error('boom'))
-
-    const res = await finalizarPaseo('paseo-1')
-
-    expect(res.success).toBe(true)
   })
 
   it('rechaza finalizar un paseo que no está EN_PROGRESO', async () => {
@@ -342,6 +297,6 @@ describe('Tier 1: finalizarPaseo registra el servicio ejecutado', () => {
     const res = await finalizarPaseo('paseo-1')
 
     expect(res).toEqual({ success: false, error: 'TRANSICION_INVALIDA' })
-    expect(registrarServicioEjecutado).not.toHaveBeenCalled()
+    expect(ServicioPaseo.commitEstadoTransaccional).not.toHaveBeenCalled()
   })
 })

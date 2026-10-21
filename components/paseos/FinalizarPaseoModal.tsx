@@ -5,8 +5,8 @@
  * Flujo:
  * 1. Tomar foto de confirmación (mascota)
  * 2. Agregar observaciones (opcional)
- * 3. Confirmar → registrarServicioEjecutado()
- * 4. Estado: FINALIZADO → Obligaciones creadas
+ * 3. Confirmar → las observaciones quedan en el historial del paseo
+ * 4. Estado: FINALIZADO → el servidor genera el cobro y el pago al cuidador
  */
 
 import React, { useState } from 'react'
@@ -27,12 +27,11 @@ import * as ImagePicker from 'expo-image-picker'
 import { COLOR } from '@/constants'
 import Card from '@/components/ui/Card'
 import Icon from '@/components/ui/Icon'
-import { registrarServicioEjecutado } from '@/logic/operacionesEconomicas'
+import { ServicioPaseo } from '@/services/firebase'
 
 interface FinalizarPaseoModalProps {
   visible: boolean
   paseoId: string
-  operacionId?: string
   nombreMascota: string
   nombreTutor: string
   duracionMinutos: number
@@ -43,7 +42,6 @@ interface FinalizarPaseoModalProps {
 export const FinalizarPaseoModal: React.FC<FinalizarPaseoModalProps> = ({
   visible,
   paseoId,
-  operacionId,
   nombreMascota,
   nombreTutor,
   duracionMinutos,
@@ -116,19 +114,16 @@ export const FinalizarPaseoModal: React.FC<FinalizarPaseoModalProps> = ({
     setLoading(true)
 
     try {
-      // Registro económico: si falla no bloquea la finalización del paseo
-      // (mismo criterio que logic/paseos/casosDeUso.ts)
-      if (operacionId) {
-        const detalle =
-          `Servicio ejecutado para paseo ${paseoId} (${duracionMinutos} min)` +
-          (observaciones ? `: ${observaciones}` : '')
-        try {
-          await registrarServicioEjecutado(operacionId, detalle)
-        } catch (errEcon) {
-          console.warn(
-            '[FinalizarPaseoModal] Error registrando servicio ejecutado:',
-            errEcon
-          )
+      // Las observaciones quedan en el historial del paseo; si falla no
+      // bloquea la finalización
+      if (observaciones.trim()) {
+        const res = await ServicioPaseo.registrarEvento(
+          paseoId,
+          'NOTA_FINALIZACION',
+          { observaciones: observaciones.trim(), duracion_minutos: duracionMinutos }
+        )
+        if (!res.success) {
+          console.warn('[FinalizarPaseoModal] Error guardando observaciones:', res)
         }
       }
 
@@ -338,7 +333,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   content: {
-    backgroundColor: 'white',
+    backgroundColor: COLOR.BLOQUE,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     paddingTop: 16,
@@ -415,7 +410,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: 'white',
+    backgroundColor: COLOR.SECUNDARIO,
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: '#000',
@@ -463,7 +458,7 @@ const styles = StyleSheet.create({
     color: 'white',
   },
   botonFotoSecundario: {
-    backgroundColor: 'white',
+    backgroundColor: COLOR.SECUNDARIO,
     borderWidth: 1,
     borderColor: `${COLOR.PRIMARIO}30`,
   },

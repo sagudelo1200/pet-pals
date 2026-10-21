@@ -4,6 +4,13 @@
 
 import * as mockFirestore from '../helpers/mockFirestore'
 
+// El código usa comun/firebaseAdminCompat (firebase-admin v14 modular): se
+// le entrega el mismo mock de firebase-admin para no cargar el SDK real
+jest.mock('../../src/comun/firebaseAdminCompat', () => ({
+  __esModule: true,
+  default: jest.requireMock('firebase-admin'),
+}))
+
 jest.mock('firebase-admin', () => {
   const db = mockFirestore.crearMockDb()
   return {

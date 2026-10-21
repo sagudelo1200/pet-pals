@@ -19,12 +19,6 @@ import { paseoActivo } from './gestor'
 import { registrarAuditoria } from '@/logic/operaciones/auditoria'
 import { collection, query, where, orderBy, getDocs } from 'firebase/firestore'
 import { db } from '@/firebase.config'
-import {
-  crearOperacionEconomica,
-  generarObligacion,
-  asignarCuidador,
-  registrarServicioEjecutado,
-} from '@/logic/operacionesEconomicas/casosDeUso'
 
 // ---------- Helpers de denormalización ----------
 const MAX_DENORMALIZED_PHOTO_SIZE = 120 * 1024 // 120KB (suficiente para URLs y mini-thumbnails)
@@ -389,56 +383,8 @@ export async function crearConMascotas(
       // No fallar si la auditoría falla (es no-bloqueante)
     })
 
-    // FASE 1: Crear OperacionEconomica para registrar el contrato
-    // Esta operación registra el pago entre tutor y cuidador
-    const precio = (data as any).precio || 0
-    if (precio > 0) {
-      try {
-        // Calcular desglose: 10% Paw-Path, 90% Cuidador
-        const remuneracion_mandatario = Math.round(precio * 0.1)
-        const recursos_administrados = precio - remuneracion_mandatario
-
-        // Crear OperacionEconomica con el tutor como quien paga
-        // y Paw-Path como beneficiaria
-        const opEcon = await crearOperacionEconomica(
-          uid, // tutorId: el tutor que solicita el paseo
-          precio, // valorAcordado: precio total
-          remuneracion_mandatario, // remuneracion_mandatario: 10% para Paw-Path
-          recursos_administrados, // recursos_administrados: 90% para el cuidador
-          paseoRes.data.id // paseo_id: permite al cuidador asignarse (reglas)
-        )
-
-        if (opEcon) {
-          // Actualizar paseo con referencia a la OperacionEconomica
-          await ServicioPaseo.actualizar(paseoRes.data.id, {
-            operacion_economica_id: opEcon, // opEcon es directamente el ID
-            timestamp_pago_solicitado: new Date(),
-          }).catch(err => {
-            console.warn(
-              '[Paseo] Error actualizando operacion_economica_id:',
-              err
-            )
-          })
-
-          // Crear Obligación: tutor debe pagar el precio completo a Paw-Path
-          await generarObligacion(
-            opEcon, // operacionId (es directamente el string ID)
-            uid, // deudor: el tutor
-            'paw-path', // acreedor: Paw-Path
-            'Pago por servicio de paseo', // concepto
-            precio // valor
-          ).catch(err => {
-            console.warn('[Paseo] Error creando obligación de pago:', err)
-          })
-        }
-      } catch (err) {
-        console.warn(
-          '[FASE1] Error creando OperacionEconomica para paseo:',
-          err
-        )
-        // No fallar si la OperacionEconomica falla (es no-bloqueante en esta fase)
-      }
-    }
+    // La parte económica (precio, cobro al tutor y pago al cuidador) la
+    // genera el servidor al finalizar el paseo: functions/src/economia
   }
 
   return paseoRes as any
@@ -535,28 +481,6 @@ export async function aceptarSolicitud(paseoId: string) {
       }).catch(err => {
         console.warn('[Auditoría] Error registrando aceptación de paseo:', err)
       })
-
-      // FASE 2: Asignar cuidador a la OperacionEconomica
-      if (paseo.operacion_economica_id) {
-        try {
-          await asignarCuidador(paseo.operacion_economica_id, uid)
-
-          // Notificar al cuidador su ingreso neto (90% del precio)
-          const ingreso_neto = Math.round((paseo.precio || 0) * 0.9)
-          console.log(
-            `[FASE2] Cuidador ${uid} asignado al paseo ${paseoId}. Ingreso neto: $${ingreso_neto.toLocaleString()}`
-          )
-
-          // TODO: Enviar notificación push al cuidador con:
-          // "¡Paseo aceptado! Ingreso neto: $45,000"
-        } catch (err) {
-          console.warn(
-            '[FASE2] Error asignando cuidador a OperacionEconomica:',
-            err
-          )
-          // No fallar si la asignación económica falla
-        }
-      }
 
       return res
     }
@@ -750,25 +674,6 @@ export async function finalizarPaseo(paseoId: string) {
       estado_anterior: 'EN_PROGRESO',
       estado_nuevo: 'FINALIZADO',
     })
-
-    // FASE 3: Registrar servicio ejecutado en la OperacionEconomica
-    if (paseo.operacion_economica_id) {
-      try {
-        await registrarServicioEjecutado(
-          paseo.operacion_economica_id,
-          `Servicio ejecutado para paseo ${paseoId}`
-        )
-
-        // TODO: Notificar a tutor que servicio fue completado
-        // TODO: Notificar a cuidador que tiene obligación pendiente de liquidación semanal
-        console.log(
-          `[FASE3] Paseo ${paseoId} finalizado. OperacionEconomica ${paseo.operacion_economica_id} transicionada a EJECUTADA.`
-        )
-      } catch (err) {
-        console.warn('[FASE3] Error registrando servicio ejecutado:', err)
-        // No fallar si el registro económico falla (es no-bloqueante)
-      }
-    }
   }
   return res
 }
