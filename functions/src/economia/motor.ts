@@ -10,13 +10,13 @@ import type {
   DocumentReference,
   DocumentSnapshot,
   Firestore,
-  Timestamp,
   Transaction,
 } from 'firebase-admin/firestore';
-import {FieldValue} from 'firebase-admin/firestore';
+import {FieldValue, Timestamp} from 'firebase-admin/firestore';
 import {
   COLECCION,
   PAW_PATH,
+  type PoliticaComercial,
   type TipoEventoEconomico,
 } from './tipos';
 import type {DesgloseCobro} from './calculo';
@@ -159,9 +159,12 @@ export interface CobroServicio {
   tutorId: string
   cuidadorId: string
   desglose: DesgloseCobro
-  politicaVersion: number
+  /** Política acordada al nacer el servicio: rige la operación completa. */
+  politica: PoliticaComercial
   detallePrecio: Record<string, number>
 }
+
+const HORA_MS = 60 * 60 * 1000;
 
 /**
  * Genera, al validar la entrega, la operación económica del tutor con sus
@@ -199,15 +202,18 @@ export async function generarCobroServicio(
       recursos_administrados: d.recursos_administrados,
       comision_base: d.comision_base,
       iva_comision: d.iva_comision,
-      politica_version: c.politicaVersion,
+      politica_version: c.politica.version,
       detalle_precio: c.detallePrecio,
       estado: 'EJECUTADA',
       creado_en: ahora,
     });
 
+    // Cada obligación lleva los términos de su política: lo que pase después
+    // (bloqueo, liquidación, documentos) no depende de la política vigente
     const base = {
       operacion_id: opId,
       operacion_servicio_id: c.servicioId,
+      politica_version: c.politica.version,
       estado: 'PENDIENTE',
       creado_en: ahora,
     };
@@ -220,6 +226,8 @@ export async function generarCobroServicio(
       concepto: 'Pago por servicio de paseo',
       valor: d.valor_acordado,
       recordatorios_enviados: 0,
+      bloquear_desde: Timestamp.fromMillis(
+        ahora.toMillis() + c.politica.cobro.bloqueo_tras_horas * HORA_MS),
     });
     tx.set(obligaciones(db).doc(idObligacionCuidador(opId)), {
       ...base,
@@ -230,6 +238,8 @@ export async function generarCobroServicio(
       concepto: 'Pago por servicio de paseo ejecutado',
       valor: d.recursos_administrados,
       cobro_recaudado: false,
+      requiere_recaudo: c.politica.liquidacion.solo_recaudadas,
+      documento_soporte: c.politica.contabilidad.documento_soporte_cuidador,
     });
 
     const eventos: Array<[TipoEventoEconomico, string, Record<string, string>?]> = [

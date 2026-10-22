@@ -2,7 +2,7 @@ import React from 'react'
 import { Platform } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
-import AdminDashboard from '@/screens/admin/AdminDashboard'
+import AdminAjustes from '@/screens/admin/AdminAjustes'
 import TerritorioVivo from '@/screens/admin/TerritorioVivo'
 import AdminEconomia from '@/screens/admin/AdminEconomia'
 import MiCuenta from '@/screens/comun/MiCuenta'
@@ -46,10 +46,10 @@ const AdminTabNavigator: React.FC = () => {
       }}
     >
       <Tab.Screen
-        name="AdminHome"
-        component={AdminDashboard}
+        name="AdminAjustes"
+        component={AdminAjustes}
         options={{
-          tabBarLabel: 'Dashboard',
+          tabBarLabel: 'Ajustes',
           tabBarIcon: ({ color, size }) => (
             <Icon name="cog" color={color} size={size} />
           ),

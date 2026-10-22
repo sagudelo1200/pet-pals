@@ -1,7 +1,8 @@
 /* eslint-disable camelcase */
 /**
  * Puente paseo → economía.
- * - Al crear el paseo se fija la versión de política con la que se cobrará.
+ * - El paseo nace con la versión de política que vio el tutor (las reglas
+ *   exigen que sea la vigente); si faltara, el servidor fija la vigente.
  * - Cuando cada tutor valida el código de entrega nace su operación
  *   económica, con el precio calculado en el servidor según sus mascotas y
  *   la duración del paseo.
@@ -10,11 +11,12 @@ import type {Firestore, Timestamp} from 'firebase-admin/firestore';
 import {calcularPrecioPaseo, desglosarCobro} from './calculo';
 import {generarCobroServicio} from './motor';
 import {obtenerPolitica, obtenerPoliticaVigente} from './politica';
+import type {PoliticaComercial} from './tipos';
 
 const DURACION_POR_DEFECTO_MIN = 60;
 
 /**
- * Fija en el paseo la versión vigente de la política comercial.
+ * Respaldo: fija la versión vigente si el paseo nació sin ella.
  * @param {Firestore} db Firestore.
  * @param {string} paseoId Paseo.
  * @param {Record<string, unknown>} paseo Datos del paseo.
@@ -31,6 +33,22 @@ export async function fijarPoliticaDePaseo(
     politica_version: politica.version,
   });
   return politica.version;
+}
+
+/**
+ * Política con la que se cobra un paseo: la fijada al crearlo (la que vio
+ * el tutor). Solo si faltara se usa la vigente.
+ * @param {Firestore} db Firestore.
+ * @param {Record<string, unknown>} paseo Datos del paseo.
+ * @return {Promise<PoliticaComercial>} Política.
+ */
+export async function politicaDePaseo(
+  db: Firestore,
+  paseo: Record<string, unknown>
+): Promise<PoliticaComercial> {
+  return typeof paseo.politica_version === 'number' ?
+    obtenerPolitica(db, paseo.politica_version) :
+    obtenerPoliticaVigente(db);
 }
 
 /**
@@ -55,9 +73,7 @@ export async function generarCobrosDePaseo(
     throw new Error(`Paseo ${paseoId} finalizado sin cuidador asignado`);
   }
 
-  const politica = typeof paseo.politica_version === 'number' ?
-    await obtenerPolitica(db, paseo.politica_version) :
-    await obtenerPoliticaVigente(db);
+  const politica = await politicaDePaseo(db, paseo);
   const tarifas = politica.por_tipo.paseo;
   const duracion = typeof paseo.duracion_estimada === 'number' &&
     paseo.duracion_estimada > 0 ?
@@ -87,7 +103,7 @@ export async function generarCobrosDePaseo(
       tutorId,
       cuidadorId,
       desglose,
-      politicaVersion: politica.version,
+      politica,
       detallePrecio: {
         num_mascotas: numMascotas,
         duracion_minutos: duracion,

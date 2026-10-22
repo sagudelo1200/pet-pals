@@ -3,10 +3,12 @@
  * Liquidación a cuidadores.
  * Sin jobs periódicos: cuando hay dinero listo para un cuidador se agenda una
  * única tarea para el próximo corte (una por fecha). Al corte agrupa por
- * cuidador las obligaciones PAGO_CUIDADOR pendientes (solo las ya
- * recaudadas si la política lo exige) en una liquidación
- * BORRADOR. El admin transfiere y registra la referencia: cada obligación
- * queda CUMPLIDA con su movimiento y la liquidación pasa a PAGADA.
+ * cuidador las obligaciones PAGO_CUIDADOR pendientes (las que esperan el
+ * recaudo según la política de su operación, solo si ya se recaudaron) en
+ * una liquidación BORRADOR. El calendario (día de corte y de pago) y el
+ * monto mínimo agrupan muchas operaciones, así que son los vigentes.
+ * El admin transfiere y registra la referencia: cada obligación queda
+ * CUMPLIDA con su movimiento y la liquidación pasa a PAGADA.
  */
 import type {Firestore} from 'firebase-admin/firestore';
 import {Timestamp} from 'firebase-admin/firestore';
@@ -22,24 +24,21 @@ interface ObligacionCuidador {
   valor: number
   creado_en: Timestamp
   cobro_recaudado?: boolean
+  /** Fijado al nacer con su política; si falta se exige el recaudo. */
+  requiere_recaudo?: boolean
   liquidacion_id?: string
 }
 
 /**
  * ¿La obligación entra en la liquidación de este corte?
  * @param {ObligacionCuidador} o Obligación.
- * @param {PoliticaLiquidacion} liq Política.
  * @param {number} corteMs Fin del periodo (exclusivo).
  * @return {boolean} Si es liquidable.
  */
-function esLiquidable(
-  o: ObligacionCuidador,
-  liq: PoliticaLiquidacion,
-  corteMs: number
-): boolean {
+function esLiquidable(o: ObligacionCuidador, corteMs: number): boolean {
   return !o.liquidacion_id &&
     o.creado_en.toMillis() < corteMs &&
-    (!liq.solo_recaudadas || o.cobro_recaudado === true);
+    (o.requiere_recaudo === false || o.cobro_recaudado === true);
 }
 
 /**
@@ -47,7 +46,7 @@ function esLiquidable(
  * Idempotente: una liquidación por cuidador y fecha de corte, y cada
  * obligación entra en una sola liquidación.
  * @param {Firestore} db Firestore.
- * @param {PoliticaLiquidacion} liq Política vigente.
+ * @param {PoliticaLiquidacion} liq Calendario y monto mínimo vigentes.
  * @param {number} corteMs Fin del periodo (exclusivo), ms epoch.
  * @param {Timestamp} ahora Momento.
  * @return {Promise<object>} Liquidaciones creadas y cuidadores aplazados
@@ -66,7 +65,7 @@ export async function generarLiquidaciones(
   const porCuidador = new Map<string, ObligacionCuidador[]>();
   for (const d of snap.docs) {
     const o = {...(d.data() as ObligacionCuidador), id: d.id};
-    if (!esLiquidable(o, liq, corteMs)) continue;
+    if (!esLiquidable(o, corteMs)) continue;
     porCuidador.set(o.acreedor, [...(porCuidador.get(o.acreedor) ?? []), o]);
   }
 

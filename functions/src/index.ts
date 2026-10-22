@@ -30,16 +30,21 @@ export {revelarEvaluacionVencida} from './evaluaciones/revelarEvaluacion';
 
 // Consentimientos
 export {registrarConsentimiento} from './consentimientos/registrarConsentimiento';
-export {publicarNuevaVersion} from './consentimientos/publicarNuevaVersion';
-export {alPublicarNuevaVersion} from './consentimientos/alPublicarNuevaVersion';
+export {alArchivarConsentimiento} from './consentimientos/alArchivarConsentimiento';
 
-// Economía (cobros, pagos, liquidaciones y política comercial)
+// Administración: configuración operativa y versionado genérico
+export {
+  actualizarConfiguracion,
+  publicarVersion,
+  reactivarVersion,
+} from './administracion/funciones';
+
+// Economía (cobros, pagos y liquidaciones)
 export {
   alCrearPaseoEconomia,
   alValidarEntregaEconomia,
   iniciarPagoOperacion,
   confirmarPagoOperacion,
-  publicarPoliticaComercial,
   generarLiquidacionesAhora,
   pagarLiquidacion,
   reenviarDocumentoContable,

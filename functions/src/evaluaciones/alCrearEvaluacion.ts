@@ -8,6 +8,7 @@ import {
   INSIGNIA_SUPERHOST,
 } from './reputacion';
 import {programarRevelacion} from './cloudTasks';
+import {leerConfiguracion} from '../comun/configuracion';
 
 if (!admin.apps || admin.apps.length === 0) {
   admin.initializeApp();
@@ -113,11 +114,14 @@ export const alCrearEvaluacion = onDocumentCreated(
             // perfil). Sin polling: si la contraparte llega antes, la tarea
             // será un no-op. Fire-and-forget: si falla la programación, la
             // reseña aparece con la próxima evaluación del cuidador.
-            programarRevelacion(evaluacionId).catch((error) => {
-              const msg = '[alCrearEvaluacion] No se pudo programar:';
-              const err = error instanceof Error ? error.message : String(error);
-              console.warn(msg, err);
-            });
+            // Días posibles: configuracion/evaluaciones.dias_revelacion
+            leerConfiguracion(db, 'evaluaciones')
+              .then((c) => programarRevelacion(evaluacionId, c.dias_revelacion))
+              .catch((error) => {
+                const msg = '[alCrearEvaluacion] No se pudo programar:';
+                const err = error instanceof Error ? error.message : String(error);
+                console.warn(msg, err);
+              });
             console.log(`[alCrearEvaluacion] ${evaluacionId} en espera;`);
             console.log('  revelación programada (contraparte no existe)');
           }

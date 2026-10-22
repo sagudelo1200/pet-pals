@@ -20,12 +20,21 @@ import type { AuthFlowParamList } from '@/navigation/types'
 import { functions } from '@/firebase.config'
 import { httpsCallable } from 'firebase/functions'
 import MensajeEnviadoSvg from '@/assets/imgs/undraw/mensaje_enviado.svg'
-import { RETRASO_REENVIO_OTP_SEGUNDOS } from '@/constants/limits'
+import { valoresPorDefecto } from '@/functions/src/compartido/configuracion'
 
 type Nav = StackNavigationProp<AuthFlowParamList>
 
-const TIEMPO_EXPIRACION_OTP = 10 * 60 * 1000 // 10 minutos
-const RETRASO_REENVIO_MS = RETRASO_REENVIO_OTP_SEGUNDOS * 1000 // Convertir a ms
+/** Respuesta de enviarOTP: los límites reales del código enviado. */
+interface RespuestaEnvioOTP {
+  success: boolean
+  error?: string
+  segundosValidez?: number
+  segundosParaReenvio?: number
+  maxIntentos?: number
+}
+
+// Hasta que responda el servidor se muestran los valores del catálogo
+const AUTH_POR_DEFECTO = valoresPorDefecto('auth')
 
 const VerificarEmail: React.FC = () => {
   const navigation = useNavigation<Nav>()
@@ -36,7 +45,10 @@ const VerificarEmail: React.FC = () => {
 
   // Estado mínimo
   const [errorOtp, setErrorOtp] = useState('')
-  const [tiempoRestante, setTiempoRestante] = useState(TIEMPO_EXPIRACION_OTP)
+  const [tiempoRestante, setTiempoRestante] = useState(
+    AUTH_POR_DEFECTO.otp_minutos_expiracion * 60 * 1000
+  )
+  const [maxIntentos, setMaxIntentos] = useState(AUTH_POR_DEFECTO.otp_max_intentos)
   const [reintentosUsados, setReintentosUsados] = useState(0)
   const [enviando, setEnviando] = useState(true)
   const [retrasoReenvio, setRetrasoReenvio] = useState(0) // ms restantes antes de permitir reenvío
@@ -86,6 +98,16 @@ const VerificarEmail: React.FC = () => {
     }
   }, [user?.emailVerified])
 
+  // Validez, espera de reenvío e intentos: los que informa el servidor
+  // (configuración `auth` del admin), no una suposición local
+  const aplicarLimites = useCallback((r: RespuestaEnvioOTP) => {
+    if (r.segundosValidez !== undefined) setTiempoRestante(r.segundosValidez * 1000)
+    if (r.segundosParaReenvio !== undefined) {
+      setRetrasoReenvio(r.segundosParaReenvio * 1000)
+    }
+    if (r.maxIntentos !== undefined) setMaxIntentos(r.maxIntentos)
+  }, [])
+
   // Enviar OTP por email al montar
   useEffect(() => {
     const enviarOTPInicial = async () => {
@@ -96,7 +118,7 @@ const VerificarEmail: React.FC = () => {
       try {
         const enviarOTPFn = httpsCallable<
           { email: string; uid: string },
-          { success: boolean; error?: string }
+          RespuestaEnvioOTP
         >(functions, 'enviarOTP')
 
         const result = await enviarOTPFn({
@@ -109,6 +131,7 @@ const VerificarEmail: React.FC = () => {
         }
 
         if (result.data.success) {
+          aplicarLimites(result.data)
           // Mostrar feedback de éxito
           setMensajeEnvio({
             tipo: 'exito',
@@ -149,9 +172,9 @@ const VerificarEmail: React.FC = () => {
     }
 
     enviarOTPInicial()
-  }, [user?.email, user?.uid, t])
+  }, [user?.email, user?.uid, t, aplicarLimites])
 
-  // Timer del OTP (countdown de 10 minutos)
+  // Timer del OTP (cuenta regresiva de la validez del código)
   useEffect(() => {
     if (tiempoRestante <= 0) {
       return () => {}
@@ -293,7 +316,7 @@ const VerificarEmail: React.FC = () => {
     try {
       const enviarOTPFn = httpsCallable<
         { email: string; uid: string },
-        { success: boolean; error?: string }
+        RespuestaEnvioOTP
       >(functions, 'enviarOTP')
 
       const result = await enviarOTPFn({
@@ -306,9 +329,8 @@ const VerificarEmail: React.FC = () => {
       }
 
       if (result.data.success) {
-        setTiempoRestante(TIEMPO_EXPIRACION_OTP)
+        aplicarLimites(result.data)
         setReintentosUsados(0)
-        setRetrasoReenvio(RETRASO_REENVIO_MS) // Aplicar retraso de reenvío
 
         // Mostrar feedback de éxito
         setMensajeEnvio({
@@ -345,7 +367,7 @@ const VerificarEmail: React.FC = () => {
         setEnviando(false)
       }
     }
-  }, [user?.email, user?.uid, t])
+  }, [user?.email, user?.uid, t, aplicarLimites])
 
   const formatearTiempo = (ms: number): string => {
     const totalSegundos = Math.ceil(ms / 1000)
@@ -444,7 +466,7 @@ const VerificarEmail: React.FC = () => {
                 title={t('auth:otp.ingresa_codigo')}
                 subtitle={t('auth:otp.ingresa_codigo_instrucciones')}
                 intentosFallidos={reintentosUsados}
-                intentosMaximos={3}
+                intentosMaximos={maxIntentos}
                 timeoutSeconds={Math.ceil(tiempoRestante / 1000)}
                 onTimeoutChange={() => {}}
               />

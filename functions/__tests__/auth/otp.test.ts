@@ -126,12 +126,18 @@ describe('enviarOTP', () => {
   });
 
   it('no reenvía si ya hay un código sin usar de hace menos de 60 s', async () => {
-    sembrarOtp({codigo: '111111', creado_en: mockTimestamp(AHORA - 30_000)});
+    sembrarOtp({
+      codigo: '111111',
+      creado_en: mockTimestamp(AHORA - 30_000),
+      expira_en: mockTimestamp(AHORA + 570_000),
+    });
 
     const res = await enviar({auth: AUTH_U1, data: {uid: 'u1'}});
 
     expect(res.success).toBe(true);
     expect(sgMail.send).not.toHaveBeenCalled();
+    // La app recibe lo que realmente le queda al código ya enviado
+    expect(res).toMatchObject({segundosValidez: 570, segundosParaReenvio: 30, maxIntentos: 3});
     expect(db.__docs.get('otp_codes/u1').codigo).toBe('111111');
   });
 
@@ -154,6 +160,7 @@ describe('enviarOTP', () => {
     expect(otp.utilizado).toBe(false);
     expect(otp.intentos_fallidos).toBe(0);
     expect(otp.expira_en.valueOf()).toBe(AHORA + 10 * 60_000);
+    expect(res).toMatchObject({segundosValidez: 600, segundosParaReenvio: 60, maxIntentos: 3});
     expect(sgMail.send).toHaveBeenCalledWith(
       expect.objectContaining({
         to: 'a@b.co',

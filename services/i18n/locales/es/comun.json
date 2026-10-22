@@ -23,6 +23,8 @@
   "rol_explorador_titulo": "Explorador",
   "rol_explorador_descripcion": "Descubre el territorio y ayuda a la comunidad",
   "rol_admin_titulo": "Administrador",
+  "rol_contador_titulo": "Contador",
+  "rol_contador_descripcion": "Consulta la economía (solo lectura)",
   "rol_admin_descripcion": "Gestiona la plataforma",
   "errores": {
     "NO_AUTENTICADO": "Debes iniciar sesión para continuar.",

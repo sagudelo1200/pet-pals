@@ -127,6 +127,7 @@ export const useConfirmarPaseo = ({
         hora,
         duracion,
         total,
+        politicaVersion: politica.version,
         direccion,
         direccionId,
         cuidadorId,

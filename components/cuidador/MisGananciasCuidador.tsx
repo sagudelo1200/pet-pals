@@ -46,7 +46,6 @@ export const MisGananciasCuidador: React.FC<MisGananciasCuidadorProps> = ({
   })
   const [loading, setLoading] = useState(true)
   const { politica } = usePoliticaComercial()
-  const soloRecaudadas = politica?.liquidacion.solo_recaudadas ?? true
 
   const cuidadorId = ServicioAuth.obtenerUsuarioActual()?.uid
 
@@ -75,9 +74,10 @@ export const MisGananciasCuidador: React.FC<MisGananciasCuidadorProps> = ({
       const totalPendiente = pendientes.reduce((sum, o) => sum + o.valor, 0)
       const totalLiquidado = cumplidas.reduce((sum, o) => sum + o.valor, 0)
       const totalGanancia = totalPendiente + totalLiquidado
-      // Lo que entra en la próxima liquidación (el resto espera el pago del tutor)
+      // Lo que entra en la próxima liquidación: cada paseo según su política
+      // (el resto espera el pago del tutor)
       const totalListo = pendientes
-        .filter(o => !soloRecaudadas || o.cobro_recaudado)
+        .filter(o => o.requiere_recaudo === false || o.cobro_recaudado)
         .reduce((sum, o) => sum + o.valor, 0)
 
       setGanancia({
@@ -91,7 +91,7 @@ export const MisGananciasCuidador: React.FC<MisGananciasCuidadorProps> = ({
 
       setLoading(false)
     }
-  }, [obligacionesData, soloRecaudadas])
+  }, [obligacionesData])
 
   const getProximaLiquidacion = () => {
     if (!politica) return 'Por definir'

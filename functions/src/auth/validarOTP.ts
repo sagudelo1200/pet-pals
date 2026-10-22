@@ -1,12 +1,12 @@
 import * as functions from 'firebase-functions';
 import admin from '../comun/firebaseAdminCompat';
+import {leerConfiguracion} from '../comun/configuracion';
 
 if (!admin.apps || admin.apps.length === 0) {
   admin.initializeApp();
 }
 
 const db = admin.firestore();
-const MAX_INTENTOS = 3;
 
 // Interfaces para tipado
 interface ValidarOTPRequest {
@@ -94,8 +94,9 @@ export const validarOTP = functions.https.onCall(
         } as ValidarOTPResponse;
       }
 
-      // Bloqueo tras MAX_INTENTOS fallidos (el cliente muestra 3 intentos)
-      if ((otpData.intentos_fallidos || 0) >= MAX_INTENTOS) {
+      // Bloqueo tras los intentos fallidos permitidos (configuracion/auth)
+      const {otp_max_intentos: maxIntentos} = await leerConfiguracion(db, 'auth');
+      if ((otpData.intentos_fallidos || 0) >= maxIntentos) {
         return {
           success: false,
           error: 'Demasiados intentos fallidos. Solicita un nuevo código',

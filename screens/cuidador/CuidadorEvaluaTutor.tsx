@@ -78,7 +78,7 @@ export default function CuidadorEvaluaTutor() {
           [
             {
               text: t('comun:volver'),
-              onPress: () => navigation.navigate('CuidadorApp'),
+              onPress: () => navigation.popToTop(),
             },
           ]
         )
@@ -103,7 +103,7 @@ export default function CuidadorEvaluaTutor() {
           [
             {
               text: t('comun:volver'),
-              onPress: () => navigation.navigate('CuidadorApp'),
+              onPress: () => navigation.popToTop(),
             },
           ]
         )
@@ -147,7 +147,7 @@ export default function CuidadorEvaluaTutor() {
   }
 
   const volverDashboard = () => {
-    navigation.navigate('CuidadorApp')
+    navigation.popToTop()
   }
 
   if (loading) {

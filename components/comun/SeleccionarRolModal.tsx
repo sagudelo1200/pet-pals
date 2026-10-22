@@ -44,6 +44,12 @@ const ROL_CONFIG = {
     tituloKey: 'comun:rol_admin_titulo',
     descripcionKey: 'comun:rol_admin_descripcion',
   },
+  contador: {
+    icon: 'calculator' as const,
+    color: COLOR.INFO,
+    tituloKey: 'comun:rol_contador_titulo',
+    descripcionKey: 'comun:rol_contador_descripcion',
+  },
 }
 
 export const SeleccionarRolModal: React.FC<Props> = ({

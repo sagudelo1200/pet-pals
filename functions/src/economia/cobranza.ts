@@ -3,8 +3,11 @@
  * Cobranza al tutor (pago posterior al paseo):
  * - Recordatorios tras plazo_pago_horas, como máximo max_recordatorios, con
  *   intervalo mínimo y solo en horario permitido (Ley 2300 de 2023).
- * - Bloqueo de nuevos servicios tras bloqueo_tras_horas con un cobro pendiente.
- *   Se guarda en usuarios/{uid}.bloqueo_financiero y lo leen las reglas.
+ * - Bloqueo de nuevos servicios desde `bloquear_desde` (fijado al nacer el
+ *   cobro con su política) con el cobro pendiente. Se guarda en
+ *   usuarios/{uid}.bloqueo_financiero y lo leen las reglas.
+ *
+ * Los plazos son siempre los de la política de la operación, nunca la vigente.
  *
  * Sin jobs periódicos: cada cobro agenda su próxima revisión (tarea de un
  * solo uso) y la cadena termina cuando se paga o ya no queda nada por hacer.
@@ -24,6 +27,8 @@ export interface CobroPendiente {
   operacion_servicio_id?: string
   estado?: string
   creado_en: Timestamp
+  /** Desde cuándo bloquea al tutor (fijado al nacer, según su política). */
+  bloquear_desde: Timestamp
   recordatorios_enviados?: number
   ultimo_recordatorio_en?: Timestamp
   bloqueo_aplicado?: boolean
@@ -48,10 +53,10 @@ async function cobrosPendientes(
 }
 
 /**
- * Bloquea o desbloquea al tutor según sus cobros vencidos.
+ * Bloquea o desbloquea al tutor según sus cobros vencidos (cada uno con el
+ * plazo de su propia política).
  * @param {Firestore} db Firestore.
  * @param {string} tutorId Tutor.
- * @param {PoliticaCobro} cobro Plazos vigentes.
  * @param {Timestamp} ahora Momento.
  * @param {CobroPendiente[]} pendientes Cobros del tutor (se consultan si faltan).
  * @return {Promise<boolean>} true si queda bloqueado.
@@ -59,13 +64,11 @@ async function cobrosPendientes(
 export async function recalcularBloqueo(
   db: Firestore,
   tutorId: string,
-  cobro: PoliticaCobro,
   ahora: Timestamp,
   pendientes?: CobroPendiente[]
 ): Promise<boolean> {
   const lista = pendientes ?? (await cobrosPendientes(db, tutorId));
-  const limite = ahora.toMillis() - cobro.bloqueo_tras_horas * HORA_MS;
-  const vencidos = lista.filter((o) => o.creado_en.toMillis() <= limite);
+  const vencidos = lista.filter((o) => o.bloquear_desde.toMillis() <= ahora.toMillis());
 
   const userRef = db.collection('usuarios').doc(tutorId);
   const user = await userRef.get();
@@ -135,7 +138,7 @@ function enHorario(ms: number, cobro: PoliticaCobro): number {
  * Próximo momento en que hay algo que hacer con el cobro (recordatorio o
  * bloqueo), o null si ya no hay nada (pagado, o avisos y bloqueo agotados).
  * @param {CobroPendiente} o Cobro.
- * @param {PoliticaCobro} cobro Política.
+ * @param {PoliticaCobro} cobro Política de la operación.
  * @return {number | null} Momento (ms epoch).
  */
 export function siguienteRevision(
@@ -154,9 +157,7 @@ export function siguienteRevision(
     );
     candidatos.push(enHorario(desde, cobro));
   }
-  if (!o.bloqueo_aplicado) {
-    candidatos.push(creado + cobro.bloqueo_tras_horas * HORA_MS);
-  }
+  if (!o.bloqueo_aplicado) candidatos.push(o.bloquear_desde.toMillis());
   return candidatos.length ? Math.min(...candidatos) : null;
 }
 
@@ -169,7 +170,7 @@ export function siguienteRevision(
  * revisión repetida o en paralelo nunca envía dos avisos.
  * @param {Firestore} db Firestore.
  * @param {string} obligacionId Cobro (obligación COBRO_TUTOR).
- * @param {PoliticaCobro} cobro Política vigente.
+ * @param {PoliticaCobro} cobro Política de la operación.
  * @param {Timestamp} ahora Momento.
  * @return {Promise<number | null>} Próxima revisión (ms epoch) o null.
  */
@@ -211,8 +212,7 @@ export async function revisarCobro(
       cambios.ultimo_recordatorio_en = ahora;
     }
 
-    const venceEn = o.creado_en.toMillis() + cobro.bloqueo_tras_horas * HORA_MS;
-    const bloquear = !o.bloqueo_aplicado && ahoraMs >= venceEn;
+    const bloquear = !o.bloqueo_aplicado && ahoraMs >= o.bloquear_desde.toMillis();
     if (Object.keys(cambios).length > 0) tx.update(ref, cambios);
     return {o: {...o, ...cambios} as CobroPendiente, bloquear};
   });
@@ -220,7 +220,7 @@ export async function revisarCobro(
 
   // El bloqueo recalcula el estado del tutor (idempotente) y luego se marca
   if (revisado.bloquear) {
-    await recalcularBloqueo(db, revisado.o.deudor, cobro, ahora);
+    await recalcularBloqueo(db, revisado.o.deudor, ahora);
     await ref.update({bloqueo_aplicado: true});
     revisado.o.bloqueo_aplicado = true;
   }

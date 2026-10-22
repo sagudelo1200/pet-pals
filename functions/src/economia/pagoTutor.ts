@@ -14,7 +14,7 @@ import type {AdaptadorContable} from './contabilidad';
 import {registrarReciboCajaOperacion} from './documentos';
 import {registrarEvento, registrarRecaudo} from './motor';
 import type {AdaptadorPago, EstadoPago} from './pagos';
-import {COLECCION, ErrorEconomico, type PoliticaCobro} from './tipos';
+import {COLECCION, ErrorEconomico} from './tipos';
 
 /**
  * Lee la operación y verifica que el usuario pueda pagarla.
@@ -140,7 +140,7 @@ async function liberarPagoPendiente(
  * @param {string} opId Operación.
  * @param {string} uid Tutor (o admin).
  * @param {boolean} esAdmin Si es admin.
- * @param {object} deps Pasarela, contabilidad y política de cobro.
+ * @param {object} deps Pasarela y contabilidad.
  * @param {Timestamp} ahora Momento.
  * @return {Promise<EstadoPago>} Estado del pago.
  */
@@ -152,7 +152,6 @@ export async function confirmarPagoTutor(
   deps: {
     pasarela: AdaptadorPago
     contabilidad: AdaptadorContable
-    cobro: PoliticaCobro
   },
   ahora: Timestamp
 ): Promise<EstadoPago> {
@@ -185,6 +184,6 @@ export async function confirmarPagoTutor(
   }, ahora);
   // Recibo de caja: aplica la factura emitida al validar la entrega
   await registrarReciboCajaOperacion(db, opId, deps.contabilidad, ahora);
-  await recalcularBloqueo(db, op.tutor_id, deps.cobro, ahora);
+  await recalcularBloqueo(db, op.tutor_id, ahora);
   return resultado;
 }

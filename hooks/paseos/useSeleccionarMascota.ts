@@ -2,7 +2,7 @@ import { useState, useCallback, useEffect, useRef } from 'react'
 import { Alert } from 'react-native'
 import { useTranslation } from 'react-i18next'
 import { useMascotas } from '@/hooks/useMascotas'
-import { MAX_MASCOTAS_POR_PASEO } from '@/constants/limits'
+import { useConfiguracion } from '@/hooks/configuracion'
 import { useMascotasConPaseoEnCurso } from '@/hooks/paseos/useMascotasConPaseoEnCurso'
 
 export const useSeleccionarMascota = (mascotasInicialesIds: string[] = []) => {
@@ -28,6 +28,8 @@ export const useSeleccionarMascota = (mascotasInicialesIds: string[] = []) => {
     }
   }, [loading, mascotas, mascotasSeleccionadas.length])
 
+  const { max_mascotas } = useConfiguracion('paseos')
+
   const toggleMascota = useCallback(
     (id: string) => {
       // Si la mascota tiene un paseo en curso, no permitir seleccionar
@@ -44,7 +46,7 @@ export const useSeleccionarMascota = (mascotasInicialesIds: string[] = []) => {
         if (prev.includes(id)) {
           return prev.filter(p => p !== id)
         }
-        if (prev.length >= MAX_MASCOTAS_POR_PASEO) {
+        if (prev.length >= max_mascotas) {
           Alert.alert(t('paseos:errores.LIMITE_DE_MASCOTAS_SUPERADO'), '', [
             { text: 'OK' },
           ])
@@ -53,7 +55,7 @@ export const useSeleccionarMascota = (mascotasInicialesIds: string[] = []) => {
         return [...prev, id]
       })
     },
-    [t, mascotasConPaseo]
+    [t, mascotasConPaseo, max_mascotas]
   )
 
   return {

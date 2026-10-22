@@ -264,11 +264,11 @@ describe('RESUMEN: Validación de reglas Firestore FASE 5', () => {
         'obligaciones',
         'deduplicacion_movimientos',
         'liquidaciones',
-        'politicas_comerciales',
-        'configuracion',
+        'documentos_contables',
       ])
     )
-    for (const col of [...colecciones, 'eventos_economicos']) {
+    const extra = ['eventos_economicos', 'versionados', 'configuracion']
+    for (const col of [...colecciones, ...extra]) {
       const inicio = reglas.search(new RegExp(`match /${col}/[{]`))
       expect(inicio).toBeGreaterThan(-1)
       // La primera regla de escritura del bloque niega al cliente
@@ -276,6 +276,50 @@ describe('RESUMEN: Validación de reglas Firestore FASE 5', () => {
       expect(resto.slice(0, resto.indexOf('allow write') + 30)).toMatch(
         /allow (read, )?write: if false;/
       )
+    }
+  })
+
+  it('las áreas de configuración legibles coinciden con el catálogo', () => {
+    const {
+      AREAS_CONFIGURACION,
+      CATALOGO_CONFIGURACION,
+    } = require('@/functions/src/compartido/configuracion')
+    const reglas = leer('firestore.rules')
+    const lista = reglas.match(/area in \[([^\]]+)\]/)
+    expect(lista).not.toBeNull()
+    const enReglas = lista[1].split(',').map((a: string) => a.trim().replace(/'/g, ''))
+    const publicas = AREAS_CONFIGURACION.filter(
+      (a: string) => CATALOGO_CONFIGURACION[a].lectura === 'publica'
+    )
+    expect([...enReglas].sort()).toEqual([...publicas].sort())
+  })
+
+  it('los valores de configuración usados en las reglas tienen el por defecto del catálogo', () => {
+    const { CATALOGO_CONFIGURACION } = require('@/functions/src/compartido/configuracion')
+    const reglas = leer('firestore.rules')
+    const patron = /config\('(\w+)', '(\w+)', ([^)]+)\)/
+    const usos = (reglas.match(new RegExp(patron, 'g')) || []).map(
+      (uso: string) => uso.match(patron) as RegExpMatchArray
+    )
+    expect(usos.length).toBeGreaterThan(0)
+    for (const [, area, clave, porDefecto] of usos) {
+      const def = CATALOGO_CONFIGURACION[area]?.valores[clave]
+      expect(def).toBeDefined()
+      expect(JSON.parse(porDefecto)).toEqual(def.porDefecto)
+    }
+  })
+
+  it('solo los consentimientos del versionado son de lectura pública', () => {
+    const {
+      TIPOS_VERSIONABLES,
+      definicionVersionable,
+    } = require('@/functions/src/compartido/versionables')
+    const { PREFIJO_CONSENTIMIENTO } = require('@/functions/src/compartido/consentimiento')
+    const reglas = leer('firestore.rules')
+    expect(reglas).toContain(`tipo.matches('${PREFIJO_CONSENTIMIENTO}.*')`)
+    for (const tipo of TIPOS_VERSIONABLES) {
+      const publica = definicionVersionable(tipo).lectura === 'publica'
+      expect(publica).toBe(tipo.startsWith(PREFIJO_CONSENTIMIENTO))
     }
   })
 

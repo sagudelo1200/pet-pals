@@ -8,6 +8,9 @@ jest.mock('@/logic/paseos', () => ({
     crearConMascotas: jest.fn(),
   },
 }))
+jest.mock('@/services/firebase/versionado', () => ({
+  numeroVersionVigente: jest.fn().mockResolvedValue(1),
+}))
 
 describe('confirmarReservaPaseo', () => {
   beforeEach(() => {
@@ -20,6 +23,7 @@ describe('confirmarReservaPaseo', () => {
       hora: null,
       duracion: 60,
       total: 1000,
+      politicaVersion: 1,
       direccion: { id: 'd1' },
       direccionId: 'd1',
       cuidadorId: null,
@@ -38,6 +42,7 @@ describe('confirmarReservaPaseo', () => {
       hora: '10:00',
       duracion: 60,
       total: 1000,
+      politicaVersion: 1,
       direccion: undefined,
       direccionId: null,
       cuidadorId: null,
@@ -62,6 +67,7 @@ describe('confirmarReservaPaseo', () => {
       hora: '09:30',
       duracion: 45,
       total: 2000,
+      politicaVersion: 1,
       direccion: { lat: 1, lng: 2 },
       direccionId: 'd1',
       cuidadorId: 'c1',
@@ -73,7 +79,28 @@ describe('confirmarReservaPaseo', () => {
     expect(GestorPaseos.crearConMascotas).toHaveBeenCalledTimes(1)
     const args = (GestorPaseos.crearConMascotas as jest.Mock).mock.calls[0]
     expect(args[1]).toEqual(['m1', 'm2'])
+    // El paseo nace con la versión de precios que vio el tutor
+    expect(args[0].politica_version).toBe(1)
     expect(res).toEqual({ success: true, id: 'p1' })
+  })
+
+  test('si se publicó otra política, pide revisar el precio y no crea', async () => {
+    const res = await confirmarReservaPaseo({
+      fecha: new Date(),
+      hora: '10:00',
+      duracion: 60,
+      total: 1000,
+      politicaVersion: 0,
+      direccion: { id: 'd1' },
+      direccionId: 'd1',
+      cuidadorId: null,
+      esCompartido: false,
+      mascotaIds: ['m1'],
+      tutorUid: 'u1',
+    })
+
+    expect(res).toEqual({ success: false, error: 'politica_actualizada' })
+    expect(GestorPaseos.crearConMascotas).not.toHaveBeenCalled()
   })
 
   test('captura excepcion y devuelve error', async () => {
@@ -87,6 +114,7 @@ describe('confirmarReservaPaseo', () => {
       hora: '08:00',
       duracion: 60,
       total: 1000,
+      politicaVersion: 1,
       direccion: { id: 'd1' },
       direccionId: 'd1',
       cuidadorId: null,

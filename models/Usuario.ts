@@ -1,8 +1,11 @@
 import { BaseModel } from './BaseModel'
 import { UbicacionRef } from './Ubicacion'
 
-/** Roles posibles del usuario en la plataforma */
-export type RolUsuario = 'admin' | 'tutor' | 'cuidador' | 'explorador'
+/**
+ * Roles posibles del usuario en la plataforma.
+ * contador: solo lectura de la economía; lo asigna únicamente un admin.
+ */
+export type RolUsuario = 'admin' | 'tutor' | 'cuidador' | 'explorador' | 'contador'
 
 /** Estado operativo del usuario */
 export type EstadoUsuario = 'activo' | 'inactivo' | 'baneado'

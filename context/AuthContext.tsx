@@ -64,6 +64,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     rolesRef.current = roles
   }, [roles])
 
+  // Mantener rolActivo dentro de los roles vigentes: si al recargar el perfil
+  // el rol activo ya no está, la App visible (derivada de rolActivo) no debe
+  // seguir mostrándose. Con un solo rol se activa ese; con varios, se pide elegir.
+  useEffect(() => {
+    if (roles.length === 1 && rolActivo !== roles[0]) {
+      setRolActivo(roles[0])
+    } else if (rolActivo && roles.length > 1 && !roles.includes(rolActivo)) {
+      setRolActivo(null)
+    }
+  }, [roles, rolActivo])
+
   // Ref para evitar setState en componentes desmontados
   const isMountedRef = React.useRef(true)
   React.useEffect(() => {
@@ -193,7 +204,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                   }
                 }
               } catch (_error) {
-                console.warn('[AuthContext.unsubscribe] Error manejado:', _error)
+                console.warn(
+                  '[AuthContext.unsubscribe] Error manejado:',
+                  _error
+                )
                 // Silencioso en errores
                 if (!isMountedRef.current) return
                 if (roles_data.length === 1) {
@@ -281,7 +295,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           setPerfilPublico(res.data)
         }
       } catch (_err) {
-        console.warn('[AuthContext.recargarPerfilPublico] Error manejado:', _err)
+        console.warn(
+          '[AuthContext.recargarPerfilPublico] Error manejado:',
+          _err
+        )
         // Silencioso en errores
       }
     }
@@ -364,7 +381,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             }
             return true
           } catch (_error) {
-            console.warn('[AuthContext.cambiarRolActivo] Error manejado:', _error)
+            console.warn(
+              '[AuthContext.cambiarRolActivo] Error manejado:',
+              _error
+            )
             return false
           }
         } else {

@@ -3,15 +3,13 @@ import admin from '../comun/firebaseAdminCompat';
 import {randomInt} from 'crypto';
 import {injectOTPData} from './emailTemplates';
 import {enviarEmail, describirErrorEmail, SECRETOS_EMAIL} from '../comun/email';
+import {leerConfiguracion} from '../comun/configuracion';
 
 if (!admin.apps || admin.apps.length === 0) {
   admin.initializeApp();
 }
 
 const db = admin.firestore();
-const MINUTOS_EXPIRACION = 10;
-// Mismo plazo que el botón "Reenviar" de la app (RETRASO_REENVIO_OTP_SEGUNDOS)
-const SEGUNDOS_ENTRE_ENVIOS = 60;
 
 // Interfaces para tipado
 // `email` se ignora: el código se envía siempre al email de la cuenta autenticada
@@ -24,7 +22,12 @@ interface EnviarOTPResponse {
   success: boolean
   error?: string
   mensaje?: string
-  minutosExpiracion?: number
+  /** Segundos que le quedan al código vigente (la app muestra la cuenta). */
+  segundosValidez?: number
+  /** Segundos hasta poder pedir otro código. */
+  segundosParaReenvio?: number
+  /** Intentos fallidos permitidos con este código. */
+  maxIntentos?: number
 }
 
 /**
@@ -77,6 +80,18 @@ export const enviarOTP = functions.https.onCall(
 
       const ahora = admin.firestore.Timestamp.now();
       const otpRef = db.collection('otp_codes').doc(uid);
+      // Validez y espera entre envíos: configuracion/auth (la misma espera
+      // que muestra el botón "Reenviar" de la app)
+      const config = await leerConfiguracion(db, 'auth');
+      const MINUTOS_EXPIRACION = config.otp_minutos_expiracion;
+      const SEGUNDOS_ENTRE_ENVIOS = config.otp_segundos_reenvio;
+      // Límites reales para la app (el servidor manda, no la configuración local)
+      const limites = (creadoMs: number, expiraMs: number) => ({
+        segundosValidez: Math.max(0, Math.round((expiraMs - ahora.toMillis()) / 1000)),
+        segundosParaReenvio: Math.max(0, Math.round(
+          (creadoMs + SEGUNDOS_ENTRE_ENVIOS * 1000 - ahora.toMillis()) / 1000)),
+        maxIntentos: config.otp_max_intentos,
+      });
 
       // Límite de envíos: si hay un código sin usar enviado hace menos de
       // SEGUNDOS_ENTRE_ENVIOS, no se envía otro (evita gastar créditos y abuso)
@@ -93,7 +108,7 @@ export const enviarOTP = functions.https.onCall(
           success: true,
           mensaje:
             'Ya te enviamos un código hace un momento. Revisa tu bandeja de entrada.',
-          minutosExpiracion: MINUTOS_EXPIRACION,
+          ...limites(creadoPrevio, otpPrevio.expira_en?.toMillis?.() ?? creadoPrevio),
         } as EnviarOTPResponse;
       }
 
@@ -134,7 +149,7 @@ export const enviarOTP = functions.https.onCall(
       return {
         success: true,
         mensaje: 'Código enviado a tu email. Revisa tu bandeja de entrada.',
-        minutosExpiracion: MINUTOS_EXPIRACION,
+        ...limites(ahora.toMillis(), expiraEn.getTime()),
       } as EnviarOTPResponse;
     } catch (error: unknown) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any

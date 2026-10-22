@@ -7,17 +7,20 @@
  * liquidación se agendan como tareas de un solo uso cuando hacen falta.
  */
 import {onDocumentCreated, onDocumentUpdated} from 'firebase-functions/v2/firestore';
-import {
-  onCall,
-  onRequest,
-  HttpsError,
-  type CallableRequest,
-} from 'firebase-functions/v2/https';
+import {onCall, onRequest} from 'firebase-functions/v2/https';
 import {Timestamp} from 'firebase-admin/firestore';
 import admin from '../comun/firebaseAdminCompat';
+import {
+  OPCIONES_CALLABLE as OPCIONES,
+  conErrores,
+  esAdmin,
+  requerirAdmin,
+  requerirUid,
+  texto,
+} from '../comun/callables';
 import {fechaColombia} from './calculo';
 import {revisarCobro, siguienteRevision, type CobroPendiente} from './cobranza';
-import {fijarPoliticaDePaseo, generarCobrosDePaseo} from './cobroPaseo';
+import {fijarPoliticaDePaseo, generarCobrosDePaseo, politicaDePaseo} from './cobroPaseo';
 import {obtenerAdaptadorContable} from './contabilidad';
 import {
   documentarPagoLiquidacion,
@@ -32,11 +35,10 @@ import {
 import {idObligacionCobro, idOperacionEconomica} from './motor';
 import {confirmarPagoTutor, iniciarPagoTutor} from './pagoTutor';
 import {obtenerAdaptadorPago} from './pagos';
-import {obtenerPoliticaVigente, publicarPolitica, validarPolitica} from './politica';
+import {obtenerPolitica, obtenerPoliticaVigente} from './politica';
 import {programarTarea} from './tareas';
 import {
   COLECCION,
-  ErrorEconomico,
   type PoliticaCobro,
   type PoliticaLiquidacion,
 } from './tipos';
@@ -44,78 +46,7 @@ import {
 if (!admin.apps || admin.apps.length === 0) admin.initializeApp();
 const db = admin.firestore();
 
-const OPCIONES = {region: 'us-central1', timeoutSeconds: 60, memory: '256MiB'} as const;
 const MARGEN_CORTE_MS = 5 * 60 * 1000;
-
-/**
- * Traduce errores de negocio a HttpsError; el resto se reporta como interno.
- * @param {Function} fn Lógica del callable.
- * @return {Promise<T>} Resultado.
- */
-async function conErrores<T>(fn: () => Promise<T>): Promise<T> {
-  try {
-    return await fn();
-  } catch (error) {
-    if (error instanceof HttpsError) throw error;
-    if (error instanceof ErrorEconomico) {
-      throw new HttpsError(error.codigo, error.message);
-    }
-    console.error('[economia] Error inesperado:', error);
-    throw new HttpsError('internal',
-      error instanceof Error ? error.message : 'Error interno');
-  }
-}
-
-/**
- * UID autenticado o error.
- * @param {CallableRequest} request Petición.
- * @return {string} UID.
- */
-function requerirUid(request: CallableRequest): string {
-  if (!request.auth?.uid) {
-    throw new HttpsError('unauthenticated', 'Debes iniciar sesión');
-  }
-  return request.auth.uid;
-}
-
-/**
- * ¿El usuario es admin? (claims o documento de usuario)
- * @param {CallableRequest} request Petición.
- * @return {Promise<boolean>} Si es admin.
- */
-async function esAdmin(request: CallableRequest): Promise<boolean> {
-  const rolesToken = request.auth?.token?.roles;
-  if (Array.isArray(rolesToken) && rolesToken.includes('admin')) return true;
-  const user = await db.collection('usuarios').doc(requerirUid(request)).get();
-  const roles = user.data()?.roles;
-  return Array.isArray(roles) && roles.includes('admin');
-}
-
-/**
- * Exige rol admin.
- * @param {CallableRequest} request Petición.
- * @return {Promise<string>} UID del admin.
- */
-async function requerirAdmin(request: CallableRequest): Promise<string> {
-  const uid = requerirUid(request);
-  if (!(await esAdmin(request))) {
-    throw new HttpsError('permission-denied', 'Solo administradores');
-  }
-  return uid;
-}
-
-/**
- * Texto requerido de la petición.
- * @param {unknown} valor Valor recibido.
- * @param {string} campo Nombre del campo.
- * @return {string} Texto.
- */
-function texto(valor: unknown, campo: string): string {
-  if (typeof valor !== 'string' || valor.trim() === '') {
-    throw new HttpsError('invalid-argument', `${campo} es requerido`);
-  }
-  return valor.trim();
-}
 
 // ---------- Agenda de tareas de un solo uso ----------
 
@@ -133,7 +64,7 @@ async function agendarRevision(obligacionId: string, cuando: number): Promise<vo
 /**
  * Agenda la próxima revisión de un cobro (recordatorio o bloqueo), si hace falta.
  * @param {string} obligacionId Cobro del tutor.
- * @param {PoliticaCobro} cobro Política vigente.
+ * @param {PoliticaCobro} cobro Política de la operación.
  */
 async function agendarRevisionCobro(
   obligacionId: string,
@@ -243,7 +174,8 @@ export const alValidarEntregaEconomia = onDocumentUpdated(
       `[economia] Paseo ${paseoId}: cobros para [${tutores.join(', ')}]`);
     if (tutores.length === 0) return;
 
-    const politica = await obtenerPoliticaVigente(db);
+    // La operación se completa con la política acordada al crear el paseo
+    const politica = await politicaDePaseo(db, despues);
     // Factura a crédito por tutor: se emite al recibir la mascota
     const contabilidad = obtenerAdaptadorContable();
     for (const tutorId of tutores) {
@@ -255,7 +187,8 @@ export const alValidarEntregaEconomia = onDocumentUpdated(
       idObligacionCobro(idOperacionEconomica(paseoId, tutorId)), politica.cobro)));
     // Si se liquida sin esperar el pago del tutor, ya hay dinero para el corte
     if (!politica.liquidacion.solo_recaudadas) {
-      await agendarCorte(politica.liquidacion, ahora.toMillis());
+      const {liquidacion} = await obtenerPoliticaVigente(db);
+      await agendarCorte(liquidacion, ahora.toMillis());
     }
   }
 );
@@ -274,16 +207,16 @@ export const confirmarPagoOperacion = onCall(OPCIONES, (request) =>
   conErrores(async () => {
     const uid = requerirUid(request);
     const opId = texto(request.data?.operacionId, 'operacionId');
-    const politica = await obtenerPoliticaVigente(db);
     const ahora = Timestamp.now();
-    const resultado = await confirmarPagoTutor(db, opId, uid, await esAdmin(request), {
+    const esAdministrador = await esAdmin(db, request);
+    const resultado = await confirmarPagoTutor(db, opId, uid, esAdministrador, {
       pasarela: obtenerAdaptadorPago(),
       contabilidad: obtenerAdaptadorContable(),
-      cobro: politica.cobro,
     }, ahora);
-    // Pago recibido: el cuidador entra en el próximo corte
+    // Pago recibido: el cuidador entra en el próximo corte (calendario vigente)
     if (resultado.estado === 'APROBADO') {
-      await agendarCorte(politica.liquidacion, ahora.toMillis());
+      const {liquidacion} = await obtenerPoliticaVigente(db);
+      await agendarCorte(liquidacion, ahora.toMillis());
     }
     return resultado;
   })
@@ -291,21 +224,9 @@ export const confirmarPagoOperacion = onCall(OPCIONES, (request) =>
 
 // ---------- Administración ----------
 
-export const publicarPoliticaComercial = onCall(OPCIONES, (request) =>
-  conErrores(async () => {
-    const uid = await requerirAdmin(request);
-    const errores = validarPolitica(request.data);
-    if (errores.length > 0) {
-      throw new HttpsError('invalid-argument', errores.join('; '));
-    }
-    const version = await publicarPolitica(db, request.data, uid, Timestamp.now());
-    return {version};
-  })
-);
-
 export const generarLiquidacionesAhora = onCall(OPCIONES, (request) =>
   conErrores(async () => {
-    await requerirAdmin(request);
+    await requerirAdmin(db, request);
     const ahora = Timestamp.now();
     const politica = await obtenerPoliticaVigente(db);
     const {creadas} = await generarLiquidaciones(
@@ -316,7 +237,7 @@ export const generarLiquidacionesAhora = onCall(OPCIONES, (request) =>
 
 export const pagarLiquidacion = onCall(OPCIONES, (request) =>
   conErrores(async () => {
-    const uid = await requerirAdmin(request);
+    const uid = await requerirAdmin(db, request);
     const liqId = texto(request.data?.liquidacionId, 'liquidacionId');
     const referencia = texto(request.data?.referencia, 'referencia');
     const ahora = Timestamp.now();
@@ -325,9 +246,8 @@ export const pagarLiquidacion = onCall(OPCIONES, (request) =>
     if (liq?.estado !== 'PAGADA') {
       await registrarPagoLiquidacion(db, liqId, referencia, uid, ahora);
     }
-    const politica = await obtenerPoliticaVigente(db);
     const documentos = await documentarPagoLiquidacion(
-      db, liqId, politica.contabilidad, obtenerAdaptadorContable(), ahora);
+      db, liqId, obtenerAdaptadorContable(), ahora);
     return {ok: true, documentos};
   })
 );
@@ -335,7 +255,7 @@ export const pagarLiquidacion = onCall(OPCIONES, (request) =>
 /** Reintenta reflejar en el sistema contable un documento que falló. */
 export const reenviarDocumentoContable = onCall(OPCIONES, (request) =>
   conErrores(async () => {
-    await requerirAdmin(request);
+    await requerirAdmin(db, request);
     const documentoId = texto(request.data?.documentoId, 'documentoId');
     const estado = await enviarDocumento(
       db, documentoId, obtenerAdaptadorContable(), Timestamp.now());
@@ -351,12 +271,20 @@ export const revisarCobroTutor = tareaPrivada('revisarCobroTutor', async (body) 
   if (typeof obligacionId !== 'string' || obligacionId === '') {
     throw new Error('obligacionId requerido');
   }
-  const politica = await obtenerPoliticaVigente(db);
-  const siguiente = await revisarCobro(db, obligacionId, politica.cobro, Timestamp.now());
+  // Plazos y recordatorios: los de la política de la operación
+  const ref = db.collection(COLECCION.OBLIGACIONES).doc(obligacionId);
+  const cobro = (await ref.get()).data();
+  if (cobro?.estado !== 'PENDIENTE') return; // pagado o inexistente: fin
+  const {cobro: plazos} = await obtenerPolitica(db, cobro.politica_version);
+  const siguiente = await revisarCobro(db, obligacionId, plazos, Timestamp.now());
   if (siguiente !== null) await agendarRevision(obligacionId, siguiente);
 });
 
-/** Corte de liquidación; si alguien no alcanzó el mínimo, agenda el siguiente corte. */
+/**
+ * Corte de liquidación con el calendario y monto mínimo vigentes (agrupa
+ * muchas operaciones); cada obligación aporta sus propios términos. Si alguien
+ * no alcanzó el mínimo, agenda el siguiente corte.
+ */
 export const ejecutarCorteLiquidacion = tareaPrivada(
   'ejecutarCorteLiquidacion',
   async (body) => {

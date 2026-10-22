@@ -1,23 +1,31 @@
 /**
  * FormularioPoliticaComercial
  * El admin edita precios, comisión, cobro y liquidación y publica una nueva
- * versión. La validación definitiva la hace el servidor
- * (publicarPoliticaComercial); las operaciones ya creadas conservan la
- * versión con la que nacieron.
+ * versión con su motivo. Antes de publicar muestra cuánto pagaría el tutor
+ * y cuánto recibiría el cuidador. La validación definitiva la hace el
+ * servidor (publicarVersion); publicar lo mismo no crea versión y las
+ * operaciones ya creadas conservan la versión con la que nacieron.
  */
 import React, { useEffect, useState } from 'react'
 import { View, Text, TextInput, StyleSheet, Alert } from 'react-native'
 import { COLOR } from '@/constants'
 import { Button, Switch } from '@/components/ui'
 import { usePoliticaComercial } from '@/hooks/comercial'
+import { desglosarPaseo, formatearCOP } from '@/logic/comercial'
+import { ServicioVersionado } from '@/services/firebase/versionado'
+import { mensajeErrorCallable } from '@/services/firebase/callable'
 import {
-  ServicioEconomia,
-  mensajeErrorEconomia,
-} from '@/services/firebase/economia'
+  TIPO_POLITICA_COMERCIAL,
+  validarMotivo,
+} from '@/functions/src/compartido/versionables'
+import { validarPolitica } from '@/functions/src/compartido/politicaComercial'
 import type {
   DatosPoliticaComercial,
   PoliticaComercial,
 } from '@/models/operacionesEconomicas'
+import { CampoMotivo } from './CampoMotivo'
+import { PanelVersiones } from './PanelVersiones'
+import { estilosAdmin } from './estilosAdmin'
 
 const DIAS = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado']
 
@@ -46,8 +54,7 @@ function aFormulario(p: PoliticaComercial): Record<Campo, string> {
     base_por_hora: String(precio.base_por_hora),
     mascota_adicional: String(precio.mascota_adicional),
     porcentaje_plataforma: String(comision.porcentaje_plataforma),
-    // Versiones antiguas sin impuestos: se propone el 19 % para completarlas
-    porcentaje_iva: String(p.impuestos?.iva_comision.porcentaje ?? 19),
+    porcentaje_iva: String(p.impuestos.iva_comision.porcentaje),
     plazo_pago_horas: String(p.cobro.plazo_pago_horas),
     bloqueo_tras_horas: String(p.cobro.bloqueo_tras_horas),
     max_recordatorios: String(p.cobro.max_recordatorios),
@@ -70,9 +77,9 @@ interface Opciones {
 function aOpciones(p: PoliticaComercial): Opciones {
   return {
     soloRecaudadas: p.liquidacion.solo_recaudadas,
-    ivaAplica: p.impuestos?.iva_comision.aplica ?? true,
-    ivaIncluido: p.impuestos?.iva_comision.incluido_en_precio ?? true,
-    documentoSoporte: p.contabilidad?.documento_soporte_cuidador ?? true,
+    ivaAplica: p.impuestos.iva_comision.aplica,
+    ivaIncluido: p.impuestos.iva_comision.incluido_en_precio,
+    documentoSoporte: p.contabilidad.documento_soporte_cuidador,
   }
 }
 
@@ -116,10 +123,31 @@ function aPolitica(
   }
 }
 
+/** Vista previa: paseo de 1 hora con 1 y con 2 mascotas. */
+export const VistaPrevia: React.FC<{ politica: DatosPoliticaComercial }> = ({
+  politica,
+}) => (
+  <View style={styles.vistaPrevia}>
+    <Text style={estilosAdmin.label}>Vista previa (paseo de 1 hora)</Text>
+    {[1, 2].map(mascotas => {
+      const d = desglosarPaseo(politica, mascotas, 60)
+      return (
+        <Text key={mascotas} style={estilosAdmin.ayuda}>
+          {mascotas} {mascotas === 1 ? 'mascota' : 'mascotas'}: tutor paga{' '}
+          {formatearCOP(d.valor_acordado)} · cuidador recibe{' '}
+          {formatearCOP(d.recursos_administrados)} · Paw-Path{' '}
+          {formatearCOP(d.comision_base)} + IVA {formatearCOP(d.iva_comision)}
+        </Text>
+      )
+    })}
+  </View>
+)
+
 export const FormularioPoliticaComercial: React.FC = () => {
   const { politica, cargando, error } = usePoliticaComercial()
   const [form, setForm] = useState<Record<Campo, string> | null>(null)
   const [opciones, setOpciones] = useState<Opciones | null>(null)
+  const [motivo, setMotivo] = useState('')
   const [publicando, setPublicando] = useState(false)
 
   // Cargar la versión vigente al abrir (y tras publicar)
@@ -130,50 +158,61 @@ export const FormularioPoliticaComercial: React.FC = () => {
     }
   }, [politica])
 
+  const borrador = form && opciones ? aPolitica(form, opciones) : null
+  const errores = borrador ? validarPolitica(borrador) : []
+
   const publicar = async () => {
-    if (!form || !opciones) return
+    if (!borrador) return
     setPublicando(true)
     try {
-      const { version } = await ServicioEconomia.publicarPolitica(
-        aPolitica(form, opciones)
+      const r = await ServicioVersionado.publicar({
+        tipo: TIPO_POLITICA_COMERCIAL,
+        contenido: borrador,
+        motivo,
+      })
+      Alert.alert(
+        r.nueva ? '✅ Publicada' : 'Sin cambios',
+        r.nueva
+          ? `Política comercial v${r.version} vigente desde ahora.`
+          : 'Los valores son iguales a la versión vigente; no se creó versión.'
       )
-      Alert.alert('✅ Publicada', `Política comercial v${version} vigente desde ahora.`)
+      if (r.nueva) setMotivo('')
     } catch (e) {
-      Alert.alert('❌ No se publicó', mensajeErrorEconomia(e))
+      Alert.alert('❌ No se publicó', mensajeErrorCallable(e))
     } finally {
       setPublicando(false)
     }
   }
 
-  if (cargando) return <Text style={styles.ayuda}>Cargando política…</Text>
-  if (!politica || !form || !opciones) {
+  if (cargando) return <Text style={estilosAdmin.ayuda}>Cargando política…</Text>
+  if (!politica || !form || !opciones || !borrador) {
     return (
-      <Text style={styles.ayuda}>
+      <Text style={estilosAdmin.ayuda}>
         {error || 'No hay política publicada'}. Crea la versión 1 con
-        `npm run seed:politica-comercial`.
+        `npm run seed:base`.
       </Text>
     )
   }
 
   return (
     <View>
-      <Text style={styles.vigente}>Vigente: versión {politica.version}</Text>
+      <Text style={estilosAdmin.vigente}>Vigente: versión {politica.version}</Text>
       {(Object.keys(CAMPOS) as Campo[]).map(campo => {
         const [etiqueta, ayuda] = CAMPOS[campo]
         const esDia = campo === 'dia_corte' || campo === 'dia_pago'
         const dia = DIAS[Number(form[campo])]
         return (
           <View key={campo}>
-            <Text style={styles.label}>{etiqueta}</Text>
+            <Text style={estilosAdmin.label}>{etiqueta}</Text>
             <TextInput
-              style={styles.input}
+              style={estilosAdmin.input}
               value={form[campo]}
               onChangeText={v => setForm({ ...form, [campo]: v })}
               keyboardType="numeric"
               placeholderTextColor={COLOR.SUBTEXTO}
             />
             {(ayuda || (esDia && dia)) && (
-              <Text style={styles.ayudaCampo}>
+              <Text style={estilosAdmin.ayudaCampo}>
                 {esDia && dia ? `${dia}. ` : ''}
                 {ayuda}
               </Text>
@@ -205,48 +244,35 @@ export const FormularioPoliticaComercial: React.FC = () => {
         label="Documento soporte al pagar a cuidadores"
         description="Para cuidadores no obligados a facturar (DIAN)"
       />
-      <Button
-        title={publicando ? 'Publicando…' : 'Publicar nueva versión'}
-        onPress={publicar}
-        variant="primario"
-        disabled={publicando}
-      />
+      {errores.length > 0 ? (
+        <Text style={estilosAdmin.errores}>{errores.join('\n')}</Text>
+      ) : (
+        <VistaPrevia politica={borrador} />
+      )}
+      <CampoMotivo value={motivo} onChange={setMotivo} />
+      <View style={estilosAdmin.acciones}>
+        <Button
+          title={publicando ? 'Publicando…' : 'Publicar nueva versión'}
+          onPress={publicar}
+          variant="primario"
+          disabled={
+            publicando || errores.length > 0 || validarMotivo(motivo) !== null
+          }
+        />
+      </View>
+
+      <Text style={[estilosAdmin.label, styles.historial]}>Últimas versiones</Text>
+      <PanelVersiones tipo={TIPO_POLITICA_COMERCIAL} />
     </View>
   )
 }
 
 const styles = StyleSheet.create({
-  vigente: {
-    fontSize: 13,
-    color: COLOR.EXITO,
-    fontWeight: '600',
-    marginBottom: 8,
+  vistaPrevia: {
+    marginTop: 8,
+    gap: 4,
   },
-  label: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: COLOR.TEXTO,
-    marginTop: 12,
-    marginBottom: 6,
-  },
-  input: {
-    backgroundColor: COLOR.BLOQUE,
-    borderColor: COLOR.BORDE,
-    borderWidth: 1,
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    fontSize: 14,
-    color: COLOR.TEXTO,
-  },
-  ayudaCampo: {
-    fontSize: 12,
-    color: COLOR.SUBTEXTO,
-    marginTop: 4,
-  },
-  ayuda: {
-    fontSize: 13,
-    color: COLOR.SUBTEXTO,
-    lineHeight: 18,
+  historial: {
+    marginTop: 24,
   },
 })

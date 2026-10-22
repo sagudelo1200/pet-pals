@@ -20,6 +20,7 @@ import admin from '../comun/firebaseAdminCompat';
 import {CloudTasksClient} from '@google-cloud/tasks';
 import {cuentaServicioTasks} from '../evaluaciones/cloudTasks';
 import {esTareaDuplicada, nombreTarea} from '../economia/tareas';
+import {leerConfiguracion} from '../comun/configuracion';
 
 if (!admin.apps || admin.apps.length === 0) {
   admin.initializeApp();
@@ -30,7 +31,6 @@ const db = admin.firestore();
 // Configuración de Cloud Tasks
 const LOCATION = 'us-central1';
 const QUEUE_NAME = 'escaladas-directas';
-const ESCALADA_DELAY_SECONDS = 1800; // 30 minutos
 
 // Inicializar CloudTasksClient de forma lazy (solo cuando se necesite)
 let tasksClient: CloudTasksClient | null = null;
@@ -74,7 +74,11 @@ export const onCrearPaseoDirecto = onDocumentCreated(
       const fnName = 'escalarPaseoIndividual';
       const functionUrl = `https://${LOCATION}-${projectId}.cloudfunctions.net/${fnName}`;
 
-      // Calcular tiempo de ejecución: ahora + ESCALADA_DELAY_SECONDS
+      // Calcular tiempo de ejecución: ahora + espera configurada
+      // (configuracion/paseos.escalada_minutos)
+      const {escalada_minutos: minutosEscalada} =
+        await leerConfiguracion(db, 'paseos');
+      const ESCALADA_DELAY_SECONDS = minutosEscalada * 60;
       const ahora = Math.floor(Date.now() / 1000);
       const tiempoEjecucion = ahora + ESCALADA_DELAY_SECONDS;
 

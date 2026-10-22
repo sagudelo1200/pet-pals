@@ -122,7 +122,7 @@ export const ModalLeerConsentimiento: React.FC<
             style={styles.scrollContent}
             showsVerticalScrollIndicator={true}
           >
-            <Text style={styles.contenido}>{documento.contenido}</Text>
+            <Text style={styles.contenido}>{documento.texto}</Text>
           </ScrollView>
         ) : null}
 

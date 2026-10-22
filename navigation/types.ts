@@ -9,6 +9,7 @@ export type AuthStackParamList = {
   CuidadorApp: undefined
   AdminApp: undefined
   ExplorerApp: undefined
+  ContadorApp: undefined
   DetalleMascota: {
     mascotaId: string
     mascota?: Mascota
@@ -61,9 +62,15 @@ export type CuidadorTabParamList = {
 
 // Tabs para el rol de Admin
 export type AdminTabParamList = {
-  AdminHome: undefined
+  AdminAjustes: undefined
   AdminEconomia: undefined
   TerritorioVivo: undefined
+  MiCuenta: undefined
+}
+
+// Tabs para el rol de Contador (solo lectura de la economía)
+export type ContadorTabParamList = {
+  ContadorEconomia: undefined
   MiCuenta: undefined
 }
 

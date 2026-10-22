@@ -9,6 +9,7 @@ import {
   Alert,
 } from 'react-native'
 import { useNavigation } from '@react-navigation/native'
+import { useAuth } from '@/context/AuthContext'
 import { BottomSheet, Button, Icon, Avatar } from '@/components/ui'
 import { COLOR } from '@/constants'
 import { Paseo, ESTADOS_PASEO } from '@/models/Paseo'
@@ -32,6 +33,10 @@ const DetallePaseoBottomSheet: React.FC<Props> = ({
 }) => {
   const { t } = useTranslation()
   const navigation = useNavigation()
+  // El sheet se comparte con el cuidador, pero el seguimiento (PaseoActivo) y
+  // el chat con el cuidador son acciones del tutor: solo existen en su App
+  const { rolActivo } = useAuth()
+  const esTutor = rolActivo === 'tutor'
   const [cuidador, setCuidador] = useState<PerfilPublico | null>(null)
   const pulseAnim = useRef(new Animated.Value(1)).current
   const rippleAnim = useRef(new Animated.Value(0)).current
@@ -130,6 +135,7 @@ const DetallePaseoBottomSheet: React.FC<Props> = ({
     const prev = prevEstadoRef.current
     const current = paseo?.estado
     if (
+      esTutor &&
       visible &&
       paseo?.id &&
       current === ESTADOS_PASEO.EN_PROGRESO &&
@@ -139,7 +145,10 @@ const DetallePaseoBottomSheet: React.FC<Props> = ({
       try {
         onClose()
       } catch (_e) {
-        console.warn('[DetallePaseoBottomSheet.DetallePaseoBottomSheet] Error manejado:', _e)
+        console.warn(
+          '[DetallePaseoBottomSheet.DetallePaseoBottomSheet] Error manejado:',
+          _e
+        )
         // ignore
       }
       // Dejamos una pequeña pausa para permitir animación de cierre
@@ -150,7 +159,7 @@ const DetallePaseoBottomSheet: React.FC<Props> = ({
     }
 
     prevEstadoRef.current = current || null
-  }, [paseo?.estado, visible, paseo?.id, navigation, onClose])
+  }, [paseo?.estado, visible, paseo?.id, navigation, onClose, esTutor])
 
   if (!paseo) return null
 
@@ -336,42 +345,44 @@ const DetallePaseoBottomSheet: React.FC<Props> = ({
           </View>
         </View>
 
-        <View style={styles.actions}>
-          <Button
-            variant="primario"
-            title={t('comun:acciones.escribir_a', {
-              nombre: paseo.cuidador_nombre_visual || 'Cuidador',
-            })}
-            icon="comment-dots"
-            onPress={() => {
-              onClose()
-              setTimeout(() => {
-                // @ts-ignore
-                navigation.navigate('Chat', { paseoId: paseo.id })
-              }, 300)
-            }}
-            style={styles.actionButton}
-          />
-          <Animated.View style={{ transform: [{ scale: pulseAnim }] }}>
+        {esTutor && (
+          <View style={styles.actions}>
             <Button
-              variant="contorno"
-              title={
-                enCamino
-                  ? t('comun:acciones.seguir_cuidador', {
-                      nombre: paseo.cuidador_nombre_visual || 'Cuidador',
-                    })
-                  : t('comun:acciones.ver_punto_encuentro')
-              }
+              variant="primario"
+              title={t('comun:acciones.escribir_a', {
+                nombre: paseo.cuidador_nombre_visual || 'Cuidador',
+              })}
+              icon="comment-dots"
               onPress={() => {
                 onClose()
-                // @ts-ignore
-                navigation.navigate('PaseoActivo', { paseoId: paseo.id })
+                setTimeout(() => {
+                  // @ts-ignore
+                  navigation.navigate('Chat', { paseoId: paseo.id })
+                }, 300)
               }}
-              style={{ borderColor: COLOR.PRIMARIO }}
-              textStyle={{ color: COLOR.PRIMARIO }}
+              style={styles.actionButton}
             />
-          </Animated.View>
-        </View>
+            <Animated.View style={{ transform: [{ scale: pulseAnim }] }}>
+              <Button
+                variant="contorno"
+                title={
+                  enCamino
+                    ? t('comun:acciones.seguir_cuidador', {
+                        nombre: paseo.cuidador_nombre_visual || 'Cuidador',
+                      })
+                    : t('comun:acciones.ver_punto_encuentro')
+                }
+                onPress={() => {
+                  onClose()
+                  // @ts-ignore
+                  navigation.navigate('PaseoActivo', { paseoId: paseo.id })
+                }}
+                style={{ borderColor: COLOR.PRIMARIO }}
+                textStyle={{ color: COLOR.PRIMARIO }}
+              />
+            </Animated.View>
+          </View>
+        )}
       </View>
     )
   }

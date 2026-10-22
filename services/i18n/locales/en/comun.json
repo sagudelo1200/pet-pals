@@ -23,6 +23,8 @@
   "rol_explorador_titulo": "Explorer",
   "rol_explorador_descripcion": "Discover territory and help the community",
   "rol_admin_titulo": "Administrator",
+  "rol_contador_titulo": "Accountant",
+  "rol_contador_descripcion": "Review the finances (read only)",
   "rol_admin_descripcion": "Manage the platform",
   "errores": {
     "NO_AUTENTICADO": "You must sign in to continue.",

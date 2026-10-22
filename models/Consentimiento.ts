@@ -1,4 +1,5 @@
 import { BaseModel } from './BaseModel'
+import type { ContenidoConsentimiento } from '@/functions/src/compartido/consentimiento'
 
 /**
  * ESTADO DE CONSENTIMIENTO
@@ -22,62 +23,21 @@ export type MotivoNoVigencia =
   'RECHAZADO' | 'REVOCADO' | 'EXPIRADO' | 'VERSION_DESACTUALIZADA'
 
 /**
- * DOCUMENTO DE CONSENTIMIENTO (Versión)
+ * DOCUMENTO DE CONSENTIMIENTO (Versión vigente)
  *
- * Almacena una versión específica de un documento de consentimiento.
- * Cada versión es inmutable y se crea cuando se publica un nuevo documento.
- *
- * Estructura Firestore:
- * documentos_consentimientos/DATOS_PERSONALES_v1
- * documentos_consentimientos/DATOS_PERSONALES_v2
- * etc.
+ * Cada tipo es una serie del versionado genérico:
+ * versionados/consentimiento_{TIPO}/versiones/v{n} (inmutables).
+ * El contenido se valida en functions/src/compartido/consentimiento.ts.
  */
-export interface DocumentoConsentimiento extends BaseModel {
-  /** Tipo de consentimiento: DATOS_PERSONALES, TERMINOS, etc. */
+export interface DocumentoConsentimiento extends ContenidoConsentimiento {
+  /** Tipo de consentimiento: DATOS_PERSONALES, TERMINOS_SERVICIO, etc. */
   tipo_documento: string
-
+  /** Referencia exacta a la versión: "consentimiento_DATOS_PERSONALES/v2" */
+  documento_id: string
   /** Número de versión: 1, 2, 3, ... */
   version: number
-
-  /** Título legible del documento */
-  titulo: string
-
-  /** Contenido en formato Markdown */
-  contenido: string
-
-  /**
-   * Hash SHA-256 del contenido
-   * Obligatorio para auditoría legal
-   * Permite verificar qué contenido exacto aceptó el usuario
-   */
-  hash_contenido: string
-
-  /** ¿Es obligatorio aceptar este documento? */
-  es_obligatorio: boolean
-
-  /**
-   * Roles requeridos para poder aceptar este consentimiento
-   * Si está vacío, cualquier usuario puede aceptar
-   * Ej: ['tutor', 'cuidador']
-   */
-  roles_requeridos?: string[]
-
-  /**
-   * Meses que el consentimiento es válido desde la aceptación
-   * null = válido indefinidamente (no requiere reconfirmación)
-   * > 0 = requiere reconfirmación en X meses
-   */
-  requiere_reconfirmacion_meses: number | null
-
-  /**
-   * ¿Es esta la versión vigente?
-   * true = usuarios nuevos aceptarán esta versión
-   * false = versión histórica
-   *
-   * Nota: Por MVP, este campo es mutable.
-   * Se puede marcar activo:false cuando se publica una nueva versión.
-   */
-  activo: boolean
+  /** Hash SHA-256 del contenido (evidencia de qué se aceptó) */
+  hash: string
 }
 
 /**
@@ -103,7 +63,7 @@ export interface Consentimiento extends BaseModel {
 
   /**
    * Referencia al documento que se aceptó/rechazó
-   * Ej: "DATOS_PERSONALES_v2"
+   * Ej: "consentimiento_DATOS_PERSONALES/v2"
    * Permite saber exactamente qué versión vio el usuario
    */
   documento_id: string

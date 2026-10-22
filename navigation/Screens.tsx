@@ -1,9 +1,11 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
+import { View, StyleSheet } from 'react-native'
 import { createStackNavigator } from '@react-navigation/stack'
 import TutorTabNavigator from '@/navigation/TutorTabNavigator'
 import CuidadorTabNavigator from '@/navigation/CuidadorTabNavigator'
 import AdminTabNavigator from '@/navigation/AdminTabNavigator'
 import ExplorerTabNavigator from '@/navigation/ExplorerTabNavigator'
+import ContadorTabNavigator from '@/navigation/ContadorTabNavigator'
 import AuthNavigator from './AuthNavigator'
 import DetalleMascota from '@/screens/tutor/DetalleMascota'
 import { EdicionMascota } from '@/screens/tutor/EdicionMascota'
@@ -17,103 +19,192 @@ import { ChatScreen } from '@/screens/paseos/ChatScreen'
 import CuidadorEvaluaTutor from '@/screens/cuidador/CuidadorEvaluaTutor'
 import ObservacionMascota from '@/screens/cuidador/ObservacionMascota'
 import { GlobalPaseoManager } from '@/components/tutor/GlobalPaseoManager'
+import { LoadingScreen } from '@/components/ui'
+import { useAuth } from '@/context/AuthContext'
 import { AuthStackParamList } from './types'
 
 // Stack principal con autenticación
 const Stack = createStackNavigator<AuthStackParamList>()
 
-// Navegador principal: Auth → App (Tabs)
+// Duración mínima de la pantalla de carga al abrir la app
+const CARGA_INICIAL_MS = 3000
+
+/**
+ * Navegador principal: la App visible se DERIVA de la sesión y de `rolActivo`.
+ *
+ * Solo se registran las pantallas del rol activo, así que no existe historial
+ * hacia la App de otro rol (ni por "Atrás" ni por `navigate`). El ÚNICO punto
+ * para cambiar de App es `cambiarRolActivo` en AuthContext: al cambiar el rol,
+ * el grupo de pantallas se reemplaza y su historial se descarta.
+ */
 export default function RootNavigator(): React.ReactElement {
+  const { user, perfilPublico, rolActivo, activandoRol } = useAuth()
+  const [cargaInicialLista, setCargaInicialLista] = useState(false)
+
+  useEffect(() => {
+    const timer = setTimeout(() => setCargaInicialLista(true), CARGA_INICIAL_MS)
+    return () => clearTimeout(timer)
+  }, [])
+
+  // Fuente de verdad del email verificado: insignias_verificacion del PerfilPublico
+  const emailVerificado =
+    perfilPublico?.insignias_verificacion?.includes('EMAIL') ?? false
+
+  // Rol cuya App se muestra; null = flujo de autenticación / selección de rol
+  const rolEnApp =
+    user && emailVerificado && cargaInicialLista ? (rolActivo ?? null) : null
+
+  const renderGrupoRol = () => {
+    switch (rolEnApp) {
+      case 'admin':
+        return (
+          <Stack.Group navigationKey="admin">
+            <Stack.Screen name="AdminApp" component={AdminTabNavigator} />
+          </Stack.Group>
+        )
+      case 'contador':
+        return (
+          <Stack.Group navigationKey="contador">
+            <Stack.Screen name="ContadorApp" component={ContadorTabNavigator} />
+          </Stack.Group>
+        )
+      case 'explorador':
+        return (
+          <Stack.Group navigationKey="explorador">
+            <Stack.Screen name="ExplorerApp" component={ExplorerTabNavigator} />
+          </Stack.Group>
+        )
+      case 'cuidador':
+        return (
+          <Stack.Group navigationKey="cuidador">
+            <Stack.Screen name="CuidadorApp" component={CuidadorTabNavigator} />
+            <Stack.Screen name="PerfilCuidador" component={PerfilCuidador} />
+            <Stack.Screen
+              name="ExcepcionSemanal"
+              component={ExcepcionSemanal}
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen
+              name="CoberturaCuidador"
+              component={CoberturaCuidador}
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen
+              name="ControlPaseo"
+              component={ControlPaseo}
+              options={{
+                headerShown: true,
+                headerTitle: 'Control de Paseo 🐾',
+                headerBackTitleVisible: false,
+              }}
+            />
+            <Stack.Screen
+              name="Chat"
+              component={ChatScreen}
+              options={{
+                headerShown: false,
+                presentation: 'card',
+              }}
+            />
+            <Stack.Screen
+              name="ObservacionMascota"
+              component={ObservacionMascota}
+              options={{
+                headerShown: false,
+                presentation: 'card',
+              }}
+            />
+            <Stack.Screen
+              name="CuidadorEvaluaTutor"
+              component={CuidadorEvaluaTutor}
+              options={{
+                headerShown: false,
+                presentation: 'card',
+              }}
+            />
+          </Stack.Group>
+        )
+      default:
+        // tutor
+        return (
+          <Stack.Group navigationKey="tutor">
+            <Stack.Screen name="TutorApp" component={TutorTabNavigator} />
+            <Stack.Screen
+              name="DetalleMascota"
+              component={DetalleMascota}
+              options={{
+                presentation: 'transparentModal',
+                headerShown: false,
+                cardStyle: { backgroundColor: 'transparent' },
+              }}
+            />
+            <Stack.Screen
+              name="EdicionMascota"
+              component={EdicionMascota}
+              options={{
+                headerShown: false,
+                presentation: 'card',
+              }}
+            />
+            <Stack.Screen
+              name="PaseoActivo"
+              component={PaseoActivo}
+              options={{
+                headerShown: true,
+                headerTitle: 'Paseo en Vivo 🐾',
+                headerBackTitleVisible: false,
+              }}
+            />
+            <Stack.Screen
+              name="PaseoFinalizado"
+              component={PaseoFinalizado}
+              options={{
+                headerShown: false,
+                presentation: 'modal',
+              }}
+            />
+            <Stack.Screen
+              name="Chat"
+              component={ChatScreen}
+              options={{
+                headerShown: false,
+                presentation: 'card',
+              }}
+            />
+          </Stack.Group>
+        )
+    }
+  }
+
   return (
     <>
       {/* Overlay global del tutor al finalizar un paseo (vive en la raíz para
-          aparecer sobre CUALQUIER pantalla: PaseoActivo, Chat, tabs) */}
-      <GlobalPaseoManager />
+          aparecer sobre CUALQUIER pantalla: PaseoActivo, Chat, tabs).
+          Solo se monta con la App del tutor, que es la que registra PaseoFinalizado */}
+      {rolEnApp === 'tutor' && <GlobalPaseoManager />}
       <Stack.Navigator screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="Auth" component={AuthNavigator} />
-      <Stack.Screen name="TutorApp" component={TutorTabNavigator} />
-      <Stack.Screen name="CuidadorApp" component={CuidadorTabNavigator} />
-      <Stack.Screen name="AdminApp" component={AdminTabNavigator} />
-      <Stack.Screen name="ExplorerApp" component={ExplorerTabNavigator} />
-      <Stack.Screen
-        name="DetalleMascota"
-        component={DetalleMascota}
-        options={{
-          presentation: 'transparentModal',
-          headerShown: false,
-          cardStyle: { backgroundColor: 'transparent' },
-        }}
-      />
-      <Stack.Screen
-        name="EdicionMascota"
-        component={EdicionMascota}
-        options={{
-          headerShown: false,
-          presentation: 'card',
-        }}
-      />
-      <Stack.Screen name="PerfilCuidador" component={PerfilCuidador} />
-      <Stack.Screen
-        name="ExcepcionSemanal"
-        component={ExcepcionSemanal}
-        options={{ headerShown: false }}
-      />
-      <Stack.Screen
-        name="CoberturaCuidador"
-        component={CoberturaCuidador}
-        options={{ headerShown: false }}
-      />
-      <Stack.Screen
-        name="PaseoActivo"
-        component={PaseoActivo}
-        options={{
-          headerShown: true,
-          headerTitle: 'Paseo en Vivo 🐾',
-          headerBackTitleVisible: false,
-        }}
-      />
-      <Stack.Screen
-        name="PaseoFinalizado"
-        component={PaseoFinalizado}
-        options={{
-          headerShown: false,
-          presentation: 'modal',
-        }}
-      />
-      <Stack.Screen
-        name="ControlPaseo"
-        component={ControlPaseo}
-        options={{
-          headerShown: true,
-          headerTitle: 'Control de Paseo 🐾',
-          headerBackTitleVisible: false,
-        }}
-      />
-      <Stack.Screen
-        name="Chat"
-        component={ChatScreen}
-        options={{
-          headerShown: false,
-          presentation: 'card',
-        }}
-      />
-      <Stack.Screen
-        name="ObservacionMascota"
-        component={ObservacionMascota}
-        options={{
-          headerShown: false,
-          presentation: 'card',
-        }}
-      />
-      <Stack.Screen
-        name="CuidadorEvaluaTutor"
-        component={CuidadorEvaluaTutor}
-        options={{
-          headerShown: false,
-          presentation: 'card',
-        }}
-      />
+        {rolEnApp === null ? (
+          <Stack.Screen name="Auth">
+            {() => <AuthNavigator cargaInicialLista={cargaInicialLista} />}
+          </Stack.Screen>
+        ) : (
+          renderGrupoRol()
+        )}
       </Stack.Navigator>
+
+      {/* Bloquea la interacción mientras se confirma un cambio de rol */}
+      {rolEnApp !== null && activandoRol && (
+        <View style={styles.overlay}>
+          <LoadingScreen messageType="mascota" spinnerColor="#22A47C" />
+        </View>
+      )}
     </>
   )
 }
+
+const styles = StyleSheet.create({
+  overlay: {
+    ...StyleSheet.absoluteFillObject,
+    zIndex: 1000,
+  },
+})

@@ -87,10 +87,7 @@ export default function PaseoFinalizado() {
           No se encontró la información del paseo.
         </Text>
         <Spacer size={20} />
-        <Button
-          title="Volver"
-          onPress={() => navigation.navigate('TutorApp')}
-        />
+        <Button title="Volver" onPress={() => navigation.popToTop()} />
       </View>
     )
   }
@@ -111,7 +108,7 @@ export default function PaseoFinalizado() {
             nombreMascota={paseo?.mascota_nombre_visual || 'Mascota'}
             nombreCuidador={paseo?.cuidador_nombre_visual || 'Cuidador'}
             onSuccess={() => setEntregaValidada(true)}
-            onDismiss={() => navigation.navigate('TutorApp')}
+            onDismiss={() => navigation.popToTop()}
           />
         ) : !pagoProcesado ? (
           // FASE 4.1: Pago (si se validó pero aún no pagó)
@@ -129,7 +126,7 @@ export default function PaseoFinalizado() {
             <PaseoFinalizadoCard
               mascotaNombre={paseo.mascota_nombre_visual}
               cuidadorNombre={paseo.cuidador_nombre_visual}
-              onClose={() => navigation.navigate('TutorApp')}
+              onClose={() => navigation.popToTop()}
               onRate={handleRate}
               ratingPrevio={ratingPrevio}
               enviando={enviando}

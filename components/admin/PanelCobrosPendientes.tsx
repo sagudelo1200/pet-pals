@@ -10,15 +10,14 @@ import { db } from '@/firebase.config'
 import { COLOR } from '@/constants'
 import { Card } from '@/components/ui'
 import { useCollection } from '@/hooks'
-import { usePoliticaComercial } from '@/hooks/comercial'
 import { formatearCOP } from '@/logic/comercial'
 import type { Obligacion } from '@/models/operacionesEconomicas'
+import { NombreUsuario } from './NombreUsuario'
 
 const HORA_MS = 60 * 60 * 1000
 const aMs = (v: any): number => v?.toMillis?.() ?? new Date(v).getTime()
 
 export const PanelCobrosPendientes: React.FC = () => {
-  const { politica } = usePoliticaComercial()
   const pendientes = useMemo(
     () =>
       query(
@@ -35,7 +34,6 @@ export const PanelCobrosPendientes: React.FC = () => {
       horas: Math.floor((Date.now() - aMs(o.creado_en)) / HORA_MS),
     }))
     .sort((a, b) => b.horas - a.horas)
-  const limite = politica?.cobro.bloqueo_tras_horas
 
   if (cobros.length === 0) {
     return <Text style={styles.vacio}>No hay cobros pendientes</Text>
@@ -44,12 +42,14 @@ export const PanelCobrosPendientes: React.FC = () => {
   return (
     <View>
       {cobros.map(o => {
-        const vencido = limite !== undefined && o.horas >= limite
+        // Cada cobro trae su propio plazo de bloqueo (el de su política)
+        const vencido = !!o.bloquear_desde && aMs(o.bloquear_desde) <= Date.now()
         return (
           <Card key={o.id} style={[styles.card, vencido && styles.vencido]}>
             <Text style={styles.total}>{formatearCOP(o.valor)}</Text>
             <Text style={styles.detalle}>
-              {`Tutor ${o.deudor} · hace ${o.horas} h · ${o.recordatorios_enviados ?? 0} recordatorio(s)`}
+              <NombreUsuario uid={o.deudor} style={styles.detalle} />
+              {` · hace ${o.horas} h · ${o.recordatorios_enviados ?? 0} recordatorio(s)`}
             </Text>
             {vencido && (
               <Text style={styles.textoVencido}>Vencido: tutor bloqueado</Text>

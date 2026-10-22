@@ -18,6 +18,17 @@ import {
   type EstadoBase,
   type EstadoConsentimiento,
 } from '../models/consentimientos.validators';
+import {obtenerVersionVigente} from '../comun/versionado';
+import {ErrorNegocio} from '../comun/errores';
+import {
+  esTipoConsentimiento,
+  tipoVersionableConsentimiento,
+  type ContenidoConsentimiento,
+} from '../compartido/consentimiento';
+import {
+  COLECCION_VERSIONADOS,
+  idVersion,
+} from '../compartido/versionables';
 
 if (!admin.apps.length) admin.initializeApp();
 
@@ -91,8 +102,8 @@ export const registrarConsentimiento = onCall(
       const {tipo_documento, estado, dispositivo, idioma, timezone} =
         request.data;
 
-      if (typeof tipo_documento !== 'string' || !tipo_documento.trim()) {
-        throw new HttpsError('invalid-argument', 'tipo_documento es requerido');
+      if (!esTipoConsentimiento(tipo_documento)) {
+        throw new HttpsError('invalid-argument', 'tipo_documento inválido');
       }
 
       const estadosPermitidos = ['ACEPTADO', 'RECHAZADO', 'REVOCADO'];
@@ -132,43 +143,22 @@ export const registrarConsentimiento = onCall(
       const userRoles = usuario?.roles || [];
 
       // ======================================
-      // 4. OBTENER DOCUMENTO VIGENTE
+      // 4. OBTENER DOCUMENTO VIGENTE (motor de versionado)
       // ======================================
 
-      const docQuery = await db
-        .collection('documentos_consentimientos')
-        .where('tipo_documento', '==', tipo_documento)
-        .where('activo', '==', true)
-        .limit(1)
-        .get();
-
-      if (docQuery.empty) {
-        throw new HttpsError(
-          'not-found',
-          `Documento ${tipo_documento} no encontrado o inactivo`
-        );
+      const tipoVersionable = tipoVersionableConsentimiento(tipo_documento);
+      let vigente;
+      try {
+        vigente = await obtenerVersionVigente<ContenidoConsentimiento>(
+          db, tipoVersionable);
+      } catch (error) {
+        if (error instanceof ErrorNegocio) {
+          throw new HttpsError(error.codigo, error.message);
+        }
+        throw error;
       }
-
-      const docSnap = docQuery.docs[0];
-      const documento = docSnap.data();
-
-      // Validar integridad del documento
-      if (typeof documento.version !== 'number' || documento.version < 1) {
-        throw new HttpsError(
-          'invalid-argument',
-          'Documento tiene version inválida'
-        );
-      }
-
-      if (
-        typeof documento.hash_contenido !== 'string' ||
-        !documento.hash_contenido.trim()
-      ) {
-        throw new HttpsError(
-          'invalid-argument',
-          'Documento no tiene hash de contenido válido'
-        );
-      }
+      const documento = vigente.contenido;
+      const documentoId = `${tipoVersionable}/${idVersion(vigente.version)}`;
 
       // ======================================
       // 5. VALIDAR ROLES
@@ -210,28 +200,19 @@ export const registrarConsentimiento = onCall(
         );
       }
 
-      // Verificar que docSnap sigue siendo el vigente actual
-      // (por si cambió entre línea 135 y ahora)
-      const vigenteCheckQuery = await db
-        .collection('documentos_consentimientos')
-        .where('tipo_documento', '==', tipo_documento)
-        .where('activo', '==', true)
-        .limit(1)
-        .get();
-
-      if (
-        vigenteCheckQuery.empty ||
-        vigenteCheckQuery.docs[0].id !== docSnap.id
-      ) {
-        throw new HttpsError(
-          'failed-precondition',
-          'El documento vigente cambió. Reintentar.'
-        );
-      }
-
       // Firestore Transaction
 
+      const serieRef = db.collection(COLECCION_VERSIONADOS).doc(tipoVersionable);
       const resultado = await db.runTransaction(async (transaction) => {
+        // El documento aceptado debe seguir siendo el vigente (si se publicó
+        // otra versión mientras tanto, se pide reintentar)
+        const serie = (await transaction.get(serieRef)).data();
+        if (serie?.version_vigente !== vigente.version) {
+          throw new HttpsError(
+            'failed-precondition',
+            'El documento vigente cambió. Reintentar.'
+          );
+        }
         const timestamp = admin.firestore.Timestamp.now();
         const ahora = timestamp.toDate();
 
@@ -254,9 +235,9 @@ export const registrarConsentimiento = onCall(
           usuario_id: uid,
           tipo_documento,
           estado,
-          documento_id: docSnap.id,
-          version_documento: documento.version,
-          hash_documento: documento.hash_contenido,
+          documento_id: documentoId,
+          version_documento: vigente.version,
+          hash_documento: vigente.hash,
           fecha_evento: timestamp,
           fecha_proxima_reconfirmacion: fechaProximaReconfirmacion,
           servidor: {
@@ -276,14 +257,14 @@ export const registrarConsentimiento = onCall(
         transaction.set(eventoRef, eventoData);
 
         // Actualizar proyección de usuario
-        // es_documento_vigente_hoy=true porque docSnap es vigente
+        // es_documento_vigente_hoy=true: se verificó dentro de la transacción
         const proyeccionData = {
           estado,
-          documento_id: docSnap.id,
-          version_documento: documento.version,
+          documento_id: documentoId,
+          version_documento: vigente.version,
           fecha_evento: timestamp,
           fecha_proxima_reconfirmacion: fechaProximaReconfirmacion,
-          hash_documento: documento.hash_contenido,
+          hash_documento: vigente.hash,
           es_documento_vigente_hoy: true,
         };
 

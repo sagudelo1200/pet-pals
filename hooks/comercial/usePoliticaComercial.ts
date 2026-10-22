@@ -1,6 +1,10 @@
 import { useEffect, useState } from 'react'
-import { escucharPoliticaVigente } from '@/services/firebase/economia'
-import type { PoliticaComercial } from '@/models/operacionesEconomicas'
+import { escucharVersionVigente } from '@/services/firebase/versionado'
+import { TIPO_POLITICA_COMERCIAL } from '@/functions/src/compartido/versionables'
+import type {
+  DatosPoliticaComercial,
+  PoliticaComercial,
+} from '@/models/operacionesEconomicas'
 
 /**
  * Política comercial vigente (precios, comisión, cobro y liquidación),
@@ -13,10 +17,11 @@ export function usePoliticaComercial() {
 
   useEffect(
     () =>
-      escucharPoliticaVigente(
-        p => {
-          setPolitica(p)
-          setError(p ? null : 'No hay una política comercial publicada')
+      escucharVersionVigente<DatosPoliticaComercial>(
+        TIPO_POLITICA_COMERCIAL,
+        v => {
+          setPolitica(v ? { ...v.contenido, version: v.version } : null)
+          setError(v ? null : 'No hay una política comercial publicada')
           setCargando(false)
         },
         e => {

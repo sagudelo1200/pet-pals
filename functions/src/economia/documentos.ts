@@ -25,7 +25,7 @@ import {
   type DocumentoContable,
   type LineaDocumento,
 } from './contabilidad';
-import {COLECCION, type PoliticaContable} from './tipos';
+import {COLECCION} from './tipos';
 
 const HORA_MS = 60 * 60 * 1000;
 // Un envío en curso se puede retomar pasado este tiempo (caída a mitad)
@@ -208,11 +208,10 @@ export async function registrarReciboCajaOperacion(
 
 /**
  * Documentos del pago de una liquidación al cuidador: documento soporte
- * (adquisición a un sujeto no obligado a facturar, acumulado del periodo) si
- * la política lo pide, y el recibo de pago (egreso) de la transferencia.
+ * (adquisición a un sujeto no obligado a facturar, acumulado del periodo)
+ * con los servicios cuya política lo pide, y el recibo de pago (egreso).
  * @param {Firestore} db Firestore.
  * @param {string} liqId Liquidación (ya pagada).
- * @param {PoliticaContable} contable Política contable vigente.
  * @param {AdaptadorContable} adaptador Proveedor contable.
  * @param {Timestamp} ahora Momento.
  * @return {Promise<string[]>} Estados de envío.
@@ -220,7 +219,6 @@ export async function registrarReciboCajaOperacion(
 export async function documentarPagoLiquidacion(
   db: Firestore,
   liqId: string,
-  contable: PoliticaContable,
   adaptador: AdaptadorContable,
   ahora: Timestamp
 ): Promise<string[]> {
@@ -228,23 +226,30 @@ export async function documentarPagoLiquidacion(
   if (!liq) throw new Error(`Liquidación ${liqId} no existe`);
   const obligs = await Promise.all((liq.obligacion_ids as string[]).map(async (id) => {
     const o = (await db.collection(COLECCION.OBLIGACIONES).doc(id).get()).data();
-    return {id, valor: o?.valor as number, servicio: o?.operacion_servicio_id as string};
+    return {
+      id,
+      valor: o?.valor as number,
+      servicio: o?.operacion_servicio_id as string,
+      // Si falta se emite (opción por defecto de la política)
+      soporte: o?.documento_soporte !== false,
+    };
   }));
+  const conSoporte = obligs.filter((o) => o.soporte);
   const tercero = {uid: liq.cuidador_id as string, rol: 'PROVEEDOR' as const};
   const estados: string[] = [];
 
-  if (contable.documento_soporte_cuidador) {
+  if (conSoporte.length > 0) {
     estados.push(await emitirDocumento(db, {
       id: idDocumentoSoporte(liqId),
       tipo: 'DOCUMENTO_SOPORTE',
       tercero,
       fecha: ahora,
-      lineas: obligs.map((o) => ({
+      lineas: conSoporte.map((o) => ({
         concepto: `Servicio de paseo ${o.servicio ?? o.id}`,
         tipo: 'SERVICIO_TERCERO' as const,
         valor: o.valor,
       })),
-      total: liq.total,
+      total: conSoporte.reduce((s, o) => s + o.valor, 0),
       referencias: {liquidacion_id: liqId},
     }, adaptador, ahora));
   }
@@ -257,7 +262,7 @@ export async function documentarPagoLiquidacion(
     lineas: [{concepto: `Liquidación ${liqId}`, tipo: 'PAGO', valor: liq.total}],
     total: liq.total,
     referencias: {liquidacion_id: liqId,
-      ...(contable.documento_soporte_cuidador &&
+      ...(conSoporte.length > 0 &&
         {documento_relacionado: idDocumentoSoporte(liqId)})},
     datos: {medio_pago: 'TRANSFERENCIA', referencia_pago: liq.referencia_pago},
   }, adaptador, ahora));

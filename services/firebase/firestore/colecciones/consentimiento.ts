@@ -1,4 +1,10 @@
 import { ServicioCrudBase } from '@/services/firebase/firestore/base'
+import { obtenerVersionVigente } from '@/services/firebase/versionado'
+import { idVersion } from '@/functions/src/compartido/versionables'
+import {
+  tipoVersionableConsentimiento,
+  type ContenidoConsentimiento,
+} from '@/functions/src/compartido/consentimiento'
 import {
   DocumentoConsentimiento,
   Consentimiento,
@@ -25,143 +31,36 @@ import {
 /**
  * ServicioDocumentoConsentimiento
  *
- * Gestiona documentos de consentimiento versionados.
- * Cada versión es un documento independiente e inmutable.
- *
- * Colección: documentos_consentimientos/
- * Documentos: DATOS_PERSONALES_v1, DATOS_PERSONALES_v2, etc.
+ * Lee la versión vigente de un documento de consentimiento desde el
+ * versionado genérico (serie `consentimiento_{TIPO}`). Se publica desde el
+ * admin con el callable publicarVersion.
  */
 export class ServicioDocumentoConsentimiento {
-  private static readonly COLLECTION = 'documentos_consentimientos'
-
   /**
-   * Crear una versión nueva de un documento de consentimiento
-   * (Normalmente solo admin puede hacer esto)
-   */
-  static async crear(
-    data: Omit<
-      DocumentoConsentimiento,
-      'id' | 'creado_en' | 'actualizado_en' | 'creado_por' | 'actualizado_por'
-    >
-  ): Promise<CrudResult<DocumentoConsentimiento>> {
-    return ServicioCrudBase.crear<DocumentoConsentimiento>(
-      this.COLLECTION,
-      data
-    )
-  }
-
-  /**
-   * Obtener un documento por ID
-   * Ej: obtenerPorId('DATOS_PERSONALES_v2')
-   */
-  static async obtenerPorId(
-    id: string
-  ): Promise<CrudResult<DocumentoConsentimiento>> {
-    return ServicioCrudBase.obtenerPorId<DocumentoConsentimiento>(
-      this.COLLECTION,
-      id
-    )
-  }
-
-  /**
-   * Obtener la versión vigente (activa) de un tipo de documento
-   * Ej: obtenerVigente('DATOS_PERSONALES') → retorna la v2 si activo=true
+   * Obtener la versión vigente de un tipo de documento
+   * Ej: obtenerVigente('DATOS_PERSONALES') → la v2 si es la vigente
    */
   static async obtenerVigente(
     tipo_documento: string
   ): Promise<CrudResult<DocumentoConsentimiento>> {
     try {
-      const q = query(
-        collection(db, this.COLLECTION),
-        where('tipo_documento', '==', tipo_documento),
-        where('activo', '==', true),
-        limit(1)
-      )
-
-      const querySnapshot = await getDocs(q)
-
-      if (querySnapshot.empty) {
+      const tipo = tipoVersionableConsentimiento(tipo_documento)
+      const vigente = await obtenerVersionVigente<ContenidoConsentimiento>(tipo)
+      if (!vigente) {
         return {
           success: false,
-          error: `Documento ${tipo_documento} no encontrado o inactivo`,
+          error: `Documento ${tipo_documento} no publicado`,
         }
       }
-
-      const doc = querySnapshot.docs[0]
-      const domainData = toDomain(doc.data()) as DocumentoConsentimiento | null
-
       return {
         success: true,
-        data: { id: doc.id, ...(domainData ?? {}) } as DocumentoConsentimiento,
-      }
-    } catch (error: any) {
-      return { success: false, error: mapFirebaseError(error) }
-    }
-  }
-
-  /**
-   * Obtener todas las versiones de un tipo (para auditoría)
-   */
-  static async obtenerVersiones(
-    tipo_documento: string
-  ): Promise<CrudResult<DocumentoConsentimiento[]>> {
-    try {
-      const q = query(
-        collection(db, this.COLLECTION),
-        where('tipo_documento', '==', tipo_documento),
-        orderBy('version', 'desc')
-      )
-
-      const querySnapshot = await getDocs(q)
-      const documents: DocumentoConsentimiento[] = []
-
-      querySnapshot.forEach(snap => {
-        const domainData = toDomain(
-          snap.data()
-        ) as DocumentoConsentimiento | null
-        documents.push({
-          id: snap.id,
-          ...(domainData ?? {}),
-        } as DocumentoConsentimiento)
-      })
-
-      return {
-        success: true,
-        data: documents,
-      }
-    } catch (error: any) {
-      return { success: false, error: mapFirebaseError(error) }
-    }
-  }
-
-  /**
-   * Obtener todos los documentos vigentes (para usar en UI)
-   */
-  static async obtenerVigentes(): Promise<
-    CrudResult<DocumentoConsentimiento[]>
-  > {
-    try {
-      const q = query(
-        collection(db, this.COLLECTION),
-        where('activo', '==', true)
-      )
-
-      const querySnapshot = await getDocs(q)
-      const documents: DocumentoConsentimiento[] = []
-
-      querySnapshot.forEach(snap => {
-        const domainData = toDomain(
-          snap.data()
-        ) as DocumentoConsentimiento | null
-        documents.push({
-          id: snap.id,
-          ...(domainData ?? {}),
-        } as DocumentoConsentimiento)
-      })
-
-      return {
-        success: true,
-        data: documents,
+        data: {
+          ...vigente.contenido,
+          tipo_documento,
+          documento_id: `${tipo}/${idVersion(vigente.version)}`,
+          version: vigente.version,
+          hash: vigente.hash,
+        },
       }
     } catch (error: any) {
       return { success: false, error: mapFirebaseError(error) }

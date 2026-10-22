@@ -125,7 +125,7 @@ describe('documentos de Paw-Path (fuente de verdad)', () => {
     db.__seed('obligaciones/b', { valor: 16200, operacion_servicio_id: 'p2' })
 
     const estados = await documentarPagoLiquidacion(db, 'c1_2026-10-19',
-      { documento_soporte_cuidador: true }, new MockAdaptadorContable(), AHORA)
+      new MockAdaptadorContable(), AHORA)
     expect(estados).toEqual(['ENVIADO', 'ENVIADO'])
     expect(doc('documentos_contables/DS-c1_2026-10-19')).toMatchObject({
       tipo: 'DOCUMENTO_SOPORTE', tercero: { uid: 'c1', rol: 'PROVEEDOR' }, total: 32400,
@@ -137,11 +137,10 @@ describe('documentos de Paw-Path (fuente de verdad)', () => {
     })
   })
 
-  test('sin documento soporte en la política solo se genera el recibo de pago', async () => {
+  test('sin documento soporte en la política del servicio solo se genera el recibo', async () => {
     db.__seed('liquidaciones/l1', { cuidador_id: 'c1', total: 100, obligacion_ids: ['a'] })
-    db.__seed('obligaciones/a', { valor: 100 })
-    await documentarPagoLiquidacion(db, 'l1', { documento_soporte_cuidador: false },
-      new MockAdaptadorContable(), AHORA)
+    db.__seed('obligaciones/a', { valor: 100, documento_soporte: false })
+    await documentarPagoLiquidacion(db, 'l1', new MockAdaptadorContable(), AHORA)
     expect(doc('documentos_contables/DS-l1')).toBeUndefined()
     expect(doc('documentos_contables/RP-l1')).toBeDefined()
   })

@@ -46,6 +46,9 @@ export interface Obligacion {
   // Estado
   estado: EstadoObligacion
 
+  /** Política con la que nació: rige la obligación hasta el final */
+  politica_version?: number
+
   // Auditoría
   creado_en: Timestamp
   cumplido_en?: Timestamp
@@ -53,8 +56,14 @@ export interface Obligacion {
 
   // Cobranza (COBRO_TUTOR)
   recordatorios_enviados?: number
+  /** Desde cuándo bloquea al tutor si sigue sin pagar */
+  bloquear_desde?: Timestamp
 
   // Liquidación (PAGO_CUIDADOR)
   cobro_recaudado?: boolean
+  /** Si espera el pago del tutor para liquidarse (según su política) */
+  requiere_recaudo?: boolean
+  /** Si su pago lleva documento soporte (según su política) */
+  documento_soporte?: boolean
   liquidacion_id?: string
 }

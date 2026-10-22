@@ -1,4 +1,5 @@
 import {CloudTasksClient} from '@google-cloud/tasks';
+import {CATALOGO_CONFIGURACION} from '../compartido/configuracion';
 
 /**
  * Programación de la materialización de la ventana del doble ciego.
@@ -15,16 +16,21 @@ const LOCATION = 'us-central1';
 const QUEUE_NAME = 'escaladas-directas';
 
 // Plazo de revelación ALEATORIO: el evaluado no puede saber el día exacto en
-// que se revela la identidad (protección anti-presión). Se elige al azar
-// entre 6, 9 o 12 días al programar cada tarea.
-export const DIAS_POSIBLES_REVELACION = [6, 9, 12];
+// que se revela la identidad (protección anti-presión). Los días posibles se
+// configuran en configuracion/evaluaciones.dias_revelacion; este es el valor
+// por defecto del catálogo.
+export const DIAS_POSIBLES_REVELACION =
+  CATALOGO_CONFIGURACION.evaluaciones.valores.dias_revelacion.porDefecto;
 
-/** Elige al azar el plazo (en ms) para la revelación de una evaluación. */
-export function elegirDelayRevelacion(): number {
-  const dias =
-    DIAS_POSIBLES_REVELACION[
-      Math.floor(Math.random() * DIAS_POSIBLES_REVELACION.length)
-    ];
+/**
+ * Elige al azar el plazo (en ms) para la revelación de una evaluación.
+ * @param {number[]} diasPosibles Días posibles (configuración).
+ * @return {number} Plazo en milisegundos.
+ */
+export function elegirDelayRevelacion(
+  diasPosibles: number[] = DIAS_POSIBLES_REVELACION
+): number {
+  const dias = diasPosibles[Math.floor(Math.random() * diasPosibles.length)];
   return dias * 24 * 60 * 60 * 1000;
 }
 
@@ -53,13 +59,17 @@ const getTasksClient = (): CloudTasksClient => {
  * Fire-and-forget: el llamador decide si loguear los errores.
  * Sin `GCLOUD_PROJECT` (emulador/tests) no hace nada.
  */
-export async function programarRevelacion(evaluacionId: string): Promise<void> {
+export async function programarRevelacion(
+  evaluacionId: string,
+  diasPosibles: number[] = DIAS_POSIBLES_REVELACION
+): Promise<void> {
   const projectId = process.env.GCLOUD_PROJECT;
   if (!projectId) return;
 
   const fnName = 'revelarEvaluacionVencida';
   const functionUrl = `https://${LOCATION}-${projectId}.cloudfunctions.net/${fnName}`;
-  const tiempoEjecucion = Math.floor((Date.now() + elegirDelayRevelacion()) / 1000);
+  const tiempoEjecucion = Math.floor(
+    (Date.now() + elegirDelayRevelacion(diasPosibles)) / 1000);
 
   const client = getTasksClient();
   const parent = client.queuePath(projectId, LOCATION, QUEUE_NAME);

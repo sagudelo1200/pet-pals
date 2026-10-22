@@ -4,7 +4,7 @@ import { GestorUsuarios } from '@/logic/usuarios'
 import type { RolUsuario } from '@/models/Usuario'
 
 export const useCambiarRol = () => {
-  const { user, profile, recargarPerfil, cambiarRolActivo } = useAuth()
+  const { user, profile, recargarPerfil } = useAuth()
   const [cargando, setCargando] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -27,18 +27,9 @@ export const useCambiarRol = () => {
         throw new Error(res.error || 'Error al actualizar rol')
       }
 
-      // Refrescar perfil
+      // Refrescar perfil. Activar el rol es decisión de quien llama, siempre
+      // vía cambiarRolActivo (único punto que cambia la App visible)
       await recargarPerfil()
-
-      // Refrescar el rol activo en AuthContext
-      try {
-        if (typeof cambiarRolActivo === 'function') {
-          await cambiarRolActivo(nuevoRol)
-        }
-      } catch (_e) {
-        console.warn('[useCambiarRol.cambiarRol] Error manejado:', _e)
-        // ignore
-      }
 
       setCargando(false)
       return { success: true }

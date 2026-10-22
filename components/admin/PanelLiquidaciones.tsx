@@ -3,6 +3,7 @@
  * El admin genera las liquidaciones (también se generan solas en el corte
  * semanal, con una tarea de un solo uso que se agenda cuando hay pagos listos),
  * transfiere a cada cuidador y registra la referencia de la transferencia.
+ * Con `soloLectura` (contador) solo se consultan las pendientes de pago.
  */
 import React, { useMemo, useState } from 'react'
 import { View, Text, TextInput, StyleSheet, Alert } from 'react-native'
@@ -17,6 +18,7 @@ import {
   mensajeErrorEconomia,
 } from '@/services/firebase/economia'
 import type { Liquidacion } from '@/models/operacionesEconomicas'
+import { NombreUsuario } from './NombreUsuario'
 
 const fecha = (v: any) =>
   (v?.toDate?.() ?? new Date(v)).toLocaleDateString('es-CO', {
@@ -24,7 +26,9 @@ const fecha = (v: any) =>
     month: 'short',
   })
 
-export const PanelLiquidaciones: React.FC = () => {
+export const PanelLiquidaciones: React.FC<{ soloLectura?: boolean }> = ({
+  soloLectura = false,
+}) => {
   const [generando, setGenerando] = useState(false)
   const [pagando, setPagando] = useState<string | null>(null)
   const [referencias, setReferencias] = useState<Record<string, string>>({})
@@ -90,12 +94,14 @@ export const PanelLiquidaciones: React.FC = () => {
 
   return (
     <View>
-      <Button
-        title={generando ? 'Generando…' : 'Generar liquidaciones ahora'}
-        onPress={generar}
-        variant="contorno"
-        disabled={generando}
-      />
+      {!soloLectura && (
+        <Button
+          title={generando ? 'Generando…' : 'Generar liquidaciones ahora'}
+          onPress={generar}
+          variant="contorno"
+          disabled={generando}
+        />
+      )}
       {liquidaciones.length === 0 && (
         <Text style={styles.vacio}>No hay liquidaciones por pagar</Text>
       )}
@@ -103,22 +109,26 @@ export const PanelLiquidaciones: React.FC = () => {
         <Card key={liq.id} style={styles.card}>
           <Text style={styles.total}>{formatearCOP(liq.total)}</Text>
           <Text style={styles.detalle}>
-            Cuidador {liq.cuidador_id} · {liq.obligacion_ids.length} paseo(s) ·
-            hasta {fecha(liq.periodo_hasta)}
+            <NombreUsuario uid={liq.cuidador_id} style={styles.detalle} /> ·{' '}
+            {liq.obligacion_ids.length} paseo(s) · hasta {fecha(liq.periodo_hasta)}
           </Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Referencia de la transferencia"
-            placeholderTextColor={COLOR.SUBTEXTO}
-            value={referencias[liq.id] || ''}
-            onChangeText={v => setReferencias({ ...referencias, [liq.id]: v })}
-          />
-          <Button
-            title={pagando === liq.id ? 'Registrando…' : 'Registrar pago'}
-            onPress={() => registrarPago(liq)}
-            variant="primario"
-            disabled={pagando === liq.id}
-          />
+          {!soloLectura && (
+            <>
+              <TextInput
+                style={styles.input}
+                placeholder="Referencia de la transferencia"
+                placeholderTextColor={COLOR.SUBTEXTO}
+                value={referencias[liq.id] || ''}
+                onChangeText={v => setReferencias({ ...referencias, [liq.id]: v })}
+              />
+              <Button
+                title={pagando === liq.id ? 'Registrando…' : 'Registrar pago'}
+                onPress={() => registrarPago(liq)}
+                variant="primario"
+                disabled={pagando === liq.id}
+              />
+            </>
+          )}
         </Card>
       ))}
     </View>

@@ -1,11 +1,15 @@
 import { GestorPaseos } from '@/logic/paseos'
 import { ESTADOS_PASEO } from '@/models/Paseo'
+import { numeroVersionVigente } from '@/services/firebase/versionado'
+import { TIPO_POLITICA_COMERCIAL } from '@/functions/src/compartido/versionables'
 
 type Params = {
   fecha: Date | null
   hora: string | null
   duracion: number | null
   total: number
+  /** Versión de la política con la que se calculó el precio mostrado. */
+  politicaVersion: number
   direccion: any | undefined
   direccionId: string | null
   cuidadorId: string | null
@@ -20,6 +24,7 @@ export async function confirmarReservaPaseo(params: Params) {
     hora,
     duracion,
     total,
+    politicaVersion,
     direccion,
     direccionId,
     cuidadorId,
@@ -42,6 +47,12 @@ export async function confirmarReservaPaseo(params: Params) {
   // La validación ocurre en crearConMascotas → validarNoSolapamientoPorMascota
 
   try {
+    // El paseo se cobra con la política que vio el tutor: si el admin acaba
+    // de publicar otra, se pide revisar el nuevo precio (las reglas lo exigen)
+    if ((await numeroVersionVigente(TIPO_POLITICA_COMERCIAL)) !== politicaVersion) {
+      return { success: false, error: 'politica_actualizada' }
+    }
+
     const fechaInicio = new Date(fecha)
     const [hours, minutes] = (hora || '00:00').split(':').map(Number)
     fechaInicio.setHours(hours, minutes, 0, 0)
@@ -53,6 +64,7 @@ export async function confirmarReservaPaseo(params: Params) {
         fecha_hora_inicio: fechaInicio,
         duracion_estimada: duracion || 60,
         precio: total,
+        politica_version: politicaVersion,
         ubicacion_inicio: direccion || null,
         id_cuidador: cuidadorId || null,
         cuidador_nombre_visual: undefined,

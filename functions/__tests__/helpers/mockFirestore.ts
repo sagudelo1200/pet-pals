@@ -124,6 +124,7 @@ export function crearMockDb(): any {
           const prefix = `${path}/`;
           const resultado: Array<{
             id: string
+            ref: any
             data: () => Record<string, unknown>
           }> = [];
           for (const [p, data] of docs) {
@@ -142,7 +143,7 @@ export function crearMockDb(): any {
               }
               return true;
             });
-            if (cumple) resultado.push({id: resto, data: () => data});
+            if (cumple) resultado.push({id: resto, ref: db.doc(p), data: () => data});
           }
           return {
             docs: resultado,

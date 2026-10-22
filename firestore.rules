@@ -210,6 +210,27 @@ service cloud.firestore {
       return !request.resource.data.diff(resource.data).affectedKeys().hasAny(campos);
     }
 
+    // ===== CONFIGURACIÓN Y VERSIONES EN LAS REGLAS =====
+    // Valor de configuracion/{area}; si falta, el por defecto del catálogo
+    // (functions/src/compartido/configuracion.ts). Un test comprueba que cada
+    // por defecto escrito aquí coincide con el del catálogo.
+    function config(area, clave, porDefecto) {
+      let ruta = /databases/$(database)/documents/configuracion/$(area);
+      return exists(ruta) ? get(ruta).data.get(clave, porDefecto) : porDefecto;
+    }
+
+    // Número de la versión vigente de un tipo versionable
+    function version_vigente(tipo) {
+      return get(/databases/$(database)/documents/versionados/$(tipo)).data.version_vigente;
+    }
+
+    // Un paseo nunca supera el máximo de mascotas configurado
+    function mascotas_dentro_del_limite(datos) {
+      let max = config('paseos', 'max_mascotas', 4);
+      return datos.get('mascota_ids', []).size() <= max &&
+        datos.get('mascotas_count', 0) <= max;
+    }
+
     // El usuario autenticado no tiene cobros vencidos (lo marca el servidor)
     function sin_bloqueo_financiero() {
       return doc_usuario().data.get('bloqueo_financiero', null) == null;
@@ -338,12 +359,19 @@ service cloud.firestore {
       allow create: if puede_crear_valido()
         && (!('id_cuidador' in request.resource.data) || 
       request.resource.data.id_cuidador != request.auth.uid)
-        && !('politica_version' in request.resource.data)
+        // Un paseo nace con la política de precios vigente que vio el tutor
+        // y dentro del máximo de mascotas configurado
+        && (request.resource.data.get('tipo', '') != 'paseo' || (
+          request.resource.data.get('politica_version', null) ==
+            version_vigente('politica_comercial') &&
+          mascotas_dentro_del_limite(request.resource.data)))
         && sin_bloqueo_financiero();
 
       // OPTIMIZADO: Validaciones en orden de costo (baratas primero)
-      // politica_version la fija el servidor y define con qué tarifas se cobra
-      allow update: if puede_actualizar_valido() && (no_cambia(['politica_version']) || es_admin()) && (
+      // politica_version es la acordada al crear: define con qué tarifas se cobra
+      allow update: if puede_actualizar_valido() && (no_cambia(['politica_version']) || es_admin()) &&
+      (no_cambia(['mascota_ids', 'mascotas_count']) ||
+        mascotas_dentro_del_limite(request.resource.data)) && (
       // Caso 1: El Creador actualiza (validación más barata - solo request.auth.uid)
       resource.data.creado_por == request.auth.uid ||
 
@@ -391,7 +419,10 @@ service cloud.firestore {
       );
 
       // OPTIMIZADO: Validaciones baratas primero
+      // El paseo (tras esta escritura) sigue dentro del máximo de mascotas
       allow create: if puede_crear_valido() &&
+      mascotas_dentro_del_limite(getAfter(
+        /databases/$(database)/documents/operaciones/$(operacionId)).data) &&
       (
       // Primero verificar si es el usuario que se está agregando (barato)
       (request.resource.data.id_usuario == request.auth.uid && 
@@ -677,54 +708,6 @@ service cloud.firestore {
       allow write: if false;
     }
 
-    // DOCUMENTOS DE CONSENTIMIENTO (Versiones legales)
-    // /documentos_consentimientos/{docId}
-    // Ej: documentos_consentimientos/DATOS_PERSONALES_v1
-    //
-    // Estos son documentos legales que los usuarios leen y aceptan.
-    // Cada versión es inmutable para auditoría legal.
-    // Solo admin puede crear/actualizar; cualquier usuario puede leer (público legal).
-    match /documentos_consentimientos/{docId} {
-      // LECTURA: PÚBLICO (sin autenticación requerida)
-      // Necesario para mostrar documento en flujo de registro (usuario aún no autenticado)
-      // Los documentos legales son públicos por naturaleza
-      allow read: if true;
-
-      // CREACIÓN: SOLO admin (a través de console o CLI)
-      // Solo admin puede crear nuevas versiones de documentos
-      allow create: if es_admin() &&
-      tiene_campos_sistema_basicos() &&
-      campos_sistema_validos_crear() &&
-      request.resource.data.tipo_documento is string &&
-      request.resource.data.tipo_documento.size() > 0 &&
-      request.resource.data.version is int &&
-      request.resource.data.version > 0 &&
-      request.resource.data.titulo is string &&
-      request.resource.data.titulo.size() > 0 &&
-      request.resource.data.contenido is string &&
-      request.resource.data.contenido.size() > 0 &&
-      request.resource.data.hash_contenido is string &&
-      request.resource.data.es_obligatorio is bool &&
-      request.resource.data.activo is bool;
-
-      // ACTUALIZACIÓN: SOLO admin
-      // Solo se puede actualizar para marcar como activo/inactivo
-      allow update: if es_admin() &&
-      puede_actualizar_valido() &&
-      request.resource.data.tipo_documento == resource.data.tipo_documento &&
-      request.resource.data.version == resource.data.version &&
-      request.resource.data.contenido == resource.data.contenido &&
-      request.resource.data.hash_contenido == resource.data.hash_contenido &&
-      solo_campos_permitidos([
-      'tipo_documento', 'version', 'titulo', 'contenido', 'hash_contenido',
-      'es_obligatorio', 'roles_requeridos', 'requiere_reconfirmacion_meses',
-      'activo', 'id', 'creado_por', 'creado_en', 'actualizado_en', 'actualizado_por'
-      ]);
-
-      // ELIMINACIÓN: NO permitida (auditoría legal)
-      allow delete: if false;
-    }
-
     // EVENTOS DE CONSENTIMIENTO (Historial legal inmutable)
     // /consentimientos/{eventId}
     //
@@ -845,15 +828,41 @@ service cloud.firestore {
       allow write: if false;
     }
 
-    // POLÍTICA COMERCIAL (precios, comisión, cobro, liquidación)
-    // Lectura para mostrar precios; se publica con el callable de admin.
-    match /politicas_comerciales/{version} {
-      allow read: if autenticado();
-      allow write: if false;
+    // ===== VERSIONADO GENÉRICO =====
+    // versionados/{tipo}                → puntero a la versión vigente
+    // versionados/{tipo}/versiones/v{n} → versiones inmutables
+    // Lo escribe solo el servidor (callables publicarVersion / reactivarVersion).
+    // Lectura: los consentimientos son públicos (se leen antes de registrarse);
+    // el resto de tipos (p. ej. politica_comercial) requiere sesión.
+    // Debe coincidir con `lectura` en functions/src/compartido/versionables.ts.
+    function lectura_versionado(tipo) {
+      return tipo.matches('consentimiento_.*') || autenticado();
     }
-    match /configuracion/{docId} {
-      allow read: if autenticado();
+
+    match /versionados/{tipo} {
+      allow read: if lectura_versionado(tipo);
       allow write: if false;
+
+      match /versiones/{version} {
+        allow read: if lectura_versionado(tipo);
+        allow write: if false;
+      }
+    }
+
+    // ===== CONFIGURACIÓN OPERATIVA =====
+    // configuracion/{area}: valores actuales (catálogo en
+    // functions/src/compartido/configuracion.ts). La app lee solo las áreas
+    // `lectura: 'publica'` del catálogo; el resto solo el servidor y el admin.
+    // Se escribe con el callable actualizarConfiguracion (deja historial).
+    match /configuracion/{area} {
+      allow read: if es_admin() || (autenticado() &&
+      area in ['paseos', 'auth', 'funcionalidades']);
+      allow write: if false;
+
+      match /historial/{cambio} {
+        allow read: if es_admin();
+        allow write: if false;
+      }
     }
   }
 }

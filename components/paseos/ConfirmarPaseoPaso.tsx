@@ -18,6 +18,7 @@ import { usePedirCelularSiFalta } from '@/hooks/usePedirCelularSiFalta'
 import { useCuidadorPerfilModal } from '@/hooks/useCuidadorPerfilModal'
 import { ModalPerfilCuidador } from '@/components/cuidador/ModalPerfilCuidador'
 import { ModalCompletarCelular } from './ModalCompletarCelular'
+import { useConfiguracion } from '@/hooks/configuracion'
 
 interface Props {
   mascotaIds: string[]
@@ -84,8 +85,8 @@ export const ConfirmarPaseoPaso = ({
     cerrar,
   } = useCuidadorPerfilModal()
 
-  // Feature flag temporal: desactivar funcionalidad de paseo compartido en MVP
-  const PASEO_COMPARTIDO_FEATURE = false
+  // Funcionalidad activable por el admin (configuración `funcionalidades`)
+  const { paseo_compartido } = useConfiguracion('funcionalidades')
   const cop = (v: number) => `$${v.toLocaleString('es-CO')}`
 
   const confirmarReservaInterno = async () => {
@@ -240,9 +241,9 @@ export const ConfirmarPaseoPaso = ({
 
           <View style={styles.divider} />
 
-          {/* Paseo Compartido Compact (temporalmente desactivado en MVP) */}
+          {/* Paseo Compartido Compact (solo si el admin lo activa) */}
           <View style={[styles.section, { marginBottom: 4 }]}>
-            {PASEO_COMPARTIDO_FEATURE && (
+            {paseo_compartido && (
               <>
                 <View style={{ marginTop: 4 }}>
                   <Switch

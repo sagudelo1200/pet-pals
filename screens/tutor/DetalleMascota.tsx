@@ -125,19 +125,15 @@ const DetalleMascota: React.FC = () => {
     cerrar,
   } = useAnimacionModal({
     onClose: () => {
+      // 'Mascotas' es una pestaña de la App del tutor (montada debajo de este
+      // modal); navigate la resuelve sin nombrar la App
       if (cambiosRealizados) {
-        // Navegar explícitamente al Tab de Tutor -> Mascotas
-        void (navigation as any).navigate('TutorApp', {
-          screen: 'Mascotas',
-          params: { refresh: Date.now() },
-        })
+        void (navigation as any).navigate('Mascotas', { refresh: Date.now() })
       } else {
         if (navigation.canGoBack()) {
           navigation.goBack()
         } else {
-          void (navigation as any).navigate('TutorApp', {
-            screen: 'Mascotas',
-          })
+          void (navigation as any).navigate('Mascotas')
         }
       }
     },
@@ -164,7 +160,7 @@ const DetalleMascota: React.FC = () => {
 
   const handleEdit = () => {
     // Navegar a pantalla de edición completa
-    (navigation as any).navigate('EdicionMascota', {
+    ;(navigation as any).navigate('EdicionMascota', {
       mascotaId,
     })
   }

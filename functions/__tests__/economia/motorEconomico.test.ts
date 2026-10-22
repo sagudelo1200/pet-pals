@@ -10,7 +10,9 @@ jest.mock('firebase-admin/firestore', () => ({
 }))
 
 import { calcularPrecioPaseo, desglosarCobro, horaColombia } from '../../src/economia/calculo'
-import { validarPolitica, publicarPolitica } from '../../src/economia/politica'
+import { validarPolitica } from '../../src/compartido/politicaComercial'
+import { publicarVersion } from '../../src/comun/versionado'
+import { sembrarVersion } from '../helpers/versionado'
 import { fijarPoliticaDePaseo, generarCobrosDePaseo } from '../../src/economia/cobroPaseo'
 import { iniciarPagoTutor, confirmarPagoTutor } from '../../src/economia/pagoTutor'
 import { MockAdaptadorPago } from '../../src/economia/pagos'
@@ -57,7 +59,10 @@ const DATOS_POLITICA = {
   },
   contabilidad: { documento_soporte_cuidador: true },
 }
-const POLITICA: PoliticaComercial = { ...DATOS_POLITICA, version: 1, estado: 'ACTIVA' }
+const POLITICA: PoliticaComercial = { ...DATOS_POLITICA, version: 1 }
+const TIPO_POLITICA = 'politica_comercial'
+const publicar = (contenido: unknown, motivo = 'Cambio de tarifas') =>
+  publicarVersion(db, TIPO_POLITICA, contenido, { motivo, autor: 'admin', ahora: AHORA })
 
 const doc = (path: string) => db.__docs.get(path)
 const docsDe = (coleccion: string) =>
@@ -66,8 +71,7 @@ const docsDe = (coleccion: string) =>
     .map(([, d]: [string, any]) => d)
 
 function sembrarPolitica(): void {
-  db.__seed('configuracion/comercial', { version_vigente: 1 })
-  db.__seed('politicas_comerciales/v1', POLITICA as any)
+  sembrarVersion(db, TIPO_POLITICA, 1, DATOS_POLITICA)
 }
 
 // Paseo compartido: t1 con 2 mascotas, t2 con 1; 90 minutos
@@ -147,8 +151,8 @@ describe('política comercial', () => {
       por_tipo: { paseo: { ...DATOS_POLITICA.por_tipo.paseo, comision: { porcentaje_plataforma: 150 } } },
     }
     const errores = validarPolitica(mala)
-    expect(errores.join(' ')).toMatch(/bloqueo_tras_horas/)
-    expect(errores.join(' ')).toMatch(/porcentaje_plataforma/)
+    expect(errores.join(' ')).toMatch(/Bloqueo/)
+    expect(errores.join(' ')).toMatch(/Comisión/)
     expect(validarPolitica(undefined).length).toBeGreaterThan(5)
   })
 
@@ -157,11 +161,13 @@ describe('política comercial', () => {
       ...DATOS_POLITICA,
       cobro: { ...DATOS_POLITICA.cobro, plazo_pago_horas: 12 },
     }
-    expect(await publicarPolitica(db, DATOS_POLITICA, 'admin', AHORA)).toBe(1)
-    expect(await publicarPolitica(db, cambiada, 'admin', AHORA)).toBe(2)
-    expect(doc('configuracion/comercial').version_vigente).toBe(2)
-    expect(doc('politicas_comerciales/v1').estado).toBe('HISTORICA')
-    expect(doc('politicas_comerciales/v2').estado).toBe('ACTIVA')
+    expect((await publicar(DATOS_POLITICA, 'Versión inicial')).version).toBe(1)
+    expect((await publicar(cambiada)).version).toBe(2)
+    expect(doc(`versionados/${TIPO_POLITICA}`).version_vigente).toBe(2)
+    expect(doc(`versionados/${TIPO_POLITICA}/versiones/v1`).estado).toBe('HISTORICA')
+    expect(doc(`versionados/${TIPO_POLITICA}/versiones/v2`)).toMatchObject({
+      estado: 'ACTIVA', motivo: 'Cambio de tarifas', esquema: 1,
+    })
   })
 
   test('el paseo fija la versión vigente al crearse', async () => {
@@ -174,7 +180,7 @@ describe('política comercial', () => {
 
   test('sin política publicada falla (no hay valores por defecto)', async () => {
     db.__seed('operaciones/p9', { tipo: 'paseo' })
-    await expect(fijarPoliticaDePaseo(db, 'p9', {})).rejects.toThrow(/política comercial vigente/)
+    await expect(fijarPoliticaDePaseo(db, 'p9', {})).rejects.toThrow(/versión vigente de politica_comercial/)
   })
 })
 
@@ -199,11 +205,16 @@ describe('cobro al finalizar el paseo', () => {
     })
     expect(doc('operaciones_economicas/p1_t2').valor_acordado).toBe(27000)
 
+    // Cada obligación lleva los términos de su política (no los vigentes)
     expect(doc('obligaciones/p1_t1_cobro')).toMatchObject({
       tipo: 'COBRO_TUTOR', deudor: 't1', acreedor: 'paw-path', valor: 34500, estado: 'PENDIENTE',
+      politica_version: 1,
     })
+    expect(doc('obligaciones/p1_t1_cobro').bloquear_desde.toMillis())
+      .toBe(AHORA.toMillis() + 72 * HORA)
     expect(doc('obligaciones/p1_t1_cuidador')).toMatchObject({
       tipo: 'PAGO_CUIDADOR', deudor: 'paw-path', acreedor: 'c1', valor: 31050, cobro_recaudado: false,
+      politica_version: 1, requiere_recaudo: true, documento_soporte: true,
     })
     expect(docsDe('obligaciones')).toHaveLength(4)
   })
@@ -218,10 +229,9 @@ describe('cobro al finalizar el paseo', () => {
 
   test('usa la versión fijada aunque haya una más nueva', async () => {
     sembrarPolitica()
-    db.__seed('configuracion/comercial', { version_vigente: 2 })
-    db.__seed('politicas_comerciales/v2', {
-      ...POLITICA, version: 2,
-      por_tipo: { paseo: { ...POLITICA.por_tipo.paseo, precio: { base_por_hora: 99000, mascota_adicional: 0 } } },
+    sembrarVersion(db, TIPO_POLITICA, 2, {
+      ...DATOS_POLITICA,
+      por_tipo: { paseo: { ...DATOS_POLITICA.por_tipo.paseo, precio: { base_por_hora: 99000, mascota_adicional: 0 } } },
     })
     const paseo = sembrarPaseoFinalizado()
     await generarCobrosDePaseo(db, 'p1', paseo, AHORA)
@@ -238,7 +248,6 @@ describe('pago del tutor', () => {
   const deps = () => ({
     pasarela: new MockAdaptadorPago(),
     contabilidad: new MockAdaptadorContable(),
-    cobro: POLITICA.cobro,
   })
 
   async function prepararOperacion(): Promise<void> {
@@ -329,7 +338,8 @@ describe('cobranza y bloqueo', () => {
   const cobro = POLITICA.cobro
   const cobroCreadoHace = (horas: number, extra: Record<string, unknown> = {}) => ({
     id: 'o1', deudor: 't1', valor: 18000, operacion_id: 'p1_t1',
-    creado_en: ts(LUNES_10AM - horas * HORA), ...extra,
+    creado_en: ts(LUNES_10AM - horas * HORA),
+    bloquear_desde: ts(LUNES_10AM - horas * HORA + 72 * HORA), ...extra,
   })
 
   test('recordatorio: después del plazo, con intervalo y en horario', () => {
@@ -386,6 +396,13 @@ describe('cobranza y bloqueo', () => {
     expect(siguiente).toBe(LUNES_10AM + 24 * HORA)
   })
 
+  test('el bloqueo usa el plazo fijado en el cobro, no el de la política', async () => {
+    // Nació con 72 h; aunque la política diga otra cosa, a las 30 h no bloquea
+    sembrarCobro('o4', 't4', 30)
+    await revisarCobro(db, 'o4', { ...cobro, bloqueo_tras_horas: 24 }, AHORA)
+    expect(doc('usuarios/t4').bloqueo_financiero).toBeUndefined()
+  })
+
   test('pagado: no hace nada y termina la cadena', async () => {
     sembrarCobro('o3', 't3', 80, 'CUMPLIDA')
     expect(await revisarCobro(db, 'o3', cobro, AHORA)).toBeNull()
@@ -400,7 +417,8 @@ describe('liquidación a cuidadores', () => {
     db.__seed(`obligaciones/${id}`, {
       id, tipo: 'PAGO_CUIDADOR', estado: 'PENDIENTE', deudor: 'paw-path',
       acreedor: 'c1', valor, operacion_id: `op-${id}`,
-      creado_en: ts(LUNES_10AM - 48 * HORA), cobro_recaudado: true, ...extra,
+      creado_en: ts(LUNES_10AM - 48 * HORA), cobro_recaudado: true,
+      requiere_recaudo: true, ...extra,
     })
   }
 
@@ -417,6 +435,13 @@ describe('liquidación a cuidadores', () => {
     expect(doc('obligaciones/c').liquidacion_id).toBeUndefined()
 
     expect(await generarLiquidaciones(db, liq, LUNES_10AM, AHORA)).toEqual({ creadas: [], aplazadas: 0 })
+  })
+
+  test('si su política no exigía recaudo se liquida aunque el tutor no haya pagado', async () => {
+    sembrarPagoCuidador('a', 16200, { cobro_recaudado: false, requiere_recaudo: false })
+    sembrarPagoCuidador('b', 16200, { cobro_recaudado: false })
+    const { creadas } = await generarLiquidaciones(db, { ...liq, monto_minimo: 0 }, LUNES_10AM, AHORA)
+    expect(doc(`liquidaciones/${creadas[0]}`).obligacion_ids).toEqual(['a'])
   })
 
   test('por debajo del monto mínimo se aplaza al siguiente corte', async () => {
@@ -462,7 +487,6 @@ describe('idempotencia: repetir una acción nunca duplica nada', () => {
   const deps = () => ({
     pasarela: new MockAdaptadorPago(),
     contabilidad: new MockAdaptadorContable(),
-    cobro: POLITICA.cobro,
   })
 
   async function prepararOperacion(): Promise<void> {
@@ -534,6 +558,7 @@ describe('idempotencia: repetir una acción nunca duplica nada', () => {
     db.__seed('obligaciones/o1', {
       id: 'o1', tipo: 'COBRO_TUTOR', estado: 'PENDIENTE', deudor: 't1', acreedor: 'paw-path',
       valor: 18000, operacion_id: 'p1_t1', creado_en: ts(LUNES_10AM - 30 * HORA),
+      bloquear_desde: ts(LUNES_10AM + 42 * HORA),
     })
 
     await Promise.all([
@@ -547,11 +572,11 @@ describe('idempotencia: repetir una acción nunca duplica nada', () => {
   })
 
   test('publicar la misma política dos veces no crea otra versión', async () => {
-    expect(await publicarPolitica(db, DATOS_POLITICA, 'admin', AHORA)).toBe(1)
-    expect(await publicarPolitica(db, DATOS_POLITICA, 'admin', AHORA)).toBe(1)
-    expect(doc('politicas_comerciales/v2')).toBeUndefined()
+    expect(await publicar(DATOS_POLITICA)).toMatchObject({ version: 1, nueva: true })
+    expect(await publicar(DATOS_POLITICA, 'Doble toque')).toMatchObject({ version: 1, nueva: false })
+    expect(doc(`versionados/${TIPO_POLITICA}/versiones/v2`)).toBeUndefined()
     // Los campos desconocidos no se guardan
-    await publicarPolitica(db, { ...DATOS_POLITICA, extra: 'x', cobro: { ...DATOS_POLITICA.cobro, plazo_pago_horas: 12 } } as any, 'admin', AHORA)
-    expect(doc('politicas_comerciales/v2')).not.toHaveProperty('extra')
+    await publicar({ ...DATOS_POLITICA, extra: 'x', cobro: { ...DATOS_POLITICA.cobro, plazo_pago_horas: 12 } })
+    expect(doc(`versionados/${TIPO_POLITICA}/versiones/v2`).contenido).not.toHaveProperty('extra')
   })
 })

@@ -11,6 +11,8 @@ import { COLOR } from '@/constants'
 import { useTranslation } from 'react-i18next'
 import { LinearGradient } from 'expo-linear-gradient'
 import { PanelPrivacidadConsentimientos } from '@/components/consentimientos/PanelPrivacidadConsentimientos'
+import { ICONO_POR_ROL } from '@/navigation/roles'
+import type { RolUsuario } from '@/models/Usuario'
 
 const MiCuenta = () => {
   const navigation = useNavigation<any>()
@@ -22,6 +24,7 @@ const MiCuenta = () => {
     profile,
     rolActivo,
     cambiarRolActivo,
+    activandoRol,
     tieneMultiplesRoles,
     rolesDisponibles,
   } = useAuth()
@@ -31,21 +34,28 @@ const MiCuenta = () => {
   const nombre = user?.displayName ?? (profile as any)?.nombre ?? '—'
   const foto = user?.photoURL ?? (profile as any)?.foto
 
+  // Al cerrar sesión el RootNavigator vuelve solo al flujo de Auth
   const handleLogout = useCallback(async () => {
     const result = await cerrarSesion()
-    if (result.success) {
-      navigation.reset({ index: 0, routes: [{ name: 'Auth' }] })
-    } else {
+    if (!result.success) {
       Alert.alert(
         t('perfil:error_cerrar_sesion_titulo'),
         tErrorMaybe(result.error, t('comun:intenta_nuevamente'))
       )
     }
-  }, [cerrarSesion, navigation, t])
+  }, [cerrarSesion, t])
 
-  const handleActivarRol = async (
-    rol: 'tutor' | 'cuidador' | 'explorador' | 'admin'
-  ) => {
+  // Único punto de cambio de App: cambiarRolActivo. Si se confirma, el
+  // RootNavigator reemplaza la App visible (esta pantalla se desmonta).
+  const handleCambiarRolActivo = async (rol: RolUsuario) => {
+    if (activandoRol || rol === rolActivo) return
+    const confirmado = await cambiarRolActivo(rol)
+    if (!confirmado) {
+      Alert.alert(t('perfil:error'), t('perfil:error_cambiar_rol'))
+    }
+  }
+
+  const handleActivarRol = async (rol: RolUsuario) => {
     const resultado = await cambiarRol(rol)
 
     if (resultado.success) {
@@ -58,31 +68,7 @@ const MiCuenta = () => {
         [
           {
             text: 'OK',
-            onPress: () => {
-              // Cambiar al nuevo rol activo
-              void cambiarRolActivo(rol)
-              // Navegar manteniendo la vista en MiCuenta
-              const targetApp =
-                rol === 'tutor'
-                  ? 'TutorApp'
-                  : rol === 'cuidador'
-                    ? 'CuidadorApp'
-                    : rol === 'explorador'
-                      ? 'ExplorerApp'
-                      : rol === 'admin'
-                        ? 'AdminApp'
-                        : 'TutorApp'
-              navigation.navigate(targetApp as any, {
-                screen: 'MiCuenta',
-              })
-
-              // Si es cuidador nuevo, sugerir editar perfil
-              if (rol === 'cuidador') {
-                setTimeout(() => {
-                  navigation.navigate('PerfilCuidador')
-                }, 500)
-              }
-            },
+            onPress: () => void handleCambiarRolActivo(rol),
           },
         ]
       )
@@ -92,26 +78,6 @@ const MiCuenta = () => {
         resultado.error || t('perfil:error_cambiar_rol')
       )
     }
-  }
-
-  const handleCambiarRolActivo = async (
-    rol: 'tutor' | 'cuidador' | 'explorador' | 'admin'
-  ) => {
-    await cambiarRolActivo(rol)
-    // Navegar manteniendo la vista en MiCuenta
-    const targetApp: keyof any =
-      rol === 'tutor'
-        ? 'TutorApp'
-        : rol === 'cuidador'
-          ? 'CuidadorApp'
-          : rol === 'explorador'
-            ? 'ExplorerApp'
-            : rol === 'admin'
-              ? 'AdminApp'
-              : 'TutorApp'
-    navigation.navigate(targetApp, {
-      screen: 'MiCuenta',
-    })
   }
 
   return (
@@ -141,15 +107,7 @@ const MiCuenta = () => {
           <Text style={styles.emailText}>{correo}</Text>
           <View style={styles.roleBadge}>
             <Icon
-              name={
-                rolActivo === 'cuidador'
-                  ? 'walking'
-                  : rolActivo === 'explorador'
-                    ? 'map-marked-alt'
-                    : rolActivo === 'admin'
-                      ? 'shield-alt'
-                      : 'paw'
-              }
+              name={ICONO_POR_ROL[rolActivo ?? 'tutor']}
               size={14}
               color="#FFF"
               containerStyle={{ marginRight: 6 }}
@@ -161,7 +119,9 @@ const MiCuenta = () => {
                   ? 'Explorador'
                   : rolActivo === 'admin'
                     ? 'Admin'
-                    : t('perfil:tutor')}
+                    : rolActivo === 'contador'
+                      ? t('comun:rol_contador_titulo')
+                      : t('perfil:tutor')}
             </Text>
           </View>
         </View>
@@ -194,21 +154,11 @@ const MiCuenta = () => {
                     styles.roleCard,
                     rolActivo === rol && styles.activeRoleCard,
                   ]}
-                  onPress={() =>
-                    rol !== rolActivo && handleCambiarRolActivo(rol as any)
-                  }
+                  onPress={() => void handleCambiarRolActivo(rol)}
                 >
                   <View style={styles.roleCardContent}>
                     <Icon
-                      name={
-                        rol === 'cuidador'
-                          ? 'walking'
-                          : rol === 'explorador'
-                            ? 'map-marked-alt'
-                            : rol === 'admin'
-                              ? 'shield-alt'
-                              : 'paw'
-                      }
+                      name={ICONO_POR_ROL[rol]}
                       size={20}
                       color={
                         rolActivo === rol ? COLOR.PRIMARIO : COLOR.SUBTEXTO
@@ -226,7 +176,9 @@ const MiCuenta = () => {
                           ? t('perfil:modo_explorador')
                           : rol === 'admin'
                             ? 'Modo Admin'
-                            : t('perfil:modo_tutor')}
+                            : rol === 'contador'
+                              ? t('comun:rol_contador_titulo')
+                              : t('perfil:modo_tutor')}
                     </Text>
                     {rolActivo === rol && (
                       <View style={styles.activeIndicator}>

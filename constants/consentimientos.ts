@@ -1,7 +1,7 @@
 /* eslint-disable no-unused-vars */
 /**
  * Tipos de consentimiento soportados en Paw-Path
- * Usados en documentos_consentimientos/ y validación
+ * Usados en las series versionadas consentimiento_{TIPO} y validación
  */
 
 export enum TipoConsentimiento {

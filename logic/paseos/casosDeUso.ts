@@ -12,7 +12,8 @@ import {
 import { ESTADOS_PASEO, type Paseo } from '@/models/Paseo'
 import type { Mascota } from '@/models/Mascota'
 import type { Ubicacion } from '@/models/Ubicacion'
-import { MAX_MASCOTAS_POR_PASEO, ERR } from '@/constants'
+import { ERR } from '@/constants'
+import { leerConfiguracion } from '@/services/firebase/configuracion'
 import { crearMaquinaPaseo } from './maquinaEstados'
 import { generarCodigosRecogidaPorTutor } from './generador'
 import { paseoActivo } from './gestor'
@@ -224,11 +225,12 @@ export async function crearConMascotas(
   if (!uid) return { success: false, error: ERR.COMUN.NO_AUTENTICADO }
 
   const unique = Array.from(new Set((mascotaIds || []).filter(Boolean)))
+  const { max_mascotas } = await leerConfiguracion('paseos')
   const maxPaseo =
     typeof (data as any).cupo_maximo_mascotas === 'number'
       ? (data as any).cupo_maximo_mascotas
-      : MAX_MASCOTAS_POR_PASEO
-  const max = Math.min(MAX_MASCOTAS_POR_PASEO, maxPaseo)
+      : max_mascotas
+  const max = Math.min(max_mascotas, maxPaseo)
   if (unique.length > max)
     return { success: false, error: ERR.PASEOS.LIMITE_DE_MASCOTAS_SUPERADO }
 
@@ -704,7 +706,7 @@ export async function agregarMascota(paseoId: string, mascotaId: string) {
       error: ERR.PASEOS.ESTADO_DEL_PASEO_NO_ACEPTA_MASCOTAS,
     }
 
-  const maxGlobal = MAX_MASCOTAS_POR_PASEO
+  const maxGlobal = (await leerConfiguracion('paseos')).max_mascotas
   const maxPaseo =
     typeof paseo.cupo_maximo_mascotas === 'number'
       ? paseo.cupo_maximo_mascotas

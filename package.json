@@ -18,8 +18,7 @@
     "check:i18n": "node ./scripts/check-i18n-keys.js",
     "check:todomain": "node ./scripts/check-toDomain.js",
     "firebase:cleanup": "node ./scripts/firebase-cleanup.js",
-    "seed:consentimientos": "node ./scripts/seed-consentimientos.js",
-    "seed:politica-comercial": "node ./scripts/seed-politica-comercial.js",
+    "seed:base": "npm --prefix functions run build && node ./scripts/seed-base.js",
     "cleanup:functions": "node ./scripts/cleanup-cloud-functions.js"
   },
   "repository": {

@@ -95,6 +95,7 @@
       "fecha_hora_requerida": "Fecha y hora requeridas",
       "ubicacion_requerida": "Ubicación de inicio requerida",
       "bloqueo_financiero": "Tienes un pago pendiente vencido. Págalo para solicitar nuevos paseos.",
+      "politica_actualizada": "Los precios se acaban de actualizar. Revisa el nuevo valor y confirma de nuevo.",
       "sin_politica_comercial": "Los precios no están disponibles en este momento. Intenta más tarde."
     }
   },

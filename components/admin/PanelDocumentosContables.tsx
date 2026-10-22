@@ -2,10 +2,12 @@
  * PanelDocumentosContables
  * Documentos de Paw-Path que no se pudieron reflejar en el sistema contable
  * (Siigo). El documento ya existe en Paw-Path; aquí solo se reintenta el envío.
+ * Con `soloLectura` (contador) muestra los documentos más recientes y su
+ * estado de envío, sin acciones.
  */
 import React, { useMemo, useState } from 'react'
 import { View, Text, StyleSheet, Alert } from 'react-native'
-import { collection, query, where } from 'firebase/firestore'
+import { collection, limit, orderBy, query, where } from 'firebase/firestore'
 import { db } from '@/firebase.config'
 import { COLOR } from '@/constants'
 import { Button, Card } from '@/components/ui'
@@ -19,6 +21,7 @@ import type {
   DocumentoContable,
   TipoDocumentoContable,
 } from '@/models/operacionesEconomicas'
+import { NombreUsuario } from './NombreUsuario'
 
 const NOMBRE: Record<TipoDocumentoContable, string> = {
   FACTURA_VENTA: 'Factura de venta',
@@ -29,17 +32,27 @@ const NOMBRE: Record<TipoDocumentoContable, string> = {
   COMPROBANTE: 'Comprobante contable',
 }
 
-export const PanelDocumentosContables: React.FC = () => {
+const RECIENTES = 20
+
+export const PanelDocumentosContables: React.FC<{ soloLectura?: boolean }> = ({
+  soloLectura = false,
+}) => {
   const [reenviando, setReenviando] = useState<string | null>(null)
-  const fallidos = useMemo(
+  const consulta = useMemo(
     () =>
-      query(
-        collection(db, 'documentos_contables'),
-        where('envio.estado', '==', 'ERROR')
-      ),
-    []
+      soloLectura
+        ? query(
+            collection(db, 'documentos_contables'),
+            orderBy('fecha', 'desc'),
+            limit(RECIENTES)
+          )
+        : query(
+            collection(db, 'documentos_contables'),
+            where('envio.estado', '==', 'ERROR')
+          ),
+    [soloLectura]
   )
-  const { data } = useCollection<any>(fallidos, { listen: true })
+  const { data } = useCollection<any>(consulta, { listen: true })
   const documentos = data as unknown as DocumentoContable[]
 
   const reenviar = async (id: string) => {
@@ -61,7 +74,9 @@ export const PanelDocumentosContables: React.FC = () => {
   if (documentos.length === 0) {
     return (
       <Text style={styles.vacio}>
-        Todos los documentos están reflejados en el sistema contable
+        {soloLectura
+          ? 'Aún no hay documentos contables'
+          : 'Todos los documentos están reflejados en el sistema contable'}
       </Text>
     )
   }
@@ -74,15 +89,25 @@ export const PanelDocumentosContables: React.FC = () => {
             {NOMBRE[d.tipo]} · {formatearCOP(d.total)}
           </Text>
           <Text style={styles.detalle}>
-            {`${d.id} · ${d.envio.intentos} intento(s)`}
+            {soloLectura ? (
+              <>
+                {`${d.id} · `}
+                <NombreUsuario uid={d.tercero.uid} style={styles.detalle} />
+                {` · envío ${d.envio.estado}`}
+              </>
+            ) : (
+              `${d.id} · ${d.envio.intentos} intento(s)`
+            )}
           </Text>
           {d.envio.error && <Text style={styles.error}>{d.envio.error}</Text>}
-          <Button
-            title={reenviando === d.id ? 'Reintentando…' : 'Reintentar envío'}
-            onPress={() => reenviar(d.id)}
-            variant="contorno"
-            disabled={reenviando === d.id}
-          />
+          {!soloLectura && (
+            <Button
+              title={reenviando === d.id ? 'Reintentando…' : 'Reintentar envío'}
+              onPress={() => reenviar(d.id)}
+              variant="contorno"
+              disabled={reenviando === d.id}
+            />
+          )}
         </Card>
       ))}
     </View>

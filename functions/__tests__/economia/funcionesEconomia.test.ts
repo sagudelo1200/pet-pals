@@ -38,6 +38,7 @@ jest.mock('firebase-functions/v2/https', () => {
 
 import * as fn from '../../src/economia/funciones'
 import { programarTarea } from '../../src/economia/tareas'
+import { sembrarVersion } from '../helpers/versionado'
 
 const call = (f: unknown) => f as (req: any) => Promise<any>
 const trigger = fn.alValidarEntregaEconomia as unknown as (e: any) => Promise<void>
@@ -72,8 +73,7 @@ function evento(antes: Record<string, unknown>, despues: Record<string, unknown>
 beforeEach(() => {
   jest.clearAllMocks()
   mockDb.__reset()
-  mockDb.__seed('configuracion/comercial', { version_vigente: 1 })
-  mockDb.__seed('politicas_comerciales/v1', POLITICA)
+  sembrarVersion(mockDb, 'politica_comercial', 1, POLITICA)
   mockDb.__seed('operaciones/p1/mascotas/m1', { id_usuario: 't1' })
 })
 
@@ -114,6 +114,18 @@ describe('alValidarEntregaEconomia', () => {
       expect.stringMatching(/^cobro-p1_t1_cobro-\d+$/))
   })
 
+  test('la operación se completa con la política del paseo aunque haya otra vigente', async () => {
+    sembrarVersion(mockDb, 'politica_comercial', 2, {
+      ...POLITICA, cobro: { ...POLITICA.cobro, plazo_pago_horas: 1, bloqueo_tras_horas: 2 },
+    })
+    await trigger(evento(validado({ t1: false }), validado({ t1: true })))
+    const cobro = mockDb.__docs.get('obligaciones/p1_t1_cobro')
+    expect(cobro.politica_version).toBe(1)
+    expect(cobro.bloquear_desde.toMillis() - cobro.creado_en.toMillis()).toBe(72 * 3600000)
+    const factura = mockDb.__docs.get('documentos_contables/FV-p1_t1')
+    expect(factura.datos.vence_en.toMillis() - cobro.creado_en.toMillis()).toBe(24 * 3600000)
+  })
+
   test('paseo compartido: solo cobra al tutor que acaba de validar', async () => {
     mockDb.__seed('operaciones/p1/mascotas/m2', { id_usuario: 't2' })
     await trigger(evento(validado({ t1: false, t2: false }), validado({ t1: false, t2: true })))
@@ -146,7 +158,7 @@ describe('tareas de un solo uso', () => {
   })
 
   test('el corte con un cuidador bajo el mínimo agenda el siguiente corte', async () => {
-    mockDb.__seed('politicas_comerciales/v1', {
+    sembrarVersion(mockDb, 'politica_comercial', 1, {
       ...POLITICA, liquidacion: { ...POLITICA.liquidacion, monto_minimo: 999999 },
     })
     mockDb.__seed('obligaciones/x', {
@@ -184,19 +196,8 @@ describe('callables', () => {
   test('acciones de admin rechazan a otros usuarios', async () => {
     mockDb.__seed('usuarios/t1', { roles: ['tutor'] })
     const req = { auth: { uid: 't1', token: {} }, data: {} }
-    await expect(call(fn.publicarPoliticaComercial)(req)).rejects.toMatchObject({ code: 'permission-denied' })
     await expect(call(fn.generarLiquidacionesAhora)(req)).rejects.toMatchObject({ code: 'permission-denied' })
     await expect(call(fn.pagarLiquidacion)(req)).rejects.toMatchObject({ code: 'permission-denied' })
   })
 
-  test('admin publica política válida y rechaza inválida', async () => {
-    mockDb.__seed('usuarios/a1', { roles: ['admin'] })
-    const { version: _v, estado: _e, ...datos } = POLITICA
-    const cambiada = { ...datos, cobro: { ...datos.cobro, plazo_pago_horas: 12 } }
-    const res = await call(fn.publicarPoliticaComercial)({ auth: { uid: 'a1' }, data: cambiada })
-    expect(res).toEqual({ version: 2 })
-
-    await expect(call(fn.publicarPoliticaComercial)({ auth: { uid: 'a1' }, data: { ...datos, cobro: {} } }))
-      .rejects.toMatchObject({ code: 'invalid-argument' })
-  })
 })
