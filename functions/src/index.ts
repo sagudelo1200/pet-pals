@@ -21,6 +21,18 @@ export {
   escalarPaseoIndividual,
 } from './paseos/escalarSolicitudes';
 export {onPaseoConfirmado} from './paseos/chat';
+export {
+  alFinalizarPaseoEntrega,
+  avisarEntregaPendiente,
+  revisarEntregaPendiente,
+  cerrarEntregaAutomatico,
+  resolverEntregaPendiente,
+  abrirReclamoCobro,
+  resolverReclamoCobro,
+} from './paseos/entregaFunciones';
+
+// Notificaciones (bandeja + push)
+export {alCrearNotificacion} from './notificaciones/funciones';
 
 // Evaluaciones
 export {crearEvaluacion} from './evaluaciones/crearEvaluacion';
@@ -51,3 +63,20 @@ export {
   revisarCobroTutor,
   ejecutarCorteLiquidacion,
 } from './economia/funciones';
+
+// Expediente de la mascota (conocimiento acumulado de los paseos)
+export {
+  alRegistrarMomentoExpediente,
+  alCambiarEstadoPaseoExpediente,
+  alActualizarMascotaExpediente,
+  alBorrarMascotaExpediente,
+  registrarLlegada,
+  confirmarAprendizaje,
+} from './expediente/funciones';
+
+// Emparejamiento de mascota y cuidador
+export {
+  buscarCuidadores,
+  aceptarPaseo,
+  alCrearPaseoValidarCuidador,
+} from './emparejamiento/funciones';

@@ -36,6 +36,7 @@ import {idObligacionCobro, idOperacionEconomica} from './motor';
 import {confirmarPagoTutor, iniciarPagoTutor} from './pagoTutor';
 import {obtenerAdaptadorPago} from './pagos';
 import {obtenerPolitica, obtenerPoliticaVigente} from './politica';
+import {marcarCobroCerradoPorEquipo} from './reclamo';
 import {programarTarea} from './tareas';
 import {
   COLECCION,
@@ -176,6 +177,14 @@ export const alValidarEntregaEconomia = onDocumentUpdated(
 
     // La operación se completa con la política acordada al crear el paseo
     const politica = await politicaDePaseo(db, despues);
+    // Cobros nacidos de un cierre del equipo: el tutor puede reclamar en la
+    // ventana de la política del paseo
+    if (despues.cierre_por_equipo) {
+      const reclamoHasta = Timestamp.fromMillis(
+        ahora.toMillis() + politica.entrega.ventana_reclamo_horas * 60 * 60 * 1000);
+      await Promise.all(tutores.map((tutorId) => marcarCobroCerradoPorEquipo(
+        db, idObligacionCobro(idOperacionEconomica(paseoId, tutorId)), reclamoHasta)));
+    }
     // Factura a crédito por tutor: se emite al recibir la mascota
     const contabilidad = obtenerAdaptadorContable();
     for (const tutorId of tutores) {

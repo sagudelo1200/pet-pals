@@ -3,6 +3,7 @@
  * Se importa como módulo TypeScript, no desde archivo en tiempo de ejecución
  */
 import territorioHTML from './templates/territorio-vivo'
+import { inyectarCarto } from '@/services/maps/carto'
 
 /**
  * Inyecta datos dinámicos en la plantilla de territorio vivo
@@ -27,7 +28,7 @@ export function injectTerritorioData(
     '{{COLORES_JSON}}': coloresJson,
   }
 
-  let html = territorioHTML
+  let html = inyectarCarto(territorioHTML)
 
   // Reemplazar cada placeholder de forma segura
   for (const [placeholder, value] of Object.entries(replacements)) {

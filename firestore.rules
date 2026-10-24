@@ -179,6 +179,19 @@ service cloud.firestore {
       return p != null && p.data.tipo == 'paseo' && p.data.modalidad == 'compartido' && estado_permite_unirse(p.data.estado);
     }
 
+    // Mascota creada en el mismo batch que su paseo: el paseo nace ahora, lo
+    // crea el propio tutor y la mascota está en su lista y es suya
+    function mascota_de_paseo_nuevo(operacionId, mascotaId) {
+      let paseoRuta = /databases/$(database)/documents/operaciones/$(operacionId);
+      return !exists(paseoRuta) && existsAfter(paseoRuta) &&
+      getAfter(paseoRuta).data.tipo == 'paseo' &&
+      getAfter(paseoRuta).data.creado_por == request.auth.uid &&
+      request.resource.data.id_usuario == request.auth.uid &&
+      request.resource.data.id_mascota == mascotaId &&
+      mascotaId in getAfter(paseoRuta).data.get('mascota_ids', []) &&
+      get(/databases/$(database)/documents/mascotas/$(mascotaId)).data.creado_por == request.auth.uid;
+    }
+
     // Helper para obtener documento de operación (reutilizable en subcolecciones)
     function get_operacion_doc(operacionId) {
       return get(/databases/$(database)/documents/operaciones/$(operacionId));
@@ -224,6 +237,13 @@ service cloud.firestore {
       return get(/databases/$(database)/documents/versionados/$(tipo)).data.version_vigente;
     }
 
+    // Campos del cierre de la entrega que solo escribe el servidor (Cloud
+    // Functions con Admin SDK): ni el tutor ni el cuidador pueden fijarlos
+    function campos_entrega_del_servidor() {
+      return ['requiere_revision', 'requiere_revision_desde', 'motivo_revision',
+        'cierre_por_equipo', 'en_disputa'];
+    }
+
     // Un paseo nunca supera el máximo de mascotas configurado
     function mascotas_dentro_del_limite(datos) {
       let max = config('paseos', 'max_mascotas', 4);
@@ -247,6 +267,33 @@ service cloud.firestore {
       (es_mismo_uid(uid) && roles_agregados_permitidos() && no_cambia(['bloqueo_financiero']))
       );
       allow delete: if es_admin();
+
+      // Bandeja de notificaciones: la crea solo el servidor (notificar());
+      // el dueño las lee y solo puede marcarlas como leídas.
+      match /notificaciones/{id} {
+        allow read: if es_mismo_uid(uid);
+        allow update: if es_mismo_uid(uid)
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['leido', 'leido_en']);
+        allow create, delete: if false;
+      }
+
+      // Preferencias de notificación: el dueño elige push/email (booleanos).
+      match /preferencias/{doc} {
+        allow read: if es_mismo_uid(uid);
+        allow create, update: if es_mismo_uid(uid)
+          && request.resource.data.keys().hasOnly(['push', 'email'])
+          && request.resource.data.get('push', true) is bool
+          && request.resource.data.get('email', true) is bool;
+      }
+
+      // Dispositivos con push: cada uno registra y desactiva su propio token;
+      // el servidor los lee (Admin SDK) para enviar los avisos.
+      match /dispositivos/{id} {
+        allow read: if es_mismo_uid(uid);
+        allow create, update: if es_mismo_uid(uid)
+          && request.resource.data.keys().hasOnly(['token', 'plataforma', 'activo', 'actualizado_en']);
+        allow delete: if es_mismo_uid(uid);
+      }
     }
 
     // PERFIL PUBLICO
@@ -261,9 +308,12 @@ service cloud.firestore {
         && (
       // Admin: acceso total
       es_admin() ||
-      // Usuario propietario: puede actualizar PERO insignias_verificacion debe quedar igual
+      // Usuario propietario: puede actualizar PERO lo que dice su reputación
+      // (insignias, calificación, paseos) lo escribe solo el servidor
       (resource.data.creado_por == request.auth.uid && 
-      request.resource.data.insignias_verificacion == resource.data.insignias_verificacion)
+      request.resource.data.insignias_verificacion == resource.data.insignias_verificacion &&
+      request.resource.data.get('rating_promedio', null) == resource.data.get('rating_promedio', null) &&
+      request.resource.data.get('cantidad_paseos_realizados', null) == resource.data.get('cantidad_paseos_realizados', null))
       );
 
       allow delete: if es_admin();
@@ -306,6 +356,27 @@ service cloud.firestore {
 
       // Eliminar: Solo el tutor principal (creador) puede eliminar
       allow delete: if autenticado() && (resource.data.creado_por == request.auth.uid || es_admin());
+    }
+
+    // EXPEDIENTE DE LA MASCOTA (conocimiento acumulado de los paseos)
+    // /expedientes/{mascotaId}
+    // Lo escribe SOLO el servidor (Cloud Functions). Lo leen los tutores de la
+    // mascota, los cuidadores autorizados (el servidor los agrega al
+    // confirmarse un paseo con ella) y el admin.
+    match /expedientes/{mascotaId} {
+      allow read: if autenticado() && (
+        request.auth.uid in resource.data.tutores ||
+        request.auth.uid in resource.data.cuidadores_autorizados ||
+        es_admin()
+      );
+      allow write: if false;
+
+      // Estado interno (aprendizajes acumulados y confirmaciones): solo el
+      // servidor lo usa; un cuidador no debe ver lo que el tutor rechazó
+      match /interno/{documento} {
+        allow read: if es_admin();
+        allow write: if false;
+      }
     }
 
     // UBICACIONES (direcciones geocodificadas)
@@ -365,26 +436,22 @@ service cloud.firestore {
           request.resource.data.get('politica_version', null) ==
             version_vigente('politica_comercial') &&
           mascotas_dentro_del_limite(request.resource.data)))
+        && !request.resource.data.keys().hasAny(campos_entrega_del_servidor())
         && sin_bloqueo_financiero();
 
       // OPTIMIZADO: Validaciones en orden de costo (baratas primero)
       // politica_version es la acordada al crear: define con qué tarifas se cobra
+      // Confirmar un paseo (PENDIENTE -> CONFIRMADO) solo lo hace el servidor
+      // (callable aceptarPaseo): vuelve a comprobar que el cuidador puede tomarlo
       allow update: if puede_actualizar_valido() && (no_cambia(['politica_version']) || es_admin()) &&
+      (!(resource.data.estado == 'PENDIENTE' && request.resource.data.estado == 'CONFIRMADO') || es_admin()) &&
+      (no_cambia(campos_entrega_del_servidor()) || es_admin()) &&
       (no_cambia(['mascota_ids', 'mascotas_count']) ||
         mascotas_dentro_del_limite(request.resource.data)) && (
       // Caso 1: El Creador actualiza (validación más barata - solo request.auth.uid)
       resource.data.creado_por == request.auth.uid ||
 
-      // Caso 2: Aceptar solicitud (PENDIENTE -> CONFIRMADO) - solo para tipo='paseo'
-      (
-      resource.data.tipo == 'paseo' &&
-      resource.data.estado == 'PENDIENTE' &&
-      request.resource.data.estado == 'CONFIRMADO' &&
-      request.resource.data.id_cuidador == request.auth.uid &&
-      (!('id_cuidador' in resource.data) || resource.data.id_cuidador == null || resource.data.id_cuidador == '' || resource.data.id_cuidador == request.auth.uid)
-      ) ||
-
-      // Caso 3: El Cuidador asignado actualiza estado (con validación de transición) - solo para tipo='paseo'
+      // Caso 2: El Cuidador asignado actualiza estado (con validación de transición) - solo para tipo='paseo'
       (
       resource.data.tipo == 'paseo' &&
       resource.data.id_cuidador == request.auth.uid &&
@@ -398,7 +465,7 @@ service cloud.firestore {
       )
       ) ||
 
-      // Caso 4: Admin (más costoso - requiere verificar claims/doc)
+      // Caso 3: Admin (más costoso - requiere verificar claims/doc)
       es_admin()
       );
 
@@ -430,7 +497,10 @@ service cloud.firestore {
       sin_bloqueo_financiero() &&
       puede_unirse_a_paseo_doc(get_operacion_doc(operacionId))) ||
       // Luego verificar si es actor (requiere get)
-      es_actor_paseo_doc(get_operacion_doc(operacionId))
+      es_actor_paseo_doc(get_operacion_doc(operacionId)) ||
+      // Paseo y mascotas creados en el mismo batch: el paseo aún no existe
+      // (get() no lo ve), así que se valida con su estado posterior
+      mascota_de_paseo_nuevo(operacionId, mascotaId)
       );
 
       // Actor o tutor puede actualizar observaciones
@@ -856,7 +926,7 @@ service cloud.firestore {
     // Se escribe con el callable actualizarConfiguracion (deja historial).
     match /configuracion/{area} {
       allow read: if es_admin() || (autenticado() &&
-      area in ['paseos', 'auth', 'funcionalidades']);
+      area in ['paseos', 'auth', 'funcionalidades', 'expediente']);
       allow write: if false;
 
       match /historial/{cambio} {

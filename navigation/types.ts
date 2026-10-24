@@ -27,6 +27,8 @@ export type AuthStackParamList = {
   ObservacionMascota: { paseoId: string }
   ControlPaseo: { paseoId: string }
   Chat: { paseoId: string }
+  Notificaciones: undefined
+  PreferenciasNotificaciones: undefined
 }
 
 // Flujo interno de autenticación (pantallas del stack de Auth)

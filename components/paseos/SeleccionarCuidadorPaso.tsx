@@ -23,14 +23,16 @@ import {
   type PropuestaCoordinacion,
 } from '@/hooks/paseos/useSeleccionarCuidador'
 import { useDisponibilidadCercana } from '@/hooks/paseos/useDisponibilidadCercana'
-import { MatchingDebugOverlay } from '@/components/dev/MatchingDebugOverlay'
 import { ModalPerfilCuidador } from '@/components/cuidador'
 import { GestorPerfilPublico } from '@/logic/usuarios/perfilPublico'
+import { textoDeAdvertencias } from '@/logic/paseos/advertencias'
 import type { PerfilPublico } from '@/models/PerfilPublico'
 import PerroTristeSvg from '@/assets/imgs/undraw/perro_triste_come_periodico.svg'
 
 interface Props {
   cuidadorInicialId?: string | null
+  /** Mascotas del pedido: permiten mostrar a qué cuidadores ya conocen. */
+  mascotaIds?: string[]
   horarioInicial?: { hora_inicio: string; hora_fin: string }
   fecha?: Date | null
   hora?: string | null
@@ -52,6 +54,7 @@ interface Props {
 
 export const SeleccionarCuidadorPaso = ({
   cuidadorInicialId,
+  mascotaIds,
   horarioInicial: _horarioInicial,
   fecha,
   hora,
@@ -72,13 +75,16 @@ export const SeleccionarCuidadorPaso = ({
     error,
     cuidadorSeleccionado,
     seleccionarCuidador,
-    debugMatching,
-  } = useSeleccionarCuidador(initialId, fecha, hora, duracion, coordenadas)
+  } = useSeleccionarCuidador(
+    initialId,
+    fecha,
+    hora,
+    duracion,
+    coordenadas,
+    mascotaIds
+  )
 
   const [showDisponibilidad, setShowDisponibilidad] = React.useState(false)
-  const [showDebugMatching, setShowDebugMatching] = useState(
-    process.env.NODE_ENV === 'development' // Auto-show en desarrollo
-  )
   const [mostrarPerfilModal, setMostrarPerfilModal] = useState(false)
   const [perfilSeleccionado, setPerfilSeleccionado] =
     useState<PerfilPublico | null>(null)
@@ -103,7 +109,7 @@ export const SeleccionarCuidadorPaso = ({
     recargar: recargarDisponibilidad,
   } = useDisponibilidadCercana({ resultsCount: 6, maxWindowDays: 30 })
 
-  // Separar cuidadores por estado para renderizar en dos secciones
+  // El servidor ya los ordena por encaje; aquí solo se separan en dos secciones
   const cuidadoresDisponibles = cuidadores.filter(
     c => c.estado === 'disponible'
   )
@@ -119,6 +125,34 @@ export const SeleccionarCuidadorPaso = ({
       const selectedCuidador = cuidadores.find(
         c => c.id === cuidadorSeleccionado
       )
+      if (selectedCuidador && selectedCuidador.advertencias.length > 0) {
+        // No lo oculta ni lo impide: se avisa y el tutor decide
+        Alert.alert(
+          t('paseos:advertencias.tutor.titulo'),
+          t('paseos:advertencias.tutor.mensaje', {
+            cuidador: selectedCuidador.nombre,
+            avisos: textoDeAdvertencias(
+              selectedCuidador.advertencias,
+              t,
+              'tutor'
+            ),
+          }),
+          [
+            { text: t('comun:cancelar'), style: 'cancel' },
+            {
+              text: t('paseos:advertencias.tutor.continuar'),
+              onPress: () => continuarConCuidador(selectedCuidador),
+            },
+          ]
+        )
+        return
+      }
+      continuarConCuidador(selectedCuidador)
+    }
+  }
+
+  const continuarConCuidador = (selectedCuidador?: CuidadorListItem) => {
+    if (cuidadorSeleccionado && cuidadorSeleccionado !== 'SOLICITUD_ABIERTA') {
       if (selectedCuidador?.estado === 'disponible') {
         onNext(cuidadorSeleccionado)
       } else if (selectedCuidador) {
@@ -254,7 +288,10 @@ export const SeleccionarCuidadorPaso = ({
                 setFranjasCuidador([])
               }
             } catch (_err) {
-              console.warn('[SeleccionarCuidadorPaso.cargarPerfilYPropuestas] Error manejado:', _err)
+              console.warn(
+                '[SeleccionarCuidadorPaso.cargarPerfilYPropuestas] Error manejado:',
+                _err
+              )
               setFranjasCuidador([])
             }
           } else {
@@ -311,7 +348,7 @@ export const SeleccionarCuidadorPaso = ({
         activeOpacity={0.8}
       >
         <View style={[styles.avatar, styles.openAvatar]}>
-          <Icon name="bullhorn" size={24} color={COLOR.INFO} />
+          <Icon name="bullhorn" size={20} color={COLOR.INFO} />
         </View>
 
         <View style={styles.info}>
@@ -349,15 +386,32 @@ export const SeleccionarCuidadorPaso = ({
     }
 
     const isAlternativo = item.estado !== 'disponible'
-    const horariosText = (() => {
-      if (isAlternativo && item.motivo) {
-        return item.motivo
-      }
-      const parts = item.horariosEjemplo || []
-      if (parts.length === 0) return ''
-      const shown = parts.slice(0, 2).join(' · ')
-      return parts.length > 2 ? `${shown}…` : shown
-    })()
+    const continuidad = item.continuidad
+    const textoContinuidad = continuidad
+      ? continuidad.paseos === undefined
+        ? t('paseos:continuidad.ya_conoce', { nombres: continuidad.nombres })
+        : continuidad.paseos === 1
+          ? t('paseos:continuidad.ya_conoce_uno', {
+              nombres: continuidad.nombres,
+            })
+          : t('paseos:continuidad.ya_conoce_varios', {
+              nombres: continuidad.nombres,
+              paseos: continuidad.paseos,
+            })
+      : null
+    // Sin continuidad, lo más útil de decir: nuevo o muy bien calificado
+    const textoRazon =
+      !continuidad && item.razones.includes('destacado')
+        ? t('paseos:pasos.seleccionar_cuidador.razones.destacado')
+        : !continuidad && item.razones.includes('nuevo')
+          ? t('paseos:pasos.seleccionar_cuidador.razones.nuevo')
+          : null
+    const horariosText = isAlternativo && item.motivo
+      ? t(`paseos:pasos.seleccionar_cuidador.motivos.${item.motivo}`, {
+          inicio: item.franja?.inicio,
+          fin: item.franja?.fin,
+        })
+      : ''
 
     return (
       <TouchableOpacity
@@ -365,7 +419,7 @@ export const SeleccionarCuidadorPaso = ({
         onPress={() => seleccionarCuidador(item.id)}
         onPressIn={onPressIn}
         onPressOut={onPressOut}
-        style={{ marginBottom: 8 }}
+        style={{ marginBottom: 6 }}
       >
         <Animated.View
           style={[
@@ -383,40 +437,51 @@ export const SeleccionarCuidadorPaso = ({
 
           <View style={styles.info}>
             <View style={styles.header}>
-              <Text style={[styles.name, { fontWeight: 'bold' }]}>
+              <Text style={styles.name} numberOfLines={1}>
                 {item.nombre}
               </Text>
               {item.insignias.includes('verificado') && (
-                <Icon name="check-circle" size={16} color={COLOR.PRIMARIO} />
+                <Icon name="check-circle" size={14} color={COLOR.PRIMARIO} />
               )}
-            </View>
-
-            <View style={styles.ratingRow}>
-              <Icon name="star" size={14} color={COLOR.ENFASIS} />
+              <Icon name="star" size={12} color={COLOR.ENFASIS} />
               <Text style={styles.rating}>
                 {typeof item.calificacion === 'number'
                   ? item.calificacion.toFixed(1)
                   : '—'}
               </Text>
-              <Text style={styles.distance}>• {item.distancia}</Text>
             </View>
 
-            <Text style={styles.price}>{item.tarifa}</Text>
-            {horariosText.length > 0 && (
-              <Text
-                style={[
-                  { marginTop: 6 },
-                  isAlternativo
-                    ? styles.motivoAlternativo
-                    : { color: COLOR.SUBTEXTO },
-                ]}
-              >
-                {horariosText}
+            <Text style={styles.distance} numberOfLines={1}>
+              {item.distancia} · {item.tarifa}
+            </Text>
+
+            {item.advertencias.length > 0 && (
+              <Text style={styles.advertencia} numberOfLines={2}>
+                ⚠️ {textoDeAdvertencias(item.advertencias, t, 'tutor')}
+              </Text>
+            )}
+
+            {(textoContinuidad || textoRazon || horariosText.length > 0) && (
+              <Text style={styles.horarios} numberOfLines={1}>
+                {textoContinuidad && (
+                  <Text style={styles.continuidad}>💛 {textoContinuidad}</Text>
+                )}
+                {textoRazon && (
+                  <Text style={styles.continuidad}>{textoRazon}</Text>
+                )}
+                {(textoContinuidad || textoRazon) &&
+                  horariosText.length > 0 &&
+                  ' · '}
+                {horariosText.length > 0 && (
+                  <Text style={isAlternativo && styles.motivoAlternativo}>
+                    {horariosText}
+                  </Text>
+                )}
               </Text>
             )}
           </View>
 
-          <View style={{ alignItems: 'flex-end', gap: 8 }}>
+          <View style={styles.acciones}>
             <TouchableOpacity
               style={styles.infoButton}
               onPress={e => {
@@ -431,9 +496,9 @@ export const SeleccionarCuidadorPaso = ({
                 'paseos:pasos.seleccionar_cuidador.ver_perfil_hint'
               )}
             >
-              <Icon name="info-circle" size={20} color={COLOR.PRIMARIO} />
+              <Icon name="info-circle" size={18} color={COLOR.PRIMARIO} />
             </TouchableOpacity>
-            <View style={[styles.radio, { marginTop: 4 }]}>
+            <View style={styles.radio}>
               {isSelected && <View style={styles.radioSelected} />}
             </View>
           </View>
@@ -790,14 +855,6 @@ export const SeleccionarCuidadorPaso = ({
           </View>
         </ModalAnimatedView>
       </BottomSheet>
-
-      {/* Debug Overlay - Visible siempre en desarrollo */}
-      <MatchingDebugOverlay
-        isVisible={showDebugMatching}
-        debugMatching={debugMatching}
-        onClose={() => setShowDebugMatching(false)}
-        cargando={cargando}
-      />
 
       {/* Modal de Acuerdo: Versión con confianza y mejor uso de colores */}
       <BottomSheet
@@ -1159,6 +1216,16 @@ export const SeleccionarCuidadorPaso = ({
 }
 
 const styles = StyleSheet.create({
+  continuidad: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: COLOR.PRIMARIO,
+  },
+  advertencia: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: COLOR.ALERTA,
+  },
   container: {
     padding: 16,
     height: 600,
@@ -1198,12 +1265,12 @@ const styles = StyleSheet.create({
   },
   listContent: {
     paddingBottom: 20,
-    gap: 12,
   },
   card: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 12,
+    paddingVertical: 6,
+    paddingHorizontal: 10,
     backgroundColor: COLOR.BLOQUE,
     borderRadius: 12,
     borderWidth: 1,
@@ -1230,10 +1297,10 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   avatar: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    marginRight: 12,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    marginRight: 10,
     backgroundColor: COLOR.BORDE,
   },
   openAvatar: {
@@ -1251,10 +1318,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    marginBottom: 4,
   },
   name: {
-    fontSize: 16,
+    flexShrink: 1,
+    fontSize: 15,
+    fontWeight: '700',
     color: COLOR.TEXTO,
   },
   description: {
@@ -1269,9 +1337,20 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   rating: {
-    fontSize: 14,
+    fontSize: 13,
     color: COLOR.TEXTO,
     fontWeight: 'bold',
+  },
+  horarios: {
+    fontSize: 11,
+    color: COLOR.SUBTEXTO,
+    marginTop: 1,
+  },
+  acciones: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginLeft: 8,
   },
   distance: {
     fontSize: 12,
@@ -1283,14 +1362,13 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   radio: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
+    width: 18,
+    height: 18,
+    borderRadius: 9,
     borderWidth: 2,
     borderColor: COLOR.BORDE,
     alignItems: 'center',
     justifyContent: 'center',
-    marginLeft: 12,
   },
   radioSelected: {
     width: 10,
@@ -1299,9 +1377,9 @@ const styles = StyleSheet.create({
     backgroundColor: COLOR.PRIMARIO,
   },
   infoButton: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
     backgroundColor: COLOR.PRIMARIO + '15',
     justifyContent: 'center',
     alignItems: 'center',
@@ -1447,10 +1525,11 @@ const styles = StyleSheet.create({
     color: COLOR.ALERTA,
     fontSize: 11,
     fontWeight: '500',
+    marginTop: 1,
   },
   sectionHeader: {
-    marginTop: 20,
-    marginBottom: 12,
+    marginTop: 12,
+    marginBottom: 8,
     paddingHorizontal: 0,
   },
   sectionTitulo: {
@@ -1465,8 +1544,8 @@ const styles = StyleSheet.create({
     lineHeight: 16,
   },
   footerAyuda: {
-    marginTop: 20,
-    marginBottom: 12,
+    marginTop: 12,
+    marginBottom: 8,
     paddingHorizontal: 12,
     paddingVertical: 12,
     backgroundColor: `${COLOR.INFO}10`,

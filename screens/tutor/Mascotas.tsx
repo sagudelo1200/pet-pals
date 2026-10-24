@@ -20,6 +20,8 @@ import {
 } from '@/components/ui'
 import { useMascotas } from '@/hooks/useMascotas'
 import { useMascotasRealtime } from '@/hooks/useMascotasRealtime'
+import { useExpedientes } from '@/hooks/mascotas/useExpedientes'
+import { cantidadPorRevisar } from '@/logic/mascotas/aprendizajes'
 import { useAuth } from '@/context/AuthContext'
 import { CrearMascotaFlow } from './CrearMascotaFlow'
 import type { Mascota } from '@/models/Mascota'
@@ -106,12 +108,18 @@ export default function Mascotas({ navigation }: any) {
     })
   }
 
+  // Aprendizajes sensibles que esperan al tutor (marca discreta en cada tarjeta)
+  const { expedientes } = useExpedientes(
+    mascotas.map(m => m.id).filter((id): id is string => !!id)
+  )
+
   const renderPetCard = ({ item, index }: { item: Mascota; index: number }) => {
     return (
       <PetCard
         pet={item}
         onPress={() => handleVerDetalle(item)}
         animationDelay={index * 100}
+        porRevisar={cantidadPorRevisar(expedientes[item.id!])}
       />
     )
   }

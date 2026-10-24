@@ -27,23 +27,60 @@ import { CampoMotivo } from './CampoMotivo'
 import { PanelVersiones } from './PanelVersiones'
 import { estilosAdmin } from './estilosAdmin'
 
-const DIAS = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado']
+const DIAS = [
+  'Domingo',
+  'Lunes',
+  'Martes',
+  'Miércoles',
+  'Jueves',
+  'Viernes',
+  'Sábado',
+]
 
 // Campos numéricos editables: clave → [etiqueta, ayuda]
 const CAMPOS = {
   base_por_hora: ['Precio por hora (COP)', 'Paseo de 1 mascota, 60 minutos'],
   mascota_adicional: ['Recargo por mascota adicional (COP/hora)', ''],
-  porcentaje_plataforma: ['Comisión Paw-Path (%)', 'El resto es para el cuidador'],
-  porcentaje_iva: ['IVA sobre la comisión (%)', 'Solo grava la comisión, no el dinero del cuidador'],
-  plazo_pago_horas: ['Plazo para pagar (horas)', 'Desde que finaliza el paseo; luego se envían recordatorios'],
-  bloqueo_tras_horas: ['Bloquear tras (horas)', 'Sin pagar, el tutor no puede pedir nuevos paseos'],
+  porcentaje_plataforma: [
+    'Comisión Paw-Path (%)',
+    'El resto es para el cuidador',
+  ],
+  porcentaje_iva: [
+    'IVA sobre la comisión (%)',
+    'Solo grava la comisión, no el dinero del cuidador',
+  ],
+  plazo_pago_horas: [
+    'Plazo para pagar (horas)',
+    'Desde que finaliza el paseo; luego se envían recordatorios',
+  ],
+  bloqueo_tras_horas: [
+    'Bloquear tras (horas)',
+    'Sin pagar, el tutor no puede pedir nuevos paseos',
+  ],
   max_recordatorios: ['Máximo de recordatorios', ''],
   intervalo_recordatorios_horas: ['Horas entre recordatorios', ''],
   horario_desde: ['Recordatorios desde (hora 0-23)', 'Hora de Colombia'],
   horario_hasta: ['Recordatorios hasta (hora 1-24)', ''],
-  dia_corte: ['Día de corte (0=domingo … 6=sábado)', 'El periodo cierra a las 23:59'],
-  dia_pago: ['Día de pago (0=domingo … 6=sábado)', 'Informativo para el cuidador'],
-  monto_minimo: ['Monto mínimo a liquidar (COP)', 'Si no se alcanza, pasa a la semana siguiente'],
+  dia_corte: [
+    'Día de corte (0=domingo … 6=sábado)',
+    'El periodo cierra a las 23:59',
+  ],
+  dia_pago: [
+    'Día de pago (0=domingo … 6=sábado)',
+    'Informativo para el cuidador',
+  ],
+  monto_minimo: [
+    'Monto mínimo a liquidar (COP)',
+    'Si no se alcanza, pasa a la semana siguiente',
+  ],
+  ventana_reclamo_horas: [
+    'Ventana de reclamo (horas)',
+    'Tiempo del tutor para reclamar un cobro cerrado por el equipo',
+  ],
+  cierre_automatico_horas: [
+    'Cierre automático tras (horas, 0 = apagado)',
+    'Cierra la entrega sin confirmar solo, desde que el cuidador finaliza',
+  ],
 } as const
 
 type Campo = keyof typeof CAMPOS
@@ -58,12 +95,16 @@ function aFormulario(p: PoliticaComercial): Record<Campo, string> {
     plazo_pago_horas: String(p.cobro.plazo_pago_horas),
     bloqueo_tras_horas: String(p.cobro.bloqueo_tras_horas),
     max_recordatorios: String(p.cobro.max_recordatorios),
-    intervalo_recordatorios_horas: String(p.cobro.intervalo_recordatorios_horas),
+    intervalo_recordatorios_horas: String(
+      p.cobro.intervalo_recordatorios_horas
+    ),
     horario_desde: String(p.cobro.horario_recordatorios.desde),
     horario_hasta: String(p.cobro.horario_recordatorios.hasta),
     dia_corte: String(p.liquidacion.dia_corte),
     dia_pago: String(p.liquidacion.dia_pago),
     monto_minimo: String(p.liquidacion.monto_minimo),
+    ventana_reclamo_horas: String(p.entrega.ventana_reclamo_horas),
+    cierre_automatico_horas: String(p.entrega.cierre_automatico_horas),
   }
 }
 
@@ -72,6 +113,8 @@ interface Opciones {
   ivaAplica: boolean
   ivaIncluido: boolean
   documentoSoporte: boolean
+  cobrarSiCierraEquipo: boolean
+  cierreRequiereEvidencia: boolean
 }
 
 function aOpciones(p: PoliticaComercial): Opciones {
@@ -80,6 +123,8 @@ function aOpciones(p: PoliticaComercial): Opciones {
     ivaAplica: p.impuestos.iva_comision.aplica,
     ivaIncluido: p.impuestos.iva_comision.incluido_en_precio,
     documentoSoporte: p.contabilidad.documento_soporte_cuidador,
+    cobrarSiCierraEquipo: p.entrega.cobrar_si_cierra_equipo,
+    cierreRequiereEvidencia: p.entrega.cierre_automatico_requiere_evidencia,
   }
 }
 
@@ -110,7 +155,10 @@ function aPolitica(
       bloqueo_tras_horas: n('bloqueo_tras_horas'),
       max_recordatorios: n('max_recordatorios'),
       intervalo_recordatorios_horas: n('intervalo_recordatorios_horas'),
-      horario_recordatorios: { desde: n('horario_desde'), hasta: n('horario_hasta') },
+      horario_recordatorios: {
+        desde: n('horario_desde'),
+        hasta: n('horario_hasta'),
+      },
     },
     liquidacion: {
       frecuencia: 'SEMANAL',
@@ -120,6 +168,12 @@ function aPolitica(
       solo_recaudadas: o.soloRecaudadas,
     },
     contabilidad: { documento_soporte_cuidador: o.documentoSoporte },
+    entrega: {
+      ventana_reclamo_horas: n('ventana_reclamo_horas'),
+      cobrar_si_cierra_equipo: o.cobrarSiCierraEquipo,
+      cierre_automatico_horas: n('cierre_automatico_horas'),
+      cierre_automatico_requiere_evidencia: o.cierreRequiereEvidencia,
+    },
   }
 }
 
@@ -184,19 +238,22 @@ export const FormularioPoliticaComercial: React.FC = () => {
     }
   }
 
-  if (cargando) return <Text style={estilosAdmin.ayuda}>Cargando política…</Text>
+  if (cargando)
+    return <Text style={estilosAdmin.ayuda}>Cargando política…</Text>
   if (!politica || !form || !opciones || !borrador) {
     return (
       <Text style={estilosAdmin.ayuda}>
-        {error || 'No hay política publicada'}. Crea la versión 1 con
-        `npm run seed:base`.
+        {error || 'No hay política publicada'}. Crea la versión 1 con `npm run
+        seed:base`.
       </Text>
     )
   }
 
   return (
     <View>
-      <Text style={estilosAdmin.vigente}>Vigente: versión {politica.version}</Text>
+      <Text style={estilosAdmin.vigente}>
+        Vigente: versión {politica.version}
+      </Text>
       {(Object.keys(CAMPOS) as Campo[]).map(campo => {
         const [etiqueta, ayuda] = CAMPOS[campo]
         const esDia = campo === 'dia_corte' || campo === 'dia_pago'
@@ -244,6 +301,22 @@ export const FormularioPoliticaComercial: React.FC = () => {
         label="Documento soporte al pagar a cuidadores"
         description="Para cuidadores no obligados a facturar (DIAN)"
       />
+      <Switch
+        value={opciones.cobrarSiCierraEquipo}
+        onValueChange={v =>
+          setOpciones({ ...opciones, cobrarSiCierraEquipo: v })
+        }
+        label="El equipo puede cerrar una entrega sin confirmar y cobrar"
+        description="Si el tutor no confirma, el equipo cierra a favor del cuidador y se genera el cobro (el tutor puede reclamar)"
+      />
+      <Switch
+        value={opciones.cierreRequiereEvidencia}
+        onValueChange={v =>
+          setOpciones({ ...opciones, cierreRequiereEvidencia: v })
+        }
+        label="El cierre automático exige evidencia"
+        description="Foto del grupo subida por el cuidador"
+      />
       {errores.length > 0 ? (
         <Text style={estilosAdmin.errores}>{errores.join('\n')}</Text>
       ) : (
@@ -261,7 +334,9 @@ export const FormularioPoliticaComercial: React.FC = () => {
         />
       </View>
 
-      <Text style={[estilosAdmin.label, styles.historial]}>Últimas versiones</Text>
+      <Text style={[estilosAdmin.label, styles.historial]}>
+        Últimas versiones
+      </Text>
       <PanelVersiones tipo={TIPO_POLITICA_COMERCIAL} />
     </View>
   )

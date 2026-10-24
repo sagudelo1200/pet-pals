@@ -20,6 +20,7 @@ import {
   Timestamp,
   runTransaction,
   type Transaction,
+  type DocumentReference,
 } from 'firebase/firestore'
 import { db } from '@/firebase.config'
 import type { Operacion, TipoOperacion } from '@/models/Operacion'
@@ -67,24 +68,37 @@ export class ServicioOperacion {
     uid?: string
   ): Promise<string> {
     try {
-      const camposSistema = camposSistemaCrear(uid)
-
-      // Generar ID en cliente (requerido por Firestore Rules)
-      const colRef = collection(db, COLLECTION_NAME)
-      const docRef = doc(colRef)
-      const id = docRef.id
-
-      // Incluir ID en el documento (requerido por tiene_campos_sistema_basicos())
-      await setDoc(docRef, {
-        id, // ← REQUERIDO por Firestore Rules
-        ...camposSistema,
-        ...this.limpiarUndefined(operacion),
-        timestamp_creacion: Timestamp.now(),
-      })
+      const { id, ref, datos } = this.prepararCreacion(operacion, uid)
+      await setDoc(ref, datos)
       return id
     } catch (error) {
       console.error('[ServicioOperacion] Error creando:', error)
       throw error
+    }
+  }
+
+  /**
+   * Prepara la creación de una operación sin escribirla: genera el id en
+   * cliente (requerido por Firestore Rules) y arma el documento. Permite
+   * crearla junto a otros documentos dentro de un mismo batch.
+   */
+  static prepararCreacion(
+    operacion: Omit<Operacion, 'id'>,
+    uid?: string
+  ): { id: string; ref: DocumentReference; datos: Record<string, unknown> } {
+    const camposSistema = camposSistemaCrear(uid)
+    const ref = doc(collection(db, COLLECTION_NAME))
+    const id = ref.id
+
+    return {
+      id,
+      ref,
+      datos: {
+        id, // ← REQUERIDO por Firestore Rules (tiene_campos_sistema_basicos)
+        ...camposSistema,
+        ...this.limpiarUndefined(operacion),
+        timestamp_creacion: Timestamp.now(),
+      },
     }
   }
 

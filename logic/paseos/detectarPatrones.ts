@@ -26,6 +26,27 @@ const PATRONES_CONOCIDOS: Array<{
 ]
 
 /**
+ * Mascotas a las que se refiere un evento de bitácora. Vacío = todo el grupo
+ * (también los eventos anteriores a que existiera `mascota_ids`).
+ */
+export function mascotasDelEvento(evento: EventoPaseo): string[] {
+  const ids = evento.payload?.mascota_ids
+  return Array.isArray(ids) ? ids.filter(id => typeof id === 'string') : []
+}
+
+/**
+ * Dos eventos son del mismo hilo si alguno es del grupo completo o si
+ * comparten al menos una mascota. Así, con varios perros, el "juego" de uno
+ * no se mezcla con el "descanso" de otro.
+ */
+export function sonDelMismoHilo(a: EventoPaseo, b: EventoPaseo): boolean {
+  const idsA = mascotasDelEvento(a)
+  const idsB = mascotasDelEvento(b)
+  if (idsA.length === 0 || idsB.length === 0) return true
+  return idsA.some(id => idsB.includes(id))
+}
+
+/**
  * Detecta patrón en la última acción versus histórico reciente
  * @param eventoNuevo — Evento que se acaba de registrar
  * @param eventosRecientes — Últimos eventos del paseo (en orden cronológico)
@@ -43,6 +64,7 @@ export function detectarPatron(
   // Filtrar solo eventos de tipo bitácora con acción
   const acciones = eventosRecientes
     .filter(e => e.tipoEvento === 'bitacora' && e.payload?.accion)
+    .filter(e => sonDelMismoHilo(eventoNuevo, e))
     .map(e => e.payload.accion)
     .slice(-(VENTANA_EVENTOS - 1)) // Últimos N-1 eventos
 

@@ -61,6 +61,10 @@ const POLITICA = {
   },
   impuestos: { iva_comision: { aplica: true, porcentaje: 19, incluido_en_precio: true } },
   contabilidad: { documento_soporte_cuidador: true },
+  entrega: {
+    ventana_reclamo_horas: 48, cobrar_si_cierra_equipo: true,
+    cierre_automatico_horas: 0, cierre_automatico_requiere_evidencia: true,
+  },
 }
 
 function evento(antes: Record<string, unknown>, despues: Record<string, unknown>) {
@@ -112,6 +116,22 @@ describe('alValidarEntregaEconomia', () => {
     expect(programarTarea).toHaveBeenCalledWith(
       'revisarCobroTutor', { obligacionId: 'p1_t1_cobro' }, expect.any(Number),
       expect.stringMatching(/^cobro-p1_t1_cobro-\d+$/))
+  })
+
+  test('cobro nacido de un cierre del equipo lleva su ventana de reclamo', async () => {
+    const cerrado = { ...validado({ t1: true }), cierre_por_equipo: { por: 'admin1' } }
+    await trigger(evento(validado({ t1: false }), cerrado))
+    const cobro = mockDb.__docs.get('obligaciones/p1_t1_cobro')
+    expect(cobro.origen).toBe('cierre_equipo')
+    // 48 h de la política del paseo, contadas desde que nace el cobro
+    expect(cobro.reclamo_hasta.toMillis() - cobro.creado_en.toMillis()).toBe(48 * 3600000)
+  })
+
+  test('el cobro confirmado por el propio tutor no se puede reclamar', async () => {
+    await trigger(evento(validado({ t1: false }), validado({ t1: true })))
+    const cobro = mockDb.__docs.get('obligaciones/p1_t1_cobro')
+    expect(cobro.origen).toBeUndefined()
+    expect(cobro.reclamo_hasta).toBeUndefined()
   })
 
   test('la operación se completa con la política del paseo aunque haya otra vigente', async () => {

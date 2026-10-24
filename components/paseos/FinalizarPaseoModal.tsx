@@ -1,9 +1,11 @@
 /**
  * FinalizarPaseoModal
- * Cuidador finaliza paseo: tomar fotos + observaciones
+ * Cuidador finaliza paseo: foto del grupo (si la configuración la exige) +
+ * observaciones
  *
  * Flujo:
- * 1. Tomar foto de confirmación (mascota)
+ * 1. Foto del grupo: solo si `paseos.foto_entrega_obligatoria` está activa
+ *    (requiere Firebase Storage); si no, el cierre no depende de la foto
  * 2. Agregar observaciones (opcional)
  * 3. Confirmar → las observaciones quedan en el historial del paseo
  * 4. Estado: FINALIZADO → el servidor genera el cobro y el pago al cuidador
@@ -28,12 +30,15 @@ import { COLOR } from '@/constants'
 import Card from '@/components/ui/Card'
 import Icon from '@/components/ui/Icon'
 import { ServicioPaseo } from '@/services/firebase'
+import { useConfiguracion } from '@/hooks/configuracion/useConfiguracion'
+import { subirFotoEntrega } from '@/services/firebase/evidencias/fotoEntrega'
 
 interface FinalizarPaseoModalProps {
   visible: boolean
   paseoId: string
-  nombreMascota: string
-  nombreTutor: string
+  /** Nombres de todas las mascotas del paseo ("Max, Luna y Rocky") */
+  nombresMascotas: string
+  cantidadMascotas: number
   duracionMinutos: number
   onSuccess: () => void
   onDismiss: () => void
@@ -42,12 +47,13 @@ interface FinalizarPaseoModalProps {
 export const FinalizarPaseoModal: React.FC<FinalizarPaseoModalProps> = ({
   visible,
   paseoId,
-  nombreMascota,
-  nombreTutor,
+  nombresMascotas,
+  cantidadMascotas,
   duracionMinutos,
   onSuccess,
   onDismiss,
 }) => {
+  const { foto_entrega_obligatoria: requiereFoto } = useConfiguracion('paseos')
   const [fotoUri, setFotoUri] = useState<string | null>(null)
   const [observaciones, setObservaciones] = useState('')
   const [loading, setLoading] = useState(false)
@@ -106,7 +112,7 @@ export const FinalizarPaseoModal: React.FC<FinalizarPaseoModalProps> = ({
   }
 
   const handleConfirmarFinalizacion = async () => {
-    if (!fotoUri) {
+    if (requiereFoto && !fotoUri) {
       setError('Debes tomar una foto de confirmación')
       return
     }
@@ -114,16 +120,34 @@ export const FinalizarPaseoModal: React.FC<FinalizarPaseoModalProps> = ({
     setLoading(true)
 
     try {
+      // Foto del grupo: si es obligatoria, debe quedar guardada antes de cerrar
+      if (requiereFoto && fotoUri) {
+        const foto = await subirFotoEntrega(paseoId, fotoUri)
+        if (!foto.success) {
+          setError('No se pudo guardar la foto. Intenta de nuevo.')
+          return
+        }
+        await ServicioPaseo.actualizar(paseoId, {
+          foto_entrega_grupo: foto.url,
+        } as any)
+      }
+
       // Las observaciones quedan en el historial del paseo; si falla no
       // bloquea la finalización
       if (observaciones.trim()) {
         const res = await ServicioPaseo.registrarEvento(
           paseoId,
           'NOTA_FINALIZACION',
-          { observaciones: observaciones.trim(), duracion_minutos: duracionMinutos }
+          {
+            observaciones: observaciones.trim(),
+            duracion_minutos: duracionMinutos,
+          }
         )
         if (!res.success) {
-          console.warn('[FinalizarPaseoModal] Error guardando observaciones:', res)
+          console.warn(
+            '[FinalizarPaseoModal] Error guardando observaciones:',
+            res
+          )
         }
       }
 
@@ -170,9 +194,7 @@ export const FinalizarPaseoModal: React.FC<FinalizarPaseoModalProps> = ({
 
               <View style={styles.headerContent}>
                 <Text style={styles.titulo}>Finalizar Paseo</Text>
-                <Text style={styles.subtitulo}>
-                  {nombreMascota} - {nombreTutor}
-                </Text>
+                <Text style={styles.subtitulo}>{nombresMascotas}</Text>
               </View>
 
               <View style={{ width: 40 }} />
@@ -190,66 +212,81 @@ export const FinalizarPaseoModal: React.FC<FinalizarPaseoModalProps> = ({
                     Duración: {duracionMinutos} minutos
                   </Text>
                 </View>
-                <View style={[styles.infoRow, { marginTop: 8 }]}>
-                  <Icon name="smile" size={16} color={COLOR.PRIMARIO} />
-                  <Text style={styles.infoTexto}>
-                    Confirma con foto del paseo finalizado
-                  </Text>
-                </View>
-              </Card>
-
-              {/* Sección de foto */}
-              <Card style={styles.fotoCard}>
-                <Text style={styles.seccionTitulo}>Foto de Confirmación</Text>
-
-                {fotoUri ? (
-                  <View style={styles.fotoContainer}>
-                    <Image
-                      source={{ uri: fotoUri }}
-                      style={styles.foto}
-                      resizeMode="cover"
-                    />
-                    <Pressable
-                      style={styles.cambiarFotoButton}
-                      onPress={handleTomarFoto}
-                    >
-                      <Icon name="camera" size={20} color={COLOR.PRIMARIO} />
-                    </Pressable>
-                  </View>
-                ) : (
-                  <View style={styles.fotoPlaceholder}>
-                    <LinearGradient
-                      colors={[`${COLOR.PRIMARIO}10`, `${COLOR.PRIMARIO}05`]}
-                      style={styles.placeholderGradient}
-                    >
-                      <Icon name="camera" size={48} color={COLOR.PRIMARIO} />
-                      <Text style={styles.placeholderText}>
-                        Toma una foto del paseo
-                      </Text>
-                    </LinearGradient>
+                {requiereFoto && (
+                  <View style={[styles.infoRow, { marginTop: 8 }]}>
+                    <Icon name="smile" size={16} color={COLOR.PRIMARIO} />
+                    <Text style={styles.infoTexto}>
+                      Confirma con foto del paseo finalizado
+                    </Text>
                   </View>
                 )}
-
-                <View style={styles.botonesFoto}>
-                  <Pressable
-                    style={styles.botonFoto}
-                    onPress={handleTomarFoto}
-                    disabled={loading}
-                  >
-                    <Icon name="camera" size={18} color="white" />
-                    <Text style={styles.botonFotoTexto}>Cámara</Text>
-                  </Pressable>
-
-                  <Pressable
-                    style={[styles.botonFoto, styles.botonFotoSecundario]}
-                    onPress={handleSeleccionarGaleria}
-                    disabled={loading}
-                  >
-                    <Icon name="image" size={18} color={COLOR.PRIMARIO} />
-                    <Text style={styles.botonFotoTextoSecundario}>Galería</Text>
-                  </Pressable>
-                </View>
               </Card>
+
+              {/* Sección de foto (solo si la configuración la exige) */}
+              {requiereFoto && (
+                <Card style={styles.fotoCard}>
+                  <Text style={styles.seccionTitulo}>
+                    {cantidadMascotas > 1
+                      ? 'Foto del grupo'
+                      : 'Foto de Confirmación'}
+                  </Text>
+                  {cantidadMascotas > 1 && (
+                    <Text style={styles.infoTexto}>
+                      Procura que se vean todos: {nombresMascotas}
+                    </Text>
+                  )}
+
+                  {fotoUri ? (
+                    <View style={styles.fotoContainer}>
+                      <Image
+                        source={{ uri: fotoUri }}
+                        style={styles.foto}
+                        resizeMode="cover"
+                      />
+                      <Pressable
+                        style={styles.cambiarFotoButton}
+                        onPress={handleTomarFoto}
+                      >
+                        <Icon name="camera" size={20} color={COLOR.PRIMARIO} />
+                      </Pressable>
+                    </View>
+                  ) : (
+                    <View style={styles.fotoPlaceholder}>
+                      <LinearGradient
+                        colors={[`${COLOR.PRIMARIO}10`, `${COLOR.PRIMARIO}05`]}
+                        style={styles.placeholderGradient}
+                      >
+                        <Icon name="camera" size={48} color={COLOR.PRIMARIO} />
+                        <Text style={styles.placeholderText}>
+                          Toma una foto del paseo
+                        </Text>
+                      </LinearGradient>
+                    </View>
+                  )}
+
+                  <View style={styles.botonesFoto}>
+                    <Pressable
+                      style={styles.botonFoto}
+                      onPress={handleTomarFoto}
+                      disabled={loading}
+                    >
+                      <Icon name="camera" size={18} color="white" />
+                      <Text style={styles.botonFotoTexto}>Cámara</Text>
+                    </Pressable>
+
+                    <Pressable
+                      style={[styles.botonFoto, styles.botonFotoSecundario]}
+                      onPress={handleSeleccionarGaleria}
+                      disabled={loading}
+                    >
+                      <Icon name="image" size={18} color={COLOR.PRIMARIO} />
+                      <Text style={styles.botonFotoTextoSecundario}>
+                        Galería
+                      </Text>
+                    </Pressable>
+                  </View>
+                </Card>
+              )}
 
               {/* Observaciones */}
               <Card style={styles.obsCard}>
@@ -272,7 +309,11 @@ export const FinalizarPaseoModal: React.FC<FinalizarPaseoModalProps> = ({
               {/* Error */}
               {error && (
                 <View style={styles.errorContainer}>
-                  <Icon name="exclamation-circle" size={16} color={COLOR.ERROR} />
+                  <Icon
+                    name="exclamation-circle"
+                    size={16}
+                    color={COLOR.ERROR}
+                  />
                   <Text style={styles.errorText}>{error}</Text>
                 </View>
               )}
@@ -300,10 +341,11 @@ export const FinalizarPaseoModal: React.FC<FinalizarPaseoModalProps> = ({
               <Pressable
                 style={[
                   styles.botonConfirmar,
-                  (!fotoUri || loading) && styles.botonDisabled,
+                  ((requiereFoto && !fotoUri) || loading) &&
+                    styles.botonDisabled,
                 ]}
                 onPress={handleConfirmarFinalizacion}
-                disabled={!fotoUri || loading}
+                disabled={(requiereFoto && !fotoUri) || loading}
               >
                 {loading ? (
                   <ActivityIndicator color="white" />

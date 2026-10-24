@@ -1,0 +1,18 @@
+{
+  "titulo": "Notifications",
+  "marcar_todas": "Mark all as read",
+  "campana": "Notifications, {{count}} unread",
+  "vacio": {
+    "titulo": "No notifications",
+    "descripcion": "Updates about your walks and payments will show up here."
+  },
+  "preferencias": {
+    "titulo": "Notification preferences",
+    "push": "Push notifications",
+    "push_descripcion": "Alerts on your phone, even when the app is closed.",
+    "email": "Email",
+    "email_descripcion": "Alerts in your inbox.",
+    "nota_obligatorias": "Payment and security notices are always sent, even if you turn these channels off.",
+    "abrir": "Preferences"
+  }
+}

@@ -127,6 +127,11 @@ const Paseos: React.FC = () => {
     setModalVisible(true)
   }
 
+  // Cuidador elegido de antemano ("pedir de nuevo")
+  const [cuidadorInicialId, setCuidadorInicialId] = useState<string | null>(
+    null
+  )
+
   // Open modal if navigation params request it (e.g., from DetalleMascota)
   // Use useFocusEffect to listen every time the screen is focused
   useFocusEffect(
@@ -167,7 +172,14 @@ const Paseos: React.FC = () => {
           }
         }
 
-        setMascotasInicialesIds(mascotaId ? [mascotaId] : undefined)
+        const idsPedidas: string[] | undefined =
+          Array.isArray(params.mascotaIds) && params.mascotaIds.length > 0
+            ? params.mascotaIds
+            : mascotaId
+              ? [mascotaId]
+              : undefined
+        setMascotasInicialesIds(idsPedidas)
+        setCuidadorInicialId(params.cuidadorId ?? null)
         setForzarMascotaInicial(!!params.forzarMascotaInicial)
         setModalVisible(true)
         // Ensure the 'forzar' flag only applies once: clear it in the next tick
@@ -177,6 +189,8 @@ const Paseos: React.FC = () => {
           navigation.setParams?.({
             abrirSolicitar: false,
             mascotaId: undefined,
+            mascotaIds: undefined,
+            cuidadorId: undefined,
             forzarMascotaInicial: false,
           })
         } catch (_e) {
@@ -322,6 +336,7 @@ const Paseos: React.FC = () => {
         }}
         mascotasInicialesIds={mascotasInicialesIds}
         reemplazarMascotasIniciales={forzarMascotaInicial}
+        cuidadorInicialId={cuidadorInicialId}
       />
       <DetallePaseoBottomSheet
         visible={detalleVisible}

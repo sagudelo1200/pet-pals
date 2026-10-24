@@ -21,6 +21,8 @@ interface PetCardProps {
   style?: ViewStyle | ViewStyle[]
   animationDelay?: number
   testID?: string
+  /** Aprendizajes sensibles que esperan la decisión del tutor (marca discreta). */
+  porRevisar?: number
 }
 
 /**
@@ -34,6 +36,7 @@ const PetCard: React.FC<PetCardProps> = ({
   style,
   animationDelay = 0,
   testID,
+  porRevisar = 0,
 }) => {
   const scaleAnim = useRef(new Animated.Value(0)).current
   const opacityAnim = useRef(new Animated.Value(0)).current
@@ -104,6 +107,14 @@ const PetCard: React.FC<PetCardProps> = ({
               </Text>
             )}
 
+            {porRevisar > 0 && (
+              <Text style={styles.porRevisar}>
+                {porRevisar === 1
+                  ? '1 por revisar'
+                  : `${porRevisar} por revisar`}
+              </Text>
+            )}
+
             <View style={styles.metaRow}>
               {edad && <Text style={styles.meta}>{edad}</Text>}
               {pet.tamano && edad && (
@@ -155,6 +166,12 @@ const PetCard: React.FC<PetCardProps> = ({
 }
 
 const styles = StyleSheet.create({
+  porRevisar: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: COLOR.PRIMARIO,
+    marginTop: 2,
+  },
   container: {
     marginBottom: 12,
   },

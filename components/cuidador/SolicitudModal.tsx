@@ -16,6 +16,7 @@ import {
 import { COLOR } from '@/constants'
 import { Paseo } from '@/models/Paseo'
 import { useTranslation } from 'react-i18next'
+import { textoDeAdvertencias } from '@/logic/paseos/advertencias'
 import { GestorPaseos } from '@/logic/paseos'
 import { GestorMascotas } from '@/logic/mascotas'
 import { useGestorPaseoActivo } from '@/hooks/paseos/useGestorPaseoActivo'
@@ -159,16 +160,34 @@ const SolicitudModal: React.FC<Props> = ({ visible, paseo, onClose }) => {
     handleAceptarInterno()
   }
 
-  const handleAceptarInterno = async () => {
+  const handleAceptarInterno = async (confirmo = false) => {
     setLoading(true)
     try {
       gestion.seleccionar(paseo)
-      // aceptarSolicitud: doble reserva, auditoría y asignación económica
-      const res: any = await GestorPaseos.aceptarSolicitud(paseo.id)
+      // aceptarSolicitud: el servidor valida (doble reserva, zona...) y confirma
+      const res: any = await GestorPaseos.aceptarSolicitud(paseo.id, {
+        confirmo,
+      })
       setLoading(false)
       if (res.success) {
         onClose()
         navigation.navigate('ControlPaseo', { paseoId: paseo.id })
+      } else if (res.error === 'REQUIERE_CONFIRMACION') {
+        // Algo que normalmente no hace (tamaño, cupo): se le informa y decide
+        gestion.limpiar()
+        Alert.alert(
+          t('paseos:advertencias.cuidador.titulo'),
+          t('paseos:advertencias.cuidador.mensaje', {
+            avisos: textoDeAdvertencias(res.advertencias, t, 'cuidador'),
+          }),
+          [
+            { text: t('comun:cancelar'), style: 'cancel' },
+            {
+              text: t('paseos:advertencias.cuidador.aceptar'),
+              onPress: () => handleAceptarInterno(true),
+            },
+          ]
+        )
       } else {
         gestion.limpiar()
         Alert.alert(

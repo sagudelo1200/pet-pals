@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState, useCallback } from 'react'
+import React, { useEffect, useMemo, useRef, useState, useCallback } from 'react'
 import {
   StyleSheet,
   View,
@@ -34,9 +34,18 @@ import { ModalCodigoRecogidaTutor } from '@/components/paseos/ModalCodigoRecogid
 import { FinalizarPaseoModal } from '@/components/paseos/FinalizarPaseoModal'
 import RegistrarMomentoPaseo from '@/components/paseos/RegistrarMomentoPaseo'
 import { useBitacoraPaseo } from '@/hooks/useBitacoraPaseo'
+import { PanelDelPaseo } from '@/components/cuidador/PanelDelPaseo'
+import { ModalResumenDeMascotas } from '@/components/cuidador/ModalResumenDeMascotas'
+import { useAuth } from '@/context/AuthContext'
+import type { GrupoMomento } from '@/functions/src/compartido/expediente'
+import { ultimoLugarDelPaseo } from '@/logic/paseos/momentos'
 import type { AuthStackParamList } from '@/navigation/types'
 import { densificarRuta } from '@/services/geo'
 import { GestorPaseos } from '@/logic/paseos'
+import {
+  listarNombres,
+  nombresDeMascotas,
+} from '@/logic/paseos/nombresMascotas'
 import type { EVENTOS_PASEO } from '@/logic/paseos/maquinaEstados'
 import { ServicioPaseo } from '@/services/firebase/firestore/colecciones/paseo'
 
@@ -66,6 +75,22 @@ const ControlPaseo: React.FC = () => {
   // Códigos de recogida por tutor
   const { mascotasPorTutor, validadosPorTutor, intentosFallidosPorTutor } =
     useCodigosRecogidaPorTutor(paseoId)
+
+  // Todas las mascotas del paseo (el documento solo guarda el nombre de la primera)
+  const listaNombres = useMemo(
+    () => nombresDeMascotas(mascotasPorTutor),
+    [mascotasPorTutor]
+  )
+  const mascotasDelPaseo = useMemo(
+    () =>
+      mascotasPorTutor.flatMap(tutor =>
+        tutor.mascotas.map(m => ({ id: m.id, nombre: m.nombre }))
+      ),
+    [mascotasPorTutor]
+  )
+  const nombresMascotas =
+    listarNombres(listaNombres) || paseo?.mascota_nombre_visual || ''
+  const cantidadMascotas = listaNombres.length || 1
 
   // Obtener ruta hacia punto de recogida (cacheada, calcula solo primera vez en EN_CAMINO)
   const coordRecogida =
@@ -101,6 +126,11 @@ const ControlPaseo: React.FC = () => {
 
   // Estado para modal de registrar momento (bitácora)
   const [mostrarRegistrarMomento, setMostrarRegistrarMomento] = useState(false)
+  const [momentoInicial, setMomentoInicial] = useState<
+    GrupoMomento | 'principal'
+  >('principal')
+  const { user } = useAuth()
+  const [mostrarResumen, setMostrarResumen] = useState(false)
 
   // Estado para modal de finalización de paseo (captura de foto)
   const [mostrarFinalizarModal, setMostrarFinalizarModal] = useState(false)
@@ -118,7 +148,12 @@ const ControlPaseo: React.FC = () => {
     codigosEntrega[tutorEntregaPendiente ?? tutoresEntrega[0]]
 
   // Hook para obtener bitácoras en tiempo real
-  const { cargando: _cargandoBitacoras } = useBitacoraPaseo(paseoId)
+  const { bitacoras } = useBitacoraPaseo(paseoId)
+  // Contexto para lo que se registre después ("jugó" en el parque)
+  const ultimoLugar = useMemo(
+    () => ultimoLugarDelPaseo(bitacoras as any[]),
+    [bitacoras]
+  )
 
   // Referencia al mapa para centrado
   const mapRef = useRef<MapView>(null)
@@ -557,7 +592,7 @@ const ControlPaseo: React.FC = () => {
         // Dashboard desde esas pantallas.
         onClose={() => navigation.navigate('ObservacionMascota', { paseoId })}
         tiempo={tiempoTranscurrido}
-        mascota={paseo.mascota_nombre_visual}
+        mascota={nombresMascotas}
       />
     )
   }
@@ -592,6 +627,8 @@ const ControlPaseo: React.FC = () => {
   }
 
   const buttonConfig = getButtonConfig(paseo.estado)
+  // Mientras pasea el cuidador no ve el mapa: lo mira el tutor
+  const enPaseo = paseo.estado === ESTADOS_PASEO.EN_PROGRESO
   const estadoColor =
     COLOR.ESTADO[paseo.estado as keyof typeof COLOR.ESTADO] ||
     COLOR.ESTADO.CONFIRMADO
@@ -602,90 +639,110 @@ const ControlPaseo: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      {/* Mapa de fondo */}
-      <Mapa
-        ref={mapRef}
-        style={styles.map}
-        alto="100%"
-        interactivo
-        marcador={false}
-        zoom={18}
-        coordenadas={
-          ubicacionActual ||
-          ubicacionInicio || { latitude: -34.6037, longitude: -58.3816 }
-        }
-        mapPadding={{
-          top: insets.top + 80,
-          bottom: bottomPanelHeight,
-          left: 0,
-          right: 0,
-        }}
-      >
-        {/* Ruta recorrida en paseo activo */}
-        {displayedRuta.length > 0 &&
-          paseo?.estado === ESTADOS_PASEO.EN_PROGRESO && (
-            <Polyline
-              coordinates={displayedRuta}
-              strokeColor={COLOR.PRIMARIO}
-              strokeWidth={4}
-              geodesic
+      {/* Mapa de fondo (durante el paseo lo reemplaza el panel del cuidador) */}
+      {!enPaseo && (
+        <Mapa
+          ref={mapRef}
+          style={styles.map}
+          alto="100%"
+          interactivo
+          marcador={false}
+          zoom={18}
+          coordenadas={
+            ubicacionActual ||
+            ubicacionInicio || { latitude: -34.6037, longitude: -58.3816 }
+          }
+          mapPadding={{
+            top: insets.top + 80,
+            bottom: bottomPanelHeight,
+            left: 0,
+            right: 0,
+          }}
+        >
+          {/* Ruta recorrida en paseo activo */}
+          {displayedRuta.length > 0 &&
+            paseo?.estado === ESTADOS_PASEO.EN_PROGRESO && (
+              <Polyline
+                coordinates={displayedRuta}
+                strokeColor={COLOR.PRIMARIO}
+                strokeWidth={4}
+                geodesic
+              />
+            )}
+
+          {/* Ruta hacia punto de recogida (EN_CAMINO) */}
+          {rutaARecogida?.polyline &&
+            paseo?.estado === ESTADOS_PASEO.EN_CAMINO && (
+              <Polyline
+                coordinates={rutaARecogida.polyline}
+                strokeColor={COLOR.PRIMARIO}
+                strokeWidth={3}
+                geodesic
+              />
+            )}
+
+          {/* Pin de ubicación de inicio: mostrar cuando el paseo está CONFIRMADO */}
+          {ubicacionInicio && paseo?.estado === ESTADOS_PASEO.CONFIRMADO && (
+            <Marker
+              coordinate={ubicacionInicio}
+              anchor={{ x: 0.5, y: 1 }}
+              pinColor={COLOR.PRIMARIO}
+              identifier="inicio"
             />
           )}
 
-        {/* Ruta hacia punto de recogida (EN_CAMINO) */}
-        {rutaARecogida?.polyline &&
-          paseo?.estado === ESTADOS_PASEO.EN_CAMINO && (
-            <Polyline
-              coordinates={rutaARecogida.polyline}
-              strokeColor={COLOR.PRIMARIO}
-              strokeWidth={3}
-              geodesic
-            />
+          {/* Icono paw en punto de recogida: mostrar cuando está EN_CAMINO */}
+          {coordRecogida && paseo?.estado === ESTADOS_PASEO.EN_CAMINO && (
+            <Marker
+              coordinate={coordRecogida}
+              anchor={{ x: 0.5, y: 0.5 }}
+              identifier="recogida"
+            >
+              <PawMarker />
+            </Marker>
           )}
 
-        {/* Pin de ubicación de inicio: mostrar cuando el paseo está CONFIRMADO */}
-        {ubicacionInicio && paseo?.estado === ESTADOS_PASEO.CONFIRMADO && (
-          <Marker
-            coordinate={ubicacionInicio}
-            anchor={{ x: 0.5, y: 1 }}
-            pinColor={COLOR.PRIMARIO}
-            identifier="inicio"
-          />
-        )}
+          {ubicacionActual && (
+            <AnimatedMarker
+              coordinate={markerCoordinate as any}
+              zIndex={999}
+              anchor={
+                paseo?.estado === ESTADOS_PASEO.EN_PROGRESO ||
+                paseo?.estado === ESTADOS_PASEO.EN_CAMINO
+                  ? { x: 0.52, y: 0.52 }
+                  : undefined
+              }
+              pinColor={
+                paseo?.estado === ESTADOS_PASEO.EN_PROGRESO ||
+                paseo?.estado === ESTADOS_PASEO.EN_CAMINO
+                  ? 'transparent'
+                  : COLOR.ENFASIS
+              }
+            >
+              {paseo?.estado === ESTADOS_PASEO.EN_CAMINO && <CaregiverMarker />}
+              {paseo?.estado === ESTADOS_PASEO.EN_PROGRESO && <PawMarker />}
+            </AnimatedMarker>
+          )}
+        </Mapa>
+      )}
 
-        {/* Icono paw en punto de recogida: mostrar cuando está EN_CAMINO */}
-        {coordRecogida && paseo?.estado === ESTADOS_PASEO.EN_CAMINO && (
-          <Marker
-            coordinate={coordRecogida}
-            anchor={{ x: 0.5, y: 0.5 }}
-            identifier="recogida"
-          >
-            <PawMarker />
-          </Marker>
-        )}
-
-        {ubicacionActual && (
-          <AnimatedMarker
-            coordinate={markerCoordinate as any}
-            zIndex={999}
-            anchor={
-              paseo?.estado === ESTADOS_PASEO.EN_PROGRESO ||
-              paseo?.estado === ESTADOS_PASEO.EN_CAMINO
-                ? { x: 0.52, y: 0.52 }
-                : undefined
-            }
-            pinColor={
-              paseo?.estado === ESTADOS_PASEO.EN_PROGRESO ||
-              paseo?.estado === ESTADOS_PASEO.EN_CAMINO
-                ? 'transparent'
-                : COLOR.ENFASIS
-            }
-          >
-            {paseo?.estado === ESTADOS_PASEO.EN_CAMINO && <CaregiverMarker />}
-            {paseo?.estado === ESTADOS_PASEO.EN_PROGRESO && <PawMarker />}
-          </AnimatedMarker>
-        )}
-      </Mapa>
+      {/* Panel del paseo: lo que el cuidador necesita mientras pasea */}
+      {enPaseo && (
+        <PanelDelPaseo
+          cuidadorId={user?.uid ?? ''}
+          mascotas={mascotasDelPaseo}
+          destino={ubicacionInicio}
+          duracionEstimada={paseo.duracion_estimada}
+          tiempoTranscurrido={tiempoTranscurrido}
+          espacioArriba={insets.top + 80}
+          espacioAbajo={bottomPanelHeight}
+          onRegistrar={pantalla => {
+            setMomentoInicial(pantalla)
+            setMostrarRegistrarMomento(true)
+          }}
+          onEscribirAlTutor={() => navigation.navigate('Chat', { paseoId })}
+        />
+      )}
 
       {/* Header Flotante con Glassmorphism */}
       <View style={[styles.headerFloating, { top: insets.top + 8 }]}>
@@ -764,7 +821,12 @@ const ControlPaseo: React.FC = () => {
                 ]}
               >
                 {estadoCompletado(est) && (
-                  <FontAwesome5 solid name="check" size={12} color={COLOR.TEXTO} />
+                  <FontAwesome5
+                    solid
+                    name="check"
+                    size={12}
+                    color={COLOR.TEXTO}
+                  />
                 )}
               </View>
               {index < ESTADOS_FLUJO.length - 1 && (
@@ -779,87 +841,106 @@ const ControlPaseo: React.FC = () => {
           ))}
         </View>
 
-        {/* Información del paseo */}
-        <View style={styles.infoCard}>
-          <View style={styles.infoRow}>
-            <View style={styles.infoIconBox}>
-              <Text style={styles.infoIcon}>🐕</Text>
+        {/* Información del paseo (en el paseo la muestra el panel) */}
+        {!enPaseo && (
+          <View style={styles.infoCard}>
+            <View style={styles.infoRow}>
+              <View style={styles.infoIconBox}>
+                <Text style={styles.infoIcon}>🐕</Text>
+              </View>
+              <View style={styles.infoContent}>
+                <Text style={styles.infoLabel}>
+                  {cantidadMascotas > 1
+                    ? t('paseos:control.mascotas')
+                    : t('paseos:control.mascota')}
+                </Text>
+                <Text style={styles.infoText}>{nombresMascotas}</Text>
+              </View>
             </View>
-            <View style={styles.infoContent}>
-              <Text style={styles.infoLabel}>
-                {t('paseos:control.mascota')}
-              </Text>
-              <Text style={styles.infoText}>{paseo.mascota_nombre_visual}</Text>
-            </View>
-          </View>
 
-          <View style={styles.infoRow}>
-            <View style={styles.infoIconBox}>
-              <Text style={styles.infoIcon}>📍</Text>
+            <View style={styles.infoRow}>
+              <View style={styles.infoIconBox}>
+                <Text style={styles.infoIcon}>📍</Text>
+              </View>
+              <View style={styles.infoContent}>
+                <Text style={styles.infoLabel}>
+                  {t('paseos:control.ubicacion')}
+                </Text>
+                <Text style={styles.infoText} numberOfLines={1}>
+                  {paseo.ubicacion_inicio_txt ||
+                    t('paseos:control.ubicacion_desconocida')}
+                </Text>
+              </View>
             </View>
-            <View style={styles.infoContent}>
-              <Text style={styles.infoLabel}>
-                {t('paseos:control.ubicacion')}
-              </Text>
-              <Text style={styles.infoText} numberOfLines={1}>
-                {paseo.ubicacion_inicio_txt ||
-                  t('paseos:control.ubicacion_desconocida')}
-              </Text>
-            </View>
-          </View>
 
-          {/* Distancia y ETA hacia punto de recogida (EN_CAMINO) */}
-          {paseo?.estado === ESTADOS_PASEO.EN_CAMINO &&
-            rutaARecogida &&
-            !cargandoRuta && (
+            {/* Distancia y ETA hacia punto de recogida (EN_CAMINO) */}
+            {paseo?.estado === ESTADOS_PASEO.EN_CAMINO &&
+              rutaARecogida &&
+              !cargandoRuta && (
+                <View style={styles.infoRow}>
+                  <View
+                    style={[
+                      styles.infoIconBox,
+                      { backgroundColor: `${COLOR.PRIMARIO}1A` },
+                    ]}
+                  >
+                    <Text style={styles.infoIcon}>🗺️</Text>
+                  </View>
+                  <View style={styles.infoContent}>
+                    <Text style={styles.infoLabel}>
+                      {t('paseos:control.ruta_a_recogida') ||
+                        'Ruta a punto de recogida'}
+                    </Text>
+                    <Text style={styles.infoText}>
+                      {rutaARecogida.distanciaFormato} •{' '}
+                      {rutaARecogida.duracionFormato}
+                    </Text>
+                  </View>
+                </View>
+              )}
+
+            {tiempoTranscurrido !== '00:00:00' && (
               <View style={styles.infoRow}>
                 <View
                   style={[
                     styles.infoIconBox,
-                    { backgroundColor: `${COLOR.PRIMARIO}1A` },
+                    { backgroundColor: `${COLOR.EXITO}1A` },
                   ]}
                 >
-                  <Text style={styles.infoIcon}>🗺️</Text>
+                  <Text style={styles.infoIcon}>⏰</Text>
                 </View>
                 <View style={styles.infoContent}>
                   <Text style={styles.infoLabel}>
-                    {t('paseos:control.ruta_a_recogida') ||
-                      'Ruta a punto de recogida'}
+                    {t('paseos:control.tiempo_transcurrido')}
                   </Text>
-                  <Text style={styles.infoText}>
-                    {rutaARecogida.distanciaFormato} •{' '}
-                    {rutaARecogida.duracionFormato}
+                  <Text
+                    style={[
+                      styles.infoText,
+                      { color: COLOR.EXITO, fontWeight: '700' },
+                    ]}
+                  >
+                    {tiempoTranscurrido}
                   </Text>
                 </View>
               </View>
             )}
+          </View>
+        )}
 
-          {tiempoTranscurrido !== '00:00:00' && (
-            <View style={styles.infoRow}>
-              <View
-                style={[
-                  styles.infoIconBox,
-                  { backgroundColor: `${COLOR.EXITO}1A` },
-                ]}
-              >
-                <Text style={styles.infoIcon}>⏰</Text>
-              </View>
-              <View style={styles.infoContent}>
-                <Text style={styles.infoLabel}>
-                  {t('paseos:control.tiempo_transcurrido')}
-                </Text>
-                <Text
-                  style={[
-                    styles.infoText,
-                    { color: COLOR.EXITO, fontWeight: '700' },
-                  ]}
-                >
-                  {tiempoTranscurrido}
-                </Text>
-              </View>
-            </View>
-          )}
-        </View>
+        {/* Antes del paseo: leer lo que se sabe de las mascotas */}
+        {(paseo.estado === ESTADOS_PASEO.CONFIRMADO ||
+          paseo.estado === ESTADOS_PASEO.EN_CAMINO ||
+          paseo.estado === ESTADOS_PASEO.EN_PUNTO_RECOGIDA) && (
+          <TouchableOpacity
+            style={styles.botonResumen}
+            onPress={() => setMostrarResumen(true)}
+            activeOpacity={0.8}
+          >
+            <Text style={styles.botonResumenTexto}>
+              📋 {t('paseos:panel.ver_resumen', { nombres: nombresMascotas })}
+            </Text>
+          </TouchableOpacity>
+        )}
 
         {/* Hero Button */}
         {buttonConfig && (
@@ -932,8 +1013,8 @@ const ControlPaseo: React.FC = () => {
       <FinalizarPaseoModal
         visible={mostrarFinalizarModal}
         paseoId={paseoId}
-        nombreMascota={paseo?.mascota_nombre_visual || 'Mascota'}
-        nombreTutor={paseo?.tutor_ids?.[0] || 'Tutor'}
+        nombresMascotas={nombresMascotas || 'Mascota'}
+        cantidadMascotas={cantidadMascotas}
         duracionMinutos={Math.floor(
           parseInt(tiempoTranscurrido.split(':')[0]) * 60 +
             parseInt(tiempoTranscurrido.split(':')[1])
@@ -965,6 +1046,9 @@ const ControlPaseo: React.FC = () => {
         visible={mostrarRegistrarMomento}
         paseoId={paseoId}
         ubicacionActual={ubicacionActual}
+        mascotas={mascotasDelPaseo}
+        ultimoLugar={ultimoLugar}
+        pantallaInicial={momentoInicial}
         onClose={() => setMostrarRegistrarMomento(false)}
         onGuardado={() => {
           // Recargar bitácoras después de guardar
@@ -972,16 +1056,12 @@ const ControlPaseo: React.FC = () => {
         }}
       />
 
-      {/* Botón flotante para registrar momento (visible durante EN_PROGRESO) */}
-      {paseo?.estado === ESTADOS_PASEO.EN_PROGRESO && (
-        <TouchableOpacity
-          style={styles.floatingButton}
-          onPress={() => setMostrarRegistrarMomento(true)}
-          activeOpacity={0.8}
-        >
-          <Text style={styles.floatingButtonText}>➕</Text>
-        </TouchableOpacity>
-      )}
+      <ModalResumenDeMascotas
+        visible={mostrarResumen}
+        cuidadorId={user?.uid ?? ''}
+        mascotas={mascotasDelPaseo}
+        onCerrar={() => setMostrarResumen(false)}
+      />
 
       {/* Chat Panel: Bottom Sheet */}
     </View>
@@ -1098,7 +1178,12 @@ const SuccessOverlay: React.FC<{
         ]}
       >
         <View style={styles.successIconCircle}>
-          <FontAwesome5 solid name="check-double" size={60} color={COLOR.EXITO} />
+          <FontAwesome5
+            solid
+            name="check-double"
+            size={60}
+            color={COLOR.EXITO}
+          />
         </View>
         <Text style={styles.successTitle}>
           {t('paseos:control.gran_trabajo')}
@@ -1478,6 +1563,19 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: COLOR.BASE,
     zIndex: 2,
+  },
+  botonResumen: {
+    borderColor: COLOR.PRIMARIO,
+    borderWidth: 1,
+    borderRadius: 14,
+    paddingVertical: 12,
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  botonResumenTexto: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: COLOR.PRIMARIO,
   },
   floatingButton: {
     position: 'absolute',

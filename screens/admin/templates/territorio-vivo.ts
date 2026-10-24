@@ -15,6 +15,7 @@ export default `<!DOCTYPE html>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     html, body { height: 100%; width: 100%; background: #0A0F0E; overflow: hidden; }
     #map { height: 100%; width: 100%; }
+{{CARTO_CSS_ATRIBUCION}}
     .leaflet-top { margin-top: {{TOP_INSET}}px; }
     .leaflet-bottom { margin-bottom: {{BOTTOM_INSET}}px; }
     
@@ -139,7 +140,8 @@ export default `<!DOCTYPE html>
     new LocateControl().addTo(map);
 
     var isDark = true;
-    var tileLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
+    var tileLayer = L.tileLayer('{{CARTO_TILE_OSCURO}}', { maxZoom: 19, attribution: '{{CARTO_ATRIBUCION}}' }).addTo(map);
+{{CARTO_JS_ATRIBUCION}}
 
     var ThemeControl = L.Control.extend({
       options: { position: 'topleft' },
@@ -151,7 +153,7 @@ export default `<!DOCTYPE html>
         L.DomEvent.on(btn, 'click', function () {
           isDark = !isDark;
           map.removeLayer(tileLayer);
-          tileLayer = L.tileLayer(isDark ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png' : 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
+          tileLayer = L.tileLayer(isDark ? '{{CARTO_TILE_OSCURO}}' : '{{CARTO_TILE_CLARO}}', { maxZoom: 19, attribution: '{{CARTO_ATRIBUCION}}' }).addTo(map);
           btn.innerHTML = isDark ? '&#x2600;&#xFE0F;' : '&#x1F319;';
           btn.style.background = isDark ? '#121918' : '#f8f8f8';
           btn.style.borderColor = isDark ? '#1F2D2A' : '#ccc';

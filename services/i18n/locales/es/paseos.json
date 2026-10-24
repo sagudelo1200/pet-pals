@@ -163,7 +163,18 @@
       "elegir_momento": "Confirmar este momento",
       "btn_confirmar_momento": "Confirmar con {{nombre}}",
       "continuar_cuidador": "Continuar con {{nombre}}",
-      "buscar_otro_horario": "Buscar otro horario"
+      "buscar_otro_horario": "Buscar otro horario",
+      "motivos": {
+        "horario": "Disponible {{inicio}} - {{fin}}",
+        "no_trabaja": "No trabaja este día",
+        "ocupado": "Ya tiene un paseo a esa hora",
+        "hora_pasada": "Esa hora ya pasó",
+        "fuera_de_servicio": "Fuera del horario del servicio"
+      },
+      "razones": {
+        "nuevo": "Nuevo en la comunidad",
+        "destacado": "Muy bien calificado"
+      }
     },
     "confirmar": {
       "titulo": "Revisa y confirma",
@@ -192,8 +203,28 @@
     "titulo": "Paseo en curso"
   },
   "resumen": {
-    "titulo": "Resumen del paseo",
-    "rating": "¿Cómo fue?"
+    "que_funciona": "Qué funciona",
+    "que_evitar": "Qué evitar",
+    "ten_en_cuenta": "Ten en cuenta",
+    "alertas": "Alertas",
+    "sin_datos": "Aún no sabemos mucho de {{nombre}}. Observa y registra lo que veas: ayudará a quien lo pasee después.",
+    "primer_paseo": "Primer paseo con {{nombre}}: ve despacio y observa cómo reacciona.",
+    "estado": {
+      "confirmado": "confirmado por el tutor",
+      "firme": "visto varias veces",
+      "observado": "observado"
+    },
+    "revisa_esto": "Revisa esto",
+    "revisa_ayuda": "Un cuidador lo notó. ¿Es así con tu mascota?",
+    "es_asi": "Es así",
+    "no_es_asi": "No es así",
+    "cancelar": "Cancelar",
+    "rechazar_titulo": "¿Quitar este aprendizaje?",
+    "rechazar_mensaje": "Dejará de mostrarse a quienes pasean a tu mascota. No se avisará a nadie.",
+    "error": "No se pudo guardar",
+    "aprendido_titulo": "Lo que hemos aprendido de {{nombre}}",
+    "llegadas_titulo": "Cómo ha llegado en los últimos paseos",
+    "conociendo": "Aún estamos conociendo a {{nombre}}: cada paseo nos enseña algo."
   },
   "modalidad_privado": "Privado",
   "modalidad_compartido": "Compartido",
@@ -324,62 +355,162 @@
     "registrar": "¿Qué pasó?",
     "acciones": {
       "guardando": "Guardando...",
-      "cerrar": "Cerrar"
+      "cerrar": "Cerrar",
+      "volver": "Volver",
+      "omitir": "Omitir",
+      "guardar": "Guardar"
     },
-    "mascota": {
-      "titulo": "🐶 La mascota hizo algo",
-      "subtitulo": "¿Qué pasó con tu perro?",
-      "opciones": {
-        "necesidades": "💩 Hizo necesidades",
+    "a_quien": "¿A quién le pasó?",
+    "todos": "Todos",
+    "nota": {
+      "etiqueta": "Nota (opcional)",
+      "placeholder": "Ej: pasó una moto y se asustó"
+    },
+    "grupos": {
+      "como_esta": {
+        "titulo": "🐶 Cómo está",
+        "subtitulo": "¿Cómo va la mascota?"
+      },
+      "necesidades": {
+        "titulo": "💧 Necesidades",
+        "subtitulo": "Agua y comida"
+      },
+      "lugar_y_ambiente": {
+        "titulo": "📍 Lugar y ambiente",
+        "subtitulo": "¿Dónde están? ¿Cómo está el clima?"
+      },
+      "emergencia": {
+        "titulo": "🚨 Emergencia",
+        "subtitulo": "Algo salió mal"
+      }
+    },
+    "opciones": {
+      "como_esta": {
+        "se_ve_contento": "😊 Se ve contento",
+        "jugo": "🦴 Jugó",
+        "exploro_y_olfateo": "🌱 Exploró y olfateó",
         "corrio": "🏃 Corrió",
-        "juego": "🦴 Jugó",
-        "agua": "💧 Tomó agua",
         "descanso": "😴 Descansó",
-        "socializacion_perros": "🐕 Saludó otros perros",
-        "socializacion_personas": "👶 Saludó personas",
-        "exploró": "🌱 Exploró",
-        "comio": "🍖 Comió algo"
+        "saludo_a_otros_perros": "🐕 Saludó a otros perros",
+        "saludo_a_personas": "👋 Saludó a personas",
+        "se_puso_nervioso": "😰 Se puso nervioso"
+      },
+      "necesidades": {
+        "tomo_agua": "💧 Tomó agua",
+        "comio_algo_del_suelo": "⚠️ Comió algo del suelo"
+      },
+      "lugar_y_ambiente": {
+        "lugar_parque": "🌳 Parque",
+        "lugar_sendero": "🌲 Sendero",
+        "lugar_zona_residencial": "🏡 Zona residencial",
+        "lugar_zona_de_perros": "🐕 Zona de perros",
+        "lugar_pet_friendly": "☕ Lugar pet-friendly",
+        "lugar_rio_o_lago": "🌊 Río o lago",
+        "lugar_en_el_carro": "🚗 En el carro",
+        "lugar_otro": "📍 Otro lugar",
+        "clima_lluvia": "🌧️ Lluvia",
+        "clima_calor_fuerte": "🥵 Calor fuerte",
+        "camino_cerrado": "🚧 Camino cerrado"
+      },
+      "emergencia": {
+        "emergencia": "🚨 Emergencia",
+        "lesion": "🤕 Lesión",
+        "conflicto_con_otro_perro": "🐕 Conflicto con otro perro",
+        "contacte_al_tutor": "📞 Contacté al tutor"
       }
     },
-    "lugar": {
-      "titulo": "📍 Llegamos a un lugar",
-      "subtitulo": "¿A dónde fueron?",
-      "opciones": {
-        "parque": "🌳 Parque",
-        "sendero": "🌲 Sendero",
-        "zona_residencial": "🏡 Zona residencial",
-        "zona_perros": "🐕 Zona de perros",
-        "pet_friendly": "☕ Lugar pet-friendly",
-        "rio": "💧 Río o lago",
-        "vehiculo": "🚗 En el carro",
-        "otro_lugar": "📍 Otro lugar"
+    "seguimientos": {
+      "causa": {
+        "titulo": "¿Con qué se puso nervioso?",
+        "opciones": {
+          "motos_o_carros": "Motos o carros",
+          "ruido_fuerte": "Ruido fuerte",
+          "perro_grande": "Perro grande",
+          "perro_sin_correa": "Perro sin correa",
+          "personas_desconocidas": "Personas desconocidas",
+          "ninos_o_bicicletas": "Niños o bicicletas",
+          "otra_causa": "Otra causa"
+        }
+      },
+      "calma": {
+        "titulo": "¿Qué lo calmó?",
+        "opciones": {
+          "con_voz_suave": "Hablándole",
+          "alejandose_del_estimulo": "Alejándonos",
+          "dejandolo_oler": "Dejándolo oler",
+          "caminando_despacio": "Caminando despacio",
+          "aun_nada": "Aún nada"
+        }
+      },
+      "conflicto": {
+        "titulo": "¿Cómo fue?",
+        "opciones": {
+          "ladro_o_gruno": "Ladró o gruñó",
+          "se_tenso_sin_pelear": "Se tensó sin pelear",
+          "hubo_contacto": "Hubo contacto"
+        }
       }
     },
-    "recuerdo": {
-      "titulo": "❤️ Quiero recordar este momento",
-      "subtitulo": "Guarda una foto, video, nota o voz",
-      "opciones": {
-        "foto": "📷 Foto",
-        "video": "🎥 Video",
-        "voz": "🎙️ Nota de voz",
-        "nota": "✍️ Escribir algo"
-      }
-    },
-    "novedad": {
-      "titulo": "⚠️ Ocurrió una novedad",
-      "subtitulo": "¿Qué pasó?",
-      "opciones": {
-        "asustó": "😨 Se asustó",
-        "lesion": "🤕 Pequeña lesión",
-        "pelea": "🐕 Conflicto con otro perro",
-        "lluvia": "🌧️ Lluvia",
-        "acceso_cerrado": "🚧 Camino cerrado",
-        "contacto": "📞 Contacté al tutor",
-        "emergencia": "🚨 Emergencia"
-      }
+    "confirmar_emergencia": {
+      "titulo": "¿Confirmas la emergencia?",
+      "mensaje": "El tutor recibirá el aviso de inmediato.",
+      "confirmar": "Sí, es una emergencia"
     }
   },
   "timeline": {
     "titulo": "Así fue el paseo"
+  },
+  "llegada": {
+    "titulo": "¿Cómo llegó {{nombres}}?",
+    "titulo_sin_nombre": "¿Cómo llegó tu mascota?",
+    "subtitulo": "Un toque nos ayuda a conocerla mejor y a cuidarla mejor la próxima vez.",
+    "opciones": {
+      "tranquilo": "Tranquilo",
+      "cansado_bien": "Cansado, pero bien",
+      "agitado": "Agitado",
+      "con_molestia": "Con alguna molestia"
+    },
+    "distinto_para_cada_una": "Es distinto para cada mascota",
+    "igual_para_todas": "Es igual para todas",
+    "enviar": "Enviar",
+    "omitir": "Omitir",
+    "mascota_sin_nombre": "Mascota",
+    "error": "No se pudo guardar"
+  },
+  "panel": {
+    "registrar_titulo": "Registrar un momento",
+    "registrar_subtitulo": "Lo que veas ayuda a conocer mejor a {{nombres}}",
+    "escribir_al_tutor": "Escribir al tutor",
+    "como_volver": "Cómo volver",
+    "conocer_titulo": "Lo que necesitas saber de {{nombres}}",
+    "restante": "Tiempo estimado restante: {{minutos}} min",
+    "excedido": "Ya pasó el tiempo estimado del paseo",
+    "compartiendo_ubicacion": "Compartiendo tu ubicación con el tutor",
+    "ver_resumen": "Ver lo que sé de {{nombres}}"
+  },
+  "continuidad": {
+    "ya_conoce": "Ya conoce a {{nombres}}",
+    "ya_conoce_uno": "Ya conoce a {{nombres}} · 1 paseo",
+    "ya_conoce_varios": "Ya conoce a {{nombres}} · {{paseos}} paseos",
+    "pedir_de_nuevo": "Pedir de nuevo a {{cuidador}}",
+    "este_cuidador": "este cuidador"
+  },
+  "advertencias": {
+    "tutor": {
+      "tamano": "Normalmente no cuida el tamaño de {{mascotas}}",
+      "cupo_uno": "Suele cuidar 1 perro a la vez",
+      "cupo_otros": "Suele cuidar hasta {{cupo}} perros a la vez",
+      "titulo": "Antes de continuar",
+      "mensaje": "{{cuidador}}: {{avisos}}. Se lo enviaremos igual y quien cuida decidirá si lo toma.",
+      "continuar": "Enviar igual"
+    },
+    "cuidador": {
+      "tamano": "Incluye a {{mascotas}}, de un tamaño que normalmente no cuidas",
+      "cupo_uno": "Normalmente cuidas 1 perro a la vez",
+      "cupo_otros": "Normalmente cuidas hasta {{cupo}} perros a la vez",
+      "titulo": "Antes de aceptar",
+      "mensaje": "{{avisos}}. ¿Quieres aceptar este paseo de todos modos? Avisaremos al tutor.",
+      "aceptar": "Aceptar de todos modos"
+    }
   }
 }

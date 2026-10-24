@@ -23,6 +23,7 @@ import { AuthStackParamList } from '@/navigation/types'
 import type { Mascota } from '@/models/Mascota'
 import { calcularCompletitud } from '@/logic/mascotas/calcularCompletitud'
 import { ServicioResumenEvaluacion } from '@/services/firebase'
+import { LoQueHemosAprendido } from '@/components/mascota/LoQueHemosAprendido'
 import type { ResumenEvaluacion } from '@/models/ResumenEvaluacion'
 import { keyI18nChip } from '@/logic/mascotas/comportamiento'
 
@@ -160,7 +161,7 @@ const DetalleMascota: React.FC = () => {
 
   const handleEdit = () => {
     // Navegar a pantalla de edición completa
-    ;(navigation as any).navigate('EdicionMascota', {
+    (navigation as any).navigate('EdicionMascota', {
       mascotaId,
     })
   }
@@ -428,6 +429,14 @@ const DetalleMascota: React.FC = () => {
                     textStyle={styles.deleteText}
                   />
                 </View>
+              )}
+
+              {/* Lo que cuidadores y paseos han enseñado de la mascota */}
+              {!isEditMode && mascota?.id && (
+                <LoQueHemosAprendido
+                  mascotaId={mascota.id}
+                  nombre={mascota.nombre}
+                />
               )}
 
               {/* Expediente de la mascota: patrón + observaciones de cuidadores */}

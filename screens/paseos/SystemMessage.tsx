@@ -82,6 +82,40 @@ export const SystemMessage: React.FC<SystemMessageProps> = ({ mensaje }) => {
   }
 
   const { emoji, texto } = parseSystemMessage(mensaje.contenido)
+  // Seguimientos del momento (causa, qué lo calmó, cómo fue), traducidos
+  const detalles: string[] = []
+  const meta = mensaje.metadata ?? {}
+  if (typeof meta.causa === 'string') {
+    detalles.push(
+      t('chat:sistema.detalle.causa', {
+        valor: t(`paseos:momentos.seguimientos.causa.opciones.${meta.causa}`),
+      })
+    )
+  }
+  if (typeof meta.calmo_con === 'string' && meta.calmo_con !== 'aun_nada') {
+    detalles.push(
+      t('chat:sistema.detalle.calmo_con', {
+        valor: t(
+          `paseos:momentos.seguimientos.calma.opciones.${meta.calmo_con}`
+        ),
+      })
+    )
+  }
+  if (typeof meta.detalle_del_conflicto === 'string') {
+    detalles.push(
+      t('chat:sistema.detalle.conflicto', {
+        valor: t(
+          `paseos:momentos.seguimientos.conflicto.opciones.${meta.detalle_del_conflicto}`
+        ),
+      })
+    )
+  }
+
+  // Con varias mascotas, el momento indica a cuál(es) se refiere
+  const mascotas =
+    typeof mensaje.metadata?.mascotas === 'string'
+      ? mensaje.metadata.mascotas
+      : ''
   const tiempoRelativo = getRelativeTime(mensaje.creado_en)
 
   return (
@@ -92,7 +126,12 @@ export const SystemMessage: React.FC<SystemMessageProps> = ({ mensaje }) => {
       {/* Contenido narrativo */}
       <View style={styles.content}>
         <Text style={styles.emoji}>{emoji}</Text>
-        <Text style={styles.texto}>{texto}</Text>
+        <Text style={styles.texto}>
+          {mascotas ? `${mascotas}: ${texto}` : texto}
+        </Text>
+        {detalles.length > 0 && (
+          <Text style={styles.tiempo}>{detalles.join(' · ')}</Text>
+        )}
         <Text style={styles.tiempo}>{tiempoRelativo}</Text>
       </View>
 

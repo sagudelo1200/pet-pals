@@ -18,6 +18,7 @@ import {
 } from '@/services/firebase'
 import { ServicioPerfilPublico } from '@/services/firebase/firestore/colecciones/perfiles_publicos'
 import { GestorAuth } from '@/logic/auth'
+import { desactivarPush } from '@/services/notificaciones/push'
 import { RolUsuario, Usuario } from '@/models/Usuario'
 import type { PerfilPublico } from '@/models/PerfilPublico'
 
@@ -269,6 +270,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   /** Función para cerrar la sesión actual */
   const cerrarSesion = useCallback(async (): Promise<AuthResult> => {
     if (isMountedRef.current) setCargando(true)
+    // Antes de perder la sesión: este dispositivo deja de recibir sus avisos push
+    const uidActual = ServicioAuth.obtenerUsuarioActual()?.uid
+    if (uidActual) await desactivarPush(uidActual)
     const result = await GestorAuth.cerrarSesion()
     if (!result.success && isMountedRef.current) setCargando(false)
     return result

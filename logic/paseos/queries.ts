@@ -31,6 +31,16 @@ export function obtenerQuerySolicitudesPendientes(): Query {
   return ServicioPaseo.getQuerySolicitudesPendientes()
 }
 
+/** Solicitudes pendientes dentro de las celdas H3 de cobertura de un cuidador. */
+export function obtenerQuerySolicitudesEnZona(celdas: string[]): Query {
+  return ServicioPaseo.getQuerySolicitudesEnZona(celdas)
+}
+
+/** Solicitudes pendientes dirigidas a un cuidador. */
+export function obtenerQuerySolicitudesDirigidas(uid: string): Query {
+  return ServicioPaseo.getQuerySolicitudesDirigidas(uid)
+}
+
 /**
  * Obtiene la query para los paseos próximos de un cuidador.
  */

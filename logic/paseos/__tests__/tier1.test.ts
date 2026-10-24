@@ -1,6 +1,7 @@
 /**
- * Tests Tier 1: aceptación de solicitudes (doble asignación y doble reserva)
- * y efectos económicos no bloqueantes al aceptar / finalizar un paseo.
+ * Tests Tier 1: aceptación de solicitudes y cierre del paseo.
+ * Qué cuidador puede tomar un paseo (doble reserva, zona, cupo, tamaño) y la
+ * carrera entre cuidadores los decide el servidor: functions/__tests__/emparejamiento.
  * La escalada automática se prueba en functions/__tests__/paseos.
  */
 
@@ -15,6 +16,10 @@ jest.mock('@/services/firebase', () => ({
   },
 }))
 
+jest.mock('@/services/firebase/emparejamiento', () => ({
+  aceptarPaseo: jest.fn(),
+}))
+
 jest.mock('@/logic/paseos/gestor', () => ({
   paseoActivo: {
     aceptarPaseo: jest.fn(),
@@ -25,7 +30,6 @@ jest.mock('@/logic/paseos/gestor', () => ({
 jest.mock('@/logic/operaciones/auditoria', () => ({
   registrarAuditoria: jest.fn(),
 }))
-
 
 jest.mock('firebase/firestore', () => ({
   collection: jest.fn(),
@@ -38,17 +42,12 @@ jest.mock('firebase/firestore', () => ({
 
 import { aceptarSolicitud, finalizarPaseo } from '@/logic/paseos/casosDeUso'
 import { ServicioAuth, ServicioPaseo } from '@/services/firebase'
+import { aceptarPaseo } from '@/services/firebase/emparejamiento'
 import { registrarAuditoria } from '@/logic/operaciones/auditoria'
-import { getDocs, where } from 'firebase/firestore'
+import { paseoActivo } from '@/logic/paseos/gestor'
 import { ESTADOS_PASEO } from '@/models/Paseo'
 
 const mock = (fn: unknown) => fn as jest.Mock
-
-// Fecha base: 10:00 de un día fijo
-const base = new Date(2030, 0, 10, 10, 0, 0)
-const enMinutos = (min: number) => new Date(base.getTime() + min * 60000)
-// Firestore devuelve Timestamp (con toDate), no Date
-const ts = (d: Date) => ({ toDate: () => d })
 
 function paseoPendiente(overrides: Record<string, unknown> = {}) {
   return {
@@ -56,22 +55,10 @@ function paseoPendiente(overrides: Record<string, unknown> = {}) {
     tipo: 'paseo',
     estado: ESTADOS_PASEO.PENDIENTE,
     creado_por: 'tutor-1',
-    fecha_hora_inicio: ts(enMinutos(15)),
     duracion_estimada: 30,
     precio: 18000,
     ...overrides,
   }
-}
-
-function agenda(...paseos: Array<{ inicio: Date; duracion: number }>) {
-  mock(getDocs).mockResolvedValue({
-    docs: paseos.map(p => ({
-      data: () => ({
-        fecha_hora_inicio: ts(p.inicio),
-        duracion_estimada: p.duracion,
-      }),
-    })),
-  })
 }
 
 describe('Tier 1: aceptarSolicitud', () => {
@@ -86,22 +73,24 @@ describe('Tier 1: aceptarSolicitud', () => {
       success: true,
       data: paseoPendiente(),
     })
-    mock(ServicioPaseo.commitEstadoTransaccional).mockResolvedValue({
-      success: true,
+    mock(aceptarPaseo).mockResolvedValue({
+      aceptado: true,
+      id_cuidador: 'cuidador-1',
     })
     mock(ServicioPaseo.registrarEvento).mockResolvedValue({ success: true })
     mock(registrarAuditoria).mockResolvedValue('aud-1')
-    agenda()
   })
 
-  it('confirma el paseo con el cuidador asignado', async () => {
+  it('el servidor confirma el paseo y la app registra el evento y la auditoría', async () => {
     const res = await aceptarSolicitud('paseo-1')
 
     expect(res.success).toBe(true)
-    expect(ServicioPaseo.commitEstadoTransaccional).toHaveBeenCalledWith(
+    expect(aceptarPaseo).toHaveBeenCalledWith({ paseoId: 'paseo-1' })
+    expect(ServicioPaseo.commitEstadoTransaccional).not.toHaveBeenCalled()
+    expect(paseoActivo.aceptarPaseo).toHaveBeenCalled()
+    expect(ServicioPaseo.registrarEvento).toHaveBeenCalledWith(
       'paseo-1',
-      ESTADOS_PASEO.PENDIENTE,
-      ESTADOS_PASEO.CONFIRMADO,
+      'ACEPTAR',
       expect.objectContaining({ id_cuidador: 'cuidador-1' })
     )
     expect(registrarAuditoria).toHaveBeenCalledWith(
@@ -109,7 +98,55 @@ describe('Tier 1: aceptarSolicitud', () => {
     )
   })
 
-  it('rechaza aceptar un paseo propio', async () => {
+  it('si el servidor no lo deja, devuelve su motivo y no registra nada', async () => {
+    mock(aceptarPaseo).mockRejectedValue(
+      new Error('Ya tienes otro paseo en ese horario')
+    )
+
+    const res: any = await aceptarSolicitud('paseo-1')
+
+    expect(res).toEqual({
+      success: false,
+      error: 'ACEPTACION_RECHAZADA',
+      detalles: 'Ya tienes otro paseo en ese horario',
+    })
+    expect(paseoActivo.aceptarPaseo).not.toHaveBeenCalled()
+    expect(ServicioPaseo.registrarEvento).not.toHaveBeenCalled()
+    expect(registrarAuditoria).not.toHaveBeenCalled()
+  })
+
+  it('si hay avisos (tamaño, cupo), no acepta: los devuelve para que el cuidador decida', async () => {
+    const advertencias = [{ tipo: 'tamano', mascotas: ['Rocky'] }]
+    mock(aceptarPaseo).mockResolvedValue({
+      aceptado: false,
+      requiereConfirmacion: true,
+      advertencias,
+    })
+
+    const res: any = await aceptarSolicitud('paseo-1')
+
+    expect(res).toEqual({
+      success: false,
+      error: 'REQUIERE_CONFIRMACION',
+      advertencias,
+    })
+    expect(paseoActivo.aceptarPaseo).not.toHaveBeenCalled()
+    expect(ServicioPaseo.registrarEvento).not.toHaveBeenCalled()
+    expect(registrarAuditoria).not.toHaveBeenCalled()
+  })
+
+  it('si el cuidador confirma, repite con confirmo y registra la aceptación', async () => {
+    const res = await aceptarSolicitud('paseo-1', { confirmo: true })
+
+    expect(res.success).toBe(true)
+    expect(aceptarPaseo).toHaveBeenCalledWith({
+      paseoId: 'paseo-1',
+      confirmo: true,
+    })
+    expect(registrarAuditoria).toHaveBeenCalled()
+  })
+
+  it('rechaza aceptar un paseo propio sin molestar al servidor', async () => {
     mock(ServicioPaseo.obtenerPorId).mockResolvedValue({
       success: true,
       data: paseoPendiente({ creado_por: 'cuidador-1' }),
@@ -118,7 +155,7 @@ describe('Tier 1: aceptarSolicitud', () => {
     const res = await aceptarSolicitud('paseo-1')
 
     expect(res).toEqual({ success: false, error: 'NO_PUEDE_ACEPTAR_PROPIO_PASEO' })
-    expect(ServicioPaseo.commitEstadoTransaccional).not.toHaveBeenCalled()
+    expect(aceptarPaseo).not.toHaveBeenCalled()
   })
 
   it('rechaza si el paseo ya no está PENDIENTE', async () => {
@@ -130,6 +167,7 @@ describe('Tier 1: aceptarSolicitud', () => {
     const res = await aceptarSolicitud('paseo-1')
 
     expect(res).toEqual({ success: false, error: 'PASEO_NO_DISPONIBLE' })
+    expect(aceptarPaseo).not.toHaveBeenCalled()
   })
 
   it('rechaza una solicitud dirigida a otro cuidador', async () => {
@@ -141,123 +179,16 @@ describe('Tier 1: aceptarSolicitud', () => {
     const res = await aceptarSolicitud('paseo-1')
 
     expect(res).toEqual({ success: false, error: 'PASEO_YA_ACEPTADO' })
+    expect(aceptarPaseo).not.toHaveBeenCalled()
   })
 
-  describe('Doble reserva (con Timestamp de Firestore)', () => {
-    it('detecta solapamiento: agenda 10:00-10:30 vs solicitud 10:15-10:45', async () => {
-      agenda({ inicio: enMinutos(0), duracion: 30 })
+  it('sin sesión no hace nada', async () => {
+    mock(ServicioAuth.obtenerUsuarioActual).mockReturnValue(null)
 
-      const res: any = await aceptarSolicitud('paseo-1')
+    const res: any = await aceptarSolicitud('paseo-1')
 
-      expect(res.success).toBe(false)
-      expect(res.error).toBe('DOBLE_BOOKING_DETECTADO')
-      expect(res.detalles).toContain('30min')
-      expect(ServicioPaseo.commitEstadoTransaccional).not.toHaveBeenCalled()
-    })
-
-    it('permite paseos consecutivos fuera del buffer de 5 min (10:00-10:30 vs 10:40)', async () => {
-      agenda({ inicio: enMinutos(0), duracion: 30 })
-      mock(ServicioPaseo.obtenerPorId).mockResolvedValue({
-        success: true,
-        data: paseoPendiente({ fecha_hora_inicio: ts(enMinutos(40)) }),
-      })
-
-      const res = await aceptarSolicitud('paseo-1')
-
-      expect(res.success).toBe(true)
-    })
-
-    it('respeta el buffer de 5 min (10:00-10:30 vs 10:33 se solapa)', async () => {
-      agenda({ inicio: enMinutos(0), duracion: 30 })
-      mock(ServicioPaseo.obtenerPorId).mockResolvedValue({
-        success: true,
-        data: paseoPendiente({ fecha_hora_inicio: ts(enMinutos(33)) }),
-      })
-
-      const res: any = await aceptarSolicitud('paseo-1')
-
-      expect(res.error).toBe('DOBLE_BOOKING_DETECTADO')
-    })
-
-    it('acepta fecha_hora_inicio como Date además de Timestamp', async () => {
-      mock(ServicioPaseo.obtenerPorId).mockResolvedValue({
-        success: true,
-        data: paseoPendiente({ fecha_hora_inicio: enMinutos(15) }),
-      })
-      agenda({ inicio: enMinutos(0), duracion: 30 })
-
-      const res: any = await aceptarSolicitud('paseo-1')
-
-      expect(res.error).toBe('DOBLE_BOOKING_DETECTADO')
-    })
-
-    it('consulta todos los estados activos del cuidador, incluido EN_PUNTO_RECOGIDA', async () => {
-      await aceptarSolicitud('paseo-1')
-
-      expect(where).toHaveBeenCalledWith('id_cuidador', '==', 'cuidador-1')
-      expect(where).toHaveBeenCalledWith('estado', 'in', [
-        ESTADOS_PASEO.CONFIRMADO,
-        ESTADOS_PASEO.EN_CAMINO,
-        ESTADOS_PASEO.EN_PUNTO_RECOGIDA,
-        ESTADOS_PASEO.EN_PROGRESO,
-      ])
-    })
-
-    it('si la consulta de agenda falla, no acepta (ERROR_VALIDACION)', async () => {
-      mock(getDocs).mockRejectedValue(new Error('requires an index'))
-
-      const res: any = await aceptarSolicitud('paseo-1')
-
-      expect(res.success).toBe(false)
-      expect(res.error).toBe('ERROR_VALIDACION')
-    })
-  })
-
-  describe('Doble asignación (carrera entre cuidadores)', () => {
-    it('reintenta si el estado cambió y el paseo sigue PENDIENTE', async () => {
-      mock(ServicioPaseo.commitEstadoTransaccional)
-        .mockResolvedValueOnce({ success: false, error: 'ESTADO_NO_ESPERADO' })
-        .mockResolvedValueOnce({ success: true })
-
-      const res = await aceptarSolicitud('paseo-1')
-
-      expect(res.success).toBe(true)
-      expect(ServicioPaseo.commitEstadoTransaccional).toHaveBeenCalledTimes(2)
-    })
-
-    it('devuelve PASEO_YA_ACEPTADO con el nombre de quien ganó la carrera', async () => {
-      mock(ServicioPaseo.commitEstadoTransaccional).mockResolvedValue({
-        success: false,
-        error: 'ESTADO_NO_ESPERADO',
-      })
-      mock(ServicioPaseo.obtenerPorId)
-        .mockResolvedValueOnce({ success: true, data: paseoPendiente() })
-        .mockResolvedValueOnce({
-          success: true,
-          data: paseoPendiente({
-            estado: ESTADOS_PASEO.CONFIRMADO,
-            cuidador_nombre_visual: 'Ana',
-          }),
-        })
-
-      const res: any = await aceptarSolicitud('paseo-1')
-
-      expect(res.error).toBe('PASEO_YA_ACEPTADO')
-      expect(res.detalles).toContain('Ana')
-      expect(ServicioPaseo.commitEstadoTransaccional).toHaveBeenCalledTimes(1)
-    })
-
-    it('no reintenta ante errores que no son de doble asignación', async () => {
-      mock(ServicioPaseo.commitEstadoTransaccional).mockResolvedValue({
-        success: false,
-        error: 'PERMISOS_INSUFICIENTES',
-      })
-
-      const res: any = await aceptarSolicitud('paseo-1')
-
-      expect(res.error).toBe('PERMISOS_INSUFICIENTES')
-      expect(ServicioPaseo.commitEstadoTransaccional).toHaveBeenCalledTimes(1)
-    })
+    expect(res.success).toBe(false)
+    expect(aceptarPaseo).not.toHaveBeenCalled()
   })
 })
 

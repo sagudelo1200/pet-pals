@@ -116,12 +116,12 @@ describe('motor de versionado', () => {
 
 describe('configuración operativa', () => {
   test('sin documento usa los valores del catálogo', async () => {
-    expect(await leerConfiguracion(db, 'paseos')).toEqual({ max_mascotas: 4, escalada_minutos: 30 })
+    expect(await leerConfiguracion(db, 'paseos')).toEqual({ max_mascotas: 4, escalada_minutos: 30, foto_entrega_obligatoria: false, entrega_aviso_horas: 3, entrega_revision_horas: 12 })
   })
 
   test('valor guardado inválido: usa el del catálogo', async () => {
     db.__seed('configuracion/paseos', { max_mascotas: 999, escalada_minutos: 45 })
-    expect(await leerConfiguracion(db, 'paseos')).toEqual({ max_mascotas: 4, escalada_minutos: 45 })
+    expect(await leerConfiguracion(db, 'paseos')).toEqual({ max_mascotas: 4, escalada_minutos: 45, foto_entrega_obligatoria: false, entrega_aviso_horas: 3, entrega_revision_horas: 12 })
   })
 
   test('actualizar valida, guarda solo lo que cambia y deja historial', async () => {
@@ -159,7 +159,9 @@ describe('configuración operativa', () => {
   test('sembrar crea lo que falta sin pisar lo existente', async () => {
     db.__seed('configuracion/paseos', { max_mascotas: 6 })
     const sembrado = await sembrarConfiguracion(db, AHORA)
-    expect(sembrado.paseos).toEqual(['escalada_minutos'])
+    expect(sembrado.paseos).toEqual([
+      'escalada_minutos', 'foto_entrega_obligatoria', 'entrega_aviso_horas', 'entrega_revision_horas',
+    ])
     expect(doc('configuracion/paseos').max_mascotas).toBe(6)
     expect(doc('configuracion/auth')).toMatchObject({ otp_minutos_expiracion: 10, otp_max_intentos: 3 })
     expect(await sembrarConfiguracion(db, AHORA)).toEqual({})

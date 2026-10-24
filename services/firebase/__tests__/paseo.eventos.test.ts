@@ -20,7 +20,9 @@ jest.mock('firebase/firestore', () => ({
 }))
 
 jest.mock('@/services/firebase/auth/auth', () => ({
-  ServicioAuth: { obtenerUsuarioActual: jest.fn(() => ({ uid: 'cuidador-1' })) },
+  ServicioAuth: {
+    obtenerUsuarioActual: jest.fn(() => ({ uid: 'cuidador-1' })),
+  },
 }))
 
 jest.mock('@/services/geo/enriquecimientoTerritorial', () => ({
@@ -31,9 +33,12 @@ jest.mock('@/logic/paseos/detectarPatrones', () => ({
   detectarPatron: jest.fn(),
 }))
 
-jest.mock('@/services/firebase/firestore/agregadores/territorial.aggregator', () => ({
-  TerritorialAggregator: { publishEvento: jest.fn() },
-}))
+jest.mock(
+  '@/services/firebase/firestore/agregadores/territorial.aggregator',
+  () => ({
+    TerritorialAggregator: { publishEvento: jest.fn() },
+  })
+)
 
 jest.mock('@/services/firebase/firestore/colecciones/chat', () => ({
   ServicioChat: { enviarMensaje: jest.fn() },
@@ -53,9 +58,13 @@ describe('ServicioPaseo.registrarEvento', () => {
   beforeEach(() => {
     jest.clearAllMocks()
     mock(addDoc).mockResolvedValue({ id: 'e1' })
-    mock(getDoc).mockResolvedValue({ data: () => ({ fecha_inicio_real: new Date() }) })
+    mock(getDoc).mockResolvedValue({
+      data: () => ({ fecha_inicio_real: new Date() }),
+    })
     mock(getDocs).mockResolvedValue({ docs: [] })
-    mock(enriquecerContextoConAPIs).mockResolvedValue({ clima_actual: 'soleado' })
+    mock(enriquecerContextoConAPIs).mockResolvedValue({
+      clima_actual: 'soleado',
+    })
     mock(detectarPatron).mockReturnValue(null)
   })
 
@@ -65,7 +74,11 @@ describe('ServicioPaseo.registrarEvento', () => {
     expect(res.success).toBe(true)
     const entry = mock(addDoc).mock.calls[0][1]
     expect(entry).toEqual(
-      expect.objectContaining({ evento: 'ACEPTAR', payload: { x: 1 }, actor: 'cuidador-1' })
+      expect.objectContaining({
+        evento: 'ACEPTAR',
+        payload: { x: 1 },
+        actor: 'cuidador-1',
+      })
     )
     expect(entry).not.toHaveProperty('hechoTerritorial')
     expect(entry).not.toHaveProperty('contextoTerritorial')
@@ -136,5 +149,196 @@ describe('ServicioPaseo.registrarEvento', () => {
 
     expect(res.success).toBe(false)
     expect(ServicioPaseo.obtenerEventosPendientes('p1')).toEqual([])
+  })
+})
+
+describe('ServicioPaseo.registrarBitacora (por mascota)', () => {
+  const {
+    ServicioChat,
+  } = require('@/services/firebase/firestore/colecciones/chat')
+
+  beforeEach(() => {
+    jest.clearAllMocks()
+    mock(addDoc).mockResolvedValue({ id: 'e1' })
+    mock(getDoc).mockResolvedValue({ data: () => ({}) })
+    mock(getDocs).mockResolvedValue({ docs: [] })
+    mock(detectarPatron).mockReturnValue(null)
+    mock(ServicioChat.enviarMensaje).mockResolvedValue({ success: true })
+  })
+
+  it('guarda mascota_ids en el payload y los nombres en el mensaje del chat', async () => {
+    const res = await ServicioPaseo.registrarBitacora('p1', 'juego', {
+      mascotaIds: ['m1', 'm2', 'm1'],
+      nombresMascotas: 'Max y Luna',
+    })
+
+    expect(res.success).toBe(true)
+    const entry = mock(addDoc).mock.calls[0][1]
+    expect(entry.payload.mascota_ids).toEqual(['m1', 'm2'])
+    const metadata = mock(ServicioChat.enviarMensaje).mock.calls[0][3]
+    expect(metadata).toEqual(
+      expect.objectContaining({ mascotas: 'Max y Luna' })
+    )
+  })
+
+  it('sin mascotas elegidas (todo el grupo) no agrega mascota_ids', async () => {
+    await ServicioPaseo.registrarBitacora('p1', 'juego', {
+      mascotaIds: [],
+      nombresMascotas: 'Max y Luna',
+    })
+    await ServicioPaseo.registrarBitacora('p1', 'descanso')
+
+    for (const [, entry] of mock(addDoc).mock.calls) {
+      expect(entry.payload).not.toHaveProperty('mascota_ids')
+    }
+    for (const llamada of mock(ServicioChat.enviarMensaje).mock.calls) {
+      expect(llamada[3]).not.toHaveProperty('mascotas')
+    }
+  })
+})
+
+describe('ServicioPaseo.registrarMomento (catálogo de momentos)', () => {
+  const {
+    ServicioChat,
+  } = require('@/services/firebase/firestore/colecciones/chat')
+
+  beforeEach(() => {
+    jest.clearAllMocks()
+    mock(addDoc).mockResolvedValue({ id: 'e1' })
+    mock(getDoc).mockResolvedValue({ data: () => ({}) })
+    mock(getDocs).mockResolvedValue({ docs: [] })
+    mock(detectarPatron).mockReturnValue(null)
+    mock(ServicioChat.enviarMensaje).mockResolvedValue({ success: true })
+  })
+
+  it('un momento va a la bitácora con su grupo, dominio y seguimiento', async () => {
+    const res = await ServicioPaseo.registrarMomento(
+      'p1',
+      {
+        clave: 'como_esta.se_puso_nervioso',
+        causa: 'motos_o_carros',
+        calmo_con: 'dejandolo_oler',
+        lugar: 'lugar_y_ambiente.lugar_parque',
+      },
+      { mascotaIds: ['m1'], nombresMascotas: 'Luna' }
+    )
+
+    expect(res.success).toBe(true)
+    const entry = mock(addDoc).mock.calls[0][1]
+    expect(entry.evento).toBe('bitacora')
+    expect(entry.payload).toMatchObject({
+      accion: 'como_esta.se_puso_nervioso',
+      clave: 'como_esta.se_puso_nervioso',
+      grupo: 'como_esta',
+      dominio: 'estado_mental',
+      causa: 'motos_o_carros',
+      calmo_con: 'dejandolo_oler',
+      lugar: 'lugar_y_ambiente.lugar_parque',
+      mascota_ids: ['m1'],
+    })
+    const [, contenido, tipo, metadata] = mock(ServicioChat.enviarMensaje).mock
+      .calls[0]
+    expect(contenido).toBe('chat:sistema.momentos.como_esta.se_puso_nervioso')
+    expect(tipo).toBe('sistema')
+    expect(metadata).toMatchObject({
+      causa: 'motos_o_carros',
+      calmo_con: 'dejandolo_oler',
+    })
+  })
+
+  it('un momento sin seguimiento no agrega campos vacíos', async () => {
+    await ServicioPaseo.registrarMomento('p1', {
+      clave: 'necesidades.tomo_agua',
+    })
+
+    const payload = mock(addDoc).mock.calls[0][1].payload
+    expect(payload).not.toHaveProperty('causa')
+    expect(payload).not.toHaveProperty('lugar')
+    expect(payload).not.toHaveProperty('mascota_ids')
+  })
+
+  it('los de Emergencia son incidentes con su severidad', async () => {
+    await ServicioPaseo.registrarMomento(
+      'p1',
+      { clave: 'emergencia.lesion' },
+      {
+        nota: 'Se cortó la pata',
+        mascotaIds: ['m1', 'm2'],
+        nombresMascotas: 'Luna y Max',
+      }
+    )
+
+    const entry = mock(addDoc).mock.calls[0][1]
+    expect(entry.evento).toBe('incidente')
+    expect(entry.payload).toMatchObject({
+      tipo: 'lesion',
+      severidad: 'media',
+      clave: 'emergencia.lesion',
+      dominio: 'salud',
+      descripcion: 'Se cortó la pata',
+      mascota_ids: ['m1', 'm2'],
+    })
+    // El mensaje del chat es la clave i18n pura (con emoji delante no se traducía)
+    const [, contenido, , metadata] = mock(ServicioChat.enviarMensaje).mock
+      .calls[0]
+    expect(contenido).toBe('chat:sistema.incidentes.lesion')
+    expect(metadata).toMatchObject({
+      severidad: 'media',
+      mascotas: 'Luna y Max',
+    })
+  })
+
+  it.each([
+    ['emergencia.emergencia', 'critica'],
+    ['emergencia.lesion', 'media'],
+    ['emergencia.conflicto_con_otro_perro', 'media'],
+    ['emergencia.contacte_al_tutor', 'baja'],
+  ])('%s se registra con severidad %s', async (clave, severidad) => {
+    await ServicioPaseo.registrarMomento('p1', { clave })
+    expect(mock(addDoc).mock.calls[0][1].payload.severidad).toBe(severidad)
+  })
+
+  it('el detalle del conflicto viaja en el incidente', async () => {
+    await ServicioPaseo.registrarMomento('p1', {
+      clave: 'emergencia.conflicto_con_otro_perro',
+      detalle_del_conflicto: 'ladro_o_gruno',
+    })
+    expect(mock(addDoc).mock.calls[0][1].payload).toMatchObject({
+      tipo: 'conflicto_con_otro_perro',
+      detalle_del_conflicto: 'ladro_o_gruno',
+    })
+    expect(mock(ServicioChat.enviarMensaje).mock.calls[0][3]).toMatchObject({
+      detalle_del_conflicto: 'ladro_o_gruno',
+    })
+  })
+
+  it.each([
+    ['clave desconocida', { clave: 'como_esta.inventado' }],
+    [
+      'causa que no corresponde',
+      { clave: 'como_esta.jugo', causa: 'motos_o_carros' },
+    ],
+    [
+      'seguimiento desconocido',
+      { clave: 'como_esta.se_puso_nervioso', causa: 'x' },
+    ],
+  ])('rechaza sin escribir nada: %s', async (_nombre, momento) => {
+    const res = await ServicioPaseo.registrarMomento('p1', momento as any)
+
+    expect(res).toEqual({ success: false, error: 'MOMENTO_INVALIDO' })
+    expect(addDoc).not.toHaveBeenCalled()
+    expect(ServicioChat.enviarMensaje).not.toHaveBeenCalled()
+  })
+
+  it('sin sesión no registra', async () => {
+    const { ServicioAuth } = require('@/services/firebase/auth/auth')
+    mock(ServicioAuth.obtenerUsuarioActual).mockReturnValueOnce(null)
+
+    const res = await ServicioPaseo.registrarMomento('p1', {
+      clave: 'como_esta.jugo',
+    })
+
+    expect(res.success).toBe(false)
+    expect(addDoc).not.toHaveBeenCalled()
   })
 })

@@ -72,6 +72,7 @@ module.exports = {
     },
     plugins: [
       'expo-web-browser',
+      'expo-notifications',
       [
         'expo-location',
         {
@@ -116,8 +117,20 @@ module.exports = {
         androidCert: process.env.ANDROID_CERT_FINGERPRINT,
         androidPackage: 'com.pawpath.app',
       },
+      // Emuladores de Firebase (solo desarrollo): USE_FIREBASE_EMULATORS=true.
+      // Sin la variable, la app usa el proyecto real.
+      emuladores:
+        process.env.USE_FIREBASE_EMULATORS === 'true'
+          ? {
+              host: process.env.FIREBASE_EMULATOR_HOST || '10.0.2.2',
+              projectId: 'demo-pawpath',
+            }
+          : undefined,
+      carto: {
+        apiKey: process.env.CARTO_API_KEY,
+      },
       eas: {
-        projectId: 'd3ca7f25-475f-46bf-a15b-84e90f011599',
+        projectId: '8e6a8d3c-f97d-42cc-8444-e8f196ea4e72',
       },
     },
   },

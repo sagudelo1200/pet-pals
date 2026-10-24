@@ -19,6 +19,7 @@ const NAMESPACE_LIST = [
   'chat',
   'evaluaciones',
   'consentimientos',
+  'notificaciones',
 ] as const
 
 // Mapa de módulos por idioma (agregar pt, fr, etc. aquí)

@@ -38,9 +38,14 @@ const {
 } = desdeFunctions('lib/compartido/versionables')
 const { tipoVersionableConsentimiento } = desdeFunctions('lib/compartido/consentimiento')
 
-const credentials = require('./firebaseCredentials.json')
+// Con FIRESTORE_EMULATOR_HOST el seed va al emulador (sin credenciales ni
+// proyecto real); sin esa variable usa la cuenta de servicio del proyecto real.
+const EMULADOR = !!process.env.FIRESTORE_EMULATOR_HOST
+const credentials = EMULADOR
+  ? { project_id: 'demo-pawpath (emulador)' }
+  : require('./firebaseCredentials.json')
 
-initializeApp({ credential: cert(credentials) })
+initializeApp(EMULADOR ? { projectId: 'demo-pawpath' } : { credential: cert(credentials) })
 const db = getFirestore()
 
 const AUTOR = 'sistema-seed'
@@ -75,6 +80,12 @@ const POLITICA_COMERCIAL = {
   },
   // Documento soporte al pagar a cuidadores no obligados a facturar
   contabilidad: { documento_soporte_cuidador: true },
+  entrega: {
+    ventana_reclamo_horas: 48,
+    cobrar_si_cierra_equipo: true,
+    cierre_automatico_horas: 0,
+    cierre_automatico_requiere_evidencia: true,
+  },
 }
 
 const CONSENTIMIENTOS = [

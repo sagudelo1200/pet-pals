@@ -258,12 +258,19 @@ export interface Paseo extends Operacion, BaseModel {
   ubicacion_fin_txt?: string
   /** Referencia al documento de tracking GPS si aplica. */
   tracking_gps?: string
+  /**
+   * Celda H3 (R8) del punto de recogida. Permite que cada cuidador vea solo
+   * las solicitudes de su zona de cobertura.
+   */
+  h3_r8?: string
   /** Celda H3 (R9) donde ocurre el paseo (para inteligencia territorial). */
   h3_r9?: string
   /** Nombre de la primera mascota para visualización en listas. */
   mascota_nombre_visual?: string
   /** Foto de la primera mascota para visualización en listas. */
   mascota_foto_visual?: string
+  /** Foto del grupo al finalizar (URL en Storage); solo si la configuración la exige. */
+  foto_entrega_grupo?: string
   /** Lista de fotos (hasta 4) para paseos múltiples. */
   mascotas_fotos_visual?: string[]
   /** Nombre del cuidador para visualización en listas. */

@@ -1,49 +1,73 @@
-import { useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useCollection } from '@/hooks/useCollection'
 import { GestorPaseos } from '@/logic/paseos'
+import {
+  celdasDeSolicitudes,
+  ordenarSolicitudes,
+} from '@/logic/paseos/solicitudes'
+import { GestorPerfilPublico } from '@/logic/usuarios/perfilPublico'
 import { Paseo } from '@/models/Paseo'
+import type { PerfilPublico } from '@/models/PerfilPublico'
 import { GestorAuth } from '@/logic/auth'
 
+/**
+ * Solicitudes que puede tomar el cuidador: las de su zona de cobertura (las
+ * dirigidas a él siempre), las suyas primero y luego las más cercanas.
+ */
 export function useSolicitudesCuidador() {
-  const user = GestorAuth.obtenerUsuarioActual()
+  const uid = GestorAuth.obtenerUsuarioActual()?.uid
+  const [perfil, setPerfil] = useState<PerfilPublico | null>(null)
+  const [cargandoPerfil, setCargandoPerfil] = useState(true)
 
-  // Memoizamos la query para evitar recrearla en cada render
-  const query = useMemo(
-    () => GestorPaseos.obtenerQuerySolicitudesPendientes(),
-    []
+  useEffect(() => {
+    let vigente = true
+    if (!uid) {
+      setCargandoPerfil(false)
+      return undefined
+    }
+    GestorPerfilPublico.obtenerPorId(uid).then(res => {
+      if (!vigente) return
+      setPerfil(res.success && res.data ? res.data : null)
+      setCargandoPerfil(false)
+    })
+    return () => {
+      vigente = false
+    }
+  }, [uid])
+
+  const celdas = useMemo(
+    () => (perfil ? celdasDeSolicitudes(perfil) : []),
+    [perfil]
+  )
+
+  // Memoizamos las queries para evitar recrearlas en cada render
+  const queryZona = useMemo(
+    () =>
+      celdas.length > 0 ? GestorPaseos.obtenerQuerySolicitudesEnZona(celdas) : null,
+    [celdas]
+  )
+  const queryDirigidas = useMemo(
+    () => (uid ? GestorPaseos.obtenerQuerySolicitudesDirigidas(uid) : null),
+    [uid]
   )
 
   // Usamos listen: true para actualizaciones en tiempo real
-  const { data, cargando, error } = useCollection<Paseo>(query, {
-    listen: true,
-  })
+  const zona = useCollection<Paseo>(queryZona, { listen: true })
+  const dirigidas = useCollection<Paseo>(queryDirigidas, { listen: true })
 
-  const solicitudes = useMemo(() => {
-    if (!data) return []
+  const solicitudes = useMemo(
+    () =>
+      ordenarSolicitudes(
+        [...(dirigidas.data ?? []), ...(zona.data ?? [])],
+        uid,
+        perfil?.h3_r8
+      ),
+    [dirigidas.data, zona.data, uid, perfil?.h3_r8]
+  )
 
-    const filtradas = data.filter(p => {
-      // Excluir solicitudes que el propio usuario haya creado
-      // (evita que un tutor pueda auto-aceptarse paseos)
-      if (p.creado_por === user?.uid) return false
-
-      // Mostrar si no tiene cuidador asignado (mercado abierto)
-      if (!p.id_cuidador) return true
-      // Mostrar si está asignado a mí específicamente
-      if (p.id_cuidador === user?.uid) return true
-      // Ocultar si está asignado a otro
-      return false
-    })
-
-    // Ordenar: Directas primero, luego Abiertas
-    return filtradas.sort((a, b) => {
-      const aEsDirecta = a.id_cuidador === user?.uid
-      const bEsDirecta = b.id_cuidador === user?.uid
-
-      if (aEsDirecta && !bEsDirecta) return -1
-      if (!aEsDirecta && bEsDirecta) return 1
-      return 0 // Mantener orden original (por fecha)
-    })
-  }, [data, user?.uid])
-
-  return { solicitudes, cargando, error }
+  return {
+    solicitudes,
+    cargando: cargandoPerfil || zona.cargando || dirigidas.cargando,
+    error: zona.error ?? dirigidas.error,
+  }
 }

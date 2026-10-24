@@ -21,6 +21,7 @@ import {CloudTasksClient} from '@google-cloud/tasks';
 import {cuentaServicioTasks} from '../evaluaciones/cloudTasks';
 import {esTareaDuplicada, nombreTarea} from '../economia/tareas';
 import {leerConfiguracion} from '../comun/configuracion';
+import {notificar} from '../comun/notificar';
 
 if (!admin.apps || admin.apps.length === 0) {
   admin.initializeApp();
@@ -282,24 +283,10 @@ async function notificarTutorEscalada(
       return;
     }
 
-    const notifRef = db
-      .collection('usuarios')
-      .doc(tutorId)
-      .collection('notificaciones')
-      .doc();
-
-    await notifRef.set({
+    await notificar(db, {
       tipo: 'SOLICITUD_ESCALADA',
-      paseo_id: paseoId,
-      titulo: '✅ Tu solicitud está disponible',
-      cuerpo:
-        'El cuidador asignado no respondió. Otros cuidadores pueden verla ahora.',
-      leido: false,
-      creado_en: admin.firestore.Timestamp.now(),
-      datos: {
-        paseo_id: paseoId,
-        accion: 'abrir_solicitud',
-      },
+      uid: tutorId,
+      datos: {paseo_id: paseoId},
     });
 
     console.log(`[Escalada] 🔔 Notificación registrada para tutor ${tutorId}`);

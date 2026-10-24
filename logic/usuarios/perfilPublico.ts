@@ -261,6 +261,15 @@ export class GestorPerfilPublico {
   static async obtenerCuidadoresPorH3(
     indiceCelda: string
   ): Promise<CrudResult<EntradaCuidadorCobertura[]>> {
-    return ServicioIndiceCobertura.obtenerCuidadoresPorCelda(indiceCelda)
+    const res =
+      await ServicioIndiceCobertura.obtenerCuidadoresPorCelda(indiceCelda)
+    if (!res.success || !res.data) return res
+    // Mismo requisito que la búsqueda sin zona: solo identidad verificada
+    return {
+      ...res,
+      data: res.data.filter(c =>
+        c.insignias_verificacion?.includes('IDENTIDAD')
+      ),
+    }
   }
 }

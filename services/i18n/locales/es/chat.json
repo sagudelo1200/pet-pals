@@ -25,42 +25,49 @@
   "time_recently": "Hace poco",
   "_notice": "Mensajes del sistema de bitácora - generados automáticamente cuando el cuidador registra eventos",
   "sistema": {
-    "acciones_mascota": {
-      "necesidades": "🐕 La mascota hizo sus necesidades",
-      "corrio": "🏃 La mascota corrió mucho",
-      "juego": "🦴 La mascota jugó",
-      "agua": "💧 La mascota tomó agua",
-      "descanso": "😴 La mascota descansó",
-      "socializacion_perros": "🐕 La mascota saludó otros perros",
-      "socializacion_personas": "👶 La mascota saludó personas",
-      "exploró": "🌱 La mascota exploró",
-      "comio": "🍖 La mascota comió"
+    "entrega": {
+      "pendiente": "⏳ El paseo terminó. Ingresa el código de entrega para confirmar que tu mascota ya llegó."
     },
-    "lugares": {
-      "parque": "🌳 Llegamos al parque",
-      "sendero": "🌲 Entramos a un sendero",
-      "zona_residencial": "🏡 Caminamos por la zona residencial",
-      "zona_perros": "🐕 Entramos a una zona de perros",
-      "pet_friendly": "☕ Visitamos un lugar pet friendly",
-      "rio": "🌊 Visitamos un río o lago",
-      "vehiculo": "🚗 Subimos al carro",
-      "otro_lugar": "📍 Visitamos otro lugar"
+    "generico": "📝 Evento registrado en el paseo",
+    "momentos": {
+      "como_esta": {
+        "se_ve_contento": "😊 Buen ánimo durante el paseo",
+        "jugo": "🦴 Momento de juego",
+        "exploro_y_olfateo": "🌱 Exploración y olfateo",
+        "corrio": "🏃 Carrera",
+        "descanso": "😴 Descanso",
+        "saludo_a_otros_perros": "🐕 Saludo a otros perros",
+        "saludo_a_personas": "👋 Saludo a personas",
+        "se_puso_nervioso": "😰 Nerviosismo"
+      },
+      "necesidades": {
+        "tomo_agua": "💧 Pausa para tomar agua",
+        "comio_algo_del_suelo": "⚠️ Comida del suelo"
+      },
+      "lugar_y_ambiente": {
+        "lugar_parque": "🌳 Llegamos al parque",
+        "lugar_sendero": "🌲 Entramos a un sendero",
+        "lugar_zona_residencial": "🏡 Caminamos por la zona residencial",
+        "lugar_zona_de_perros": "🐕 Entramos a una zona de perros",
+        "lugar_pet_friendly": "☕ Visitamos un lugar pet-friendly",
+        "lugar_rio_o_lago": "🌊 Visitamos un río o lago",
+        "lugar_en_el_carro": "🚗 Subimos al carro",
+        "lugar_otro": "📍 Visitamos otro lugar",
+        "clima_lluvia": "🌧️ Empezó a llover",
+        "clima_calor_fuerte": "🥵 Hace mucho calor",
+        "camino_cerrado": "🚧 El camino estaba cerrado"
+      }
     },
-    "recuerdos": {
-      "foto": "📸 Capturaron una foto",
-      "video": "🎥 Grabaron un video",
-      "voz": "🎤 Grabaron una nota de voz",
-      "nota": "✍️ Escribieron una nota"
+    "incidentes": {
+      "emergencia": "🚨 Emergencia durante el paseo",
+      "lesion": "🤕 Lesión durante el paseo",
+      "conflicto_con_otro_perro": "🐕 Conflicto con otro perro",
+      "contacte_al_tutor": "📞 El cuidador necesita contactar al tutor"
     },
-    "novedades": {
-      "asustó": "😨 La mascota se asustó",
-      "lesion": "🤕 La mascota se lastimó",
-      "pelea": "🐕 La mascota peleó con otro perro",
-      "lluvia": "🌧 Se refugiaron de la lluvia",
-      "acceso_cerrado": "🚫 El acceso estaba cerrado",
-      "contacto": "📞 Necesitaron contactar al tutor",
-      "emergencia": "🚨 Emergencia durante el paseo"
-    },
-    "generico": "📝 Evento registrado en el paseo"
+    "detalle": {
+      "causa": "Causa: {{valor}}",
+      "calmo_con": "Lo calmó: {{valor}}",
+      "conflicto": "Cómo fue: {{valor}}"
+    }
   }
 }

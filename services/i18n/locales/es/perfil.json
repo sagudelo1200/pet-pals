@@ -52,6 +52,16 @@
     },
     "hora_inicio": "Hora Inicio",
     "hora_fin": "Hora Fin",
-    "tarifa_estandar_mvp": "Precio estándar Paw-Path: $18.000 (MVP)"
+    "tarifa_estandar_mvp": "Precio estándar Paw-Path: $18.000 (MVP)",
+    "perros_titulo": "Qué perros cuidas",
+    "perros_ayuda": "Marca los tamaños de perro que cuidas. Solo te mostramos a tutores cuyos perros encajen.",
+    "tamano_label": "Tamaños que cuidas",
+    "tamanos": {
+      "pequeño": "Pequeño",
+      "mediano": "Mediano",
+      "grande": "Grande",
+      "gigante": "Gigante"
+    },
+    "max_mascotas_label": "Perros a la vez"
   }
 }

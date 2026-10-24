@@ -14,6 +14,7 @@
  */
 import type {Firestore, Timestamp} from 'firebase-admin/firestore';
 import {FieldValue} from 'firebase-admin/firestore';
+import {notificar} from '../comun/notificar';
 import {horaColombia, inicioDiaColombia} from './calculo';
 import {COLECCION, type PoliticaCobro} from './tipos';
 
@@ -32,6 +33,17 @@ export interface CobroPendiente {
   recordatorios_enviados?: number
   ultimo_recordatorio_en?: Timestamp
   bloqueo_aplicado?: boolean
+  /** Reclamo del tutor: mientras esté ABIERTO no hay recordatorios ni bloqueo. */
+  reclamo?: {estado?: string}
+}
+
+/**
+ * ¿El tutor tiene un reclamo abierto sobre este cobro? (se pausa la cobranza)
+ * @param {object} o Cobro.
+ * @return {boolean} Si hay reclamo abierto.
+ */
+export function enReclamo(o: {reclamo?: {estado?: string}}): boolean {
+  return o.reclamo?.estado === 'ABIERTO';
 }
 
 /**
@@ -68,7 +80,8 @@ export async function recalcularBloqueo(
   pendientes?: CobroPendiente[]
 ): Promise<boolean> {
   const lista = pendientes ?? (await cobrosPendientes(db, tutorId));
-  const vencidos = lista.filter((o) => o.bloquear_desde.toMillis() <= ahora.toMillis());
+  const vencidos = lista.filter((o) => !enReclamo(o) &&
+    o.bloquear_desde.toMillis() <= ahora.toMillis());
 
   const userRef = db.collection('usuarios').doc(tutorId);
   const user = await userRef.get();
@@ -106,6 +119,7 @@ export function debeRecordar(
   cobro: PoliticaCobro,
   ahoraMs: number
 ): boolean {
+  if (enReclamo(o)) return false;
   const enviados = o.recordatorios_enviados ?? 0;
   if (enviados >= cobro.max_recordatorios) return false;
   if (ahoraMs - o.creado_en.toMillis() < cobro.plazo_pago_horas * HORA_MS) {
@@ -146,6 +160,7 @@ export function siguienteRevision(
   cobro: PoliticaCobro
 ): number | null {
   if (o.estado !== undefined && o.estado !== 'PENDIENTE') return null;
+  if (enReclamo(o)) return null;
   const creado = o.creado_en.toMillis();
   const candidatos: number[] = [];
 
@@ -187,27 +202,22 @@ export async function revisarCobro(
     const data = (await tx.get(ref)).data();
     if (!data || data.estado !== 'PENDIENTE') return null;
     const o = {...(data as CobroPendiente), id: obligacionId};
+    if (enReclamo(o)) return null;
     const cambios: Record<string, unknown> = {};
 
     if (debeRecordar(o, cobro, ahoraMs)) {
       const numero = (o.recordatorios_enviados ?? 0) + 1;
-      const notifRef = db.collection('usuarios').doc(o.deudor)
-        .collection('notificaciones').doc(`${obligacionId}_recordatorio_${numero}`);
-      if (!(await tx.get(notifRef)).exists) {
-        tx.set(notifRef, {
-          tipo: 'COBRO_PENDIENTE',
-          titulo: 'Tienes un pago pendiente',
-          cuerpo: `Recuerda pagar $${o.valor.toLocaleString('es-CO')} ` +
-            'por tu último paseo.',
-          leido: false,
-          creado_en: ahora,
-          datos: {
-            operacion_id: o.operacion_id,
-            paseo_id: o.operacion_servicio_id ?? '',
-            accion: 'pagar',
-          },
-        });
-      }
+      await notificar(db, {
+        tipo: 'COBRO_PENDIENTE',
+        uid: o.deudor,
+        dedup_key: `${obligacionId}_recordatorio_${numero}`,
+        datos: {
+          operacion_id: o.operacion_id,
+          paseo_id: o.operacion_servicio_id ?? '',
+          valor: o.valor,
+        },
+        ahora,
+      }, tx);
       cambios.recordatorios_enviados = numero;
       cambios.ultimo_recordatorio_en = ahora;
     }

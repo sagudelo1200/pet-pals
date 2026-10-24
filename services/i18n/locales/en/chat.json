@@ -25,42 +25,49 @@
   "time_recently": "Recently",
   "_notice": "System bitácora messages - generated automatically when caregiver records events",
   "sistema": {
-    "acciones_mascota": {
-      "necesidades": "🐕 The dog went to the bathroom",
-      "corrio": "🏃 The dog ran a lot",
-      "juego": "🦴 The dog played",
-      "agua": "💧 The dog drank water",
-      "descanso": "😴 The dog rested",
-      "socializacion_perros": "🐕 The dog greeted other dogs",
-      "socializacion_personas": "👶 The dog greeted people",
-      "exploró": "🌱 The dog explored",
-      "comio": "🍖 The dog ate something"
+    "entrega": {
+      "pendiente": "⏳ The walk is over. Enter the delivery code to confirm your pet is back."
     },
-    "lugares": {
-      "parque": "🌳 We arrived at the park",
-      "sendero": "🌲 We entered a trail",
-      "zona_residencial": "🏡 We walked through the residential area",
-      "zona_perros": "🐕 We entered a dog zone",
-      "pet_friendly": "☕ We visited a pet-friendly place",
-      "rio": "🌊 We visited a river or lake",
-      "vehiculo": "🚗 We got in the car",
-      "otro_lugar": "📍 We visited another place"
+    "generico": "📝 Event recorded during the walk",
+    "momentos": {
+      "como_esta": {
+        "se_ve_contento": "😊 In good spirits during the walk",
+        "jugo": "🦴 Play time",
+        "exploro_y_olfateo": "🌱 Exploring and sniffing",
+        "corrio": "🏃 Running",
+        "descanso": "😴 Rest",
+        "saludo_a_otros_perros": "🐕 Greeting other dogs",
+        "saludo_a_personas": "👋 Greeting people",
+        "se_puso_nervioso": "😰 Nervousness"
+      },
+      "necesidades": {
+        "tomo_agua": "💧 Water break",
+        "comio_algo_del_suelo": "⚠️ Ate something off the ground"
+      },
+      "lugar_y_ambiente": {
+        "lugar_parque": "🌳 We arrived at the park",
+        "lugar_sendero": "🌲 We entered a trail",
+        "lugar_zona_residencial": "🏡 We walked through the residential area",
+        "lugar_zona_de_perros": "🐕 We entered a dog area",
+        "lugar_pet_friendly": "☕ We visited a pet-friendly place",
+        "lugar_rio_o_lago": "🌊 We visited a river or lake",
+        "lugar_en_el_carro": "🚗 We got in the car",
+        "lugar_otro": "📍 We visited another place",
+        "clima_lluvia": "🌧️ It started to rain",
+        "clima_calor_fuerte": "🥵 It is very hot",
+        "camino_cerrado": "🚧 The road was closed"
+      }
     },
-    "recuerdos": {
-      "foto": "📸 They took a photo",
-      "video": "🎥 They recorded a video",
-      "voz": "🎤 They recorded a voice note",
-      "nota": "✍️ They wrote a note"
+    "incidentes": {
+      "emergencia": "🚨 Emergency during the walk",
+      "lesion": "🤕 Injury during the walk",
+      "conflicto_con_otro_perro": "🐕 Conflict with another dog",
+      "contacte_al_tutor": "📞 The walker needs to contact the owner"
     },
-    "novedades": {
-      "asustó": "😨 The dog got scared",
-      "lesion": "🤕 The dog got hurt",
-      "pelea": "🐕 The dog fought with another dog",
-      "lluvia": "🌧 They sheltered from the rain",
-      "acceso_cerrado": "🚫 The access was closed",
-      "contacto": "📞 They needed to contact the tutor",
-      "emergencia": "🚨 Emergency during the walk"
-    },
-    "generico": "📝 Event recorded during the walk"
+    "detalle": {
+      "causa": "Cause: {{valor}}",
+      "calmo_con": "Calmed by: {{valor}}",
+      "conflicto": "How it went: {{valor}}"
+    }
   }
 }

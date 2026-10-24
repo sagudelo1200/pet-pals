@@ -14,11 +14,14 @@ import type { Mascota } from '@/models/Mascota'
 import type { Ubicacion } from '@/models/Ubicacion'
 import { ERR } from '@/constants'
 import { leerConfiguracion } from '@/services/firebase/configuracion'
+import { aceptarPaseo as aceptarPaseoEnServidor } from '@/services/firebase/emparejamiento'
+import { mensajeErrorCallable } from '@/services/firebase/callable'
 import { crearMaquinaPaseo } from './maquinaEstados'
 import { generarCodigosRecogidaPorTutor } from './generador'
 import { paseoActivo } from './gestor'
 import { registrarAuditoria } from '@/logic/operaciones/auditoria'
-import { collection, query, where, orderBy, getDocs } from 'firebase/firestore'
+import { coordsAH3 } from '@/services/geo/h3Utils'
+import { collection, query, where, getDocs } from 'firebase/firestore'
 import { db } from '@/firebase.config'
 
 // ---------- Helpers de denormalización ----------
@@ -49,6 +52,10 @@ function prepararDataPaseoMascota(
     id_paseo: paseoId,
     id_mascota: mascota.id,
     id_usuario: mascota.creado_por,
+    // Denormalizados para mostrar a todas las mascotas del paseo (control del
+    // cuidador, "¿cómo llegó?") sin leer cada ficha
+    nombre: mascota.nombre ?? null,
+    foto: sanitizarFotoDenormalizada(mascota.foto_url || mascota.foto),
     estado_mascota: 'pendiente',
     // Nota: Los códigos de validación ahora están a nivel de PASEO (por tutor)
     // Ver Paseo.codigos_recogida_por_tutor, etc.
@@ -69,80 +76,13 @@ function prepararDataPaseoMascota(
 
 // ---------- Validaciones de Tier 1 ----------
 
-/**
- * Valida que el cuidador NO tenga otro paseo en la misma franja horaria.
- * Previene "double booking" donde un cuidador acepta 2+ paseos simultáneos.
- * @param uid ID del cuidador
- * @param fechaInicio Fecha/hora de inicio del paseo a aceptar
- * @param duracion Duración en minutos
- * @returns {error: string} si hay overlap, {success: true} si está libre
- */
 // Firestore devuelve Timestamp; los callers pueden pasar Date o Timestamp
 function aFecha(valor: any): Date {
   return valor?.toDate ? valor.toDate() : new Date(valor)
 }
 
-async function validarNoDoubleBooking(
-  uid: string,
-  fechaInicioRaw: Date,
-  duracion: number
-) {
-  try {
-    const fechaInicio = aFecha(fechaInicioRaw)
-    // Query: paseos del cuidador en estados activos
-    const agendaQuery = query(
-      collection(db, 'operaciones'),
-      where('tipo', '==', 'paseo'),
-      where('id_cuidador', '==', uid),
-      where('estado', 'in', [
-        ESTADOS_PASEO.CONFIRMADO,
-        ESTADOS_PASEO.EN_CAMINO,
-        ESTADOS_PASEO.EN_PUNTO_RECOGIDA,
-        ESTADOS_PASEO.EN_PROGRESO,
-      ]),
-      orderBy('fecha_hora_inicio', 'asc')
-    )
-
-    const docs = await getDocs(agendaQuery)
-    const fechaFin = new Date(fechaInicio.getTime() + duracion * 60000)
-
-    for (const doc of docs.docs) {
-      const paseoExistente = doc.data() as Paseo
-      const inicioExistente = aFecha(paseoExistente.fecha_hora_inicio)
-      const finExistente = new Date(
-        inicioExistente.getTime() +
-          (paseoExistente.duracion_estimada || 0) * 60000
-      )
-
-      // Verificar overlap de horarios (con buffer de 5 min)
-      const bufferMs = 5 * 60 * 1000
-      const overlapDetectado =
-        fechaInicio < new Date(finExistente.getTime() + bufferMs) &&
-        fechaFin > new Date(inicioExistente.getTime() - bufferMs)
-
-      if (overlapDetectado) {
-        return {
-          success: false,
-          error: 'DOBLE_BOOKING_DETECTADO',
-          detalles: `Tienes otro paseo de ${paseoExistente.duracion_estimada}min a las ${inicioExistente.toLocaleTimeString('es-AR')}`,
-        }
-      }
-    }
-
-    return { success: true }
-  } catch (error) {
-    console.error('[Tier1.2] Error validando double booking:', error)
-    return {
-      success: false,
-      error: 'ERROR_VALIDACION',
-      detalles: 'No se pudo verificar disponibilidad',
-    }
-  }
-}
-
 /**
  * Valida que una mascota no tenga otro paseo solapado en la misma franja horaria.
- * Similar a validarNoDoubleBooking pero por `mascotaId`.
  * Solo valida paseos propios (creado_por == uid) para cumplir permisos de Firestore.
  */
 async function validarNoSolapamientoPorMascota(
@@ -308,6 +248,7 @@ export async function crearConMascotas(
       alias: locObj.alias,
     }
     locationData = {
+      h3_r8: coordsAH3(lat, lng),
       ubicacion_inicio: snap,
       ubicacion_inicio_txt:
         locObj.alias || locObj.direccion_formateada || 'Ubicación',
@@ -344,33 +285,28 @@ export async function crearConMascotas(
   const codigosEntregaPorTutor =
     generarCodigosRecogidaPorTutor(tutoresIniciales)
 
-  const paseoRes = await ServicioPaseo.crear({
-    ...(data as any),
-    ...locationData,
-    cupo_maximo_mascotas: max,
-    mascotas_count: unique.length,
-    mascota_ids: unique,
-    codigos_recogida_por_tutor: codigosRecogidaPorTutor,
-    codigo_recogida_validado_por_tutor: {},
-    intentos_fallidos_recogida_por_tutor: {},
-    codigos_entrega_por_tutor: codigosEntregaPorTutor,
-    codigo_entrega_validado_por_tutor: {},
-    intentos_fallidos_entrega_por_tutor: {},
-    ...visualData,
-  } as any)
+  // Paseo y mascotas se crean en una sola escritura atómica: nunca queda un
+  // paseo publicado sin sus mascotas
+  const paseoRes = await ServicioPaseo.crearConMascotas(
+    {
+      ...(data as any),
+      ...locationData,
+      cupo_maximo_mascotas: max,
+      mascotas_count: unique.length,
+      mascota_ids: unique,
+      codigos_recogida_por_tutor: codigosRecogidaPorTutor,
+      codigo_recogida_validado_por_tutor: {},
+      intentos_fallidos_recogida_por_tutor: {},
+      codigos_entrega_por_tutor: codigosEntregaPorTutor,
+      codigo_entrega_validado_por_tutor: {},
+      intentos_fallidos_entrega_por_tutor: {},
+      ...visualData,
+    } as any,
+    paseoId =>
+      mascotasData.map(m => prepararDataPaseoMascota(paseoId, m, direccion))
+  )
 
   if (!paseoRes.success || !paseoRes.data) return paseoRes as any
-
-  if (unique.length > 0) {
-    const payloadMascotas = mascotasData.map(m =>
-      prepararDataPaseoMascota(paseoRes.data!.id, m, direccion)
-    )
-    const addRes = await ServicioPaseoMascota.commitMascotasBatch(
-      paseoRes.data.id,
-      payloadMascotas
-    )
-    if (!addRes.success) return { success: false, error: (addRes as any).error }
-  }
 
   // Registrar auditoría: paseo creado
   if (paseoRes.data) {
@@ -395,12 +331,17 @@ export async function crearConMascotas(
 // ---------- Orquestadores de estado (migrados desde services) ----------
 
 /**
- * TIER 1: Aceptar solicitud con reintento automático y validación de double booking
- * - Previene doble asignación (2 clientes aceptan < 1seg)
- * - Previene double booking (cuidador con 2 paseos simultáneos)
- * - Reintentos automáticos (máx 2 intentos)
+ * Aceptar una solicitud. El servidor (`aceptarPaseo`) vuelve a comprobar que
+ * el cuidador puede tomarla (verificación, zona, tope del servicio y doble
+ * reserva) y la confirma de forma atómica: si otro cuidador la acepta a la
+ * vez, solo uno gana. Si hay avisos (tamaño de las mascotas, más perros de los
+ * que prefiere) no la acepta: devuelve `REQUIERE_CONFIRMACION` con los avisos
+ * y se repite con `confirmo: true` si el cuidador decide tomarla.
  */
-export async function aceptarSolicitud(paseoId: string) {
+export async function aceptarSolicitud(
+  paseoId: string,
+  opciones: { confirmo?: boolean } = {}
+) {
   const current = ServicioAuth.obtenerUsuarioActual()
   const uid = current?.uid
   if (!uid) return { success: false, error: ERR.COMUN.NO_AUTENTICADO }
@@ -417,114 +358,56 @@ export async function aceptarSolicitud(paseoId: string) {
   if (paseo.id_cuidador && paseo.id_cuidador !== uid)
     return { success: false, error: 'PASEO_YA_ACEPTADO' }
 
-  // TIER 1.2: Validar que cuidador NO tenga otro paseo en mismo horario
-  const validacionDbBooking = await validarNoDoubleBooking(
-    uid,
-    paseo.fecha_hora_inicio,
-    paseo.duracion_estimada || 0
-  )
-  if (!validacionDbBooking.success) {
+  let respuesta
+  try {
+    respuesta = await aceptarPaseoEnServidor({
+      paseoId,
+      confirmo: opciones.confirmo,
+    })
+  } catch (error) {
     return {
       success: false,
-      error: validacionDbBooking.error,
-      detalles: (validacionDbBooking as any).detalles,
+      error: 'ACEPTACION_RECHAZADA',
+      detalles: mensajeErrorCallable(error),
+    }
+  }
+  if (respuesta.aceptado === false) {
+    return {
+      success: false,
+      error: 'REQUIERE_CONFIRMACION',
+      advertencias: respuesta.advertencias,
     }
   }
 
-  const cuidador_nombre_visual = current.displayName || 'Cuidador'
-  const cuidador_foto_visual = sanitizarFotoDenormalizada(
-    current.photoURL || null
-  )
-
-  // TIER 1.1: Reintento automático (máx 2 intentos) en caso de doble asignación
-  const MAX_REINTENTOS = 2
-  let _ultimoError: any = null
-
-  for (let intento = 1; intento <= MAX_REINTENTOS; intento++) {
-    const res = await ServicioPaseo.commitEstadoTransaccional(
-      paseoId,
-      ESTADOS_PASEO.PENDIENTE,
-      ESTADOS_PASEO.CONFIRMADO,
-      {
-        id_cuidador: uid,
-        cuidador_nombre_visual,
-        cuidador_foto_visual,
-      }
-    )
-
-    if (res.success) {
-      try {
-        paseoActivo.aceptarPaseo()
-      } catch (e) {
-        console.warn('Error actualizando paseoActivo:', e)
-      }
-      // Registrar evento técnico
-      await ServicioPaseo.registrarEvento(paseoId, 'ACEPTAR', {
-        estado_anterior: 'PENDIENTE',
-        estado_nuevo: 'CONFIRMADO',
-        id_cuidador: uid,
-        cuidador_nombre_visual,
-        cuidador_foto_visual,
-        intento,
-      })
-      // Registrar auditoría: cambio de estado
-      await registrarAuditoria({
-        entidad_tipo: 'operacion',
-        entidad_id: paseoId,
-        tipo_evento: 'CAMBIO_ESTADO',
-        cambios: {
-          estado: {
-            antes: 'PENDIENTE',
-            despues: 'CONFIRMADO',
-          },
-        },
-        actor: uid,
-        id_operacion: paseoId,
-      }).catch(err => {
-        console.warn('[Auditoría] Error registrando aceptación de paseo:', err)
-      })
-
-      return res
-    }
-
-    _ultimoError = res.error
-
-    // Si es doble asignación, reintentar (otro cliente ganó, pero podría haber estado en PENDIENTE)
-    const esDoubleAsignacion =
-      res.error === 'PASEO_YA_ACEPTADO' ||
-      res.error?.includes('estado no esperado') ||
-      res.error?.includes('ESTADO_NO_ESPERADO')
-
-    if (!esDoubleAsignacion) {
-      // Error diferente, no reintentar
-      return res
-    }
-
-    if (intento < MAX_REINTENTOS) {
-      // Wait 100ms before retry
-      await new Promise(resolve => setTimeout(resolve, 100))
-      // Re-fetch para verificar estado actual
-      const paseoActualRes = await ServicioPaseo.obtenerPorId(paseoId)
-      if (paseoActualRes.success && paseoActualRes.data) {
-        const paseoActual = paseoActualRes.data as Paseo
-        if (paseoActual.estado !== ESTADOS_PASEO.PENDIENTE) {
-          // Paseo ya no está en PENDIENTE, abortamos
-          return {
-            success: false,
-            error: 'PASEO_YA_ACEPTADO',
-            detalles: `Aceptado por ${paseoActual.cuidador_nombre_visual} hace unos segundos`,
-          }
-        }
-      }
-    }
+  try {
+    paseoActivo.aceptarPaseo()
+  } catch (e) {
+    console.warn('Error actualizando paseoActivo:', e)
   }
+  // Registrar evento técnico
+  await ServicioPaseo.registrarEvento(paseoId, 'ACEPTAR', {
+    estado_anterior: 'PENDIENTE',
+    estado_nuevo: 'CONFIRMADO',
+    id_cuidador: uid,
+  })
+  // Registrar auditoría: cambio de estado
+  await registrarAuditoria({
+    entidad_tipo: 'operacion',
+    entidad_id: paseoId,
+    tipo_evento: 'CAMBIO_ESTADO',
+    cambios: {
+      estado: {
+        antes: 'PENDIENTE',
+        despues: 'CONFIRMADO',
+      },
+    },
+    actor: uid,
+    id_operacion: paseoId,
+  }).catch(err => {
+    console.warn('[Auditoría] Error registrando aceptación de paseo:', err)
+  })
 
-  // Si llegamos aquí, fallaron todos los intentos
-  return {
-    success: false,
-    error: 'PASEO_YA_ACEPTADO',
-    detalles: 'Este paseo ya fue aceptado por otro cuidador. Intenta con otro.',
-  }
+  return { success: true }
 }
 
 export async function iniciarRuta(paseoId: string) {
@@ -640,7 +523,9 @@ export async function validarRecepcionTutor(
       estado_anterior: 'FINALIZADO',
       estado_nuevo: 'COMPLETADO',
     }),
-  }).catch(e => console.warn('Error registrando evento VALIDAR_ENTREGA_TUTOR:', e))
+  }).catch(e =>
+    console.warn('Error registrando evento VALIDAR_ENTREGA_TUTOR:', e)
+  )
 
   return { success: true }
 }

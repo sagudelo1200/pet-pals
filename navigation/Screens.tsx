@@ -18,6 +18,9 @@ import CoberturaCuidador from '@/screens/cuidador/CoberturaCuidador'
 import { ChatScreen } from '@/screens/paseos/ChatScreen'
 import CuidadorEvaluaTutor from '@/screens/cuidador/CuidadorEvaluaTutor'
 import ObservacionMascota from '@/screens/cuidador/ObservacionMascota'
+import Notificaciones from '@/screens/comun/Notificaciones'
+import PreferenciasNotificaciones from '@/screens/comun/PreferenciasNotificaciones'
+import { NotificacionesPush } from '@/components/notificaciones/NotificacionesPush'
 import { GlobalPaseoManager } from '@/components/tutor/GlobalPaseoManager'
 import { LoadingScreen } from '@/components/ui'
 import { useAuth } from '@/context/AuthContext'
@@ -182,13 +185,21 @@ export default function RootNavigator(): React.ReactElement {
           aparecer sobre CUALQUIER pantalla: PaseoActivo, Chat, tabs).
           Solo se monta con la App del tutor, que es la que registra PaseoFinalizado */}
       {rolEnApp === 'tutor' && <GlobalPaseoManager />}
+      {rolEnApp !== null && <NotificacionesPush />}
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         {rolEnApp === null ? (
           <Stack.Screen name="Auth">
             {() => <AuthNavigator cargaInicialLista={cargaInicialLista} />}
           </Stack.Screen>
         ) : (
-          renderGrupoRol()
+          <>
+            {renderGrupoRol()}
+            <Stack.Screen name="Notificaciones" component={Notificaciones} />
+            <Stack.Screen
+              name="PreferenciasNotificaciones"
+              component={PreferenciasNotificaciones}
+            />
+          </>
         )}
       </Stack.Navigator>
 

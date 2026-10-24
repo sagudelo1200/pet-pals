@@ -27,3 +27,5 @@ functions/npm-cache/*
 functions/.npm-cache
 
 .vscode/**
+# Credenciales generadas por scripts/seed-emulador.js (solo emuladores)
+scripts/.emulador-credenciales.json

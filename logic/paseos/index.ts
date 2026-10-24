@@ -22,6 +22,8 @@ import {
 import {
   obtenerQueryPaseosTutor,
   obtenerQuerySolicitudesPendientes,
+  obtenerQuerySolicitudesEnZona,
+  obtenerQuerySolicitudesDirigidas,
   obtenerQueryAgendaCuidador,
   obtenerQueryHistorialCuidador,
   obtenerQueryMonitorPaseoGlobal,
@@ -52,6 +54,8 @@ export const GestorPaseos = {
   validarCodigoRecogida,
   obtenerQueryPaseosTutor,
   obtenerQuerySolicitudesPendientes,
+  obtenerQuerySolicitudesEnZona,
+  obtenerQuerySolicitudesDirigidas,
   obtenerQueryAgendaCuidador,
   obtenerQueryHistorialCuidador,
   obtenerQueryMonitorPaseoGlobal,

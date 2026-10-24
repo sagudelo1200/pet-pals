@@ -24,6 +24,7 @@ jest.mock('@/services/h3', () => ({
 import { GestorPerfilPublico } from '@/logic/usuarios/perfilPublico'
 import { ServicioPerfilPublico } from '@/services/firebase/firestore/colecciones/perfiles_publicos'
 import { ServicioCrudBase } from '@/services/firebase/firestore/base'
+import { ServicioIndiceCobertura } from '@/services/firebase/firestore/colecciones/indice_cobertura'
 import { H3TerritorialOrchestrator } from '@/services/h3'
 import { celdasDeCobertura, coordsAH3 } from '@/services/geo'
 
@@ -173,5 +174,26 @@ describe('GestorPerfilPublico.actualizarCeldasCobertura', () => {
     expect(ServicioPerfilPublico.guardarConId).toHaveBeenCalledWith('c1', {
       celdas_cobertura: [H3_B],
     })
+  })
+})
+
+describe('GestorPerfilPublico.obtenerCuidadoresPorH3', () => {
+  it('solo devuelve cuidadores con identidad verificada', async () => {
+    const entrada = (uid: string, insignias?: string[]) => ({
+      uid,
+      insignias_verificacion: insignias,
+    })
+    mock(ServicioIndiceCobertura.obtenerCuidadoresPorCelda).mockResolvedValue({
+      success: true,
+      data: [
+        entrada('a', ['EMAIL', 'IDENTIDAD']),
+        entrada('b', ['EMAIL']),
+        entrada('c'),
+      ],
+    })
+
+    const res = await GestorPerfilPublico.obtenerCuidadoresPorH3(H3_A)
+
+    expect(res.data?.map(c => c.uid)).toEqual(['a'])
   })
 })

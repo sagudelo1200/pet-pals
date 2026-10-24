@@ -3,6 +3,7 @@ import { StyleSheet, View, Text, Pressable, ViewStyle } from 'react-native'
 import { useNavigation } from '@react-navigation/native'
 import { COLOR } from '@/constants'
 import Icon from './Icon'
+import CampanaNotificaciones from './CampanaNotificaciones'
 
 interface ScreenHeaderProps {
   title: string
@@ -10,6 +11,8 @@ interface ScreenHeaderProps {
   showBack?: boolean
   onBack?: () => void
   rightAction?: React.ReactNode
+  /** Campana de notificaciones; por defecto solo en pantallas principales (sin atrás). */
+  mostrarNotificaciones?: boolean
   style?: ViewStyle
 }
 
@@ -19,6 +22,7 @@ export const ScreenHeader: React.FC<ScreenHeaderProps> = ({
   showBack = true,
   onBack,
   rightAction,
+  mostrarNotificaciones = !showBack,
   style,
 }) => {
   const navigation = useNavigation()
@@ -52,7 +56,10 @@ export const ScreenHeader: React.FC<ScreenHeaderProps> = ({
         )}
       </View>
 
-      <View style={styles.rightContainer}>{rightAction}</View>
+      <View style={styles.rightContainer}>
+        {rightAction}
+        {mostrarNotificaciones && <CampanaNotificaciones />}
+      </View>
     </View>
   )
 }
@@ -73,7 +80,8 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
   },
   rightContainer: {
-    alignItems: 'flex-end',
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   backButton: {
     width: 40,

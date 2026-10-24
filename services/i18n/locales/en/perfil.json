@@ -52,6 +52,16 @@
     },
     "hora_inicio": "Start time",
     "hora_fin": "End time",
-    "tarifa_estandar_mvp": "Paw-Path standard price: $18,000 (MVP)"
+    "tarifa_estandar_mvp": "Paw-Path standard price: $18,000 (MVP)",
+    "perros_titulo": "Which dogs you walk",
+    "perros_ayuda": "Select the dog sizes you walk. We only show you to owners whose dogs fit.",
+    "tamano_label": "Sizes you walk",
+    "tamanos": {
+      "pequeño": "Small",
+      "mediano": "Medium",
+      "grande": "Large",
+      "gigante": "Giant"
+    },
+    "max_mascotas_label": "Dogs at once"
   }
 }

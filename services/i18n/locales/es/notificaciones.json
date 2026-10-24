@@ -1,0 +1,18 @@
+{
+  "titulo": "Notificaciones",
+  "marcar_todas": "Marcar todas",
+  "campana": "Notificaciones, {{count}} sin leer",
+  "vacio": {
+    "titulo": "Sin notificaciones",
+    "descripcion": "Aquí verás los avisos sobre tus paseos y pagos."
+  },
+  "preferencias": {
+    "titulo": "Preferencias de notificaciones",
+    "push": "Notificaciones push",
+    "push_descripcion": "Avisos en tu celular, aunque la app esté cerrada.",
+    "email": "Correo electrónico",
+    "email_descripcion": "Avisos en tu correo.",
+    "nota_obligatorias": "Los avisos de pagos y seguridad se envían siempre, aunque desactives estos canales.",
+    "abrir": "Preferencias"
+  }
+}

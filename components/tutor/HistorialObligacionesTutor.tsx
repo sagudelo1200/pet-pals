@@ -31,10 +31,12 @@ import { ServicioAuth } from '@/services/firebase'
 import { useBloqueoFinanciero } from '@/hooks/comercial'
 import { formatearCOP } from '@/logic/comercial'
 import { PantallaPago } from './PantallaPago'
+import { ModalReclamoCobro } from './ModalReclamoCobro'
 
 export const HistorialObligacionesTutor: React.FC = () => {
   const { bloqueado } = useBloqueoFinanciero()
   const [pagando, setPagando] = useState<Obligacion | null>(null)
+  const [reclamando, setReclamando] = useState<string | null>(null)
   const [obligaciones, setObligaciones] = useState<Obligacion[]>([])
   const [loading, setLoading] = useState(true)
   const [totalPendiente, setTotalPendiente] = useState(0)
@@ -154,6 +156,34 @@ export const HistorialObligacionesTutor: React.FC = () => {
             <Text style={styles.liquidadaEn}>
               Pagado el {formatearFecha(item.cumplido_en)}
             </Text>
+          </View>
+        )}
+
+        {item.estado === 'PENDIENTE' && item.origen === 'cierre_equipo' && (
+          <View style={styles.avisoReclamo}>
+            {item.reclamo?.estado === 'ABIERTO' ? (
+              <Text style={styles.avisoReclamoTexto}>
+                Tu reclamo está en revisión. No recibirás recordatorios por este
+                cobro mientras tanto.
+              </Text>
+            ) : item.reclamo ? (
+              <Text style={styles.avisoReclamoTexto}>
+                Revisamos tu reclamo y se mantiene el cobro.
+              </Text>
+            ) : item.reclamo_hasta &&
+              ((item.reclamo_hasta as any).toMillis?.() ??
+                new Date(item.reclamo_hasta as any).getTime()) > Date.now() ? (
+              <>
+                <Text style={styles.avisoReclamoTexto}>
+                  Este cobro se generó porque el equipo cerró la entrega sin tu
+                  código. Puedes reclamar hasta el{' '}
+                  {formatearFecha(item.reclamo_hasta)}.
+                </Text>
+                <Pressable onPress={() => setReclamando(item.id)}>
+                  <Text style={styles.enlaceReclamo}>No estoy de acuerdo</Text>
+                </Pressable>
+              </>
+            ) : null}
           </View>
         )}
 
@@ -320,11 +350,35 @@ export const HistorialObligacionesTutor: React.FC = () => {
           />
         )}
       </Modal>
+
+      <ModalReclamoCobro
+        visible={!!reclamando}
+        obligacionId={reclamando}
+        onCerrar={() => setReclamando(null)}
+      />
     </View>
   )
 }
 
 const styles = StyleSheet.create({
+  avisoReclamo: {
+    marginTop: 10,
+    padding: 10,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: COLOR.BORDE,
+  },
+  avisoReclamoTexto: {
+    fontSize: 12,
+    color: COLOR.SUBTEXTO,
+    lineHeight: 17,
+  },
+  enlaceReclamo: {
+    marginTop: 6,
+    fontSize: 13,
+    fontWeight: '700',
+    color: COLOR.PRIMARIO,
+  },
   avisoBloqueo: {
     flexDirection: 'row',
     alignItems: 'center',

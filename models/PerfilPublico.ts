@@ -1,4 +1,5 @@
 import { BaseModel } from './BaseModel'
+import type { Tamano } from '@/functions/src/compartido/emparejamiento'
 
 /** Franja horaria con hora de inicio y fin en formato HH:mm */
 export interface FranjaHoraria {
@@ -38,8 +39,18 @@ export interface PerfilPublico extends BaseModel {
 
   /** Tipos de mascotas aceptadas */
   mascotas_aceptadas?: string[]
-  /** Número máximo de mascotas que acepta simultáneamente */
-  max_mascotas?: number
+  /**
+   * Con cuántos perros a la vez trabaja el cuidador, a su elección. Nunca
+   * supera el máximo global (`configuracion/paseos.max_mascotas`). Ausente o
+   * null = sin límite propio: se usa el global, también si el admin lo cambia.
+   */
+  max_mascotas?: number | null
+  /**
+   * Tamaños de perro que cuida, a su elección (puede no cuidar los pequeños,
+   * los grandes, etc.). Ausente, null o vacío = todos. Lo usa el
+   * emparejamiento para no ofrecerle perros que no cuida.
+   */
+  tamanos_aceptados?: Tamano[] | null
   /**
    * Calificación promedio (1-5) calculada por la Cloud Function
    * `alCrearEvaluacion` a partir de evaluaciones de cuidador

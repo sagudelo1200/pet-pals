@@ -54,6 +54,22 @@ export interface PoliticaContable {
   documento_soporte_cuidador: boolean
 }
 
+/**
+ * Cierre de la entrega cuando el tutor no la confirma con su código. Afecta
+ * dinero y derechos del tutor, por eso es política versionada: cada paseo
+ * conserva las reglas con las que nació.
+ */
+export interface PoliticaEntrega {
+  /** Horas que tiene el tutor para reclamar un cobro cerrado por el equipo. */
+  ventana_reclamo_horas: number
+  /** Si el equipo puede cerrar la entrega a favor del cuidador (y se cobra). */
+  cobrar_si_cierra_equipo: boolean
+  /** Horas tras finalizar para cerrar solo; 0 = apagado (solo el equipo). */
+  cierre_automatico_horas: number
+  /** El cierre automático exige evidencia (foto del grupo del cuidador). */
+  cierre_automatico_requiere_evidencia: boolean
+}
+
 /** Contenido de una versión de la política comercial. */
 export interface ContenidoPoliticaComercial {
   por_tipo: {paseo: PoliticaServicio}
@@ -61,6 +77,7 @@ export interface ContenidoPoliticaComercial {
   cobro: PoliticaCobro
   liquidacion: PoliticaLiquidacion
   contabilidad: PoliticaContable
+  entrega: PoliticaEntrega
 }
 
 /** Política leída: su contenido más el número de versión aplicado. */
@@ -148,6 +165,25 @@ export function validarPolitica(datos: unknown): string[] {
   if (typeof d?.contabilidad?.documento_soporte_cuidador !== 'boolean') {
     errores.push('Contabilidad: indica si se emite documento soporte');
   }
+  const entrega = d?.entrega;
+  if (!esEntero(entrega?.ventana_reclamo_horas, 1, 720)) {
+    errores.push('Ventana de reclamo: debe ser un entero entre 1 y 720 horas');
+  }
+  if (typeof entrega?.cobrar_si_cierra_equipo !== 'boolean') {
+    errores.push('Entrega: indica si el equipo puede cerrar y cobrar');
+  }
+  if (!esEntero(entrega?.cierre_automatico_horas, 0, 720)) {
+    errores.push('Cierre automático: debe ser un entero entre 0 y 720 horas');
+  }
+  if (typeof entrega?.cierre_automatico_requiere_evidencia !== 'boolean') {
+    errores.push('Cierre automático: indica si exige evidencia');
+  }
+  if (
+    esEntero(entrega?.cierre_automatico_horas, 1) &&
+    entrega?.cobrar_si_cierra_equipo === false
+  ) {
+    errores.push('Cierre automático: requiere que el equipo pueda cerrar y cobrar');
+  }
   return errores;
 }
 
@@ -200,6 +236,13 @@ export function normalizarPolitica(
     },
     contabilidad: {
       documento_soporte_cuidador: d.contabilidad.documento_soporte_cuidador,
+    },
+    entrega: {
+      ventana_reclamo_horas: d.entrega.ventana_reclamo_horas,
+      cobrar_si_cierra_equipo: d.entrega.cobrar_si_cierra_equipo,
+      cierre_automatico_horas: d.entrega.cierre_automatico_horas,
+      cierre_automatico_requiere_evidencia:
+        d.entrega.cierre_automatico_requiere_evidencia,
     },
   };
 }

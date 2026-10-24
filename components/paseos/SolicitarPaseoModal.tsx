@@ -14,6 +14,8 @@ interface Props {
   onConfirm?: () => void
   mascotasInicialesIds?: string[]
   reemplazarMascotasIniciales?: boolean
+  /** Cuidador ya elegido ("pedir de nuevo"). */
+  cuidadorInicialId?: string | null
 }
 
 type Step =
@@ -29,6 +31,7 @@ export const SolicitarPaseoModal = ({
   onConfirm,
   mascotasInicialesIds,
   reemplazarMascotasIniciales,
+  cuidadorInicialId,
 }: Props) => {
   const [step, setStep] = useState<Step>('SELECCIONAR_MASCOTA')
 
@@ -80,6 +83,13 @@ export const SolicitarPaseoModal = ({
       }
     }
   }, [visible, mascotasInicialesIds, reemplazarMascotasIniciales])
+
+  // "Pedir de nuevo": el cuidador llega elegido; el tutor aún confirma dirección y hora
+  React.useEffect(() => {
+    if (visible && cuidadorInicialId) {
+      setDatosSolicitud(prev => ({ ...prev, cuidadorId: cuidadorInicialId }))
+    }
+  }, [visible, cuidadorInicialId])
 
   const handlePetSelected = (mascotaIds: string[]) => {
     setDatosSolicitud(prev => ({ ...prev, mascotaIds }))
@@ -145,7 +155,10 @@ export const SolicitarPaseoModal = ({
       try {
         onConfirm()
       } catch (_e) {
-        console.warn('[SolicitarPaseoModal.handleConfirmacionFinal] Error manejado:', _e)
+        console.warn(
+          '[SolicitarPaseoModal.handleConfirmacionFinal] Error manejado:',
+          _e
+        )
         // ignorar errores del callback del padre
       }
     }
@@ -206,6 +219,7 @@ export const SolicitarPaseoModal = ({
         return (
           <SeleccionarCuidadorPaso
             cuidadorInicialId={datosSolicitud.cuidadorId}
+            mascotaIds={datosSolicitud.mascotaIds}
             horarioInicial={datosSolicitud.horarioCuidador || undefined}
             fecha={datosSolicitud.fecha!}
             hora={datosSolicitud.hora}

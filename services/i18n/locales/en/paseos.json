@@ -163,7 +163,18 @@
       "elegir_momento": "Confirm this moment",
       "btn_confirmar_momento": "Confirm with {{nombre}}",
       "continuar_cuidador": "Continue with {{nombre}}",
-      "buscar_otro_horario": "Find another time"
+      "buscar_otro_horario": "Find another time",
+      "motivos": {
+        "horario": "Available {{inicio}} - {{fin}}",
+        "no_trabaja": "Does not work this day",
+        "ocupado": "Already has a walk at that time",
+        "hora_pasada": "That time has passed",
+        "fuera_de_servicio": "Outside service hours"
+      },
+      "razones": {
+        "nuevo": "New to the community",
+        "destacado": "Highly rated"
+      }
     },
     "confirmar": {
       "titulo": "Review and confirm",
@@ -192,8 +203,28 @@
     "titulo": "Walk in progress"
   },
   "resumen": {
-    "titulo": "Walk summary",
-    "rating": "How was it?"
+    "que_funciona": "What works",
+    "que_evitar": "What to avoid",
+    "ten_en_cuenta": "Keep in mind",
+    "alertas": "Alerts",
+    "sin_datos": "We do not know much about {{nombre}} yet. Observe and log what you see: it will help whoever walks them next.",
+    "primer_paseo": "First walk with {{nombre}}: go slowly and watch how they react.",
+    "estado": {
+      "confirmado": "confirmed by the owner",
+      "firme": "seen several times",
+      "observado": "observed"
+    },
+    "revisa_esto": "Please review",
+    "revisa_ayuda": "A walker noticed this. Is it true for your pet?",
+    "es_asi": "Yes, it is",
+    "no_es_asi": "No, it is not",
+    "cancelar": "Cancel",
+    "rechazar_titulo": "Remove this?",
+    "rechazar_mensaje": "It will stop showing to those who walk your pet. Nobody will be notified.",
+    "error": "Could not save",
+    "aprendido_titulo": "What we have learned about {{nombre}}",
+    "llegadas_titulo": "How they arrived in recent walks",
+    "conociendo": "We are still getting to know {{nombre}}: every walk teaches us something."
   },
   "modalidad_privado": "Private",
   "modalidad_compartido": "Shared",
@@ -319,65 +350,165 @@
     "continuar": "Continue"
   },
   "momentos": {
-    "registrar": "What just happened?",
+    "registrar": "What happened?",
     "acciones": {
       "guardando": "Saving...",
-      "cerrar": "Close"
+      "cerrar": "Close",
+      "volver": "Back",
+      "omitir": "Skip",
+      "guardar": "Save"
     },
-    "mascota": {
-      "titulo": "🐶 The pet did something",
-      "subtitulo": "What happened with your dog?",
-      "opciones": {
-        "necesidades": "💩 Went to the bathroom",
+    "a_quien": "Who was it about?",
+    "todos": "All",
+    "nota": {
+      "etiqueta": "Note (optional)",
+      "placeholder": "E.g. a motorbike passed and it got scared"
+    },
+    "grupos": {
+      "como_esta": {
+        "titulo": "🐶 How it is",
+        "subtitulo": "How is the pet doing?"
+      },
+      "necesidades": {
+        "titulo": "💧 Needs",
+        "subtitulo": "Water and food"
+      },
+      "lugar_y_ambiente": {
+        "titulo": "📍 Place and surroundings",
+        "subtitulo": "Where are you? How is the weather?"
+      },
+      "emergencia": {
+        "titulo": "🚨 Emergency",
+        "subtitulo": "Something went wrong"
+      }
+    },
+    "opciones": {
+      "como_esta": {
+        "se_ve_contento": "😊 Looks happy",
+        "jugo": "🦴 Played",
+        "exploro_y_olfateo": "🌱 Explored and sniffed",
         "corrio": "🏃 Ran",
-        "juego": "🦴 Played",
-        "agua": "💧 Drank water",
         "descanso": "😴 Rested",
-        "socializacion_perros": "🐕 Greeted other dogs",
-        "socializacion_personas": "👶 Greeted people",
-        "exploró": "🌱 Explored",
-        "comio": "🍖 Ate something"
+        "saludo_a_otros_perros": "🐕 Greeted other dogs",
+        "saludo_a_personas": "👋 Greeted people",
+        "se_puso_nervioso": "😰 Got nervous"
+      },
+      "necesidades": {
+        "tomo_agua": "💧 Drank water",
+        "comio_algo_del_suelo": "⚠️ Ate something off the ground"
+      },
+      "lugar_y_ambiente": {
+        "lugar_parque": "🌳 Park",
+        "lugar_sendero": "🌲 Trail",
+        "lugar_zona_residencial": "🏡 Residential area",
+        "lugar_zona_de_perros": "🐕 Dog area",
+        "lugar_pet_friendly": "☕ Pet-friendly place",
+        "lugar_rio_o_lago": "🌊 River or lake",
+        "lugar_en_el_carro": "🚗 In the car",
+        "lugar_otro": "📍 Another place",
+        "clima_lluvia": "🌧️ Rain",
+        "clima_calor_fuerte": "🥵 Strong heat",
+        "camino_cerrado": "🚧 Road closed"
+      },
+      "emergencia": {
+        "emergencia": "🚨 Emergency",
+        "lesion": "🤕 Injury",
+        "conflicto_con_otro_perro": "🐕 Conflict with another dog",
+        "contacte_al_tutor": "📞 I contacted the owner"
       }
     },
-    "lugar": {
-      "titulo": "📍 We arrived at a place",
-      "subtitulo": "Where did you go?",
-      "opciones": {
-        "parque": "🌳 Park",
-        "sendero": "🌲 Trail",
-        "zona_residencial": "🏡 Residential area",
-        "zona_perros": "🐕 Dog zone",
-        "pet_friendly": "☕ Pet-friendly place",
-        "rio": "💧 River or lake",
-        "vehiculo": "🚗 In the car",
-        "otro_lugar": "📍 Other place"
+    "seguimientos": {
+      "causa": {
+        "titulo": "What made it nervous?",
+        "opciones": {
+          "motos_o_carros": "Motorbikes or cars",
+          "ruido_fuerte": "Loud noise",
+          "perro_grande": "Big dog",
+          "perro_sin_correa": "Dog off leash",
+          "personas_desconocidas": "Strangers",
+          "ninos_o_bicicletas": "Children or bicycles",
+          "otra_causa": "Something else"
+        }
+      },
+      "calma": {
+        "titulo": "What calmed it down?",
+        "opciones": {
+          "con_voz_suave": "Talking softly",
+          "alejandose_del_estimulo": "Moving away",
+          "dejandolo_oler": "Letting it sniff",
+          "caminando_despacio": "Walking slowly",
+          "aun_nada": "Nothing yet"
+        }
+      },
+      "conflicto": {
+        "titulo": "How did it go?",
+        "opciones": {
+          "ladro_o_gruno": "Barked or growled",
+          "se_tenso_sin_pelear": "Tensed up, no fight",
+          "hubo_contacto": "There was contact"
+        }
       }
     },
-    "recuerdo": {
-      "titulo": "❤️ I want to save this moment",
-      "subtitulo": "Save a photo, video, note or voice",
-      "opciones": {
-        "foto": "📷 Photo",
-        "video": "🎥 Video",
-        "voz": "🎙️ Voice note",
-        "nota": "✍️ Write a note"
-      }
-    },
-    "novedad": {
-      "titulo": "⚠️ Something happened",
-      "subtitulo": "What went on?",
-      "opciones": {
-        "asustó": "😨 Got scared",
-        "lesion": "🤕 Minor injury",
-        "pelea": "🐕 Conflict with another dog",
-        "lluvia": "🌧️ Rain",
-        "acceso_cerrado": "🚧 Path closed",
-        "contacto": "📞 Contacted tutor",
-        "emergencia": "🚨 Emergency"
-      }
+    "confirmar_emergencia": {
+      "titulo": "Confirm the emergency?",
+      "mensaje": "The owner will be notified immediately.",
+      "confirmar": "Yes, it is an emergency"
     }
   },
   "timeline": {
     "titulo": "How the walk went"
+  },
+  "llegada": {
+    "titulo": "How did {{nombres}} arrive?",
+    "titulo_sin_nombre": "How did your pet arrive?",
+    "subtitulo": "One tap helps us know your pet better and take better care next time.",
+    "opciones": {
+      "tranquilo": "Calm",
+      "cansado_bien": "Tired, but fine",
+      "agitado": "Agitated",
+      "con_molestia": "With some discomfort"
+    },
+    "distinto_para_cada_una": "It is different for each pet",
+    "igual_para_todas": "It is the same for all",
+    "enviar": "Send",
+    "omitir": "Skip",
+    "mascota_sin_nombre": "Pet",
+    "error": "Could not save"
+  },
+  "panel": {
+    "registrar_titulo": "Log a moment",
+    "registrar_subtitulo": "What you see helps us know {{nombres}} better",
+    "escribir_al_tutor": "Message the owner",
+    "como_volver": "How to get back",
+    "conocer_titulo": "What you need to know about {{nombres}}",
+    "restante": "Estimated time left: {{minutos}} min",
+    "excedido": "The estimated walk time has passed",
+    "compartiendo_ubicacion": "Sharing your location with the owner",
+    "ver_resumen": "See what I know about {{nombres}}"
+  },
+  "continuidad": {
+    "ya_conoce": "Already knows {{nombres}}",
+    "ya_conoce_uno": "Already knows {{nombres}} · 1 walk",
+    "ya_conoce_varios": "Already knows {{nombres}} · {{paseos}} walks",
+    "pedir_de_nuevo": "Book {{cuidador}} again",
+    "este_cuidador": "this walker"
+  },
+  "advertencias": {
+    "tutor": {
+      "tamano": "Does not usually walk dogs the size of {{mascotas}}",
+      "cupo_uno": "Usually walks 1 dog at a time",
+      "cupo_otros": "Usually walks up to {{cupo}} dogs at a time",
+      "titulo": "Before you continue",
+      "mensaje": "{{cuidador}}: {{avisos}}. We will send the request anyway and the walker will decide whether to take it.",
+      "continuar": "Send anyway"
+    },
+    "cuidador": {
+      "tamano": "It includes {{mascotas}}, a size you do not usually walk",
+      "cupo_uno": "You usually walk 1 dog at a time",
+      "cupo_otros": "You usually walk up to {{cupo}} dogs at a time",
+      "titulo": "Before you accept",
+      "mensaje": "{{avisos}}. Do you want to accept this walk anyway? We will let the owner know.",
+      "aceptar": "Accept anyway"
+    }
   }
 }

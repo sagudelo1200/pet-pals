@@ -58,6 +58,10 @@ const DATOS_POLITICA = {
     iva_comision: { aplica: true, porcentaje: 19, incluido_en_precio: true },
   },
   contabilidad: { documento_soporte_cuidador: true },
+  entrega: {
+    ventana_reclamo_horas: 48, cobrar_si_cierra_equipo: true,
+    cierre_automatico_horas: 0, cierre_automatico_requiere_evidencia: true,
+  },
 }
 const POLITICA: PoliticaComercial = { ...DATOS_POLITICA, version: 1 }
 const TIPO_POLITICA = 'politica_comercial'

@@ -41,6 +41,8 @@ interface PaseoFinalizadoCardProps {
   enviado?: boolean
   /** Nuevo promedio (impacto) calculado tras enviar. */
   nuevoPromedio?: number | null
+  /** Vuelve a pedir un paseo al mismo cuidador (se ofrece tras calificar). */
+  onPedirDeNuevo?: () => void
 }
 
 export const PaseoFinalizadoCard: React.FC<PaseoFinalizadoCardProps> = ({
@@ -48,6 +50,7 @@ export const PaseoFinalizadoCard: React.FC<PaseoFinalizadoCardProps> = ({
   cuidadorNombre,
   onClose,
   onRate,
+  onPedirDeNuevo,
   ratingPrevio,
   enviando = false,
   enviado = false,
@@ -222,7 +225,12 @@ export const PaseoFinalizadoCard: React.FC<PaseoFinalizadoCardProps> = ({
           {/* Impacto tras confirmar */}
           {enviado && (
             <View style={styles.impacto}>
-              <FontAwesome5 solid name="check-circle" size={20} color={COLOR.EXITO} />
+              <FontAwesome5
+                solid
+                name="check-circle"
+                size={20}
+                color={COLOR.EXITO}
+              />
               <Text style={styles.impactoTexto}>
                 {nuevoPromedio != null
                   ? t('paseos:finalizado.nuevo_promedio', {
@@ -250,6 +258,21 @@ export const PaseoFinalizadoCard: React.FC<PaseoFinalizadoCardProps> = ({
               onPress={confirmar}
               loading={enviando}
               variant="primario"
+              style={styles.button}
+            />
+            <Spacer size={12} />
+          </>
+        )}
+
+        {enviado && onPedirDeNuevo && (
+          <>
+            <Button
+              title={t('paseos:continuidad.pedir_de_nuevo', {
+                cuidador:
+                  cuidadorNombre || t('paseos:continuidad.este_cuidador'),
+              })}
+              onPress={onPedirDeNuevo}
+              variant="contorno"
               style={styles.button}
             />
             <Spacer size={12} />

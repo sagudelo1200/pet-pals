@@ -16,6 +16,8 @@ import { GestorPerfilPublico } from '@/logic/usuarios/perfilPublico'
 import { COLOR } from '@/constants'
 import { coordsAH3 } from '@/services/geo'
 import ScreenHeader from '@/components/ui/ScreenHeader'
+import { VisorEnlaceMapa } from '@/components/ui/VisorEnlaceMapa'
+import { urlEnlaceMapa } from '@/services/maps/carto'
 import { construirHTMLCobertura } from './coberturaHtml'
 
 export default function CoberturaCuidador() {
@@ -23,6 +25,7 @@ export default function CoberturaCuidador() {
   const { user, profile } = useAuth()
   const insets = useSafeAreaInsets()
   const webViewRef = useRef<WebView>(null)
+  const [enlaceMapa, setEnlaceMapa] = useState<string | null>(null)
 
   // Fallback: calcular h3 desde la dirección principal si PerfilPublico.h3_r8 aún no fue guardado
   const h3HomeDesdeAuth = useMemo(() => {
@@ -61,7 +64,13 @@ export default function CoberturaCuidador() {
 
   const handleMessage = async (event: WebViewMessageEvent) => {
     try {
-      const msg = JSON.parse(event.nativeEvent.data) as {
+      const data = JSON.parse(event.nativeEvent.data)
+      const enlace = urlEnlaceMapa(data)
+      if (enlace) {
+        setEnlaceMapa(enlace)
+        return
+      }
+      const msg = data as {
         type: string
         cells: string[]
       }
@@ -151,6 +160,9 @@ export default function CoberturaCuidador() {
         mixedContentMode={
           Platform.OS === 'android' ? ('always' as any) : undefined
         }
+        onShouldStartLoadWithRequest={request =>
+          request.url === 'about:blank' || request.url === ''
+        }
         onMessage={handleMessage}
         onError={(e: any) => {
           console.warn('[CoberturaCuidador] WebView error:', e.nativeEvent)
@@ -163,6 +175,8 @@ export default function CoberturaCuidador() {
           <ActivityIndicator size="small" color={COLOR.PRIMARIO} />
         </View>
       )}
+
+      <VisorEnlaceMapa url={enlaceMapa} onCerrar={() => setEnlaceMapa(null)} />
     </View>
   )
 }

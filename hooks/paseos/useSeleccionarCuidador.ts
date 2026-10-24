@@ -1,14 +1,16 @@
-import { useState, useEffect, useMemo } from 'react'
-import { useAuth } from '@/context/AuthContext'
-import { GestorPerfilPublico } from '@/logic/usuarios/perfilPublico'
-import { LogicMatching } from '@/logic/paseos/matching'
+import { useState, useEffect, useMemo, useCallback } from 'react'
 import { usePoliticaComercial } from '@/hooks/comercial'
 import { formatearCOP } from '@/logic/comercial'
-import {
-  coordsAH3,
-  distanciaKmEntreH3,
-  celdasDeCobertura,
-} from '@/services/geo/h3Utils'
+import { buscarCuidadores } from '@/services/firebase/emparejamiento'
+import { coordsAH3 } from '@/services/geo/h3Utils'
+import type {
+  Advertencia,
+  Continuidad,
+  CuidadorEncontrado,
+  MotivoAlternativo,
+  FranjaDia,
+  Razon,
+} from '@/functions/src/compartido/emparejamiento'
 
 interface CuidadorListItem {
   id: string
@@ -19,338 +21,109 @@ interface CuidadorListItem {
   tarifa: string
   insignias: string[]
   /**
-   * Estado de disponibilidad del cuidador.
-   * - "disponible": Match exacto con los parámetros solicitados
-   * - "otro_horario": En la zona pero con conflicto de horario
-   * - "fuera_de_cobertura": No en la zona H3 directa
-   * - "capacidad_completa": A futuro (llegó al límite de paseos)
-   * - "vacaciones": A futuro (marcado como fuera de servicio)
+   * - "disponible": cumple zona, horario, agenda, cupo y tamaño
+   * - "otro_horario": en la zona y apto para la mascota, pero no a esa hora
    */
-  estado: 'disponible' | 'otro_horario' | 'fuera_de_cobertura'
-  /**
-   * Razón legible sobre el estado. Ej:
-   * - "Disponible desde las 6:00 p.m."
-   * - "Ocupado 2:00 - 4:00 p.m."
-   * - "No trabaja los lunes"
-   */
-  motivo?: string
+  estado: 'disponible' | 'otro_horario'
+  /** Por qué no está disponible a esa hora (solo `otro_horario`). */
+  motivo?: MotivoAlternativo
+  /** Horario del cuidador ese día, si trabaja. */
+  franja?: FranjaDia
+  /** Por qué aparece donde aparece (para explicárselo al tutor). */
+  razones: Razon[]
+  /** Si ya conoce a alguna mascota del pedido. */
+  continuidad?: Continuidad
+  /** Lo que normalmente no hace (tamaño, cupo): se avisa y el tutor decide. */
+  advertencias: Advertencia[]
 }
 
 export type { CuidadorListItem }
 
-interface DebugMatchingData {
-  h3TutorZona: string | null
-  h3CeldasCercanas: string[]
-  candidatosRaw: any[]
-  horarioSolicitado?: {
-    fecha?: Date | null
-    hora?: string | null
-    duracion?: number | null
-  }
-  candidatosConDetalle: Array<{
-    id: string
-    nombre: string
-    h3_r8: string | null
-    enZonaH3: boolean
-    horario: {
-      pasa: boolean
-      razon?: string
-      horariosCuidador?: string
-    }
-    disponibilidad: {
-      pasa: boolean
-      razon?: string
-      horarioSolicitado?: string
-    }
-    final: boolean
-  }>
-}
+const dosDigitos = (n: number) => String(n).padStart(2, '0')
 
+/** Fecha local como "YYYY-MM-DD" (el servidor la lee como fecha de Colombia). */
+const fechaComoTexto = (f: Date) =>
+  `${f.getFullYear()}-${dosDigitos(f.getMonth() + 1)}-${dosDigitos(f.getDate())}`
+
+const aItem = (c: CuidadorEncontrado): CuidadorListItem => ({
+  id: c.id,
+  nombre: c.nombre,
+  imagen: c.foto || 'https://via.placeholder.com/69',
+  calificacion: c.calificacion,
+  distancia: c.distanciaKm === undefined ? '—' : `${c.distanciaKm.toFixed(1)} km`,
+  tarifa: '',
+  insignias: c.insignias,
+  estado: c.estado,
+  motivo: c.motivo,
+  franja: c.franja,
+  razones: c.razones,
+  continuidad: c.continuidad,
+  advertencias: c.advertencias,
+})
+
+/**
+ * Cuidadores para el pedido. La búsqueda la hace el servidor
+ * (`buscarCuidadores`): zona, horario y excepciones, agenda, cupo, tamaño de
+ * la mascota y orden por encaje. Aquí solo se pide y se guarda la selección.
+ * @param cuidadorInicialId Cuidador preseleccionado (o 'SOLICITUD_ABIERTA').
+ * @param fecha Día del paseo.
+ * @param hora Hora de inicio "HH:mm".
+ * @param duracionMinutos Duración del paseo.
+ * @param coordenadasTutor Punto de recogida.
+ * @param mascotaIds Mascotas del pedido.
+ */
 export const useSeleccionarCuidador = (
   cuidadorInicialId: string | null = null,
   fecha?: Date | null,
   hora?: string | null,
   duracionMinutos?: number | null,
-  coordenadasTutor?: { latitude: number; longitude: number } | null
+  coordenadasTutor?: { latitude: number; longitude: number } | null,
+  mascotaIds: string[] = []
 ) => {
-  const { user } = useAuth()
   const [cuidadores, setCuidadores] = useState<CuidadorListItem[]>([])
   const [cargando, setCargando] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [cuidadorSeleccionado, setCuidadorSeleccionado] = useState<
     string | null
   >(cuidadorInicialId)
-  const [debugMatching, setDebugMatching] = useState<DebugMatchingData>({
-    h3TutorZona: null,
-    h3CeldasCercanas: [],
-    candidatosRaw: [],
-    candidatosConDetalle: [],
-  })
 
-  useEffect(() => {
-    cargarCuidadores()
-  }, [fecha, hora, duracionMinutos, coordenadasTutor])
-
-  const cargarCuidadores = async () => {
-    setCargando(true)
+  const clave = mascotaIds.join(',')
+  const cargarCuidadores = useCallback(async () => {
     setError(null)
-
+    if (
+      !fecha ||
+      !hora ||
+      !duracionMinutos ||
+      !coordenadasTutor ||
+      !clave
+    ) {
+      setCuidadores([])
+      setCargando(false)
+      return
+    }
+    setCargando(true)
     try {
-      // Búsqueda geoespacial O(1) si tenemos coordenadas del tutor;
-      // fallback a búsqueda global verificados cuando no hay ubicación.
-      let fuente: any[] = []
-      let indiceCeldaTutor: string | null = null
-      let h3CeldasCercanas: string[] = []
-
-      if (coordenadasTutor) {
-        indiceCeldaTutor = coordsAH3(
-          coordenadasTutor.latitude,
-          coordenadasTutor.longitude
-        )
-        // Obtener celdas cercanas para debug
-        h3CeldasCercanas = celdasDeCobertura(indiceCeldaTutor, 2) ?? [
-          indiceCeldaTutor,
-        ]
-
-        const resultado =
-          await GestorPerfilPublico.obtenerCuidadoresPorH3(indiceCeldaTutor)
-        if (resultado.success && resultado.data) {
-          fuente = resultado.data
-        }
-      } else {
-        const resultado =
-          await GestorPerfilPublico.obtenerCuidadoresDisponibles()
-        if (resultado.success && resultado.data) {
-          fuente = resultado.data
-        }
-      }
-
-      // Guardar candidatos raw para debug
-      const candidatosRaw = [...fuente]
-
-      const filtrados = fuente.filter((p: any) => (p.id ?? p.uid) !== user?.uid)
-
-      // Construir array de detalle para debug
-      const candidatosConDetalle = candidatosRaw.map((perfil: any) => {
-        const id = perfil.id ?? perfil.uid
-        const h3Perfil = perfil.h3_r8 ?? perfil.h3_origen
-
-        // Check 1: ¿Está en la zona H3?
-        const enZonaH3 =
-          indiceCeldaTutor && h3Perfil
-            ? h3CeldasCercanas.includes(h3Perfil) ||
-              h3Perfil === indiceCeldaTutor
-            : false
-
-        // Check 2: Horario
-        let horarioCheck: {
-          pasa: boolean
-          razon: string
-          horariosCuidador?: string
-        } = { pasa: false, razon: 'Sin fecha' }
-        if (fecha) {
-          const diaKey = fecha.getDay().toString()
-          const franja = perfil.horario_semanal?.[diaKey]
-          if (!franja) {
-            horarioCheck = {
-              pasa: false,
-              razon: 'No trabaja este día',
-              horariosCuidador: '—',
-            }
-          } else {
-            horarioCheck = {
-              pasa: true,
-              razon: `Disponible ${franja.inicio} - ${franja.fin}`,
-              horariosCuidador: `${franja.inicio} - ${franja.fin}`,
-            }
-          }
-        }
-
-        // Check 3: Disponibilidad (matching)
-        let disponibilidadCheck: {
-          pasa: boolean
-          razon: string
-          horarioSolicitado?: string
-        } = { pasa: false, razon: 'Sin parámetros' }
-        if (fecha && hora != null && duracionMinutos != null) {
-          // Calcular hora final del paseo
-          const [horaStr, minStr] = hora.split(':')
-          const horaNum = parseInt(horaStr, 10)
-          const minNum = parseInt(minStr, 10)
-          const totalMinutos = horaNum * 60 + minNum + duracionMinutos
-          const horaFinal = Math.floor(totalMinutos / 60) % 24
-          const minFinal = totalMinutos % 60
-          const horaSolicitadoFormato = `${hora} - ${String(horaFinal).padStart(2, '0')}:${String(minFinal).padStart(2, '0')} (${duracionMinutos}min)`
-
-          const estaDisponible = LogicMatching.esCuidadorDisponible(
-            perfil as any,
-            { fecha, hora, duracion: duracionMinutos }
-          )
-          if (estaDisponible) {
-            disponibilidadCheck = {
-              pasa: true,
-              razon: 'Disponible',
-              horarioSolicitado: horaSolicitadoFormato,
-            }
-          } else {
-            disponibilidadCheck = {
-              pasa: false,
-              razon: 'Conflicto de reserva o sin tiempo',
-              horarioSolicitado: horaSolicitadoFormato,
-            }
-          }
-        }
-
-        // Check 4: ¿Pasa el filtro final?
-        const pasaFiltroFinal = filtrados.some(f => (f.id ?? f.uid) === id)
-
-        return {
-          id,
-          nombre: perfil.nombre,
-          h3_r8: h3Perfil,
-          enZonaH3,
-          horario: horarioCheck,
-          disponibilidad: disponibilidadCheck,
-          final: pasaFiltroFinal,
-        }
+      const { cuidadores: encontrados } = await buscarCuidadores({
+        fecha: fechaComoTexto(fecha),
+        hora,
+        duracion: duracionMinutos,
+        celda: coordsAH3(coordenadasTutor.latitude, coordenadasTutor.longitude),
+        mascotaIds: clave.split(','),
       })
-
-      // Separar candidatos disponibles de alternativos (para UI de comunidad)
-      let disponibles: any[] = []
-      let alternativos: any[] = []
-
-      if (fecha && hora != null && duracionMinutos != null) {
-        disponibles = filtrados.filter(p =>
-          LogicMatching.esCuidadorDisponible(p as any, {
-            fecha,
-            hora,
-            duracion: duracionMinutos,
-          })
-        )
-        alternativos = filtrados.filter(
-          p =>
-            !disponibles.find(d => (d.id ?? d.uid) === (p.id ?? p.uid)) &&
-            (p.id ?? p.uid) !== user?.uid
-        )
-      } else if (fecha) {
-        disponibles = filtrados.filter((p: any) => {
-          const diaKey = fecha.getDay().toString()
-          const franja = p.horario_semanal?.[diaKey]
-          if (!franja) return false
-          return LogicMatching.esCuidadorDisponible(p as any, {
-            fecha,
-            hora: franja.inicio,
-            duracion: 0,
-          })
-        })
-        alternativos = filtrados.filter(
-          p =>
-            !disponibles.find(d => (d.id ?? d.uid) === (p.id ?? p.uid)) &&
-            (p.id ?? p.uid) !== user?.uid
-        )
-      } else {
-        disponibles = filtrados
-      }
-
-      // Helper: Generar motivo legible según el estado
-      const generarMotivo = (perfil: any): string | undefined => {
-        if (!fecha) return undefined
-
-        const diaKey = fecha.getDay().toString()
-        const franja = perfil.horario_semanal?.[diaKey]
-
-        if (!franja) {
-          return 'No trabaja este día'
-        }
-
-        // Simplemente mostrar el horario disponible
-        return `Disponible ${franja.inicio} - ${franja.fin}`
-      }
-
-      // Mapear a CuidadorListItem con estado y motivo
-      const cuidadoresMapeados: CuidadorListItem[] = []
-
-      // Primero los disponibles
-      cuidadoresMapeados.push(
-        ...disponibles.map((perfil: any) => {
-          const id = perfil.id ?? perfil.uid
-          const ratingNum = Number(perfil.rating_promedio)
-          const cal = !isNaN(ratingNum) ? ratingNum : 0
-
-          let distanciaTexto = '—'
-          if (indiceCeldaTutor) {
-            const h3 = perfil.h3_r8 ?? perfil.h3_origen
-            if (h3) {
-              const km = distanciaKmEntreH3(h3, indiceCeldaTutor)
-              distanciaTexto = `${km.toFixed(1)} km`
-            }
-          }
-
-          return {
-            id,
-            nombre: perfil.nombre,
-            imagen: perfil.foto || 'https://via.placeholder.com/69',
-            calificacion: cal,
-            distancia: distanciaTexto,
-            tarifa: '',
-            insignias: perfil.insignias_verificacion ?? [],
-            estado: 'disponible' as const,
-            motivo: undefined as undefined,
-          }
-        })
-      )
-
-      // Luego los alternativos (mismo H3, pero sin match exacto)
-      cuidadoresMapeados.push(
-        ...alternativos.map((perfil: any) => {
-          const id = perfil.id ?? perfil.uid
-          const ratingNum = Number(perfil.rating_promedio)
-          const cal = !isNaN(ratingNum) ? ratingNum : 0
-
-          let distanciaTexto = '—'
-          if (indiceCeldaTutor) {
-            const h3 = perfil.h3_r8 ?? perfil.h3_origen
-            if (h3) {
-              const km = distanciaKmEntreH3(h3, indiceCeldaTutor)
-              distanciaTexto = `${km.toFixed(1)} km`
-            }
-          }
-
-          return {
-            id,
-            nombre: perfil.nombre,
-            imagen: perfil.foto || 'https://via.placeholder.com/69',
-            calificacion: cal,
-            distancia: distanciaTexto,
-            tarifa: '',
-            insignias: perfil.insignias_verificacion ?? [],
-            estado: 'otro_horario' as const,
-            motivo: generarMotivo(perfil),
-          }
-        })
-      )
-
-      setCuidadores(cuidadoresMapeados)
-      setDebugMatching({
-        h3TutorZona: indiceCeldaTutor,
-        h3CeldasCercanas,
-        candidatosRaw,
-        horarioSolicitado: {
-          fecha,
-          hora,
-          duracion: duracionMinutos,
-        },
-        candidatosConDetalle,
-      })
+      setCuidadores(encontrados.map(aItem))
     } catch (err) {
       setError('Error inesperado al cargar cuidadores')
       console.error('Error cargando cuidadores:', err)
     } finally {
       setCargando(false)
     }
-  }
+  }, [fecha, hora, duracionMinutos, coordenadasTutor, clave])
 
-  const seleccionarCuidador = (id: string) => {
+  useEffect(() => {
+    cargarCuidadores()
+  }, [cargarCuidadores])
+
+  const seleccionarCuidador = (id: string | null) => {
     setCuidadorSeleccionado(id)
   }
 
@@ -369,7 +142,6 @@ export const useSeleccionarCuidador = (
     cuidadorSeleccionado,
     seleccionarCuidador,
     recargar: cargarCuidadores,
-    debugMatching, // ← Expone datos para overlay de debug
   }
 }
 

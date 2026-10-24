@@ -14,6 +14,8 @@ import { useDetallesZonaH3 } from '@/hooks/admin/useDetallesZonaH3'
 import { PanelDetallesZona } from '@/components/admin/PanelDetallesZona'
 import { Icon } from '@/components/ui'
 import { COLOR } from '@/constants'
+import { VisorEnlaceMapa } from '@/components/ui/VisorEnlaceMapa'
+import { urlEnlaceMapa } from '@/services/maps/carto'
 import { construirHTML } from './territorioVivoHtml'
 
 interface ZonaSeleccionada {
@@ -43,6 +45,7 @@ const TerritorioVivo: React.FC = () => {
   const [conteoZonas, setConteoZonas] = useState<number>(0)
   const [resolucionActual, setResolucionActual] = useState<'r8' | 'r9'>('r8')
   const [mostrarSelectorCiudad, setMostrarSelectorCiudad] = useState(false)
+  const [enlaceMapa, setEnlaceMapa] = useState<string | null>(null)
 
   // Cargar detalles de la zona seleccionada
   const {
@@ -70,7 +73,10 @@ const TerritorioVivo: React.FC = () => {
   const handleWebViewMessage = (event: any) => {
     try {
       const data = JSON.parse(event.nativeEvent.data)
-      if (data.tipo === 'ZONA_SELECCIONADA') {
+      const enlace = urlEnlaceMapa(data)
+      if (enlace) {
+        setEnlaceMapa(enlace)
+      } else if (data.tipo === 'ZONA_SELECCIONADA') {
         setZonaSeleccionada(data)
       } else if (data.tipo === 'CONTEO_ACTUALIZADO') {
         setConteoZonas(data.zonasRenderizadas)
@@ -203,6 +209,8 @@ const TerritorioVivo: React.FC = () => {
           />
         </View>
       )}
+
+      <VisorEnlaceMapa url={enlaceMapa} onCerrar={() => setEnlaceMapa(null)} />
     </View>
   )
 }

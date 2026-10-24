@@ -1,3 +1,10 @@
+import {
+  CARTO_TILES,
+  CARTO_ATRIBUCION,
+  CSS_ATRIBUCION,
+  JS_ATRIBUCION,
+} from '@/services/maps/carto'
+
 /**
  * Genera el HTML completo para el mapa interactivo de cobertura del cuidador.
  *
@@ -63,6 +70,8 @@ export function construirHTMLCobertura(
       white-space: nowrap;
     }
     #save-btn:disabled { opacity: 0.5; }
+
+    ${CSS_ATRIBUCION}
 
     /* Alejar controles de los bordes del sistema */
     .leaflet-top    { margin-top:    ${topInset}px; }
@@ -157,9 +166,10 @@ export function construirHTMLCobertura(
     // ── Tiles + botón tema claro/oscuro ───────────────────────
     var isDark = true;
     var tileLayer = L.tileLayer(
-      'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png',
-      { maxZoom: 19 }
+      '${CARTO_TILES.oscuro}',
+      { maxZoom: 19, attribution: '${CARTO_ATRIBUCION}' }
     ).addTo(map);
+${JS_ATRIBUCION}
 
     var ThemeControl = L.Control.extend({
       options: { position: 'topleft' },
@@ -180,9 +190,9 @@ export function construirHTMLCobertura(
           map.removeLayer(tileLayer);
           tileLayer = L.tileLayer(
             isDark
-              ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png'
-              : 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png',
-            { maxZoom: 19 }
+              ? '${CARTO_TILES.oscuro}'
+              : '${CARTO_TILES.claro}',
+            { maxZoom: 19, attribution: '${CARTO_ATRIBUCION}' }
           ).addTo(map);
           btn.innerHTML     = isDark ? '&#x2600;&#xFE0F;' : '&#x1F319;';
           btn.style.background  = isDark ? '#121918' : '#f8f8f8';

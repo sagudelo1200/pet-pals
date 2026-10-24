@@ -31,6 +31,7 @@ export const NAMESPACES = [
   'chat',
   'evaluaciones',
   'consentimientos',
+  'notificaciones',
 ] as const
 
 export type Namespace = (typeof NAMESPACES)[number]

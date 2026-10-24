@@ -58,6 +58,16 @@ export interface Obligacion {
   recordatorios_enviados?: number
   /** Desde cuándo bloquea al tutor si sigue sin pagar */
   bloquear_desde?: Timestamp
+  /** 'cierre_equipo': el cobro nació porque el equipo cerró la entrega */
+  origen?: string
+  /** Fin de la ventana en la que el tutor puede reclamar ese cobro */
+  reclamo_hasta?: Timestamp
+  /** "No estoy de acuerdo" del tutor; ABIERTO pausa la cobranza */
+  reclamo?: {
+    estado: 'ABIERTO' | 'ACEPTADO' | 'RECHAZADO'
+    en: Timestamp
+    motivo: string
+  }
 
   // Liquidación (PAGO_CUIDADOR)
   cobro_recaudado?: boolean

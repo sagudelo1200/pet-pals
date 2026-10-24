@@ -6,6 +6,7 @@ import { FormularioPoliticaComercial } from '@/components/admin/FormularioPoliti
 import { ResumenPoliticaComercial } from '@/components/admin/ResumenPoliticaComercial'
 import { PanelLiquidaciones } from '@/components/admin/PanelLiquidaciones'
 import { PanelCobrosPendientes } from '@/components/admin/PanelCobrosPendientes'
+import { PanelEntregasPorRevisar } from '@/components/admin/PanelEntregasPorRevisar'
 import { PanelDocumentosContables } from '@/components/admin/PanelDocumentosContables'
 
 /**
@@ -25,13 +26,24 @@ export const PantallaEconomia: React.FC<{ soloLectura?: boolean }> = ({
       <PanelLiquidaciones soloLectura={soloLectura} />
     </Card>
 
+    {!soloLectura && (
+      <>
+        <Text style={styles.seccion}>Entregas por revisar</Text>
+        <Card style={styles.card}>
+          <PanelEntregasPorRevisar />
+        </Card>
+      </>
+    )}
+
     <Text style={styles.seccion}>Cobros pendientes de tutores</Text>
     <Card style={styles.card}>
       <PanelCobrosPendientes />
     </Card>
 
     <Text style={styles.seccion}>
-      {soloLectura ? 'Documentos contables recientes' : 'Documentos contables con error'}
+      {soloLectura
+        ? 'Documentos contables recientes'
+        : 'Documentos contables con error'}
     </Text>
     <Card style={styles.card}>
       <PanelDocumentosContables soloLectura={soloLectura} />
@@ -39,7 +51,11 @@ export const PantallaEconomia: React.FC<{ soloLectura?: boolean }> = ({
 
     <Text style={styles.seccion}>Política comercial</Text>
     <Card style={styles.card}>
-      {soloLectura ? <ResumenPoliticaComercial /> : <FormularioPoliticaComercial />}
+      {soloLectura ? (
+        <ResumenPoliticaComercial />
+      ) : (
+        <FormularioPoliticaComercial />
+      )}
     </Card>
   </Screen>
 )

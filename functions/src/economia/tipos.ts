@@ -23,6 +23,7 @@ export type {
   PoliticaCobro,
   PoliticaComercial,
   PoliticaContable,
+  PoliticaEntrega,
   PoliticaImpuestos,
   PoliticaLiquidacion,
   PoliticaServicio,

@@ -11,6 +11,9 @@ import { useDoc } from '@/hooks/useDoc'
 import { Button, Spacer } from '@/components/ui'
 import type { AuthStackParamList } from '@/navigation/types'
 import { PaseoFinalizadoCard } from '@/components/paseos/PaseoFinalizadoCard'
+import { ComoLlegoMascota } from '@/components/tutor/ComoLlegoMascota'
+import { argumentosParaPedirDeNuevo } from '@/logic/paseos/continuidad'
+import { useLlegadaRespondida } from '@/hooks/paseos/useLlegadaRespondida'
 import { ModalValidacionEntrega, PantallaPago } from '@/components/tutor'
 import { useAuth } from '@/context/AuthContext'
 import { useEnviarEvaluacionCuidador } from '@/hooks/paseos/useEnviarEvaluacionCuidador'
@@ -34,6 +37,10 @@ export default function PaseoFinalizado() {
   // Estados para controlar el flujo: Validación → Pago → Calificación
   const [entregaValidada, setEntregaValidada] = useState(false)
   const [pagoProcesado, setPagoProcesado] = useState(false)
+  // "¿Cómo llegó?" es opcional: se omite o ya se respondió antes
+  const [llegadaTerminada, setLlegadaTerminada] = useState(false)
+  const { respondida: llegadaRespondida, cargando: cargandoLlegada } =
+    useLlegadaRespondida(paseoId)
   const marcarPagado = useCallback(() => setPagoProcesado(true), [])
 
   const cuidadorId = paseo?.id_cuidador
@@ -110,6 +117,12 @@ export default function PaseoFinalizado() {
             onSuccess={() => setEntregaValidada(true)}
             onDismiss={() => navigation.popToTop()}
           />
+        ) : !llegadaTerminada && !llegadaRespondida && !cargandoLlegada ? (
+          // FASE 4.05: ¿Cómo llegó la mascota? (un toque, opcional)
+          <ComoLlegoMascota
+            paseoId={paseoId}
+            onTerminado={() => setLlegadaTerminada(true)}
+          />
         ) : !pagoProcesado ? (
           // FASE 4.1: Pago (si se validó pero aún no pagó)
           <PantallaPago
@@ -127,6 +140,18 @@ export default function PaseoFinalizado() {
               mascotaNombre={paseo.mascota_nombre_visual}
               cuidadorNombre={paseo.cuidador_nombre_visual}
               onClose={() => navigation.popToTop()}
+              onPedirDeNuevo={
+                argumentosParaPedirDeNuevo(paseo)
+                  ? () => {
+                      const argumentos = argumentosParaPedirDeNuevo(paseo)
+                      navigation.popToTop()
+                      setTimeout(
+                        () => navigation.navigate('Paseos', argumentos),
+                        30
+                      )
+                    }
+                  : undefined
+              }
               onRate={handleRate}
               ratingPrevio={ratingPrevio}
               enviando={enviando}

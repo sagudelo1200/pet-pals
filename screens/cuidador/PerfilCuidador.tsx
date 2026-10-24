@@ -13,6 +13,7 @@ import { useNavigation } from '@react-navigation/native'
 import { useTranslation } from 'react-i18next'
 import { COLOR } from '@/constants'
 import { usePoliticaComercial } from '@/hooks/comercial'
+import { useConfiguracion } from '@/hooks/configuracion/useConfiguracion'
 import { formatearCOP } from '@/logic/comercial'
 import Screen from '@/components/ui/Screen'
 import ScreenHeader from '@/components/ui/ScreenHeader'
@@ -22,6 +23,10 @@ import ImagePicker from '@/components/ui/ImagePicker'
 import { TimePicker } from '@/components/ui'
 import { useAuth } from '@/context/AuthContext'
 import type { PerfilPublico, FranjaHoraria } from '@/models/PerfilPublico'
+import {
+  TAMANOS,
+  type Tamano,
+} from '@/functions/src/compartido/emparejamiento'
 import { GestorPerfilPublico } from '@/logic/usuarios/perfilPublico'
 import { coordsAH3 } from '@/services/geo'
 import { useDirecciones } from '@/hooks/useDirecciones'
@@ -52,6 +57,7 @@ const PerfilCuidador: React.FC = () => {
   const { user, profile } = useAuth()
   const { politica } = usePoliticaComercial()
   const tarifaBase = politica?.por_tipo.paseo.precio.base_por_hora
+  const { max_mascotas: topeMascotas } = useConfiguracion('paseos')
 
   const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
@@ -61,6 +67,9 @@ const PerfilCuidador: React.FC = () => {
   const [biografia, setBiografia] = useState('')
   const [experiencia, setExperiencia] = useState('')
   // tarifa field removed for MVP (global standard price)
+  // Qué perros cuida: sin tocar nada acepta cualquier tamaño y hasta el tope
+  const [tamanos, setTamanos] = useState<Tamano[]>([...TAMANOS])
+  const [maxMascotas, setMaxMascotas] = useState<number | null>(null)
 
   // Horario semanal: Record<diaKey, FranjaHoraria>
   // Solo los días presentes en este objeto están activos
@@ -88,10 +97,23 @@ const PerfilCuidador: React.FC = () => {
       setFoto(data.foto || '')
       setBiografia(data.biografia || '')
       setExperiencia(data.experiencia || '')
+      setTamanos(data.tamanos_aceptados?.length ? data.tamanos_aceptados : [...TAMANOS])
+      setMaxMascotas(data.max_mascotas ?? null)
       // tarifa_por_hora no se usa en MVP
       setHorarioSemanal(data.horario_semanal || {})
     }
     setLoading(false)
+  }
+
+  // Se puede marcar cualquier combinación, pero al menos un tamaño
+  const alternarTamano = (tamano: Tamano) => {
+    setTamanos(prev =>
+      prev.includes(tamano)
+        ? prev.length > 1
+          ? prev.filter(t => t !== tamano)
+          : prev
+        : TAMANOS.filter(t => t === tamano || prev.includes(t))
+    )
   }
 
   const toggleDia = (key: string) => {
@@ -180,6 +202,10 @@ const PerfilCuidador: React.FC = () => {
       experiencia,
       // tarifa_por_hora: No actualizar en MVP (precio global)
       horario_semanal: horarioSemanal,
+      // Todos marcados = sin restricción
+      tamanos_aceptados: tamanos.length === TAMANOS.length ? null : tamanos,
+      // null = sin límite propio (sigue al máximo global)
+      max_mascotas: maxMascotas,
     }
 
     const res = await GestorPerfilPublico.actualizarCoberturaYPerfil(
@@ -287,6 +313,62 @@ const PerfilCuidador: React.FC = () => {
               <Text style={styles.tarifaHint}>
                 {t('perfil:editar.tarifa_estandar_mvp')}
               </Text>
+            </View>
+          </View>
+
+          {/* Qué perros cuida (filtra a quién le llegan solicitudes) */}
+          <View style={styles.perrosSection}>
+            <Text style={styles.direccionLabel}>
+              {t('perfil:editar.perros_titulo')}
+            </Text>
+            <Text style={styles.perrosAyuda}>
+              {t('perfil:editar.perros_ayuda')}
+            </Text>
+            <Text style={styles.perrosSubtitulo}>
+              {t('perfil:editar.tamano_label')}
+            </Text>
+            <View style={styles.chipsFila}>
+              {TAMANOS.map(tamano => {
+                const activo = tamanos.includes(tamano)
+                return (
+                  <TouchableOpacity
+                    key={tamano}
+                    style={[styles.chip, activo && styles.chipActivo]}
+                    onPress={() => alternarTamano(tamano)}
+                    accessibilityRole="button"
+                    accessibilityState={{ selected: activo }}
+                  >
+                    <Text
+                      style={[styles.chipTexto, activo && styles.chipTextoActivo]}
+                    >
+                      {t(`perfil:editar.tamanos.${tamano}`)}
+                    </Text>
+                  </TouchableOpacity>
+                )
+              })}
+            </View>
+            <Text style={styles.perrosSubtitulo}>
+              {t('perfil:editar.max_mascotas_label')}
+            </Text>
+            <View style={styles.chipsFila}>
+              {Array.from({ length: topeMascotas }, (_, i) => i + 1).map(n => {
+                const activo = Math.min(maxMascotas ?? topeMascotas, topeMascotas) === n
+                return (
+                  <TouchableOpacity
+                    key={n}
+                    style={[styles.chip, activo && styles.chipActivo]}
+                    onPress={() => setMaxMascotas(n >= topeMascotas ? null : n)}
+                    accessibilityRole="button"
+                    accessibilityState={{ selected: activo }}
+                  >
+                    <Text
+                      style={[styles.chipTexto, activo && styles.chipTextoActivo]}
+                    >
+                      {n}
+                    </Text>
+                  </TouchableOpacity>
+                )
+              })}
             </View>
           </View>
 
@@ -550,6 +632,46 @@ const styles = StyleSheet.create({
     borderColor: COLOR.BORDE,
     alignItems: 'center',
     backgroundColor: COLOR.BLOQUE,
+  },
+  perrosSection: {
+    marginTop: 16,
+    gap: 6,
+  },
+  perrosAyuda: {
+    fontSize: 12,
+    color: COLOR.SUBTEXTO,
+    lineHeight: 16,
+  },
+  perrosSubtitulo: {
+    marginTop: 6,
+    fontSize: 13,
+    fontWeight: '600',
+    color: COLOR.TEXTO,
+  },
+  chipsFila: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  chip: {
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: COLOR.BORDE,
+    backgroundColor: COLOR.BLOQUE,
+  },
+  chipActivo: {
+    borderColor: COLOR.PRIMARIO,
+    backgroundColor: COLOR.PRIMARIO + '20',
+  },
+  chipTexto: {
+    fontSize: 13,
+    color: COLOR.SUBTEXTO,
+  },
+  chipTextoActivo: {
+    color: COLOR.PRIMARIO,
+    fontWeight: '700',
   },
   tarifaDisabledContainer: {
     justifyContent: 'center',

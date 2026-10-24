@@ -9,6 +9,7 @@ import {
   Alert,
 } from 'react-native'
 import { useNavigation } from '@react-navigation/native'
+import { argumentosParaPedirDeNuevo } from '@/logic/paseos/continuidad'
 import { useAuth } from '@/context/AuthContext'
 import { BottomSheet, Button, Icon, Avatar } from '@/components/ui'
 import { COLOR } from '@/constants'
@@ -389,6 +390,11 @@ const DetallePaseoBottomSheet: React.FC<Props> = ({
 
   const renderHistorico = () => {
     const esCancelado = paseo.estado === ESTADOS_PASEO.CANCELADO
+    // El tutor puede volver a pedir a quien ya paseó a su mascota
+    const pedirDeNuevo =
+      esTutor && paseo.estado === ESTADOS_PASEO.COMPLETADO
+        ? argumentosParaPedirDeNuevo(paseo)
+        : null
     const fecha = new Date(paseo.fecha_hora_inicio)
 
     return (
@@ -464,6 +470,24 @@ const DetallePaseoBottomSheet: React.FC<Props> = ({
         </View>
 
         <View style={styles.actions}>
+          {pedirDeNuevo && (
+            <Button
+              variant="primario"
+              title={t('paseos:continuidad.pedir_de_nuevo', {
+                cuidador:
+                  paseo.cuidador_nombre_visual ||
+                  t('paseos:continuidad.este_cuidador'),
+              })}
+              onPress={() => {
+                onClose()
+                setTimeout(
+                  () => (navigation as any).navigate('Paseos', pedirDeNuevo),
+                  30
+                )
+              }}
+              style={styles.actionButton}
+            />
+          )}
           <Button
             variant="contorno"
             title={t('comun:cerrar')}

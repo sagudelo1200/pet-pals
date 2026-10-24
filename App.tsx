@@ -10,6 +10,7 @@ import { COLOR } from './constants'
 import './services/i18n'
 import { TerritorialAggregator } from '@/services/firebase/firestore/agregadores/territorial.aggregator'
 import { MascotasProvider } from './context/MascotasContext'
+import { NotificacionesProvider } from './context/NotificacionesContext'
 // Registro de tareas de segundo plano para ubicación
 import '@/logic/paseos/backgroundTask'
 
@@ -40,6 +41,7 @@ export default function App(): React.ReactElement {
     <SafeAreaProvider>
       <AuthProvider>
         <ConsentimientosProvider>
+          <NotificacionesProvider>
           <MascotasProvider>
             <GalioProvider>
               <StatusBar
@@ -52,6 +54,7 @@ export default function App(): React.ReactElement {
               </NavigationContainer>
             </GalioProvider>
           </MascotasProvider>
+          </NotificacionesProvider>
         </ConsentimientosProvider>
       </AuthProvider>
     </SafeAreaProvider>

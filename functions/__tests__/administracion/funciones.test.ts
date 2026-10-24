@@ -53,6 +53,10 @@ const POLITICA = {
     frecuencia: 'SEMANAL', dia_corte: 0, dia_pago: 2, monto_minimo: 20000, solo_recaudadas: true,
   },
   contabilidad: { documento_soporte_cuidador: true },
+  entrega: {
+    ventana_reclamo_horas: 48, cobrar_si_cierra_equipo: true,
+    cierre_automatico_horas: 0, cierre_automatico_requiere_evidencia: true,
+  },
 }
 
 beforeEach(() => {

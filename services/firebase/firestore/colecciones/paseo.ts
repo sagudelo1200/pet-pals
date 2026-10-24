@@ -28,10 +28,16 @@ import { validarFormatoCodigo } from '@/logic/paseos/generador'
 import { coordsAH3 } from '@/services/geo/h3Utils'
 import { enriquecerContextoConAPIs } from '@/services/geo/enriquecimientoTerritorial'
 import { detectarPatron } from '@/logic/paseos/detectarPatrones'
+import {
+  momentoPorClave,
+  validarMomento,
+  type MomentoRegistrado,
+} from '@/functions/src/compartido/expediente'
 import { TerritorialAggregator } from '@/services/firebase/firestore/agregadores/territorial.aggregator'
 import { ServicioChat } from '@/services/firebase/firestore/colecciones/chat'
 import {
   mapFirebaseError,
+  toDb,
   camposSistemaActualizar,
   camposSistemaCrear,
   type CrudResult,
@@ -49,10 +55,22 @@ import {
   getDoc,
   addDoc,
   limit,
+  writeBatch,
 } from 'firebase/firestore'
 import { db } from '@/firebase.config'
 
 const COLLECTION_NAME = 'operaciones'
+
+/** Seguimientos del momento que el chat traduce junto al mensaje. */
+function detalleParaElChat(
+  extras?: Record<string, unknown>
+): Record<string, unknown> {
+  const detalle: Record<string, unknown> = {}
+  for (const campo of ['causa', 'calmo_con', 'detalle_del_conflicto']) {
+    if (extras?.[campo] !== undefined) detalle[campo] = extras[campo]
+  }
+  return detalle
+}
 
 /**
  * Servicio de Paseo
@@ -78,6 +96,30 @@ export class ServicioPaseo {
       }
     }
     return limpio
+  }
+
+  /**
+   * Solicitudes pendientes en las celdas H3 dadas (máx. 30 por límite de
+   * Firestore). Sin orderBy para no requerir un índice compuesto: se ordena
+   * en la app.
+   */
+  static getQuerySolicitudesEnZona(celdas: string[]): Query {
+    return query(
+      collection(db, COLLECTION_NAME),
+      where('tipo', '==', 'paseo'),
+      where('estado', '==', ESTADOS_PASEO.PENDIENTE),
+      where('h3_r8', 'in', celdas.slice(0, 30))
+    )
+  }
+
+  /** Solicitudes pendientes dirigidas a un cuidador. */
+  static getQuerySolicitudesDirigidas(uid: string): Query {
+    return query(
+      collection(db, COLLECTION_NAME),
+      where('tipo', '==', 'paseo'),
+      where('estado', '==', ESTADOS_PASEO.PENDIENTE),
+      where('id_cuidador', '==', uid)
+    )
   }
 
   /**
@@ -125,6 +167,52 @@ export class ServicioPaseo {
         success: false,
         error: mapFirebaseError(error),
       }
+    }
+  }
+
+  /**
+   * Crea el paseo y sus mascotas en UNA sola escritura atómica (batch):
+   * o se crea todo o no se crea nada. Evita paseos publicados sin mascotas
+   * (sin ellas no hay cobro, códigos por tutor ni observaciones).
+   *
+   * @param data Datos del paseo
+   * @param construirMascotas Recibe el id del paseo y devuelve las mascotas
+   *   ya denormalizadas (cada una con su `id`)
+   */
+  static async crearConMascotas(
+    data: Omit<Paseo, 'id' | 'tipo' | 'timestamp_creacion'>,
+    construirMascotas: (_paseoId: string) => Array<{ id: string }>
+  ): Promise<CrudResult<Paseo>> {
+    try {
+      const currentUser = ServicioAuth.obtenerUsuarioActual()
+      if (!currentUser?.uid) {
+        return { success: false, error: 'Usuario no autenticado' }
+      }
+      const uid = currentUser.uid
+
+      const { id, ref, datos } = ServicioOperacion.prepararCreacion(
+        { ...data, tipo: 'paseo' } as any,
+        uid
+      )
+      const mascotas = construirMascotas(id)
+
+      const batch = writeBatch(db)
+      batch.set(ref, datos)
+      const colMascotas = collection(db, COLLECTION_NAME, id, 'mascotas')
+      for (const mascota of mascotas) {
+        batch.set(doc(colMascotas, mascota.id), {
+          ...toDb(mascota),
+          ...camposSistemaCrear(uid),
+        })
+      }
+      await batch.commit()
+
+      return {
+        success: true,
+        data: { id, ...data, tipo: 'paseo' } as Paseo,
+      }
+    } catch (error) {
+      return { success: false, error: mapFirebaseError(error) }
     }
   }
 
@@ -771,42 +859,13 @@ export class ServicioPaseo {
   }
 
   /**
-   * Traduce una acción de bitácora a una clave i18n para mensaje del sistema.
+   * Clave i18n del mensaje del sistema de un momento del catálogo
+   * (`chat:sistema.momentos.<grupo>.<accion>`).
    */
   private static obtenerClaveI18nBitacora(accion: string): string {
-    const mapas: Record<string, string> = {
-      necesidades: 'chat:sistema.acciones_mascota.necesidades',
-      corrio: 'chat:sistema.acciones_mascota.corrio',
-      juego: 'chat:sistema.acciones_mascota.juego',
-      agua: 'chat:sistema.acciones_mascota.agua',
-      descanso: 'chat:sistema.acciones_mascota.descanso',
-      socializacion_perros:
-        'chat:sistema.acciones_mascota.socializacion_perros',
-      socializacion_personas:
-        'chat:sistema.acciones_mascota.socializacion_personas',
-      exploró: 'chat:sistema.acciones_mascota.exploró',
-      comio: 'chat:sistema.acciones_mascota.comio',
-      'lugar:parque': 'chat:sistema.lugares.parque',
-      'lugar:sendero': 'chat:sistema.lugares.sendero',
-      'lugar:zona_residencial': 'chat:sistema.lugares.zona_residencial',
-      'lugar:zona_perros': 'chat:sistema.lugares.zona_perros',
-      'lugar:pet_friendly': 'chat:sistema.lugares.pet_friendly',
-      'lugar:rio': 'chat:sistema.lugares.rio',
-      'lugar:vehiculo': 'chat:sistema.lugares.vehiculo',
-      'lugar:otro_lugar': 'chat:sistema.lugares.otro_lugar',
-      'recuerdo:foto': 'chat:sistema.recuerdos.foto',
-      'recuerdo:video': 'chat:sistema.recuerdos.video',
-      'recuerdo:voz': 'chat:sistema.recuerdos.voz',
-      'recuerdo:nota': 'chat:sistema.recuerdos.nota',
-      'novedad:asustó': 'chat:sistema.novedades.asustó',
-      'novedad:lesion': 'chat:sistema.novedades.lesion',
-      'novedad:pelea': 'chat:sistema.novedades.pelea',
-      'novedad:lluvia': 'chat:sistema.novedades.lluvia',
-      'novedad:acceso_cerrado': 'chat:sistema.novedades.acceso_cerrado',
-      'novedad:contacto': 'chat:sistema.novedades.contacto',
-      'novedad:emergencia': 'chat:sistema.novedades.emergencia',
-    }
-    return mapas[accion] || 'chat:sistema.generico'
+    return momentoPorClave(accion)
+      ? `chat:sistema.momentos.${accion}`
+      : 'chat:sistema.generico'
   }
 
   /**
@@ -822,15 +881,29 @@ export class ServicioPaseo {
         lng: number
       }
       horaLocal?: string
+      /**
+       * Mascotas a las que les pasó el momento. Vacío u omitido = todo el
+       * grupo. Con varias mascotas permite saber a cuál se refiere.
+       */
+      mascotaIds?: string[]
+      /** Nombres de esas mascotas, para el mensaje del chat ("Luna y Max") */
+      nombresMascotas?: string
+      /** Datos del momento: grupo, dominio, causa, qué lo calmó, lugar… */
+      extras?: Record<string, unknown>
     }
   ): Promise<CrudResult<void>> {
     try {
+      const mascotaIds = Array.from(
+        new Set((opciones?.mascotaIds ?? []).filter(Boolean))
+      )
       const eventoResult = await this.registrarEvento(paseoId, 'bitacora', {
+        ...opciones?.extras,
         accion,
         nota: opciones?.nota,
         ubicacion: opciones?.ubicacion,
         timestamp: Date.now(),
         horaLocal: opciones?.horaLocal,
+        ...(mascotaIds.length > 0 && { mascota_ids: mascotaIds }),
       })
 
       if (!eventoResult.success) {
@@ -842,6 +915,9 @@ export class ServicioPaseo {
         accion,
         claveI18n,
         nota: opciones?.nota,
+        ...detalleParaElChat(opciones?.extras),
+        ...(mascotaIds.length > 0 &&
+          opciones?.nombresMascotas && { mascotas: opciones.nombresMascotas }),
       }).catch(err => {
         console.warn(
           '[ServicioPaseo.registrarBitacora] Error enviando msg sistema:',
@@ -853,6 +929,67 @@ export class ServicioPaseo {
     } catch (error) {
       return { success: false, error: mapFirebaseError(error) }
     }
+  }
+
+  /**
+   * Registra un momento del catálogo (`compartido/expediente.ts`): valida el
+   * momento y lo enruta. Los del grupo emergencia son incidentes con
+   * severidad; el resto va a la bitácora del paseo.
+   */
+  static async registrarMomento(
+    paseoId: string,
+    momento: Omit<MomentoRegistrado, 'cuidador_id' | 'paseo_id' | 'fecha_ms'>,
+    opciones?: {
+      nota?: string
+      ubicacion?: { lat: number; lng: number }
+      horaLocal?: string
+      mascotaIds?: string[]
+      nombresMascotas?: string
+    }
+  ): Promise<CrudResult<void>> {
+    const uid = ServicioAuth.obtenerUsuarioActual()?.uid
+    if (!uid) return { success: false, error: ERR.COMUN.NO_AUTENTICADO }
+
+    const errores = validarMomento({
+      ...momento,
+      cuidador_id: uid,
+      paseo_id: paseoId,
+      fecha_ms: Date.now(),
+    })
+    const definicion = momentoPorClave(momento.clave)
+    if (errores.length > 0 || !definicion) {
+      return { success: false, error: 'MOMENTO_INVALIDO' }
+    }
+
+    const extras = this.limpiarUndefined({
+      clave: definicion.clave,
+      grupo: definicion.grupo,
+      dominio: definicion.dominio,
+      causa: momento.causa,
+      calmo_con: momento.calmo_con,
+      detalle_del_conflicto: momento.detalle_del_conflicto,
+      lugar: momento.lugar,
+    })
+
+    if (definicion.gravedad) {
+      return this.registrarIncidente(
+        paseoId,
+        definicion.clave.split('.')[1],
+        definicion.gravedad,
+        {
+          descripcion: opciones?.nota,
+          ubicacion: opciones?.ubicacion,
+          horaLocal: opciones?.horaLocal,
+          mascotaIds: opciones?.mascotaIds,
+          nombresMascotas: opciones?.nombresMascotas,
+          extras,
+        }
+      )
+    }
+    return this.registrarBitacora(paseoId, definicion.clave, {
+      ...opciones,
+      extras,
+    })
   }
 
   /**
@@ -869,16 +1006,27 @@ export class ServicioPaseo {
         lng: number
       }
       horaLocal?: string
+      /** Mascotas afectadas. Vacío u omitido = todo el grupo. */
+      mascotaIds?: string[]
+      /** Nombres de esas mascotas, para el mensaje del chat */
+      nombresMascotas?: string
+      /** Datos del momento: clave del catálogo, dominio, detalle del conflicto… */
+      extras?: Record<string, unknown>
     }
   ): Promise<CrudResult<void>> {
     try {
+      const mascotaIds = Array.from(
+        new Set((opciones?.mascotaIds ?? []).filter(Boolean))
+      )
       const eventoResult = await this.registrarEvento(paseoId, 'incidente', {
+        ...opciones?.extras,
         tipo,
         severidad,
         descripcion: opciones?.descripcion,
         ubicacion: opciones?.ubicacion,
         timestamp: Date.now(),
         horaLocal: opciones?.horaLocal,
+        ...(mascotaIds.length > 0 && { mascota_ids: mascotaIds }),
       })
 
       if (!eventoResult.success) {
@@ -886,19 +1034,15 @@ export class ServicioPaseo {
       }
 
       const claveI18n = `chat:sistema.incidentes.${tipo}`
-      const severidadEmoji =
-        severidad === 'critica' ? '🚨' : severidad === 'media' ? '⚠️' : '👁️'
 
-      ServicioChat.enviarMensaje(
-        paseoId,
-        `${severidadEmoji} ${claveI18n}`,
-        'sistema',
-        {
-          tipo,
-          severidad,
-          descripcion: opciones?.descripcion,
-        }
-      ).catch(err => {
+      ServicioChat.enviarMensaje(paseoId, claveI18n, 'sistema', {
+        tipo,
+        severidad,
+        descripcion: opciones?.descripcion,
+        ...detalleParaElChat(opciones?.extras),
+        ...(mascotaIds.length > 0 &&
+          opciones?.nombresMascotas && { mascotas: opciones.nombresMascotas }),
+      }).catch(err => {
         console.warn(
           '[ServicioPaseo.registrarIncidente] Error enviando msg sistema:',
           err

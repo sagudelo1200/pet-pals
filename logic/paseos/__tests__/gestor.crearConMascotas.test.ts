@@ -8,7 +8,7 @@ jest.mock('@/services/firebase', () => ({
     obtenerPorId: jest.fn(),
   },
   ServicioPaseo: {
-    crear: jest.fn(),
+    crearConMascotas: jest.fn(),
     actualizar: jest.fn(),
   },
   ServicioPaseoMascota: {
@@ -119,12 +119,9 @@ describe('crearConMascotas', () => {
     })
 
     const paseoMock = { success: true, data: { id: 'p1' } }
-    void (ServicioPaseo.crear as jest.Mock).mockResolvedValue(paseoMock)
-    void (
-      ServicioPaseoMascota.commitMascotasBatch as jest.Mock
-    ).mockResolvedValue({
-      success: true,
-    })
+    void (ServicioPaseo.crearConMascotas as jest.Mock).mockResolvedValue(
+      paseoMock
+    )
 
     const data = {
       tipo_paseo: 'solicitado',
@@ -135,8 +132,9 @@ describe('crearConMascotas', () => {
     }
 
     const res = await crearConMascotas(data as any, ['m1'])
-    expect(ServicioPaseo.crear).toHaveBeenCalled()
-    expect(ServicioPaseoMascota.commitMascotasBatch).toHaveBeenCalled()
+    expect(ServicioPaseo.crearConMascotas).toHaveBeenCalled()
+    // Las mascotas viajan en la misma escritura atómica que el paseo
+    expect(ServicioPaseoMascota.commitMascotasBatch).not.toHaveBeenCalled()
     expect(res.success).toBe(true)
     expect(res.data).toEqual(paseoMock.data)
   })
@@ -150,13 +148,10 @@ describe('crearConMascotas', () => {
       success: true,
       data: { id: 'm1', creado_por: 'tutor1', nombre: 'Fido', foto: 'f.jpg' },
     })
-    void (ServicioPaseo.crear as jest.Mock).mockResolvedValue({
+    void (ServicioPaseo.crearConMascotas as jest.Mock).mockResolvedValue({
       success: true,
       data: { id: 'p1' },
     })
-    void (
-      ServicioPaseoMascota.commitMascotasBatch as jest.Mock
-    ).mockResolvedValue({ success: true })
 
     const res = await crearConMascotas(
       {
@@ -176,6 +171,109 @@ describe('crearConMascotas', () => {
     }
   })
 
+  test('las mascotas se construyen con el id del paseo y van en la misma escritura', async () => {
+    void (ServicioAuth.obtenerUsuarioActual as jest.Mock).mockReturnValue({
+      uid: 'u1',
+    })
+    void (ServicioCrudBase.obtenerPorId as jest.Mock).mockImplementation(
+      async (_col: string, id: string) => ({
+        success: true,
+        data: { id, creado_por: 'u1', nombre: `Perro ${id}` },
+      })
+    )
+    void (ServicioPaseo.crearConMascotas as jest.Mock).mockResolvedValue({
+      success: true,
+      data: { id: 'p1' },
+    })
+
+    await crearConMascotas(
+      {
+        estado: 'PENDIENTE',
+        fecha_hora_inicio: new Date(2030, 0, 14, 10, 0, 0),
+        duracion_estimada: 60,
+      } as any,
+      ['m1', 'm2']
+    )
+
+    const construir = (ServicioPaseo.crearConMascotas as jest.Mock).mock
+      .calls[0][1]
+    const mascotas = construir('p9')
+    expect(mascotas).toHaveLength(2)
+    expect(mascotas.map((m: any) => m.id)).toEqual(['m1', 'm2'])
+    // Nombre y foto viajan en el subdocumento: así se muestran todas las
+    // mascotas del paseo sin leer cada ficha
+    expect(mascotas.map((m: any) => m.nombre)).toEqual(['Perro m1', 'Perro m2'])
+    for (const m of mascotas) {
+      expect(m.id_paseo).toBe('p9')
+      expect(m.id_usuario).toBe('u1')
+    }
+  })
+
+  test('la foto de la mascota se denormaliza, salvo si es demasiado pesada', async () => {
+    void (ServicioAuth.obtenerUsuarioActual as jest.Mock).mockReturnValue({
+      uid: 'u1',
+    })
+    const pesada = 'data:image/jpeg;base64,' + 'A'.repeat(130 * 1024)
+    void (ServicioCrudBase.obtenerPorId as jest.Mock).mockImplementation(
+      async (_col: string, id: string) => ({
+        success: true,
+        data: {
+          id,
+          creado_por: 'u1',
+          nombre: id,
+          foto: id === 'm1' ? 'https://foto.jpg' : pesada,
+        },
+      })
+    )
+    void (ServicioPaseo.crearConMascotas as jest.Mock).mockResolvedValue({
+      success: true,
+      data: { id: 'p1' },
+    })
+
+    await crearConMascotas(
+      {
+        estado: 'PENDIENTE',
+        fecha_hora_inicio: new Date(2030, 0, 14, 10, 0, 0),
+        duracion_estimada: 60,
+      } as any,
+      ['m1', 'm2']
+    )
+
+    const mascotas = (
+      ServicioPaseo.crearConMascotas as jest.Mock
+    ).mock.calls[0][1]('p1')
+    expect(mascotas[0].foto).toBe('https://foto.jpg')
+    expect(mascotas[1].foto).toBeNull()
+  })
+
+  test('si la escritura atómica falla devuelve el error y no audita', async () => {
+    void (ServicioAuth.obtenerUsuarioActual as jest.Mock).mockReturnValue({
+      uid: 'u1',
+    })
+    void (ServicioCrudBase.obtenerPorId as jest.Mock).mockResolvedValue({
+      success: true,
+      data: { id: 'm1', creado_por: 'u1', nombre: 'Fido' },
+    })
+    void (ServicioPaseo.crearConMascotas as jest.Mock).mockResolvedValue({
+      success: false,
+      error: 'ERROR_RED',
+    })
+
+    const res = await crearConMascotas(
+      {
+        estado: 'PENDIENTE',
+        fecha_hora_inicio: new Date(2030, 0, 14, 10, 0, 0),
+        duracion_estimada: 60,
+      } as any,
+      ['m1']
+    )
+
+    expect(res.success).toBe(false)
+    expect(res.error).toBe('ERROR_RED')
+    const { registrarAuditoria } = require('@/logic/operaciones/auditoria')
+    expect(registrarAuditoria).not.toHaveBeenCalled()
+  })
+
   describe('Códigos, territorio y solapamiento', () => {
     const fechaPaseo = new Date(2030, 0, 14, 10, 0, 0)
     const dataPaseo = {
@@ -193,13 +291,10 @@ describe('crearConMascotas', () => {
         success: true,
         data: { id: 'm1', creado_por: 'tutor1', nombre: 'Fido' },
       })
-      void (ServicioPaseo.crear as jest.Mock).mockResolvedValue({
+      void (ServicioPaseo.crearConMascotas as jest.Mock).mockResolvedValue({
         success: true,
         data: { id: 'p1' },
       })
-      void (
-        ServicioPaseoMascota.commitMascotasBatch as jest.Mock
-      ).mockResolvedValue({ success: true })
     }
 
     test('genera códigos de recogida y de entrega de 6 dígitos para el tutor', async () => {
@@ -207,7 +302,8 @@ describe('crearConMascotas', () => {
 
       await crearConMascotas(dataPaseo as any, ['m1'])
 
-      const creado = (ServicioPaseo.crear as jest.Mock).mock.calls[0][0]
+      const creado = (ServicioPaseo.crearConMascotas as jest.Mock).mock
+        .calls[0][0]
       expect(creado.codigos_recogida_por_tutor.tutor1).toMatch(/^\d{6}$/)
       expect(creado.codigos_entrega_por_tutor.tutor1).toMatch(/^\d{6}$/)
       expect(creado.codigo_entrega_validado_por_tutor).toEqual({})
@@ -230,7 +326,9 @@ describe('crearConMascotas', () => {
         ['m1']
       )
 
-      expect(H3TerritorialOrchestrator.procesarEventoPaseo).not.toHaveBeenCalled()
+      expect(
+        H3TerritorialOrchestrator.procesarEventoPaseo
+      ).not.toHaveBeenCalled()
     })
 
     test('detecta solapamiento de la misma mascota (fechas como Timestamp)', async () => {
@@ -241,7 +339,9 @@ describe('crearConMascotas', () => {
           {
             data: () => ({
               mascota_ids: ['m1'],
-              fecha_hora_inicio: { toDate: () => new Date(2030, 0, 14, 10, 30) },
+              fecha_hora_inicio: {
+                toDate: () => new Date(2030, 0, 14, 10, 30),
+              },
               duracion_estimada: 30,
             }),
           },
@@ -252,7 +352,7 @@ describe('crearConMascotas', () => {
 
       expect(res.success).toBe(false)
       expect(res.error).toBe('DOBLE_BOOKING_MASCOTA')
-      expect(ServicioPaseo.crear).not.toHaveBeenCalled()
+      expect(ServicioPaseo.crearConMascotas).not.toHaveBeenCalled()
     })
 
     test('ignora paseos activos del tutor que no incluyen esa mascota', async () => {
@@ -263,7 +363,9 @@ describe('crearConMascotas', () => {
           {
             data: () => ({
               mascota_ids: ['otra'],
-              fecha_hora_inicio: { toDate: () => new Date(2030, 0, 14, 10, 30) },
+              fecha_hora_inicio: {
+                toDate: () => new Date(2030, 0, 14, 10, 30),
+              },
               duracion_estimada: 30,
             }),
           },
@@ -282,7 +384,11 @@ describe('crearConMascotas', () => {
       await crearConMascotas(dataPaseo as any, ['m1'])
 
       expect(where).toHaveBeenCalledWith('creado_por', '==', 'tutor1')
-      expect(where).not.toHaveBeenCalledWith('mascota_ids', 'array-contains', 'm1')
+      expect(where).not.toHaveBeenCalledWith(
+        'mascota_ids',
+        'array-contains',
+        'm1'
+      )
     })
   })
 })
