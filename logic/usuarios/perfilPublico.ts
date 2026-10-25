@@ -1,14 +1,8 @@
 import { ServicioPerfilPublico } from '@/services/firebase/firestore/colecciones/perfiles_publicos'
 import { ServicioCrudBase } from '@/services/firebase/firestore/base'
-import {
-  ServicioIndiceCobertura,
-  type EntradaCuidadorCobertura,
-} from '@/services/firebase/firestore/colecciones/indice_cobertura'
 import { PerfilPublico } from '@/models/PerfilPublico'
 import { CrudResult } from '@/services/firebase/comun'
 import { ERR } from '@/constants'
-import { celdasDeCobertura } from '@/services/geo'
-import { H3TerritorialOrchestrator } from '@/services/h3'
 
 /**
  * Gestor de Perfiles Públicos (Cuidadores).
@@ -96,8 +90,10 @@ export class GestorPerfilPublico {
   }
 
   /**
-   * Actualiza el perfil del cuidador y sincroniza su cobertura geoespacial en el índice H3.
-   * Si `h3OrigenNuevo` cambió respecto al anterior, migra las celdas de cobertura (atómicamente).
+   * Actualiza el perfil del cuidador. Si cambió su zona de origen (`h3_r8`),
+   * la guarda con el perfil. El índice de cobertura y la oferta de la zona los
+   * mantiene el servidor al ver el cambio en el perfil: la app no escribe
+   * ninguno de los dos.
    */
   static async actualizarCoberturaYPerfil(
     uid: string,
@@ -105,74 +101,6 @@ export class GestorPerfilPublico {
     h3OrigenNuevo: string | null
   ): Promise<CrudResult<PerfilPublico>> {
     if (!uid) return { success: false, error: ERR.COMUN.NO_AUTENTICADO }
-
-    if (h3OrigenNuevo) {
-      // Leer el perfil actual para detectar si cambió el h3_r8
-      const perfilActual = await ServicioCrudBase.obtenerPorId<PerfilPublico>(
-        'perfiles_publicos',
-        uid
-      )
-      const h3OrigenAnterior = perfilActual.success
-        ? ((perfilActual.data as any)?.h3_r8 ?? null)
-        : null
-
-      const perfil = perfilActual.data
-
-      // Construir datos sin undefined (solo incluir campos si existen)
-      const datosEntrada = {
-        nombre: (datos as any).nombre ?? perfil?.nombre ?? '',
-        rating_promedio:
-          (datos as any).rating_promedio ?? perfil?.rating_promedio ?? 0,
-        tarifa_por_hora:
-          (datos as any).tarifa_por_hora ?? perfil?.tarifa_por_hora ?? 0,
-      } as any
-
-      // Agregar campos opcionales solo si existen
-      const fotoParaGuardar = (datos as any).foto ?? perfil?.foto
-      if (fotoParaGuardar) {
-        datosEntrada.foto = fotoParaGuardar
-      }
-
-      if (perfil?.insignias_verificacion) {
-        datosEntrada.insignias_verificacion = perfil.insignias_verificacion
-      }
-
-      const horarioParaGuardar =
-        (datos as any).horario_semanal ?? perfil?.horario_semanal
-      if (horarioParaGuardar) {
-        datosEntrada.horario_semanal = horarioParaGuardar
-      }
-
-      let exito: boolean
-      if (h3OrigenAnterior && h3OrigenAnterior === h3OrigenNuevo) {
-        // Misma zona: refrescar los datos del índice (horario, foto...)
-        // en las mismas celdas, sin alterar los contadores de zona
-        const celdas = perfil?.celdas_cobertura?.length
-          ? perfil.celdas_cobertura
-          : celdasDeCobertura(h3OrigenNuevo)
-        exito = await H3TerritorialOrchestrator.procesarCambioCoberturaManuales(
-          uid,
-          h3OrigenNuevo,
-          celdas,
-          celdas,
-          datosEntrada
-        )
-      } else {
-        // Primera vez (sin zona previa) o cambio de zona: escribir / migrar
-        exito = await H3TerritorialOrchestrator.procesarCambioCobertura(
-          uid,
-          h3OrigenNuevo,
-          h3OrigenAnterior ?? undefined,
-          datosEntrada
-        )
-      }
-
-      if (!exito) {
-        console.warn(
-          `[h3] Fallo sincronizar cobertura para ${uid}: ${h3OrigenAnterior} → ${h3OrigenNuevo}`
-        )
-      }
-    }
 
     const datosConH3: Partial<PerfilPublico> = h3OrigenNuevo
       ? { ...datos, h3_r8: h3OrigenNuevo }
@@ -182,10 +110,11 @@ export class GestorPerfilPublico {
   }
 
   /**
-   * Actualiza las celdas de cobertura seleccionadas manualmente por el cuidador.
+   * Guarda las celdas de cobertura que el cuidador eligió a mano. El servidor
+   * actualiza el índice a partir del perfil.
    * @param uid ID del cuidador
-   * @param celdasNuevas Array de celdas H3 seleccionadas
-   * @param h3OrigenFallback Fallback de h3_r8 si el perfil no lo tiene guardado aún
+   * @param celdasNuevas Celdas H3 seleccionadas
+   * @param h3OrigenFallback Origen a guardar si el perfil aún no tiene `h3_r8`
    */
   static async actualizarCeldasCobertura(
     uid: string,
@@ -202,8 +131,7 @@ export class GestorPerfilPublico {
       return { success: false, error: 'Perfil no encontrado' }
     }
 
-    const perfil = perfilRes.data
-    const h3Origen = perfil.h3_r8 ?? h3OrigenFallback ?? null
+    const h3Origen = perfilRes.data.h3_r8 ?? h3OrigenFallback ?? null
     if (!h3Origen) {
       return {
         success: false,
@@ -212,64 +140,9 @@ export class GestorPerfilPublico {
       }
     }
 
-    // Celdas anteriores: las manuales si existen, si no el gridDisk automático
-    const celdasAnteriores = perfil.celdas_cobertura?.length
-      ? perfil.celdas_cobertura
-      : celdasDeCobertura(h3Origen)
-
-    // Construir datos sin undefined
-    const datosEntrada = {
-      nombre: perfil.nombre,
-      rating_promedio: perfil.rating_promedio ?? 0,
-      tarifa_por_hora: perfil.tarifa_por_hora ?? 0,
-    } as any
-
-    // Agregar campos opcionales
-    if (perfil.foto) {
-      datosEntrada.foto = perfil.foto
-    }
-    if (perfil.insignias_verificacion) {
-      datosEntrada.insignias_verificacion = perfil.insignias_verificacion
-    }
-    if (perfil.horario_semanal) {
-      datosEntrada.horario_semanal = perfil.horario_semanal
-    }
-
-    // Usar orquestador con retry automático
-    const exito =
-      await H3TerritorialOrchestrator.procesarCambioCoberturaManuales(
-        uid,
-        h3Origen,
-        celdasNuevas,
-        celdasAnteriores,
-        datosEntrada
-      )
-
-    if (!exito) {
-      console.warn(`[h3] Fallo actualizar celdas manuales para ${uid}`)
-    }
-
     return ServicioPerfilPublico.guardarConId(uid, {
       celdas_cobertura: celdasNuevas,
+      h3_r8: h3Origen,
     })
-  }
-
-  /**
-   * Obtiene los cuidadores cuya cobertura H3 incluye la celda indicada.
-   * Resolución O(1): un getDocs sobre la subcolección `/indice_cobertura/{celda}/cuidadores`.
-   */
-  static async obtenerCuidadoresPorH3(
-    indiceCelda: string
-  ): Promise<CrudResult<EntradaCuidadorCobertura[]>> {
-    const res =
-      await ServicioIndiceCobertura.obtenerCuidadoresPorCelda(indiceCelda)
-    if (!res.success || !res.data) return res
-    // Mismo requisito que la búsqueda sin zona: solo identidad verificada
-    return {
-      ...res,
-      data: res.data.filter(c =>
-        c.insignias_verificacion?.includes('IDENTIDAD')
-      ),
-    }
   }
 }

@@ -24,6 +24,7 @@ import {
 } from '../../src/emparejamiento/emparejamiento';
 import {instanteDe} from '../../src/compartido/emparejamiento';
 import {limpiarCacheConfiguracion} from '../../src/comun/configuracion';
+import {guardarZona} from '../../src/zonas/zonas';
 
 const CELDA = latLngToCell(4.6486, -74.0628, 8);
 const CELDA_VECINA = latLngToCell(4.6560, -74.0628, 8);
@@ -276,6 +277,74 @@ describe('buscarCuidadores', () => {
   });
 
   test('sin cuidadores en la celda devuelve lista vacía', async () => {
-    expect(await buscar()).toEqual({cuidadores: []});
+    expect(await buscar()).toEqual({servicio: {abierto: true}, cuidadores: []});
+  });
+});
+
+describe('buscarCuidadores: servicio por zonas', () => {
+  const R7 = latLngToCell(4.6486, -74.0628, 7);
+  const exigirZona = () => mockDb.__seed('configuracion/paseos', {exigir_zona: true});
+  const crearZona = (estado: string) => guardarZona(mockDb, {
+    nombre: 'Chicó', ciudad: 'Bogotá', estado, celdas: [R7],
+  }, {motivo: 'Prueba', autor: 'a1', ahora: mockFirestore.MOCK_TIMESTAMP.now()});
+  const interesados = () => [...mockDb.__docs.keys()].filter((k: string) =>
+    k.startsWith('interes_zona/'));
+
+  test('por defecto atiende en todas partes (nadie queda bloqueado sin zonas)', async () => {
+    sembrarCuidador('c1');
+    const r = await buscar();
+    expect(r.servicio).toEqual({abierto: true});
+    expect(r.cuidadores).toHaveLength(1);
+    expect(interesados()).toEqual([]);
+  });
+
+  test('fuera de servicio no busca nada, dice por qué y anota el interés del tutor', async () => {
+    exigirZona();
+    sembrarCuidador('c1');
+
+    const r = await buscar();
+
+    expect(r).toEqual({
+      servicio: {abierto: false, motivo: 'sin_zona'},
+      cuidadores: [],
+    });
+    expect(interesados()).toEqual([`interes_zona/t1_tutor_${CELDA}`]);
+    expect(mockDb.__docs.get(`territorio/${CELDA}`).interes).toEqual({
+      tutores: 1, cuidadores: 0,
+    });
+  });
+
+  test('intentarlo otra vez no duplica al interesado', async () => {
+    exigirZona();
+    await buscar();
+    await buscar();
+    expect(interesados()).toHaveLength(1);
+    expect(mockDb.__docs.get(`interes_zona/t1_tutor_${CELDA}`).intentos).toBe(2);
+  });
+
+  test('en una zona cerrada tampoco, y dice cuál es', async () => {
+    exigirZona();
+    await crearZona('cerrada');
+    expect((await buscar()).servicio).toMatchObject({
+      abierto: false, motivo: 'zona_cerrada', zona: 'Chicó',
+    });
+  });
+
+  test('en una zona activa o piloto busca con normalidad', async () => {
+    exigirZona();
+    await crearZona('piloto');
+    sembrarCuidador('c1');
+    const r = await buscar();
+    expect(r.servicio).toMatchObject({abierto: true, zona: 'Chicó'});
+    expect(r.cuidadores.map((c) => c.id)).toEqual(['c1']);
+    expect(interesados()).toEqual([]);
+  });
+
+  test('quien no es tutor de la mascota no puede usar esto para dejar rastro', async () => {
+    exigirZona();
+    await expect(buscar(PEDIDO, 'intruso')).rejects.toMatchObject({
+      codigo: 'permission-denied',
+    });
+    expect(interesados()).toEqual([]);
   });
 });

@@ -3,6 +3,7 @@ import { usePoliticaComercial } from '@/hooks/comercial'
 import { formatearCOP } from '@/logic/comercial'
 import { buscarCuidadores } from '@/services/firebase/emparejamiento'
 import { coordsAH3 } from '@/services/geo/h3Utils'
+import type { EstadoServicio } from '@/functions/src/compartido/zonas'
 import type {
   Advertencia,
   Continuidad,
@@ -81,6 +82,8 @@ export const useSeleccionarCuidador = (
   mascotaIds: string[] = []
 ) => {
   const [cuidadores, setCuidadores] = useState<CuidadorListItem[]>([])
+  // Si el sector no se atiende, el servidor no busca y dice por qué
+  const [servicio, setServicio] = useState<EstadoServicio>({ abierto: true })
   const [cargando, setCargando] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [cuidadorSeleccionado, setCuidadorSeleccionado] = useState<
@@ -88,13 +91,21 @@ export const useSeleccionarCuidador = (
   >(cuidadorInicialId)
 
   const clave = mascotaIds.join(',')
+  // Celda de cobertura del punto de recogida
+  const celda = useMemo(
+    () =>
+      coordenadasTutor
+        ? coordsAH3(coordenadasTutor.latitude, coordenadasTutor.longitude)
+        : null,
+    [coordenadasTutor]
+  )
   const cargarCuidadores = useCallback(async () => {
     setError(null)
     if (
       !fecha ||
       !hora ||
       !duracionMinutos ||
-      !coordenadasTutor ||
+      !celda ||
       !clave
     ) {
       setCuidadores([])
@@ -103,13 +114,15 @@ export const useSeleccionarCuidador = (
     }
     setCargando(true)
     try {
-      const { cuidadores: encontrados } = await buscarCuidadores({
-        fecha: fechaComoTexto(fecha),
-        hora,
-        duracion: duracionMinutos,
-        celda: coordsAH3(coordenadasTutor.latitude, coordenadasTutor.longitude),
-        mascotaIds: clave.split(','),
-      })
+      const { cuidadores: encontrados, servicio: estado } =
+        await buscarCuidadores({
+          fecha: fechaComoTexto(fecha),
+          hora,
+          duracion: duracionMinutos,
+          celda,
+          mascotaIds: clave.split(','),
+        })
+      setServicio(estado)
       setCuidadores(encontrados.map(aItem))
     } catch (err) {
       setError('Error inesperado al cargar cuidadores')
@@ -117,7 +130,7 @@ export const useSeleccionarCuidador = (
     } finally {
       setCargando(false)
     }
-  }, [fecha, hora, duracionMinutos, coordenadasTutor, clave])
+  }, [fecha, hora, duracionMinutos, coordenadasTutor, celda, clave])
 
   useEffect(() => {
     cargarCuidadores()
@@ -137,6 +150,8 @@ export const useSeleccionarCuidador = (
 
   return {
     cuidadores: cuidadoresConTarifa,
+    servicio,
+    celda,
     cargando,
     error,
     cuidadorSeleccionado,

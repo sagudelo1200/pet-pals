@@ -1,17 +1,5 @@
-import { latLngToCell } from 'h3-js'
-
-/**
- * Resoluciones H3 estándar para Paw-Path
- * Centralizadas aquí para evitar números mágicos distribuidos por el código
- *
- * @internal
- */
-const H3_RESOLUTIONS = {
-  /** Resolución 8: ~460m de radio. Indexación primaria y cobertura de cuidadores. */
-  TERRITORIAL: 8,
-  /** Resolución 9: ~174m de radio. Microzoning y clustering de observaciones. */
-  OBSERVACION: 9,
-} as const
+import { celdaDe } from '@/functions/src/compartido/geografia'
+import { RESOLUCION_H3_DEFAULT, coordsAH3 } from '@/services/geo/h3Utils'
 
 /**
  * ServicioTerritorio: Single Source of Truth para decisiones territoriales
@@ -79,8 +67,8 @@ export class ServicioTerritorio {
     longitude: number
   ): Readonly<ContextoTerritorial> {
     return Object.freeze({
-      h3_r8: latLngToCell(latitude, longitude, H3_RESOLUTIONS.TERRITORIAL),
-      h3_r9: latLngToCell(latitude, longitude, H3_RESOLUTIONS.OBSERVACION),
+      h3_r8: celdaDe(latitude, longitude, 'cobertura'),
+      h3_r9: celdaDe(latitude, longitude, 'micro'),
       // FUTURE: zona_segura, ciudad, barrio, timezone, clima, precision_gps...
     })
   }
@@ -100,9 +88,9 @@ export class ServicioTerritorio {
   static coordsAH3(
     latitude: number,
     longitude: number,
-    resolucion: number = H3_RESOLUTIONS.TERRITORIAL
+    resolucion: number = RESOLUCION_H3_DEFAULT
   ): string {
-    return latLngToCell(latitude, longitude, resolucion)
+    return coordsAH3(latitude, longitude, resolucion)
   }
 
   /**
@@ -120,7 +108,7 @@ export class ServicioTerritorio {
     longitude: number,
     resolucion: number
   ): string {
-    return latLngToCell(latitude, longitude, resolucion)
+    return coordsAH3(latitude, longitude, resolucion)
   }
 }
 
@@ -151,9 +139,8 @@ export class ServicioTerritorio {
  *    Diseño actual lo permite fácilmente.
  *
  * 4. RESOLUCIONES ADICIONALES
- *    H3_RESOLUTIONS puede crecer cuando casos reales lo justifiquen:
- *    - ZONE: 7 (cobertura muy amplia)
- *    - PRECISE: 10 (análisis detallado)
+ *    Las escalas son ROLES en functions/src/compartido/geografia.ts
+ *    (macro, cobertura, micro): agregar una es tocar ese archivo.
  *    Nunca agregues sin demanda de negocio.
  *
  * PRINCIPIO: Mantén esto simple hasta que la realidad pida complejidad.

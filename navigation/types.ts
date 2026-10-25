@@ -18,6 +18,9 @@ export type AuthStackParamList = {
     mascotaId: string
   }
 
+  AdminZonas: undefined
+  EditorZona: { zonaId?: string }
+
   PerfilCuidador: undefined
   ExcepcionSemanal: { isoSemana: string }
   CoberturaCuidador: undefined

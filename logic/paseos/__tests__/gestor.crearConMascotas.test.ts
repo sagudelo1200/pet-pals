@@ -1,4 +1,5 @@
 /* eslint-env jest */
+import { coordsAH3 } from '@/services/geo/h3Utils'
 
 jest.mock('@/services/firebase', () => ({
   ServicioAuth: {
@@ -19,12 +20,6 @@ jest.mock('@/services/firebase', () => ({
 // Mock para auditoría y territorio
 jest.mock('@/logic/operaciones/auditoria', () => ({
   registrarAuditoria: jest.fn().mockResolvedValue({ success: true }),
-}))
-
-jest.mock('@/services/h3', () => ({
-  H3TerritorialOrchestrator: {
-    procesarEventoPaseo: jest.fn().mockResolvedValue(true),
-  },
 }))
 
 // Los validadores de solapamiento construyen queries con collection/query/getDocs.
@@ -310,9 +305,8 @@ describe('crearConMascotas', () => {
       expect(creado.intentos_fallidos_entrega_por_tutor).toEqual({})
     })
 
-    test('crear el paseo no suma paseos_activos en H3 (solo al iniciar)', async () => {
+    test('el paseo guarda su celda de cobertura (la oferta y demanda las cuenta el servidor)', async () => {
       prepararHappyPath()
-      const { H3TerritorialOrchestrator } = require('@/services/h3')
 
       await crearConMascotas(
         {
@@ -326,9 +320,9 @@ describe('crearConMascotas', () => {
         ['m1']
       )
 
-      expect(
-        H3TerritorialOrchestrator.procesarEventoPaseo
-      ).not.toHaveBeenCalled()
+      const creado = (ServicioPaseo.crearConMascotas as jest.Mock).mock
+        .calls[0][0]
+      expect(creado.h3_r8).toBe(coordsAH3(4.65, -74.06))
     })
 
     test('detecta solapamiento de la misma mascota (fechas como Timestamp)', async () => {

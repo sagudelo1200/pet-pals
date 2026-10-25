@@ -1,87 +1,60 @@
+import { db } from '@/firebase.config'
+import {
+  collection,
+  doc,
+  onSnapshot,
+  type DocumentData,
+} from 'firebase/firestore'
+import {
+  COLECCION_TERRITORIO,
+  type CeldaTerritorial,
+} from '@/functions/src/compartido/territorio'
+
 /**
- * Servicio de territorios: Agregación de eventos por H3 R9
- *
- * Responsabilidades:
- * 1. Procesar eventos territoriales mediante orquestador centralizado
- * 2. Coordinar narrativa + operativa de zonas
- *
- * Filosofía:
- * - Delega lógica de eventos a H3TerritorialOrchestrator
- * - Mantiene calcularIndices para lectura de datos
- * - No interfiere con sección `operativa` (gestión de cuidadores)
+ * Territorio, solo lectura. `territorio/{celda}` lo escriben únicamente las
+ * Cloud Functions (functions/src/territorio): oferta y demanda en las celdas
+ * de cobertura y lo observado en las microzonas.
  */
-
-import { CrudResult, mapFirebaseError } from '@/services/firebase/comun'
-import type { EventoTerritorial } from '@/services/firebase/firestore/agregadores/territorial.aggregator'
-import type { Índices } from '@/models/ZonaH3'
-import { H3TerritorialOrchestrator } from '@/services/h3'
-
 export class ServicioTerritorio {
-  private static readonly COLLECTION = 'h3_zonas'
-
   /**
-   * Calcula índices de inteligencia basados en distribución de eventos
-   * y tipo de ubicación (identidad)
+   * Suscripción en tiempo real a todas las celdas (para el mapa del admin).
+   * Devuelve la función que cancela la suscripción.
    */
-  private static calcularIndices(
-    eventos_por_tipo: Record<string, number>,
-    tipo?: string
-  ): Índices {
-    const total =
-      Object.values(eventos_por_tipo).reduce((a, b) => a + b, 0) || 1
-
-    // Proporciones
-    const juego_ratio = (eventos_por_tipo['juego'] || 0) / total
-    const agua_ratio = (eventos_por_tipo['agua'] || 0) / total
-    const descanso_ratio = (eventos_por_tipo['descanso'] || 0) / total
-    const socializacion_ratio = (eventos_por_tipo['socializacion'] || 0) / total
-
-    return {
-      // Bienestar: alta actividad de juego, acceso a agua, descanso
-      bienestar: Math.round(
-        (juego_ratio * 40 + agua_ratio * 30 + descanso_ratio * 30) * 100
-      ),
-
-      // Seguridad: baja densidad de eventos (< 10 por semana), tipo conocido
-      seguridad: Math.round(
-        (tipo && ['parque', 'conjunto'].includes(tipo) ? 60 : 40) +
-          (total < 10 ? 30 : total > 50 ? -10 : 10)
-      ),
-
-      // Actividad: frecuencia total de eventos + ratio de juego
-      actividad: Math.round(
-        Math.min(100, (total / 50) * 100 * 0.5 + juego_ratio * 50)
-      ),
-
-      // Socialización: eventos donde aparecen otros perros
-      socializacion: Math.round(
-        socializacion_ratio * 100 + (total > 15 ? 20 : 0)
-      ),
-    }
+  static suscribirATodas(
+    // eslint-disable-next-line no-unused-vars
+    callback: (celdas: CeldaTerritorial[]) => void,
+    // eslint-disable-next-line no-unused-vars
+    onError?: (err: Error) => void
+  ): () => void {
+    return onSnapshot(
+      collection(db, COLECCION_TERRITORIO),
+      snap =>
+        callback(
+          snap.docs.map(d => ({ celda: d.id, ...d.data() }) as CeldaTerritorial)
+        ),
+      err => onError?.(err)
+    )
   }
 
   /**
-   * Procesa evento territorial desde el agregador
-   * Delega al orquestador centralizado con retry automático
+   * Suscripción en tiempo real a una celda. `null` si todavía no hay datos.
    */
-  static async procesarEvento(
-    evento: EventoTerritorial
-  ): Promise<CrudResult<void>> {
-    try {
-      const exito = await H3TerritorialOrchestrator.procesarEventoExploracion(
-        evento.h3_r9,
-        evento.accion
-      )
-
-      if (!exito) {
-        console.warn(
-          `[territorio] Fallo procesar evento ${evento.accion} en zona ${evento.h3_r9}`
-        )
-      }
-
-      return { success: true }
-    } catch (error) {
-      return { success: false, error: mapFirebaseError(error) }
-    }
+  static suscribirACelda(
+    celda: string,
+    // eslint-disable-next-line no-unused-vars
+    callback: (celda: CeldaTerritorial | null) => void,
+    // eslint-disable-next-line no-unused-vars
+    onError?: (err: Error) => void
+  ): () => void {
+    return onSnapshot(
+      doc(db, COLECCION_TERRITORIO, celda),
+      snap =>
+        callback(
+          snap.exists()
+            ? ({ celda: snap.id, ...(snap.data() as DocumentData) } as CeldaTerritorial)
+            : null
+        ),
+      err => onError?.(err)
+    )
   }
 }

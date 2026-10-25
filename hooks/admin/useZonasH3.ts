@@ -1,34 +1,32 @@
-import { useEffect, useState } from 'react'
-import {
-  ServicioZonasH3,
-  type ZonaH3,
-} from '@/services/firebase/firestore/colecciones/h3_zonas'
+import { useEffect, useMemo, useState } from 'react'
+import { ServicioTerritorio } from '@/services/firebase/firestore/colecciones/territorio'
+import { combinarZonas } from '@/logic/territorio/zonas'
+import type { CeldaTerritorial, ZonaH3 } from '@/models/ZonaH3'
 
+/**
+ * Todas las zonas, en tiempo real: oferta y demanda por celda de cobertura y
+ * lo observado en cada microzona (ver `combinarZonas`).
+ */
 export function useZonasH3() {
-  const [zonas, setZonas] = useState<ZonaH3[]>([])
+  const [celdas, setCeldas] = useState<CeldaTerritorial[]>([])
   const [cargando, setCargando] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    console.log('[useZonasH3] 🔄 Iniciando suscripción a zonas...')
-    const cancelar = ServicioZonasH3.suscribirATodas(
-      nuevasZonas => {
-        console.log(
-          '[useZonasH3] ✅ Zonas recibidas:',
-          nuevasZonas.length,
-          nuevasZonas
-        )
-        setZonas(nuevasZonas)
+    return ServicioTerritorio.suscribirATodas(
+      nuevas => {
+        setCeldas(nuevas)
         setCargando(false)
       },
       err => {
-        console.error('[useZonasH3] ❌ Error en suscripción:', err)
+        console.error('[useZonasH3] Error en suscripción:', err)
         setError(err.message)
         setCargando(false)
       }
     )
-    return cancelar
   }, [])
 
-  return { zonas, cargando, error }
+  const zonas: ZonaH3[] = useMemo(() => combinarZonas(celdas), [celdas])
+
+  return { zonas, celdas, cargando, error }
 }

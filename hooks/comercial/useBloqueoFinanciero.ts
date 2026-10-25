@@ -13,8 +13,9 @@ export interface BloqueoFinanciero {
  */
 export function useBloqueoFinanciero() {
   const { user } = useAuth()
-  const { data } = useDoc<any>('usuarios', user?.uid || '__sin_sesion__', {
-    listen: !!user?.uid,
+  const { data } = useDoc<any>('usuarios', user?.uid ?? '', {
+    listen: true,
+    enabled: !!user?.uid,
   })
   const bloqueo = (data?.bloqueo_financiero ?? null) as BloqueoFinanciero | null
   return { bloqueado: !!bloqueo?.activo, bloqueo }

@@ -33,13 +33,6 @@ jest.mock('@/logic/paseos/detectarPatrones', () => ({
   detectarPatron: jest.fn(),
 }))
 
-jest.mock(
-  '@/services/firebase/firestore/agregadores/territorial.aggregator',
-  () => ({
-    TerritorialAggregator: { publishEvento: jest.fn() },
-  })
-)
-
 jest.mock('@/services/firebase/firestore/colecciones/chat', () => ({
   ServicioChat: { enviarMensaje: jest.fn() },
 }))
@@ -48,7 +41,6 @@ import { ServicioPaseo } from '@/services/firebase/firestore/colecciones/paseo'
 import { addDoc, getDoc, getDocs, where } from 'firebase/firestore'
 import { enriquecerContextoConAPIs } from '@/services/geo/enriquecimientoTerritorial'
 import { detectarPatron } from '@/logic/paseos/detectarPatrones'
-import { TerritorialAggregator } from '@/services/firebase/firestore/agregadores/territorial.aggregator'
 import { coordsAH3 } from '@/services/geo/h3Utils'
 
 const mock = (fn: unknown) => fn as jest.Mock
@@ -137,9 +129,6 @@ describe('ServicioPaseo.registrarEvento', () => {
     expect(recientes).toHaveLength(2)
     expect(recientes.every((e: any) => e.tipoEvento === 'bitacora')).toBe(true)
     expect(mock(addDoc).mock.calls[0][1].patron_inferido).toBe('juego_intenso')
-    expect(TerritorialAggregator.publishEvento).toHaveBeenCalledWith(
-      expect.objectContaining({ accion: 'juego', paseoId: 'p1' })
-    )
   })
 
   it('si falla la escritura devuelve error y limpia el buffer local', async () => {

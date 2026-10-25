@@ -254,6 +254,9 @@ export default `<!DOCTYPE html>
         try {
           if (zona.estado === 'sin_actividad' && zona.cuidadores === 0 && zona.demanda === 0 && zona.activos === 0 && zona.total === 0) return;
 
+          // Cada vista es de un nivel: R8 (oferta y demanda) o R9 (microzonas)
+          if (zona.nivel !== (resolucion === 'r8' ? 8 : 9)) return;
+
           var h3_id = resolucion === 'r8' ? zona.id_r8 : zona.id_r9;
           
           if (!h3_id) {
@@ -298,6 +301,9 @@ export default `<!DOCTYPE html>
           } else {
             var estadoLabel = (COLORES[zona.estado] || {}).label || zona.estado;
             popupHTML = '<div class="popup-titulo">' + estadoLabel.toUpperCase() + '</div><div class="popup-fila">Cuidadores: <b>' + zona.cuidadores + '</b></div><div class="popup-fila">Demanda: <b>' + zona.demanda + '</b></div><div class="popup-fila">Activos: <b>' + zona.activos + '</b></div><div class="popup-fila">Paseos: <b>' + zona.total + '</b></div>';
+            if (zona.interesTutores || zona.interesCuidadores) {
+              popupHTML += '<div class="popup-fila">Interesados: <b>' + zona.interesTutores + '</b> tutores · <b>' + zona.interesCuidadores + '</b> cuidadores</div>';
+            }
           }
           popupHTML += '<div class="popup-fila" style="margin-top:4px;font-size:10px;color:#98A7A4">' + h3_id + '</div>';
 

@@ -9,6 +9,9 @@ import {
 } from 'react-native'
 import { WebView } from 'react-native-webview'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import { useNavigation } from '@react-navigation/native'
+import type { StackNavigationProp } from '@react-navigation/stack'
+import type { AuthStackParamList } from '@/navigation/types'
 import { useZonasH3Filtrado } from '@/hooks/admin/useZonasH3Filtrado'
 import { useDetallesZonaH3 } from '@/hooks/admin/useDetallesZonaH3'
 import { PanelDetallesZona } from '@/components/admin/PanelDetallesZona'
@@ -40,6 +43,7 @@ const TerritorioVivo: React.FC = () => {
     totalZonas,
   } = useZonasH3Filtrado()
   const insets = useSafeAreaInsets()
+  const navigation = useNavigation<StackNavigationProp<AuthStackParamList>>()
   const [zonaSeleccionada, setZonaSeleccionada] =
     useState<ZonaSeleccionada | null>(null)
   const [conteoZonas, setConteoZonas] = useState<number>(0)
@@ -157,11 +161,26 @@ const TerritorioVivo: React.FC = () => {
         <View style={[styles.badge, { top: insets.top + 12 }]}>
           <Text style={styles.badgeTexto}>
             {conteoZonas > 0
-              ? `${conteoZonas} zonas ${resolucionActual.toUpperCase()}`
-              : `${zonas.length} zonas`}
+              ? `${conteoZonas} celdas ${resolucionActual.toUpperCase()}`
+              : `${zonas.length} celdas`}
           </Text>
         </View>
       )}
+
+      {/* Zonas de negocio: sectores con nombre sobre el territorio */}
+      <View
+        style={[styles.accesoZonas, { top: insets.top + 12 }]}
+        pointerEvents="box-none"
+      >
+        <TouchableOpacity
+          style={styles.botonZonas}
+          onPress={() => navigation.navigate('AdminZonas')}
+          activeOpacity={0.7}
+        >
+          <Icon name="map" size={14} color={COLOR.PRIMARIO} />
+          <Text style={styles.textoZonas}>Zonas</Text>
+        </TouchableOpacity>
+      </View>
 
       {/* Mapa WebView */}
       <View style={styles.mapContainer}>
@@ -283,6 +302,29 @@ const styles = StyleSheet.create({
     color: COLOR.TEXTO,
     fontSize: 12,
     fontWeight: '600',
+  },
+  accesoZonas: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    zIndex: 14,
+    alignItems: 'center',
+  },
+  botonZonas: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: 'rgba(18,25,24,0.95)',
+    borderWidth: 1,
+    borderColor: COLOR.PRIMARIO,
+    borderRadius: 20,
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+  },
+  textoZonas: {
+    color: COLOR.TEXTO,
+    fontSize: 12,
+    fontWeight: '700',
   },
   selectorCiudad: {
     position: 'absolute',

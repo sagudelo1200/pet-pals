@@ -1,78 +1,71 @@
-import { latLngToCell, gridDisk, cellToLatLng } from 'h3-js'
+/**
+ * Fachada de la app sobre la geografía compartida
+ * (functions/src/compartido/geografia.ts): ahí viven los roles de resolución y
+ * las funciones de celdas. Aquí quedan los nombres que ya usa la app y lo que
+ * solo le importa a la app (densificar rutas del mapa).
+ */
+import { latLngToCell } from 'h3-js'
+import {
+  RADIO_COBERTURA,
+  RESOLUCIONES,
+  celdaDe,
+  celdasAlrededor,
+  distanciaKmEntreCeldas,
+  distanciaMetros,
+  type Coordenada,
+  type RolResolucion,
+} from '@/functions/src/compartido/geografia'
+import { estadoDeCelda } from '@/functions/src/compartido/territorio'
 
-// Resolución estándar: nivel 8 ≈ celdas de ~460m de radio, idóneo para paseos urbanos
-export const RESOLUCION_H3_DEFAULT = 8
-// Radio de cobertura: gridDisk(k=2) = 19 celdas ≈ 2 km de cobertura efectiva
-export const RADIO_COBERTURA_DEFAULT = 2
+export {
+  RESOLUCIONES,
+  RADIO_COBERTURA,
+  celdaDe,
+  padreDe,
+  esCeldaValida,
+  type RolResolucion,
+} from '@/functions/src/compartido/geografia'
+export type { EstadoCelda as EstadoZona } from '@/functions/src/compartido/territorio'
 
-/** Estado operativo de una zona H3 */
-export type EstadoZona =
-  | 'sin_actividad' // Sin cuidadores ni demanda — zona durmiente
-  | 'disponible' // Cuidadores registrados, sin solicitudes pendientes
-  | 'sin_cobertura' // Hay demanda pero ningún cuidador en la zona
-  | 'activa' // Cuidadores y demanda presentes, sin paseo en curso
-  | 'en_operacion' // Hay al menos un paseo activo en este momento
+/** Resolución estándar de la app: la de cobertura (R8, ~460 m). */
+export const RESOLUCION_H3_DEFAULT = RESOLUCIONES.cobertura
+/** Anillos de cobertura de un cuidador (19 celdas, ~2 km). */
+export const RADIO_COBERTURA_DEFAULT = RADIO_COBERTURA
 
-export interface CoordenadaGeo {
-  latitude: number
-  longitude: number
-}
+export type CoordenadaGeo = Coordenada
 
 /**
- * Convierte coordenadas geográficas a un índice H3.
- * Usa resolución 8 por defecto (≈460m de radio por celda).
+ * Celda de un punto. Acepta un rol (`'cobertura'`, `'micro'`...) o, por
+ * compatibilidad, una resolución numérica.
  */
 export function coordsAH3(
   latitud: number,
   longitud: number,
-  resolucion = RESOLUCION_H3_DEFAULT
+  resolucion: RolResolucion | number = 'cobertura'
 ): string {
-  return latLngToCell(latitud, longitud, resolucion)
+  return typeof resolucion === 'string'
+    ? celdaDe(latitud, longitud, resolucion)
+    : latLngToCell(latitud, longitud, resolucion)
 }
 
-/**
- * Devuelve las celdas H3 que componen el área de cobertura de un walker.
- * Con radio=2: 19 celdas que cubren ≈2 km alrededor del origen.
- */
+/** Celdas del vecindario de una celda (k anillos, incluida ella). */
 export function celdasDeCobertura(
   indiceCelda: string,
   radio = RADIO_COBERTURA_DEFAULT
 ): string[] {
-  return gridDisk(indiceCelda, radio)
+  return celdasAlrededor(indiceCelda, radio)
 }
 
-/**
- * Distancia en kilómetros entre los centros de dos celdas H3.
- */
+/** Distancia en km entre los centros de dos celdas H3. */
 export function distanciaKmEntreH3(celdaA: string, celdaB: string): number {
-  const [latA, lonA] = cellToLatLng(celdaA)
-  const [latB, lonB] = cellToLatLng(celdaB)
-  return (
-    haversineMetros(
-      { latitude: latA, longitude: lonA },
-      { latitude: latB, longitude: lonB }
-    ) / 1000
-  )
+  return distanciaKmEntreCeldas(celdaA, celdaB)
 }
 
-/**
- * Distancia en metros entre dos coordenadas usando la fórmula Haversine.
- * Función pura extraída de ControlPaseo y PaseoActivo para eliminar duplicación.
- */
-export function haversineMetros(a: CoordenadaGeo, b: CoordenadaGeo): number {
-  const R = 6371000
-  const aRad = (v: number) => (v * Math.PI) / 180
-  const dLat = aRad(b.latitude - a.latitude)
-  const dLon = aRad(b.longitude - a.longitude)
-  const lat1 = aRad(a.latitude)
-  const lat2 = aRad(b.latitude)
-  const sinDlat = Math.sin(dLat / 2)
-  const sinDlon = Math.sin(dLon / 2)
-  const q =
-    sinDlat * sinDlat + sinDlon * sinDlon * Math.cos(lat1) * Math.cos(lat2)
-  const c = 2 * Math.atan2(Math.sqrt(q), Math.sqrt(1 - q))
-  return R * c
-}
+/** Distancia en metros entre dos coordenadas (Haversine). */
+export const haversineMetros = distanciaMetros
+
+/** Estado de una celda según su oferta y demanda. */
+export const calcularEstadoZona = estadoDeCelda
 
 function interpolarSegmento(
   a: CoordenadaGeo,
@@ -105,22 +98,4 @@ export function densificarRuta(ruta: CoordenadaGeo[]): CoordenadaGeo[] {
     resultado.push(ruta[i])
   }
   return resultado
-}
-
-/**
- * Calcula el estado operativo de una zona a partir de sus contadores.
- * Usado para escribir el campo `estado` en `/h3_zonas/{celda}`.
- */
-export function calcularEstadoZona(zona: {
-  cuidadores_count: number
-  demanda_total: number
-  paseos_activos: number
-}): EstadoZona {
-  if (zona.paseos_activos > 0) return 'en_operacion'
-  if (zona.cuidadores_count === 0 && zona.demanda_total === 0)
-    return 'sin_actividad'
-  if (zona.cuidadores_count === 0 && zona.demanda_total > 0)
-    return 'sin_cobertura'
-  if (zona.cuidadores_count > 0 && zona.demanda_total === 0) return 'disponible'
-  return 'activa'
 }

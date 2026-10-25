@@ -52,9 +52,6 @@ jest.mock('firebase-functions/v2/firestore', () => ({
   onDocumentCreated: (_path: string, handler: unknown) => handler,
 }))
 
-jest.mock('h3-js', () => ({
-  gridDisk: jest.fn(() => ['celda-a', 'celda-b']),
-}))
 
 import { crearEvaluacion } from '../../src/evaluaciones/crearEvaluacion'
 import { alCrearEvaluacion } from '../../src/evaluaciones/alCrearEvaluacion'
@@ -97,10 +94,6 @@ describe('flujo integrado de evaluaciones', () => {
       h3_r8: 'h3origen',
       rating_promedio: 0,
     })
-    db.__seed('indice_cobertura/celda-a/cuidadores/cuidador-1', {
-      uid: 'cuidador-1',
-      rating_promedio: 0,
-    })
 
     // 1. El tutor crea la evaluación
     const res = await handler({
@@ -120,16 +113,12 @@ describe('flujo integrado de evaluaciones', () => {
     expect(doc).toBeDefined()
     await trigger(evento(doc))
 
-    // 3. Fuente de verdad + caches
+    // 3. Fuente de verdad + cache del perfil
     const resumen = db.__docs.get('resumenes_evaluacion/cuidador-1')
     expect(resumen.evaluaciones_cuidador).toEqual({ promedio: 5, cantidad: 1 })
     expect(db.__docs.get('perfiles_publicos/cuidador-1').rating_promedio).toBe(
       5
     )
-    expect(
-      db.__docs.get('indice_cobertura/celda-a/cuidadores/cuidador-1')
-        .rating_promedio
-    ).toBe(5)
   })
 
   test('observación de mascota crea resumen cualitativo sin tocar perfiles', async () => {

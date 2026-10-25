@@ -4,6 +4,8 @@ import { createStackNavigator } from '@react-navigation/stack'
 import TutorTabNavigator from '@/navigation/TutorTabNavigator'
 import CuidadorTabNavigator from '@/navigation/CuidadorTabNavigator'
 import AdminTabNavigator from '@/navigation/AdminTabNavigator'
+import AdminZonas from '@/screens/admin/AdminZonas'
+import EditorZona from '@/screens/admin/EditorZona'
 import ExplorerTabNavigator from '@/navigation/ExplorerTabNavigator'
 import ContadorTabNavigator from '@/navigation/ContadorTabNavigator'
 import AuthNavigator from './AuthNavigator'
@@ -63,6 +65,16 @@ export default function RootNavigator(): React.ReactElement {
         return (
           <Stack.Group navigationKey="admin">
             <Stack.Screen name="AdminApp" component={AdminTabNavigator} />
+            <Stack.Screen
+              name="AdminZonas"
+              component={AdminZonas}
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen
+              name="EditorZona"
+              component={EditorZona}
+              options={{ headerShown: false }}
+            />
           </Stack.Group>
         )
       case 'contador':

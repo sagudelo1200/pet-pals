@@ -38,4 +38,3 @@ export { ServicioExploracionTerritorial } from './exploraciones'
 export { ServicioPerfilPublico } from './perfiles_publicos'
 
 // Coberturas de cuidadores
-export { ServicioIndiceCobertura } from './indice_cobertura'

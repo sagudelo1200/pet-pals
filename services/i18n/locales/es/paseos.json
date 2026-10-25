@@ -512,5 +512,19 @@
       "mensaje": "{{avisos}}. ¿Quieres aceptar este paseo de todos modos? Avisaremos al tutor.",
       "aceptar": "Aceptar de todos modos"
     }
+  },
+  "servicio": {
+    "tutor": {
+      "titulo": "Aún no llegamos a tu sector",
+      "sin_zona": "Estamos abriendo zonas poco a poco y todavía no atendemos donde pediste el paseo. Ya tomamos nota de que quieres el servicio.",
+      "zona_cerrada": "Por ahora el servicio en {{zona}} está pausado. Ya tomamos nota de que quieres el servicio."
+    },
+    "cuidador": {
+      "titulo": "Aún no atendemos tu zona",
+      "sin_zona": "Todavía no recibimos pedidos donde vives, así que por ahora no te llegarán solicitudes. Ya tomamos nota de tu interés en ofrecer el servicio.",
+      "zona_cerrada": "Por ahora el servicio en {{zona}} está pausado y no te llegarán solicitudes. Ya tomamos nota de tu interés."
+    },
+    "avisame": "Avísame cuando lleguemos",
+    "avisaremos": "Listo: te avisaremos en cuanto lleguemos."
   }
 }

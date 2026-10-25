@@ -113,9 +113,27 @@ describe.each([
   })
 })
 
+describe.each([
+  ['es', esPaseos],
+  ['en', enPaseos],
+] as const)('aviso de sector sin servicio (%s)', (_idioma, paseos) => {
+  test('cada rol tiene su texto para cada motivo', () => {
+    for (const rol of ['tutor', 'cuidador'] as const) {
+      expect(typeof paseos.servicio[rol].titulo).toBe('string')
+      expect(typeof paseos.servicio[rol].sin_zona).toBe('string')
+      expect(paseos.servicio[rol].zona_cerrada).toContain('{{zona}}')
+    }
+    expect(typeof paseos.servicio.avisame).toBe('string')
+    expect(typeof paseos.servicio.avisaremos).toBe('string')
+  })
+})
+
 test('español e inglés tienen las mismas claves', () => {
   expect(rutas(enPaseos.advertencias).sort()).toEqual(
     rutas(esPaseos.advertencias).sort()
+  )
+  expect(rutas(enPaseos.servicio).sort()).toEqual(
+    rutas(esPaseos.servicio).sort()
   )
   expect(rutas(enPaseos.pasos.seleccionar_cuidador).sort()).toEqual(
     rutas(esPaseos.pasos.seleccionar_cuidador).sort()

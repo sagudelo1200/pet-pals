@@ -1,4 +1,4 @@
-import type { ZonaH3 } from '@/services/firebase/firestore/colecciones/h3_zonas'
+import type { ZonaH3 } from '@/models/ZonaH3'
 import { injectTerritorioData } from './territorioVivoHelper'
 
 // ─── Paleta de colores por estado ────────────────────────────────────────────
@@ -11,6 +11,19 @@ export const COLORES_ESTADO: Record<
   sin_cobertura: { fill: '#C96B67', opacity: 0.6, label: 'Sin cobertura' },
   activa: { fill: '#3B82F6', opacity: 0.55, label: 'Activa' },
   en_operacion: { fill: '#F59E0B', opacity: 0.7, label: 'En operación' },
+  interes: { fill: '#A855F7', opacity: 0.6, label: 'Interés sin servicio' },
+}
+
+/**
+ * Estado con el que se pinta una celda. Si hay interesados y nada más
+ * (todavía no se atiende ahí), es "interés sin servicio": dónde abrir.
+ */
+export function estadoParaMapa(z: ZonaH3): string | undefined {
+  const interes = (z.interes?.tutores ?? 0) + (z.interes?.cuidadores ?? 0)
+  const estado = z.operativa?.estado
+  return interes > 0 && (!estado || estado === 'sin_actividad')
+    ? 'interes'
+    : estado
 }
 
 /**
@@ -30,9 +43,12 @@ export function construirHTML(
   // Preparar datos para inyectar en plantilla
   const zonasJSON = JSON.stringify(
     zonas.map(z => ({
+      nivel: z.nivel,
       id_r8: z.h3_r8,
       id_r9: z.h3_r9,
-      estado: z.operativa?.estado,
+      estado: estadoParaMapa(z),
+      interesTutores: z.interes?.tutores || 0,
+      interesCuidadores: z.interes?.cuidadores || 0,
       cuidadores: z.operativa?.cuidadores_count || 0,
       demanda: z.operativa?.demanda_total || 0,
       activos: z.operativa?.paseos_activos || 0,

@@ -1,13 +1,13 @@
 /**
  * Hook: useZonaH3
  *
- * Lee una zona H3 unificada (narrativa + operativa) desde Firestore en tiempo real.
- * Reemplaza a useTerritorio() con acceso a ambas secciones.
+ * Lee en tiempo real lo observado en una microzona (R9): `territorio/{celda}`.
+ * Solo lectura: lo escribe el servidor.
  */
 
 import { useState, useEffect } from 'react'
-import { collection, doc, onSnapshot } from 'firebase/firestore'
-import { db } from '@/firebase.config'
+import { ServicioTerritorio } from '@/services/firebase/firestore/colecciones/territorio'
+import { combinarZonas } from '@/logic/territorio/zonas'
 import type { ZonaH3 } from '@/models/ZonaH3'
 import { mapFirebaseError } from '@/services/firebase/comun'
 
@@ -18,13 +18,12 @@ interface UseZonaH3Result {
 }
 
 /**
- * Hook que lee una zona H3 en tiempo real desde Firestore
- * @param h3_r9 Identificador de la zona (nivel detalle)
- * @returns { zona, loading, error }
+ * @param h3_r9 Microzona (celda de resolución micro).
+ * @returns { zona, loading, error }; `zona` es null si aún no hay datos.
  */
 export function useZonaH3(h3_r9?: string): UseZonaH3Result {
   const [zona, setZona] = useState<ZonaH3 | null>(null)
-  const [loading, setLoading] = useState(h3_r9 ? true : false)
+  const [loading, setLoading] = useState(!!h3_r9)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
@@ -36,49 +35,19 @@ export function useZonaH3(h3_r9?: string): UseZonaH3Result {
 
     setLoading(true)
     setError(null)
-
-    try {
-      const zonaRef = doc(collection(db, 'h3_zonas'), h3_r9)
-
-      const unsubscribe = onSnapshot(
-        zonaRef,
-        snapshot => {
-          try {
-            if (snapshot.exists()) {
-              setZona(snapshot.data() as ZonaH3)
-            } else {
-              setZona(null)
-            }
-            setError(null)
-            setLoading(false)
-          } catch (err) {
-            const mensaje = mapFirebaseError(err)
-            setError(mensaje)
-            setLoading(false)
-          }
-        },
-        err => {
-          const mensaje = mapFirebaseError(err)
-          console.warn('[useZonaH3] Error escuchando zona:', err)
-          setError(mensaje)
-          setLoading(false)
-        }
-      )
-
-      return () => {
-        try {
-          unsubscribe()
-        } catch (_err) {
-          console.warn('[useZonaH3.useZonaH3] Error manejado:', _err)
-          // Ignorar errores en cleanup
-        }
+    return ServicioTerritorio.suscribirACelda(
+      h3_r9,
+      celda => {
+        setZona(celda ? (combinarZonas([celda]).find(z => z.nivel === 9) ?? null) : null)
+        setError(null)
+        setLoading(false)
+      },
+      err => {
+        console.warn('[useZonaH3] Error escuchando zona:', err)
+        setError(mapFirebaseError(err))
+        setLoading(false)
       }
-    } catch (err) {
-      const mensaje = mapFirebaseError(err)
-      setError(mensaje)
-      setLoading(false)
-      return () => {}
-    }
+    )
   }, [h3_r9])
 
   return { zona, loading, error }

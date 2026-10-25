@@ -18,12 +18,11 @@ import {
   type Firestore,
 } from 'firebase-admin/firestore';
 import {
-  cellToLatLng,
-  gridDisk,
-  greatCircleDistance,
-  isValidCell,
-  latLngToCell,
-} from 'h3-js';
+  celdaDe,
+  celdasDeCoberturaDe,
+  distanciaKmEntreCeldas,
+  esCeldaValida,
+} from '../compartido/geografia';
 import {
   emparejar,
   esBloqueante,
@@ -48,10 +47,13 @@ import {
 import {leerConfiguracion} from '../comun/configuracion';
 import {ErrorNegocio} from '../comun/errores';
 import {notificar} from '../comun/notificar';
+import {
+  consultarServicio,
+  registrarInteres,
+} from '../zonas/servicio';
 
 type Dato = Record<string, unknown>;
 
-const RADIO_COBERTURA = 2;
 const MAX_CANDIDATOS = 60;
 const MAX_MASCOTAS_PEDIDO = 10;
 const ESTADOS_EN_AGENDA = [
@@ -100,7 +102,7 @@ export function validarPeticion(datos: unknown): PeticionBusqueda {
     duracion < 15 || duracion > 480) {
     throw invalido('La duración');
   }
-  if (!esTexto(d.celda) || !isValidCell(d.celda)) throw invalido('La zona');
+  if (!esCeldaValida(d.celda)) throw invalido('La zona');
   const ids = Array.isArray(d.mascotaIds) ?
     [...new Set(d.mascotaIds.filter(esTexto))] : [];
   if (ids.length === 0 || ids.length > MAX_MASCOTAS_PEDIDO) {
@@ -196,12 +198,8 @@ async function armarCandidato(
   const perfil = perfilDoc.data();
   if (!perfilDoc.exists || !perfil) return null;
 
-  const origen = esTexto(perfil.h3_r8) && isValidCell(perfil.h3_r8) ?
-    perfil.h3_r8 : undefined;
-  const manuales = Array.isArray(perfil.celdas_cobertura) ?
-    perfil.celdas_cobertura.filter(esTexto) : [];
-  const celdas = manuales.length > 0 ?
-    manuales : origen ? gridDisk(origen, RADIO_COBERTURA) : [];
+  const origen = esCeldaValida(perfil.h3_r8) ? perfil.h3_r8 : undefined;
+  const celdas = celdasDeCoberturaDe(perfil);
 
   const agenda = agendaSnap.docs.flatMap((doc) => {
     const inicioMs = aMs(doc.data().fecha_hora_inicio);
@@ -220,9 +218,7 @@ async function armarCandidato(
     overrides: excepcionDoc.data()?.overrides as
       Record<string, OverrideDia> | undefined,
     celdas,
-    distanciaKm: origen ?
-      greatCircleDistance(cellToLatLng(origen), cellToLatLng(p.celda), 'km') :
-      undefined,
+    distanciaKm: origen ? distanciaKmEntreCeldas(origen, p.celda) : undefined,
     rating: numero(perfil.rating_promedio),
     paseosRealizados: numero(perfil.cantidad_paseos_realizados),
     maxMascotas: cupoPropio(perfil.max_mascotas),
@@ -250,8 +246,19 @@ export async function buscarCuidadores(
   ahoraMs: number
 ): Promise<RespuestaBusqueda> {
   const p = validarPeticion(datos);
-  const [mascotas, ajustes, expediente, paseos, indice] = await Promise.all([
-    leerMascotas(db, uid, p.mascotaIds),
+  // Quien no es tutor de las mascotas no pregunta nada (ni deja rastro)
+  const mascotas = await leerMascotas(db, uid, p.mascotaIds);
+
+  // ¿Se atiende ahí? Si no, no hay nada que buscar: queda anotado el interés
+  const servicio = await consultarServicio(db, p.celda);
+  if (!servicio.abierto) {
+    await registrarInteres(
+      db, {uid, celda: p.celda, rol: 'tutor', avisar: false},
+      Timestamp.fromMillis(ahoraMs));
+    return {servicio, cuidadores: []};
+  }
+
+  const [ajustes, expediente, paseos, indice] = await Promise.all([
     leerConfiguracion(db, 'emparejamiento'),
     leerConfiguracion(db, 'expediente'),
     leerConfiguracion(db, 'paseos'),
@@ -293,7 +300,7 @@ export async function buscarCuidadores(
       continuidad: r.estado === 'disponible' ? r.continuidad : undefined,
       advertencias: r.advertencias,
     }));
-  return {cuidadores};
+  return {servicio, cuidadores};
 }
 
 // ---------- Un paseo concreto: crear y aceptar ----------
@@ -335,7 +342,7 @@ async function solicitudDePaseo(
     hora: `${dos(local.getUTCHours())}:${dos(local.getUTCMinutes())}`,
     duracion: numero(paseo.duracion_estimada) ?? 60,
     ahoraMs,
-    celdaTutor: latLngToCell(lat, lng, 8),
+    celdaTutor: celdaDe(lat, lng),
     mascotas: await leerMascotas(db, undefined, ids),
   };
 }

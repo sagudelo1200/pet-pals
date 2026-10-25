@@ -49,10 +49,6 @@ jest.mock('@google-cloud/tasks', () => {
   return {CloudTasksClient: jest.fn(() => instancia)};
 });
 
-jest.mock('h3-js', () => ({
-  gridDisk: jest.fn(() => ['celda-a', 'celda-b']),
-}));
-
 import {alCrearEvaluacion} from '../../src/evaluaciones/alCrearEvaluacion';
 
 type Evento = {
@@ -144,15 +140,11 @@ describe('alCrearEvaluacion (trigger)', () => {
     expect(resumen.evaluaciones_cuidador).toEqual({promedio: 4.5, cantidad: 2});
   });
 
-  test('evaluacion_cuidador propaga rating a PerfilPublico e índice H3', async () => {
+  test('evaluacion_cuidador propaga el rating a PerfilPublico', async () => {
     db.__seed('evaluaciones/e1', evaluacionDoc({id: 'e1', datos: {rating: 5}}));
     db.__seed('perfiles_publicos/cuidador-1', {
       nombre: 'Cuidador Uno',
       h3_r8: 'h3origen',
-      rating_promedio: 0,
-    });
-    db.__seed('indice_cobertura/celda-a/cuidadores/cuidador-1', {
-      uid: 'cuidador-1',
       rating_promedio: 0,
     });
 
@@ -161,9 +153,9 @@ describe('alCrearEvaluacion (trigger)', () => {
     const perfil = db.__docs.get('perfiles_publicos/cuidador-1');
     expect(perfil.rating_promedio).toBe(5);
 
-    // celda-a existe → se actualiza; celda-b no existe → allSettled la ignora
-    const indice = db.__docs.get('indice_cobertura/celda-a/cuidadores/cuidador-1');
-    expect(indice.rating_promedio).toBe(5);
+    // El índice de cobertura ya no guarda calificación: no se toca
+    expect([...db.__docs.keys()].some((k: string) => k.startsWith('indice_cobertura/')))
+      .toBe(false);
   });
 
   test('evaluacion_cuidador con perfil inexistente NO crea perfil fantasma', async () => {
@@ -216,24 +208,6 @@ describe('alCrearEvaluacion (trigger)', () => {
     const resumen = db.__docs.get('resumenes_evaluacion/mascota-1');
     expect(resumen.evaluaciones_mascota).toEqual({promedio: 0, cantidad: 1});
     expect(db.__docs.has('perfiles_publicos/mascota-1')).toBe(false);
-  });
-
-  test('usa celdas_cobertura manuales si existen', async () => {
-    db.__seed('evaluaciones/e1', evaluacionDoc({id: 'e1', datos: {rating: 5}}));
-    db.__seed('perfiles_publicos/cuidador-1', {
-      nombre: 'C',
-      celdas_cobertura: ['celda-manual-1'],
-      rating_promedio: 0,
-    });
-    db.__seed('indice_cobertura/celda-manual-1/cuidadores/cuidador-1', {
-      uid: 'cuidador-1',
-      rating_promedio: 0,
-    });
-
-    await trigger(evento(evaluacionDoc({id: 'e2', datos: {rating: 5}})));
-
-    const indice = db.__docs.get('indice_cobertura/celda-manual-1/cuidadores/cuidador-1');
-    expect(indice.rating_promedio).toBe(5);
   });
 
   test('mezcla tipos del mismo objetivo sin cruzarlos', async () => {
@@ -292,7 +266,7 @@ describe('alCrearEvaluacion (trigger)', () => {
     expect(resumen.evaluaciones_cuidador).toEqual({promedio: 4.67, cantidad: 3});
   });
 
-  test('cuidador sin h3 ni celdas: perfil actualizado, índice omitido sin error', async () => {
+  test('cuidador sin ubicación: el perfil se actualiza igual', async () => {
     db.__seed('evaluaciones/e1', evaluacionDoc({id: 'e1', datos: {rating: 5}}));
     db.__seed('perfiles_publicos/cuidador-1', {nombre: 'C', rating_promedio: 0});
 
@@ -301,7 +275,6 @@ describe('alCrearEvaluacion (trigger)', () => {
     ).resolves.toBeUndefined();
 
     expect(db.__docs.get('perfiles_publicos/cuidador-1').rating_promedio).toBe(5);
-    expect(db.__docs.has('indice_cobertura/celda-a/cuidadores/cuidador-1')).toBe(false);
   });
 
   test('incluye desglose de evaluacion_sistema sin tocar el perfil', async () => {

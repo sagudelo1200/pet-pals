@@ -239,6 +239,12 @@ service cloud.firestore {
 
     // Campos del cierre de la entrega que solo escribe el servidor (Cloud
     // Functions con Admin SDK): ni el tutor ni el cuidador pueden fijarlos
+    // La zona de negocio de un paseo la fija el servidor al crearse: ni el tutor ni
+    // el cuidador pueden ponerla ni cambiarla
+    function campos_de_zona_del_servidor() {
+      return ['zona_id'];
+    }
+
     function campos_entrega_del_servidor() {
       return ['requiere_revision', 'requiere_revision_desde', 'motivo_revision',
         'cierre_por_equipo', 'en_disputa'];
@@ -437,6 +443,7 @@ service cloud.firestore {
             version_vigente('politica_comercial') &&
           mascotas_dentro_del_limite(request.resource.data)))
         && !request.resource.data.keys().hasAny(campos_entrega_del_servidor())
+        && !request.resource.data.keys().hasAny(campos_de_zona_del_servidor())
         && sin_bloqueo_financiero();
 
       // OPTIMIZADO: Validaciones en orden de costo (baratas primero)
@@ -446,6 +453,7 @@ service cloud.firestore {
       allow update: if puede_actualizar_valido() && (no_cambia(['politica_version']) || es_admin()) &&
       (!(resource.data.estado == 'PENDIENTE' && request.resource.data.estado == 'CONFIRMADO') || es_admin()) &&
       (no_cambia(campos_entrega_del_servidor()) || es_admin()) &&
+      (no_cambia(campos_de_zona_del_servidor()) || es_admin()) &&
       (no_cambia(['mascota_ids', 'mascotas_count']) ||
         mascotas_dentro_del_limite(request.resource.data)) && (
       // Caso 1: El Creador actualiza (validación más barata - solo request.auth.uid)
@@ -553,35 +561,58 @@ service cloud.firestore {
 
     // ÍNDICE DE COBERTURA GEOESPACIAL H3
     // /indice_cobertura/{celdaH3}/cuidadores/{uid}
+    // "Quién atiende en esta celda". Lo deriva el servidor del perfil del
+    // cuidador (functions/src/territorio): ningún cliente lo escribe. La app no
+    // lo lee: la búsqueda de cuidadores es el callable buscarCuidadores; solo el
+    // panel del admin lo consulta.
     match /indice_cobertura/{celdaH3}/cuidadores/{uid} {
-      // Cualquier usuario autenticado puede consultar cuidadores en una celda
-      allow read: if autenticado();
-      // Solo el propio cuidador o admin puede escribir su entrada
-      allow write: if autenticado() && (uid == request.auth.uid || es_admin());
+      allow read: if es_admin();
+      allow write: if false;
     }
 
-    // INTELIGENCIA TERRITORIAL H3 - ESTRUCTURA UNIFICADA
-    // /h3_zonas/{celdaH3}
-    // 
-    // Documento único que contiene dos secciones bien separadas:
-    // 1. NARRATIVA: Identidad, índices, contadores de eventos (gestionado por TerritorialAggregator)
-    // 2. OPERATIVA: Cobertura de cuidadores, demanda, estado (gestionado por ServicioZonasH3)
-    //
-    // Ambas secciones son fire-and-forget desde cliente (no requieren validación exhaustiva).
-    match /h3_zonas/{celdaH3} {
-      // Lectura: usuarios autenticados pueden leer zonas
+    // ZONAS DE NEGOCIO
+    // /zonas/{id} y /celdas_zona/{celda}
+    // Sectores con nombre (Chicó, Usaquén...) como conjuntos de celdas H3 y el
+    // índice que dice de quién es cada celda. Las define el admin con el callable
+    // guardarZona y el servidor las escribe; la app las lee.
+    match /zonas/{id} {
       allow read: if autenticado();
+      allow write: if false;
 
-      // Escritura: usuarios autenticados pueden escribir (ambas secciones)
-      // merge: true preserva la otra sección
-      allow write: if autenticado();
+      match /historial/{cambio} {
+        allow read: if es_admin();
+        allow write: if false;
+      }
+    }
+
+    match /celdas_zona/{celda} {
+      allow read: if autenticado();
+      allow write: if false;
+    }
+
+    // /interes_zona/{uid}_{rol}_{celda}
+    // Quién intentó pedir un paseo, o vive, donde aún no se atiende (y si pidió
+    // que le avisen). Lo escribe el servidor; solo el admin lo lee: es la señal de
+    // dónde abrir.
+    match /interes_zona/{id} {
+      allow read: if es_admin();
+      allow write: if false;
+    }
+
+    // TERRITORIO POR CELDA H3
+    // /territorio/{celda}
+    // Oferta y demanda (celdas de cobertura, R8) y lo observado en el paseo
+    // (microzonas, R9). Lo calculan solo las Cloud Functions; la app lo lee.
+    match /territorio/{celda} {
+      allow read: if autenticado();
+      allow write: if false;
     }
 
     // EXCEPCIONES DE DISPONIBILIDAD SEMANAL
     // /excepciones_disponibilidad/{uid}/semanas/{isoWeek}
     match /excepciones_disponibilidad/{uid}/semanas/{semana} {
-      // Cualquier usuario autenticado puede leer (matching de tutores al seleccionar cuidador)
-      allow read: if autenticado();
+      // El matching de tutores lo hace el servidor: solo el cuidador (y el admin) las ven
+      allow read: if es_mismo_uid(uid) || es_admin();
       // Solo el propio cuidador puede escribir o eliminar sus excepciones
       allow write: if autenticado() && es_mismo_uid(uid);
     }
@@ -662,17 +693,6 @@ service cloud.firestore {
       // Escritura: solo Cloud Functions (backend) debe crear/actualizar estos datos
       // Los clientes no deben escribir directamente
       allow write: if false;
-    }
-
-    // AGREGACIÓN TERRITORIAL POR ZONA H3 (Paw-Path)
-    // /territorios/{h3_r9}
-    // Acumula estadísticas de eventos por territorio (zona de ~60m)
-    match /territorios/{h3_r9} {
-      // Lectura: usuarios autenticados pueden leer datos de territorios
-      allow read: if autenticado();
-
-      // Escritura: usuarios autenticados pueden escribir (la app actualiza desde el cliente)
-      allow write: if autenticado();
     }
 
     // OTP_CODES (Códigos de verificación temporal)

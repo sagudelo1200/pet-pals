@@ -28,7 +28,9 @@ import {
   type Tamano,
 } from '@/functions/src/compartido/emparejamiento'
 import { GestorPerfilPublico } from '@/logic/usuarios/perfilPublico'
-import { coordsAH3 } from '@/services/geo'
+import { celdaPrincipalDe } from '@/logic/ubicaciones/celdaPrincipal'
+import { useEstadoDeServicio } from '@/hooks/useEstadoDeServicio'
+import { AvisoSinServicio } from '@/components/comun/AvisoSinServicio'
 import { useDirecciones } from '@/hooks/useDirecciones'
 import { AutocompletarDireccion } from '@/components/ui/AutocompletarDireccion'
 import type { DetalleUbicacion } from '@/services/maps/types'
@@ -78,6 +80,9 @@ const PerfilCuidador: React.FC = () => {
   >({})
 
   const [mostrarBuscadorDir, setMostrarBuscadorDir] = useState(false)
+  // ¿Se atiende donde vive? Si no, aún no recibirá solicitudes
+  const celdaPrincipal = celdaPrincipalDe(profile)
+  const servicio = useEstadoDeServicio(celdaPrincipal)
   const {
     principal: principalDir,
     agregar: agregarDir,
@@ -179,22 +184,7 @@ const PerfilCuidador: React.FC = () => {
 
     setSaving(true)
 
-    let h3Origen: string | null = null
-    if (profile?.id_ubicacion_principal && profile?.ubicaciones) {
-      const ubPrincipal = profile.ubicaciones.find(
-        u => u.ubicacion_id === profile.id_ubicacion_principal
-      )
-      // Usar h3_r8 de la referencia (guardado cuando se creó la ubicación)
-      if (ubPrincipal?.h3_r8) {
-        h3Origen = ubPrincipal.h3_r8
-      } else if (ubPrincipal?.coordenadas) {
-        // Fallback: recalcular si no está disponible (migración de datos)
-        h3Origen = coordsAH3(
-          ubPrincipal.coordenadas.latitude,
-          ubPrincipal.coordenadas.longitude
-        )
-      }
-    }
+    const h3Origen = celdaPrincipalDe(profile)
 
     const updateData: Partial<PerfilPublico> = {
       foto,
@@ -404,6 +394,16 @@ const PerfilCuidador: React.FC = () => {
               </View>
             )}
           </View>
+
+          {servicio && !servicio.abierto && celdaPrincipal && (
+            <View style={styles.avisoServicio}>
+              <AvisoSinServicio
+                rol="cuidador"
+                celda={celdaPrincipal}
+                servicio={servicio}
+              />
+            </View>
+          )}
 
           <TouchableOpacity
             style={styles.coberturaBtnWrapper}
@@ -622,6 +622,9 @@ const styles = StyleSheet.create({
   autocompleteWrapper: {
     marginTop: 8,
     zIndex: 20,
+  },
+  avisoServicio: {
+    marginTop: 16,
   },
   coberturaBtnWrapper: {
     marginTop: 16,

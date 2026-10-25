@@ -25,7 +25,7 @@ import type { Operacion } from '@/models/Operacion'
 import { ServicioAuth } from '@/services/firebase/auth/auth'
 import { ERR } from '@/constants'
 import { validarFormatoCodigo } from '@/logic/paseos/generador'
-import { coordsAH3 } from '@/services/geo/h3Utils'
+import { celdaDe } from '@/services/geo/h3Utils'
 import { enriquecerContextoConAPIs } from '@/services/geo/enriquecimientoTerritorial'
 import { detectarPatron } from '@/logic/paseos/detectarPatrones'
 import {
@@ -33,7 +33,6 @@ import {
   validarMomento,
   type MomentoRegistrado,
 } from '@/functions/src/compartido/expediente'
-import { TerritorialAggregator } from '@/services/firebase/firestore/agregadores/territorial.aggregator'
 import { ServicioChat } from '@/services/firebase/firestore/colecciones/chat'
 import {
   mapFirebaseError,
@@ -421,8 +420,8 @@ export class ServicioPaseo {
             duracionDesdeInicio = Math.max(0, (timestamp - fechaInicio) / 1000)
           }
 
-          h3_r8 = coordsAH3(payload.ubicacion.lat, payload.ubicacion.lng, 8)
-          h3_r9 = coordsAH3(payload.ubicacion.lat, payload.ubicacion.lng, 9)
+          h3_r8 = celdaDe(payload.ubicacion.lat, payload.ubicacion.lng, 'cobertura')
+          h3_r9 = celdaDe(payload.ubicacion.lat, payload.ubicacion.lng, 'micro')
 
           // Capa 1: Hecho Territorial
           hechoTerritorial = {
@@ -551,20 +550,6 @@ export class ServicioPaseo {
       )
       if (remain.length) this.pendingEventos.set(paseoId, remain)
       else this.pendingEventos.delete(paseoId)
-
-      // PUBLICACIÓN TERRITORIAL
-      if (h3_r9 && h3_r8 && evento === 'bitacora') {
-        TerritorialAggregator.publishEvento({
-          accion: payload?.accion || 'desconocido',
-          h3_r9,
-          h3_r8,
-          duracion_seg:
-            hechoTerritorial?.duracion_desde_inicio_paseo_segundos || 0,
-          contextoTerritorial: contextoTerritorial || {},
-          paseoId,
-          cuidadorId: currentUser.uid,
-        })
-      }
 
       return { success: true }
     } catch (error) {

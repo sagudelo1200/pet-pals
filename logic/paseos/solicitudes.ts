@@ -3,9 +3,9 @@
  * dirigidas a él siempre), las suyas primero y luego las más cercanas.
  */
 import {
-  celdasDeCobertura,
-  distanciaKmEntreH3,
-} from '@/services/geo/h3Utils'
+  celdasDeCoberturaDe,
+  distanciaKmEntreCeldas,
+} from '@/functions/src/compartido/geografia'
 
 /** Límite de valores de un filtro `in` en Firestore. */
 export const MAX_CELDAS_CONSULTA = 30
@@ -20,14 +20,10 @@ export function celdasDeSolicitudes(perfil: {
   celdas_cobertura?: string[]
 }): string[] {
   const origen = perfil.h3_r8
-  const celdas = perfil.celdas_cobertura?.length
-    ? perfil.celdas_cobertura
-    : origen
-      ? celdasDeCobertura(origen)
-      : []
+  const celdas = celdasDeCoberturaDe(perfil)
   if (!origen) return celdas.slice(0, MAX_CELDAS_CONSULTA)
   return [...new Set([origen, ...celdas])]
-    .map(celda => ({ celda, km: distanciaKmEntreH3(celda, origen) }))
+    .map(celda => ({ celda, km: distanciaKmEntreCeldas(celda, origen) }))
     .sort((a, b) => a.km - b.km)
     .slice(0, MAX_CELDAS_CONSULTA)
     .map(({ celda }) => celda)
@@ -68,7 +64,7 @@ export function ordenarSolicitudes<T extends SolicitudOrdenable>(
   })
 
   const km = (p: T) =>
-    origen && p.h3_r8 ? distanciaKmEntreH3(p.h3_r8, origen) : Infinity
+    origen && p.h3_r8 ? distanciaKmEntreCeldas(p.h3_r8, origen) : Infinity
   return visibles
     .map(p => ({ p, directa: p.id_cuidador === uid, km: km(p) }))
     .sort(

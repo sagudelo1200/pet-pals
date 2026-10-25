@@ -1,107 +1,44 @@
 /**
- * ZonaH3 Unificada: Inteligencia Territorial + Operativa de Cobertura
+ * Territorio en la app.
  *
- * Un único documento por zona hexagonal que contiene:
- * 1. NARRATIVA: Identidad, índices de inteligencia, contadores de eventos
- * 2. OPERATIVA: Cobertura de cuidadores, demanda, estado de la zona
+ * Lo que existe en Firestore es `territorio/{celda}` (ver
+ * functions/src/compartido/territorio.ts): oferta y demanda en las celdas de
+ * cobertura (R8) y lo observado en las microzonas (R9). Solo lo escribe el
+ * servidor; la app lo lee.
  *
- * Estructura centralizada para evitar duplicación y conflictos de escritura.
+ * `ZonaH3` es la VISTA que usan las pantallas: una celda con su oferta y
+ * demanda y con lo observado en ella, ya combinados (ver
+ * logic/territorio/zonas.ts).
  */
+import type {
+  Narrativa,
+  Operativa,
+  ResumenInteres,
+} from '@/functions/src/compartido/territorio'
 
-import { Timestamp } from 'firebase/firestore'
+export type {
+  CeldaTerritorial,
+  EstadoCelda,
+  Identidad,
+  Indices,
+  Narrativa,
+  Operativa,
+  ResumenInteres,
+} from '@/functions/src/compartido/territorio'
 
-/**
- * Identidad de una ubicación territorial
- */
-export interface Identidad {
-  tipo?: 'parque' | 'calle' | 'comercio' | 'conjunto' | 'otro' | 'mixto'
-  confianza: number // 0-100: qué tan seguro somos de la clasificación
-  fuente?: 'paseo' | 'explorador' | 'inferencia' // de dónde viene la información
-}
-
-/**
- * Índices de inteligencia territorial (0-100)
- */
-export interface Índices {
-  bienestar: number // Qué tan saludable es la zona (agua, juego, descanso)
-  seguridad: number // Qué tan segura es (poca gente, conocida)
-  actividad: number // Nivel de actividad observable
-  socializacion: number // Oportunidad de interacción con otros perros
-}
-
-/**
- * Estado calculado de una zona H3
- */
-export type EstadoZona =
-  'activa' | 'en_operacion' | 'sin_cobertura' | 'saturada'
-
-/**
- * Sección NARRATIVA: Inteligencia y conocimiento acumulado sobre la zona
- */
-export interface NarrativaSección {
-  identidad: Identidad
-  indices: Índices
-  total_eventos: number
-  eventos_por_tipo: Record<string, number> // { 'juego': 5, 'agua': 3, ... }
-  ultima_actualizacion?: number // timestamp en ms
-}
-
-/**
- * Sección OPERATIVA: Cobertura de cuidadores y demanda de tutores
- */
-export interface OperativaSección {
-  cuidadores_count: number
-  demanda_total: number
-  paseos_activos: number
-  paseos_total: number
-  estado: EstadoZona
-  ratio_cobertura: number // cuidadores / max(demanda, 1)
-  ultima_demanda_en?: Timestamp
-  ultima_actividad_en?: Timestamp
-}
-
-/**
- * Documento completo de una Zona H3: Narrativa + Operativa
- */
 export interface ZonaH3 {
-  // === IDENTIDAD ===
+  /** Id de la celda que representa esta vista. */
   id: string
-  h3_r8: string // Nivel regional (~5-15km)
-  h3_r9: string // Nivel detalle (~1-5km)
-  ciudad?: string // Ciudad donde se ubica la zona (ej: "medellin", "bogota")
-
-  // === SECCIÓN 1: NARRATIVA (inteligencia territorial) ===
-  narrativa: NarrativaSección
-
-  // === SECCIÓN 2: OPERATIVA (cobertura y demanda) ===
-  operativa: OperativaSección
-
-  // === SISTEMA ===
-  actualizado_en: Timestamp
-  creado_por?: string
-  actualizado_por?: string
-}
-
-/**
- * Delta para actualizar la sección NARRATIVA
- */
-export interface DeltaNarrativa {
-  identidad?: Identidad
-  indices?: Partial<Índices>
-  total_eventos?: number
-  eventos_por_tipo?: Record<string, number>
-}
-
-/**
- * Delta para actualizar la sección OPERATIVA
- */
-export interface DeltaOperativa {
-  cuidadores_count?: number
-  demanda_total?: number
-  paseos_activos?: number
-  paseos_total?: number
-  estado?: EstadoZona
-  ratio_cobertura?: number
-  marcar_demanda?: boolean // Si true, escribe ultima_demanda_en = serverTimestamp()
-  marcar_actividad?: boolean // Si true, escribe ultima_actividad_en = serverTimestamp()
+  /** Escala de la vista: 8 (cobertura) o 9 (microzona). */
+  nivel: 8 | 9
+  /** Celda de cobertura (la misma celda si el nivel es 8). */
+  h3_r8: string
+  /** Microzona (solo en el nivel 9). */
+  h3_r9?: string
+  /** Lo observado en la celda (en el nivel 8, la suma de sus microzonas). */
+  narrativa?: Narrativa
+  /** Oferta y demanda de la celda de cobertura. */
+  operativa?: Operativa
+  /** Quiénes piden o ofrecen servicio donde aún no se atiende (nivel 8). */
+  interes?: ResumenInteres
 }

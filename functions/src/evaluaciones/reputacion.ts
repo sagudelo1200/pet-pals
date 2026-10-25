@@ -1,6 +1,5 @@
 import admin from '../comun/firebaseAdminCompat';
 import {Timestamp} from 'firebase-admin/firestore';
-import {gridDisk} from 'h3-js';
 
 if (!admin.apps || admin.apps.length === 0) {
   admin.initializeApp();
@@ -9,8 +8,6 @@ if (!admin.apps || admin.apps.length === 0) {
 const db = admin.firestore();
 
 const SISTEMA = 'sistema-cf-evaluaciones';
-// Mismo radio que celdasDeCobertura del cliente (gridDisk k=2 → 19 celdas ≈ 2 km)
-const RADIO_COBERTURA = 2;
 
 export interface Desglose {
   promedio: number
@@ -262,61 +259,4 @@ export function calcularDistribucion(
     }
   }
   return distribucion;
-}
-
-/**
- * Actualiza `rating_promedio` en todas las celdas del índice de cobertura
- * del cuidador (mismas celdas que usa el cliente para buscar).
- * No falla si alguna celda ya no existe en el índice (allSettled).
- */
-export async function actualizarRatingEnIndice(
-  uid: string,
-  ratingPromedio: number,
-  perfil: Record<string, unknown>
-): Promise<void> {
-  try {
-    const celdasManuales = Array.isArray(perfil.celdas_cobertura) ?
-      (perfil.celdas_cobertura as unknown[]).filter(
-        (c): c is string => typeof c === 'string'
-      ) :
-      [];
-    const celdas =
-      celdasManuales.length > 0 ?
-        celdasManuales :
-        typeof perfil.h3_r8 === 'string' ?
-          gridDisk(perfil.h3_r8, RADIO_COBERTURA) :
-          [];
-
-    if (celdas.length === 0) {
-      console.log(
-        `[reputacion] Cuidador ${uid} sin cobertura H3; índice no actualizado`
-      );
-      return;
-    }
-
-    const ahora = Timestamp.now();
-    const resultados = await Promise.allSettled(
-      celdas.map((celda) =>
-        db
-          .collection('indice_cobertura')
-          .doc(celda)
-          .collection('cuidadores')
-          .doc(uid)
-          .update({rating_promedio: ratingPromedio, actualizado_en: ahora})
-      )
-    );
-
-    const fallidos = resultados.filter((r) => r.status === 'rejected').length;
-    if (fallidos > 0) {
-      const total = celdas.length;
-      console.warn(
-        `[reputacion] ${fallidos}/${total} celdas de índice no actualizadas para ${uid}`
-      );
-    }
-  } catch (error) {
-    console.warn(
-      `[reputacion] Error actualizando índice de cobertura para ${uid}:`,
-      error
-    );
-  }
 }

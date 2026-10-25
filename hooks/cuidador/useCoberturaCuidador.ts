@@ -1,13 +1,12 @@
 import { useState, useEffect } from 'react'
-import { gridDisk } from 'h3-js'
 import { GestorPerfilPublico } from '@/logic/usuarios/perfilPublico'
-import { RADIO_COBERTURA_DEFAULT } from '@/services/geo'
+import { celdasDeCobertura } from '@/services/geo'
 
 /**
  * Gestiona las celdas H3 de cobertura seleccionadas por el cuidador.
  *
  * - Si el perfil tiene `celdas_cobertura`, las usa como selección inicial.
- * - Si no, usa el gridDisk(h3_r8, RADIO_COBERTURA_DEFAULT) automático.
+ * - Si no, usa el vecindario automático de su celda de origen.
  * - `h3_r8Override` se usa como fallback si `PerfilPublico.h3_r8` no está seteado aún.
  */
 export function useCoberturaCuidador(
@@ -30,11 +29,11 @@ export function useCoberturaCuidador(
         if (celdas_cobertura?.length) {
           setSelectedCells(celdas_cobertura)
         } else if (efectivoH3) {
-          setSelectedCells(gridDisk(efectivoH3, RADIO_COBERTURA_DEFAULT))
+          setSelectedCells(celdasDeCobertura(efectivoH3))
         }
       } else if (h3_r8Override) {
         setH3Home(h3_r8Override)
-        setSelectedCells(gridDisk(h3_r8Override, RADIO_COBERTURA_DEFAULT))
+        setSelectedCells(celdasDeCobertura(h3_r8Override))
       }
       setLoading(false)
     })

@@ -24,6 +24,7 @@ import {
 } from '@/hooks/paseos/useSeleccionarCuidador'
 import { useDisponibilidadCercana } from '@/hooks/paseos/useDisponibilidadCercana'
 import { ModalPerfilCuidador } from '@/components/cuidador'
+import { AvisoSinServicio } from '@/components/comun/AvisoSinServicio'
 import { GestorPerfilPublico } from '@/logic/usuarios/perfilPublico'
 import { textoDeAdvertencias } from '@/logic/paseos/advertencias'
 import type { PerfilPublico } from '@/models/PerfilPublico'
@@ -71,6 +72,8 @@ export const SeleccionarCuidadorPaso = ({
     : cuidadorInicialId
   const {
     cuidadores,
+    servicio,
+    celda,
     cargando,
     error,
     cuidadorSeleccionado,
@@ -116,6 +119,9 @@ export const SeleccionarCuidadorPaso = ({
   const cuidadoresAlternativos = cuidadores.filter(
     c => c.estado !== 'disponible'
   )
+
+  // Sector fuera de servicio: no hay nada que elegir (ni solicitud abierta)
+  const sinServicio = !cargando && !error && !servicio.abierto && celda !== null
 
   const handleContinuar = () => {
     if (cuidadorSeleccionado === 'SOLICITUD_ABIERTA') {
@@ -544,9 +550,9 @@ export const SeleccionarCuidadorPaso = ({
           </View>
         )}
 
-        {renderOpenRequestCard()}
+        {!sinServicio && renderOpenRequestCard()}
 
-        {!error && (
+        {!error && !sinServicio && (
           <Text style={styles.subtitle}>
             {t('paseos:pasos.seleccionar_cuidador.lista_titulo')}
           </Text>
@@ -581,6 +587,8 @@ export const SeleccionarCuidadorPaso = ({
           </View>
         ) : error ? (
           renderError()
+        ) : sinServicio ? (
+          <AvisoSinServicio rol="tutor" celda={celda!} servicio={servicio} />
         ) : cuidadores.length === 0 ? (
           <EmptyState
             image={<PerroTristeSvg width={100} height={100} />}
@@ -697,7 +705,7 @@ export const SeleccionarCuidadorPaso = ({
           title={t('comun:continuar')}
           variant="primario"
           onPress={handleContinuar}
-          disabled={!cuidadorSeleccionado || cargando}
+          disabled={!cuidadorSeleccionado || cargando || sinServicio}
           style={{ flex: 1 }}
         />
       </View>

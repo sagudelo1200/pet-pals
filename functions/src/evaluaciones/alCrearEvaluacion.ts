@@ -3,7 +3,6 @@ import admin from '../comun/firebaseAdminCompat';
 import {Timestamp} from 'firebase-admin/firestore';
 import {
   calcularYGuardarResumen,
-  actualizarRatingEnIndice,
   calcularSuperhost,
   INSIGNIA_SUPERHOST,
 } from './reputacion';
@@ -36,11 +35,11 @@ const db = admin.firestore();
  *    (única métrica que alimenta la reputación pública):
  *    - `perfiles_publicos/{uid}.rating_promedio` (update; NUNCA se crea un
  *      perfil inexistente — evita perfiles fantasma).
- *    - `indice_cobertura/{celda}/cuidadores/{uid}.rating_promedio`.
  *
  * Invariantes:
- * - `resumenes_evaluacion` es la fuente de verdad; el perfil y el índice son
- *   caches derivados exclusivamente desde aquí.
+ * - `resumenes_evaluacion` es la fuente de verdad; el perfil es un cache
+ *   derivado exclusivamente desde aquí. El índice de cobertura ya no guarda
+ *   calificación: la búsqueda la lee del perfil.
  * - `cantidad_paseos_realizados` NO se actualiza en este trigger.
  * ============================================================================
  */
@@ -171,8 +170,6 @@ export const alCrearEvaluacion = onDocumentCreated(
           }
 
           await perfilRef.update(updatePerfil);
-
-          await actualizarRatingEnIndice(objetivoId, ratingPromedio, perfilData);
 
           const msgRating = '[alCrearEvaluacion] PerfilPublico actualizado';
           console.log(

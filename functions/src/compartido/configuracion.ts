@@ -21,6 +21,7 @@ export interface ConfiguracionAreas {
     foto_entrega_obligatoria: boolean
     entrega_aviso_horas: number
     entrega_revision_horas: number
+    exigir_zona: boolean
   }
   auth: {
     otp_minutos_expiracion: number
@@ -112,6 +113,14 @@ export const CATALOGO_CONFIGURACION: {
         descripcion: 'Horas desde que el cuidador finaliza el paseo hasta que, ' +
           'si el tutor no confirmó la entrega, pasa a la cola del equipo',
         porDefecto: 12, min: 1, max: 168, unidad: 'h',
+      },
+      exigir_zona: {
+        tipo: 'booleano', titulo: 'Atender solo en zonas definidas',
+        descripcion: 'Si está activo, solo se pueden pedir paseos (y los ' +
+          'cuidadores solo reciben solicitudes) en zonas activas o piloto. ' +
+          'Quien lo intenta fuera queda registrado como interesado. Déjalo ' +
+          'apagado hasta tener definida la primera zona',
+        porDefecto: false,
       },
     },
   },

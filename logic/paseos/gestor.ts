@@ -2,8 +2,6 @@ import { ServicioAuth, ServicioPaseo } from '@/services/firebase'
 import { ESTADOS_PASEO, type Paseo } from '@/models/Paseo'
 import { ERR } from '@/constants'
 import { crearMaquinaPaseo, EVENTOS } from './maquinaEstados'
-import { coordsAH3 } from '@/services/geo'
-import { H3TerritorialOrchestrator } from '@/services/h3'
 import type { CodigoErrorPaseo } from './errores'
 
 // ---------- Types del gestor de paseo activo ----------
@@ -333,28 +331,6 @@ export class GestorPaseoActivo {
     )
 
     if (res.success) {
-      // Marcar zona como en operación activa (con retry automático)
-      const celdaR8 = extraerCeldaH3DePaseo(this._paseo.original)
-      if (celdaR8) {
-        const celdaR9 = extraerCeldaH3DePaseo(this._paseo.original, 9)
-
-        if (celdaR9) {
-          const exito = await H3TerritorialOrchestrator.procesarEventoPaseo(
-            celdaR9,
-            'EN_PROGRESO',
-            {
-              paseo_uid: this._paseo.id,
-              cuidador_uid: (this._paseo.original as any)?.id_cuidador,
-              tutor_uid: (this._paseo.original as any)?.tutor_uid,
-            }
-          )
-
-          if (!exito) {
-            console.warn('[h3] Fallo registrar inicio paseo:', this._paseo.id)
-          }
-        }
-      }
-
       if (this.puede(EVENTOS.INICIAR_PASEO)) {
         const fecha = new Date()
         const localRes = this.aplicarTransicion(EVENTOS.INICIAR_PASEO, {
@@ -396,28 +372,6 @@ export class GestorPaseoActivo {
     )
 
     if (res.success) {
-      // Paseo terminado: actualizar zona (con retry automático)
-      const celdaR8 = extraerCeldaH3DePaseo(this._paseo.original)
-      if (celdaR8) {
-        const celdaR9 = extraerCeldaH3DePaseo(this._paseo.original, 9)
-
-        if (celdaR9) {
-          const exito = await H3TerritorialOrchestrator.procesarEventoPaseo(
-            celdaR9,
-            'COMPLETADO',
-            {
-              paseo_uid: this._paseo.id,
-              cuidador_uid: (this._paseo.original as any)?.id_cuidador,
-              tutor_uid: (this._paseo.original as any)?.tutor_uid,
-            }
-          )
-
-          if (!exito) {
-            console.warn('[h3] Fallo registrar fin paseo:', this._paseo.id)
-          }
-        }
-      }
-
       if (this.puede(EVENTOS.FINALIZAR_PASEO)) {
         const fecha = new Date()
         const localRes = this.aplicarTransicion(EVENTOS.FINALIZAR_PASEO, {
@@ -458,41 +412,11 @@ export class GestorPaseoActivo {
       return { success: false, error: 'TRANSICION_INVALIDA' }
     }
 
-    const estadoPrevio = this._paseo.estado
     const res = await ServicioPaseo.actualizar(this._paseo.id, {
       estado: 'CANCELADO',
     } as any)
 
     if (res.success) {
-      // Paseo cancelado: revertir paseos_activos solo si había iniciado
-      // (el incremento ocurre únicamente al pasar a EN_PROGRESO)
-      const celdaR8 =
-        estadoPrevio === ESTADOS_PASEO.EN_PROGRESO
-          ? extraerCeldaH3DePaseo(this._paseo.original)
-          : null
-      if (celdaR8) {
-        const celdaR9 = extraerCeldaH3DePaseo(this._paseo.original, 9)
-
-        if (celdaR9) {
-          const exito = await H3TerritorialOrchestrator.procesarEventoPaseo(
-            celdaR9,
-            'CANCELADO',
-            {
-              paseo_uid: this._paseo.id,
-              cuidador_uid: (this._paseo.original as any)?.id_cuidador,
-              tutor_uid: (this._paseo.original as any)?.tutor_uid,
-            }
-          )
-
-          if (!exito) {
-            console.warn(
-              '[h3] Fallo registrar cancelación paseo:',
-              this._paseo.id
-            )
-          }
-        }
-      }
-
       if (this.puede(EVENTOS.CANCELAR)) {
         const localRes = this.aplicarTransicion(EVENTOS.CANCELAR, { motivo })
         if (localRes.ok === false) {
@@ -519,18 +443,3 @@ export class GestorPaseoActivo {
 }
 
 export const paseoActivo = new GestorPaseoActivo()
-
-// Extrae la celda H3 de la ubicación de inicio de un paseo activo
-function extraerCeldaH3DePaseo(
-  original: Partial<Paseo> | null | undefined,
-  resolucion?: number
-): string | null {
-  if (!original) return null
-  const inicio = original.ubicacion_inicio
-  if (!inicio || typeof inicio === 'string') return null
-  const coords = (inicio as any)?.coordenadas
-  if (!coords?.latitude || !coords?.longitude) return null
-  return resolucion
-    ? coordsAH3(coords.latitude, coords.longitude, resolucion)
-    : coordsAH3(coords.latitude, coords.longitude)
-}

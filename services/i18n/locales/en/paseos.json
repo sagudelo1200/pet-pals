@@ -510,5 +510,19 @@
       "mensaje": "{{avisos}}. Do you want to accept this walk anyway? We will let the owner know.",
       "aceptar": "Accept anyway"
     }
+  },
+  "servicio": {
+    "tutor": {
+      "titulo": "We have not reached your area yet",
+      "sin_zona": "We are opening areas little by little and we do not serve where you asked for the walk yet. We have noted that you want the service.",
+      "zona_cerrada": "Service in {{zona}} is paused for now. We have noted that you want the service."
+    },
+    "cuidador": {
+      "titulo": "We do not serve your area yet",
+      "sin_zona": "We do not take orders where you live yet, so you will not receive requests for now. We have noted your interest in offering the service.",
+      "zona_cerrada": "Service in {{zona}} is paused for now and you will not receive requests. We have noted your interest."
+    },
+    "avisame": "Let me know when you arrive",
+    "avisaremos": "Done: we will let you know as soon as we arrive."
   }
 }

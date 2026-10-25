@@ -16,6 +16,7 @@
  * que no tiene horario de verano: UTC-5 todo el año.
  */
 import type {ConfiguracionAreas} from './configuracion';
+import type {EstadoServicio} from './zonas';
 
 export type Tamano = 'pequeño' | 'mediano' | 'grande' | 'gigante';
 
@@ -527,6 +528,8 @@ export interface CuidadorEncontrado {
 }
 
 export interface RespuestaBusqueda {
+  /** Si no se atiende ese sector, no hay cuidadores y aquí está el motivo. */
+  servicio: EstadoServicio
   cuidadores: CuidadorEncontrado[]
 }
 

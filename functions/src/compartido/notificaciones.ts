@@ -69,6 +69,57 @@ export const CATALOGO_NOTIFICACIONES = {
         'Lo sabe y decidió tomarlo.',
     }),
   },
+  SERVICIO_DISPONIBLE: {
+    categoria: 'operativa',
+    canales: ['app', 'push'],
+    obligatoria: false,
+    accion: 'abrir_solicitud',
+    plantilla: () => ({
+      titulo: '🎉 ¡Ya llegamos a tu sector!',
+      cuerpo: 'Ya puedes pedir paseos para tu mascota desde tu zona.',
+    }),
+  },
+  SERVICIO_NO_DISPONIBLE: {
+    categoria: 'operativa',
+    canales: ['app', 'push'],
+    obligatoria: false,
+    accion: 'abrir_solicitud',
+    plantilla: () => ({
+      titulo: 'Aún no atendemos tu sector',
+      cuerpo: 'Tu solicitud se canceló porque todavía no llegamos a esa ' +
+        'zona. Te avisaremos cuando lleguemos.',
+    }),
+  },
+  ZONA_ABIERTA_TUTOR: {
+    categoria: 'operativa',
+    canales: ['app', 'push'],
+    obligatoria: false,
+    accion: 'abrir_solicitud',
+    plantilla: (datos) => ({
+      titulo: '🎉 Ya llegamos a tu sector',
+      cuerpo: `Ya atendemos ${datos.zona}. Puedes pedir tu primer paseo.`,
+    }),
+  },
+  ZONA_ABIERTA_CUIDADOR: {
+    categoria: 'operativa',
+    canales: ['app', 'push'],
+    obligatoria: false,
+    accion: 'abrir_solicitudes_cuidador',
+    plantilla: (datos) => ({
+      titulo: '🎉 Ya atendemos tu zona',
+      cuerpo: `Abrimos ${datos.zona}: empezarás a recibir solicitudes de paseo.`,
+    }),
+  },
+  PASEO_FUERA_DE_ZONA: {
+    categoria: 'operativa',
+    canales: ['app', 'push'],
+    obligatoria: false,
+    accion: 'abrir_solicitud',
+    plantilla: () => ({
+      titulo: 'Aún no llegamos a tu sector',
+      cuerpo: 'Cancelamos tu solicitud porque todavía no atendemos esa zona.',
+    }),
+  },
   COBRO_PENDIENTE: {
     categoria: 'pagos',
     canales: ['app', 'push', 'email'],

@@ -80,3 +80,19 @@ export {
   aceptarPaseo,
   alCrearPaseoValidarCuidador,
 } from './emparejamiento/funciones';
+
+// Territorio (índice de cobertura, oferta y demanda, narrativa por celda)
+export {
+  alCambiarCoberturaTerritorio,
+  alCambiarPaseoTerritorio,
+  alRegistrarEventoTerritorio,
+  reconstruirTerritorio,
+} from './territorio/funciones';
+
+// Zonas de negocio (sectores con nombre sobre el territorio)
+export {
+  guardarZona,
+  consultarServicio,
+  avisarCuandoLleguen,
+  alCrearPaseoAsignarZona,
+} from './zonas/funciones';

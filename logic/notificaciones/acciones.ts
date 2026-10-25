@@ -12,6 +12,7 @@ export interface DestinoNotificacion {
 
 const DESTINOS: Record<string, DestinoNotificacion> = {
   abrir_solicitud: { app: 'TutorApp', pestana: 'Paseos' },
+  abrir_solicitudes_cuidador: { app: 'CuidadorApp', pestana: 'Solicitudes' },
   pagar: { app: 'TutorApp', pestana: 'Inicio' },
 }
 

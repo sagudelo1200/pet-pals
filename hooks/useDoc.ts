@@ -23,8 +23,8 @@ import type { BaseModel } from '@/models/BaseModel'
  */
 export function useDoc<T extends BaseModel = any>(
   refOrCollection: DocumentReference | string,
-  idOrOptions?: string | { listen?: boolean },
-  maybeOptions?: { listen?: boolean }
+  idOrOptions?: string | { listen?: boolean; enabled?: boolean },
+  maybeOptions?: { listen?: boolean; enabled?: boolean }
 ) {
   // Normalizar a valores primitivos: así un objeto de opciones creado en
   // cada render ({ listen: true }) no cambia la referencia ni re-suscribe
@@ -34,9 +34,12 @@ export function useDoc<T extends BaseModel = any>(
       ? idOrOptions
       : maybeOptions
   const listen = !!opciones?.listen
+  // enabled:false = no consultar nada (p. ej. aún no hay sesión o id)
+  const enabled = opciones?.enabled !== false
   const id = typeof idOrOptions === 'string' ? idOrOptions : ''
 
-  const docRef = useMemo<DocumentReference>(() => {
+  const docRef = useMemo<DocumentReference | null>(() => {
+    if (!enabled) return null
     if (
       typeof refOrCollection === 'object' &&
       refOrCollection !== null &&
@@ -47,7 +50,7 @@ export function useDoc<T extends BaseModel = any>(
     }
     // Called with collectionName, id, options?
     return doc(db, refOrCollection as string, id)
-  }, [refOrCollection, id])
+  }, [enabled, refOrCollection, id])
 
   const [data, setData] = useState<T | undefined>(undefined)
   const [cargando, setCargando] = useState<boolean>(true)
@@ -57,6 +60,7 @@ export function useDoc<T extends BaseModel = any>(
   const unsubRef = useRef<Unsubscribe | null>(null)
 
   const fetchOnce = useCallback(async () => {
+    if (!docRef) return
     setCargando(true)
     setError(undefined)
     try {
@@ -76,6 +80,12 @@ export function useDoc<T extends BaseModel = any>(
   }, [docRef])
 
   useEffect(() => {
+    if (!docRef) {
+      setData(undefined)
+      setError(undefined)
+      setCargando(false)
+      return () => {}
+    }
     if (!listen) {
       void fetchOnce()
       return () => {}

@@ -6,9 +6,9 @@ import { useDoc } from '@/hooks/useDoc'
  */
 export function useLlegadaRespondida(paseoId: string) {
   const { data, cargando } = useDoc<any>(
-    `operaciones/${paseoId || '__sin_paseo__'}/eventos`,
+    `operaciones/${paseoId}/eventos`,
     'llegada',
-    { listen: !!paseoId }
+    { listen: true, enabled: !!paseoId }
   )
   return { respondida: !!data, cargando }
 }

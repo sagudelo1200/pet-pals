@@ -1,90 +1,60 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import { useZonasH3 } from './useZonasH3'
+import { useZonasNegocio } from './useZonasNegocio'
 import {
-  ServicioZonasH3,
-  type ZonaH3,
-} from '@/services/firebase/firestore/colecciones/h3_zonas'
+  SIN_ZONA,
+  ciudadesDe,
+  filtrarPorCiudad,
+} from '@/logic/territorio/zonasDeNegocio'
 
+/**
+ * Territorio para el mapa del admin, filtrado por ciudad. Las ciudades salen
+ * de las zonas de negocio; mientras no haya ninguna se muestra todo.
+ */
 export function useZonasH3Filtrado() {
-  const [todasLasZonas, setTodasLasZonas] = useState<ZonaH3[]>([])
-  const [ciudades, setCiudades] = useState<string[]>([])
-  const [ciudadSeleccionada, setCiudadSeleccionada] = useState<string>('')
-  const [zonas, setZonas] = useState<ZonaH3[]>([])
-  const [cargando, setCargando] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const territorio = useZonasH3()
+  const negocio = useZonasNegocio()
+  const [seleccion, setSeleccion] = useState('')
 
-  // Suscripción inicial a todas las zonas
-  useEffect(() => {
-    console.log('[useZonasH3Filtrado] 🔄 Iniciando suscripción a zonas...')
-    const cancelar = ServicioZonasH3.suscribirATodas(
-      nuevasZonas => {
-        console.log(
-          '[useZonasH3Filtrado] ✅ Zonas recibidas:',
-          nuevasZonas.length
-        )
-
-        // Guardar todas las zonas
-        setTodasLasZonas(nuevasZonas)
-
-        // Detectar ciudades únicas (autodetección)
-        const ciudadesDetectadas = Array.from(
-          new Set(
-            nuevasZonas
-              .map(z => z.ciudad || 'sin_ciudad')
-              .filter(c => c !== 'sin_ciudad')
-          )
-        ).sort()
-
-        if (ciudadesDetectadas.length === 0) {
-          // Si no hay ciudades, usar "sin_ciudad" como placeholder
-          setCiudades(['sin_ciudad'])
-          setCiudadSeleccionada('sin_ciudad')
-        } else {
-          setCiudades(ciudadesDetectadas)
-          // Seleccionar la primera ciudad automáticamente
-          if (
-            !ciudadSeleccionada ||
-            !ciudadesDetectadas.includes(ciudadSeleccionada)
-          ) {
-            setCiudadSeleccionada(ciudadesDetectadas[0])
-          }
-        }
-
-        setCargando(false)
-      },
-      err => {
-        console.error('[useZonasH3Filtrado] ❌ Error en suscripción:', err)
-        setError(err.message)
-        setCargando(false)
-      }
+  const hayZonas = negocio.zonas.length > 0
+  const ciudades = useMemo(() => {
+    if (!hayZonas) return []
+    const conZona = ciudadesDe(negocio.zonas)
+    const haySinZona = territorio.zonas.some(
+      v => filtrarPorCiudad([v], SIN_ZONA, negocio.zonas, negocio.mapa).length > 0
     )
+    return haySinZona ? [...conZona, SIN_ZONA] : conZona
+  }, [hayZonas, negocio.zonas, negocio.mapa, territorio.zonas])
 
-    return cancelar
-  }, [])
+  // La ciudad elegida debe existir; si no, la primera
+  const ciudadSeleccionada = ciudades.includes(seleccion)
+    ? seleccion
+    : (ciudades[0] ?? '')
 
-  // Filtrar zonas según ciudad seleccionada
   useEffect(() => {
-    if (ciudadSeleccionada && ciudadSeleccionada !== 'sin_ciudad') {
-      const zonasFiltradas = todasLasZonas.filter(
-        z => z.ciudad === ciudadSeleccionada
-      )
-      console.log(
-        `[useZonasH3Filtrado] 🎯 Filtradas para ${ciudadSeleccionada}:`,
-        zonasFiltradas.length
-      )
-      setZonas(zonasFiltradas)
-    } else {
-      // Si no hay ciudad válida, mostrar todas
-      setZonas(todasLasZonas)
-    }
-  }, [ciudadSeleccionada, todasLasZonas])
+    if (ciudadSeleccionada !== seleccion) setSeleccion(ciudadSeleccionada)
+  }, [ciudadSeleccionada, seleccion])
+
+  const zonas = useMemo(
+    () =>
+      hayZonas
+        ? filtrarPorCiudad(
+            territorio.zonas,
+            ciudadSeleccionada,
+            negocio.zonas,
+            negocio.mapa
+          )
+        : territorio.zonas,
+    [hayZonas, territorio.zonas, ciudadSeleccionada, negocio.zonas, negocio.mapa]
+  )
 
   return {
     zonas,
     ciudades,
     ciudadSeleccionada,
-    setCiudadSeleccionada,
-    cargando,
-    error,
-    totalZonas: todasLasZonas.length,
+    setCiudadSeleccionada: setSeleccion,
+    cargando: territorio.cargando || negocio.cargando,
+    error: territorio.error ?? negocio.error,
+    totalZonas: territorio.zonas.length,
   }
 }

@@ -38,7 +38,8 @@ interface DetallesZonaH3 {
 }
 
 /**
- * Hook para cargar detalles de una zona H3: cuidadores activos y solicitudes pendientes
+ * Hook para cargar los detalles de una celda de cobertura: los cuidadores que la
+ * cubren y sus solicitudes pendientes.
  */
 export function useDetallesZonaH3(h3_r8: string | null): DetallesZonaH3 {
   const [cuidadores, setCuidadores] = useState<CuidadorEnZona[]>([])
@@ -58,46 +59,39 @@ export function useDetallesZonaH3(h3_r8: string | null): DetallesZonaH3 {
         setCargando(true)
         setError(null)
 
-        // 1. Cargar cuidadores que cubren esta zona
-        // Nota: Esto requiere una estructura de índice en Firestore.
-        // Alternativa simple: buscar por h3_r8 en perfiles públicos (menos eficiente pero funciona)
-        const perfilesSnap = await getDocs(
-          query(
-            collection(db, 'perfiles_publicos'),
-            where('h3_r8', '==', h3_r8)
-          )
+        // 1. Cuidadores que cubren esta celda (índice de cobertura: lo arma el
+        //    servidor a partir de los perfiles)
+        const indiceSnap = await getDocs(
+          collection(db, `indice_cobertura/${h3_r8}/cuidadores`)
         )
-
-        const cuidadoresCargados: CuidadorEnZona[] = []
-
-        for (const perfDoc of perfilesSnap.docs) {
-          const perfil = perfDoc.data() as PerfilPublico
-          const uid = perfDoc.id
-
-          // Calcular horario de hoy
-          const hoy = new Date().getDay().toString()
-          const horario_hoy = perfil.horario_semanal?.[hoy]
-
-          cuidadoresCargados.push({
-            uid,
-            nombre: perfil.nombre,
-            foto: perfil.foto,
-            rating_promedio: perfil.rating_promedio,
-            cantidad_paseos: perfil.cantidad_paseos_realizados,
-            horario_hoy,
-            verificado: (perfil.insignias_verificacion?.length ?? 0) > 0,
-          })
-        }
-
+        const hoy = new Date().getDay().toString()
+        const perfiles = await Promise.all(
+          indiceSnap.docs.map(d => getDoc(doc(db, 'perfiles_publicos', d.id)))
+        )
+        const cuidadoresCargados: CuidadorEnZona[] = perfiles.flatMap(snap => {
+          if (!snap.exists()) return []
+          const perfil = snap.data() as PerfilPublico
+          return [
+            {
+              uid: snap.id,
+              nombre: perfil.nombre,
+              foto: perfil.foto,
+              rating_promedio: perfil.rating_promedio,
+              cantidad_paseos: perfil.cantidad_paseos_realizados,
+              horario_hoy: perfil.horario_semanal?.[hoy],
+              verificado: (perfil.insignias_verificacion?.length ?? 0) > 0,
+            },
+          ]
+        })
         setCuidadores(cuidadoresCargados)
 
-        // 2. Cargar solicitudes pendientes en esta zona
-        // Buscar paseos con estado PENDIENTE cuya ubicación sea en esta zona
+        // 2. Solicitudes pendientes de esta celda (cada paseo guarda su celda)
         const paseosSnap = await getDocs(
           query(
             collection(db, 'operaciones'),
             where('tipo', '==', 'paseo'),
-            where('estado', '==', ESTADOS_PASEO.PENDIENTE)
+            where('estado', '==', ESTADOS_PASEO.PENDIENTE),
+            where('h3_r8', '==', h3_r8)
           )
         )
 
@@ -105,12 +99,6 @@ export function useDetallesZonaH3(h3_r8: string | null): DetallesZonaH3 {
 
         for (const paseoDoc of paseosSnap.docs) {
           const paseo = paseoDoc.data() as Paseo
-
-          // Verificar si esta solicitud está en la zona (por simplicidad, comparar h3 de ubicación)
-          // NOTA: Esto es una aproximación. En producción, podrías tener un campo h3_zona en Paseo
-          // Por ahora solo mostrar si hay cuidadores disponibles en la zona
-          const ubicacion = paseo.ubicacion_inicio as any
-          if (!ubicacion?.coordenadas) continue
 
           // Cargar info del tutor que creó el paseo
           const tutorId = paseo.creado_por
@@ -122,7 +110,6 @@ export function useDetallesZonaH3(h3_r8: string | null): DetallesZonaH3 {
           // Nombre de la mascota (primera de la lista)
           let mascota_nombre = 'Mascota'
           if (paseo.mascotas_count && paseo.mascotas_count > 0) {
-            // Intenta cargar la primera mascota
             try {
               const mascotasSnap = await getDocs(
                 query(collection(db, `operaciones/${paseoDoc.id}/mascotas`))
@@ -132,7 +119,6 @@ export function useDetallesZonaH3(h3_r8: string | null): DetallesZonaH3 {
               }
             } catch (_e) {
               console.warn('[useDetallesZonaH3.cargarDetalles] Error manejado:', _e)
-              // Si hay error, usar valor por defecto
             }
           }
 

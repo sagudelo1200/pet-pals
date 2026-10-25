@@ -68,7 +68,9 @@ const MiCuenta = () => {
         [
           {
             text: 'OK',
-            onPress: () => void handleCambiarRolActivo(rol),
+            onPress: () => {
+              void handleCambiarRolActivo(rol)
+            },
           },
         ]
       )
