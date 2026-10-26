@@ -218,7 +218,7 @@ const RegistrarMomentoPaseo: React.FC<RegistrarMomentoPaseoProps> = ({
         t('paseos:momentos.confirmar_emergencia.titulo'),
         t('paseos:momentos.confirmar_emergencia.mensaje'),
         [
-          { text: t('comun:boton.cancelar'), style: 'cancel' },
+          { text: t('comun:cancelar'), style: 'cancel' },
           {
             text: t('paseos:momentos.confirmar_emergencia.confirmar'),
             style: 'destructive',

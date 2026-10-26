@@ -10,6 +10,7 @@ import { FontAwesome5 } from '@expo/vector-icons'
 import { COLOR } from '@/constants'
 import * as IntentLauncher from 'expo-intent-launcher'
 import * as Linking from 'expo-linking'
+import { useTranslation } from 'react-i18next'
 
 interface Props {
   mensaje: string
@@ -17,6 +18,7 @@ interface Props {
 }
 
 export const BannerUbicacion: React.FC<Props> = ({ mensaje, style }) => {
+  const { t } = useTranslation('comun')
   const abrirAjustes = () => {
     if (Platform.OS === 'ios') {
       Linking.openURL('app-settings:')
@@ -34,7 +36,7 @@ export const BannerUbicacion: React.FC<Props> = ({ mensaje, style }) => {
         <Text style={[styles.text, { color: COLOR.TEXTO }]}>{mensaje}</Text>
       </View>
       <TouchableOpacity style={styles.button} onPress={abrirAjustes}>
-        <Text style={styles.buttonText}>AJUSTES</Text>
+        <Text style={styles.buttonText}>{t('ajustes')}</Text>
       </TouchableOpacity>
     </View>
   )

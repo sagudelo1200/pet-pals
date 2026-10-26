@@ -14,6 +14,8 @@ const DESTINOS: Record<string, DestinoNotificacion> = {
   abrir_solicitud: { app: 'TutorApp', pestana: 'Paseos' },
   abrir_solicitudes_cuidador: { app: 'CuidadorApp', pestana: 'Solicitudes' },
   pagar: { app: 'TutorApp', pestana: 'Inicio' },
+  // La habilitación se ve en Mi Cuenta, que existe en todos los roles
+  abrir_habilitacion: { app: 'TutorApp', pestana: 'MiCuenta' },
 }
 
 export function destinoDeAccion(accion: unknown): DestinoNotificacion | null {

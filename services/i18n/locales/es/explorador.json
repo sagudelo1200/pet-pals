@@ -2,7 +2,9 @@
   "inicio": "Inicio",
   "sugerencias": "Sugerencias",
   "mapa": "Mapa",
-  "historial": "Historial",
+  "historial": {
+    "huellas_inmediatas": "+3 🐾 por explorar"
+  },
   "bienvenido_explorador": "Explorador Territorial",
   "ayuda_mapear_territorio": "Ayuda a descubrir dónde están los tutores",
   "mis_contribuciones": "Tus Huellitas",
@@ -136,5 +138,19 @@
   "rango_1_2": "1-2",
   "rango_3_5": "3-5",
   "rango_6_10": "6-10",
-  "rango_10_plus": "10+"
+  "rango_10_plus": "10+",
+  "impacto": {
+    "info": "Cada exploración suma huellas y ayuda a descubrir demanda real en tu zona.",
+    "titulo": "📊 Tu impacto territorial",
+    "exploraciones": "Exploraciones",
+    "zona_one": "Zona visitada y mapeada",
+    "zona_other": "Zonas visitadas y mapeadas",
+    "territorios": "Territorios",
+    "area_one": "Área única descubierta",
+    "area_other": "Áreas únicas descubiertas",
+    "footer": "Cada exploración ayuda a las mascotas y cuidadores de tu barrio."
+  },
+  "resumen": {
+    "xp_valor": "+25 XP"
+  }
 }

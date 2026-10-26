@@ -10,6 +10,7 @@ import {
 import { MaterialCommunityIcons as Icon } from '@expo/vector-icons'
 import { COLOR } from '@/constants'
 import { ServicioPaseo } from '@/services/firebase'
+import { useTranslation } from 'react-i18next'
 
 interface SelectorQueHaPasadoProps {
   visible: boolean
@@ -28,6 +29,7 @@ const SelectorQueHaPasado: React.FC<SelectorQueHaPasadoProps> = ({
   onClose,
   onGuardado,
 }) => {
+  const { t } = useTranslation()
   const [pantalla, setPantalla] = useState<PantallaActual>('principal')
   const [guardando, setGuardando] = useState(false)
   const [nota, setNota] = useState('')
@@ -87,7 +89,7 @@ const SelectorQueHaPasado: React.FC<SelectorQueHaPasadoProps> = ({
             {/* PANTALLA PRINCIPAL */}
             {pantalla === 'principal' && (
               <>
-                <Text style={styles.titulo}>¿Qué acaba de pasar?</Text>
+                <Text style={styles.titulo}>{t('paseos:bitacora.selector.titulo')}</Text>
 
                 <Pressable
                   style={styles.opcion}
@@ -96,10 +98,10 @@ const SelectorQueHaPasado: React.FC<SelectorQueHaPasadoProps> = ({
                   <Text style={styles.iconoOpcion}>🐶</Text>
                   <View style={styles.textoOpcion}>
                     <Text style={styles.etiquetaOpcion}>
-                      La mascota hizo algo
+                      {t('paseos:bitacora.selector.mascota_titulo')}
                     </Text>
                     <Text style={styles.detalleOpcion}>
-                      Registra qué hizo tu perro
+                      {t('paseos:bitacora.selector.mascota_detalle')}
                     </Text>
                   </View>
                 </Pressable>
@@ -111,10 +113,10 @@ const SelectorQueHaPasado: React.FC<SelectorQueHaPasadoProps> = ({
                   <Text style={styles.iconoOpcion}>📍</Text>
                   <View style={styles.textoOpcion}>
                     <Text style={styles.etiquetaOpcion}>
-                      Llegamos a algún lugar
+                      {t('paseos:bitacora.selector.lugar_titulo')}
                     </Text>
                     <Text style={styles.detalleOpcion}>
-                      Marca dónde estuvieron
+                      {t('paseos:bitacora.selector.lugar_detalle')}
                     </Text>
                   </View>
                 </Pressable>
@@ -126,10 +128,10 @@ const SelectorQueHaPasado: React.FC<SelectorQueHaPasadoProps> = ({
                   <Text style={styles.iconoOpcion}>❤️</Text>
                   <View style={styles.textoOpcion}>
                     <Text style={styles.etiquetaOpcion}>
-                      Quiero guardar este momento
+                      {t('paseos:bitacora.selector.momento_titulo')}
                     </Text>
                     <Text style={styles.detalleOpcion}>
-                      Captura foto o nota
+                      {t('paseos:bitacora.selector.momento_detalle')}
                     </Text>
                   </View>
                 </Pressable>
@@ -141,9 +143,9 @@ const SelectorQueHaPasado: React.FC<SelectorQueHaPasadoProps> = ({
                   <Text style={styles.iconoOpcion}>⚠️</Text>
                   <View style={styles.textoOpcion}>
                     <Text style={styles.etiquetaOpcion}>
-                      Ocurrió una novedad
+                      {t('paseos:bitacora.selector.novedad_titulo')}
                     </Text>
-                    <Text style={styles.detalleOpcion}>Reporta un evento</Text>
+                    <Text style={styles.detalleOpcion}>{t('paseos:bitacora.selector.novedad_detalle')}</Text>
                   </View>
                 </Pressable>
               </>
@@ -157,33 +159,30 @@ const SelectorQueHaPasado: React.FC<SelectorQueHaPasadoProps> = ({
                   onPress={() => setPantalla('principal')}
                 >
                   <Icon name="chevron-left" size={20} color={COLOR.PRIMARIO} />
-                  <Text style={styles.textVolver}>Volver</Text>
+                  <Text style={styles.textVolver}>{t('paseos:bitacora.selector.volver')}</Text>
                 </Pressable>
 
-                <Text style={styles.titulo}>¿Qué hizo?</Text>
+                <Text style={styles.titulo}>{t('paseos:bitacora.selector.que_hizo')}</Text>
 
                 {[
                   {
                     icon: '💩',
-                    label: 'Hizo sus necesidades',
                     value: 'necesidades',
                   },
-                  { icon: '🏃', label: 'Corrió mucho', value: 'corrio' },
-                  { icon: '🦴', label: 'Jugó', value: 'juego' },
-                  { icon: '💧', label: 'Tomó agua', value: 'agua' },
-                  { icon: '😴', label: 'Descansó', value: 'descanso' },
+                  { icon: '🏃', value: 'corrio' },
+                  { icon: '🦴', value: 'juego' },
+                  { icon: '💧', value: 'agua' },
+                  { icon: '😴', value: 'descanso' },
                   {
                     icon: '🐕',
-                    label: 'Saludó otros perros',
                     value: 'socializacion_perros',
                   },
                   {
                     icon: '👶',
-                    label: 'Saludó personas',
                     value: 'socializacion_personas',
                   },
-                  { icon: '😨', label: 'Se asustó', value: 'miedo' },
-                  { icon: '🍖', label: 'Comió algo', value: 'comio' },
+                  { icon: '😨', value: 'miedo' },
+                  { icon: '🍖', value: 'comio' },
                 ].map(item => (
                   <Pressable
                     key={item.value}
@@ -192,7 +191,9 @@ const SelectorQueHaPasado: React.FC<SelectorQueHaPasadoProps> = ({
                     disabled={guardando}
                   >
                     <Text style={styles.iconoSubopcion}>{item.icon}</Text>
-                    <Text style={styles.textoSubopcion}>{item.label}</Text>
+                    <Text style={styles.textoSubopcion}>
+                      {t(`paseos:bitacora.mascota.${item.value}`)}
+                    </Text>
                   </Pressable>
                 ))}
               </>
@@ -206,23 +207,22 @@ const SelectorQueHaPasado: React.FC<SelectorQueHaPasadoProps> = ({
                   onPress={() => setPantalla('principal')}
                 >
                   <Icon name="chevron-left" size={20} color={COLOR.PRIMARIO} />
-                  <Text style={styles.textVolver}>Volver</Text>
+                  <Text style={styles.textVolver}>{t('paseos:bitacora.selector.volver')}</Text>
                 </Pressable>
 
-                <Text style={styles.titulo}>¿Dónde estuvieron?</Text>
+                <Text style={styles.titulo}>{t('paseos:bitacora.selector.donde')}</Text>
 
                 {[
-                  { icon: '🌳', label: 'Parque', value: 'parque' },
-                  { icon: '🌲', label: 'Sendero', value: 'sendero' },
-                  { icon: '🌊', label: 'Río o lago', value: 'rio' },
-                  { icon: '🏡', label: 'Casa', value: 'casa' },
-                  { icon: '☕', label: 'Pet friendly', value: 'pet_friendly' },
-                  { icon: '🐕', label: 'Zona de perros', value: 'zona_perros' },
-                  { icon: '🏞', label: 'Mirador', value: 'mirador' },
-                  { icon: '🚗', label: 'Subimos al carro', value: 'vehiculo' },
+                  { icon: '🌳', value: 'parque' },
+                  { icon: '🌲', value: 'sendero' },
+                  { icon: '🌊', value: 'rio' },
+                  { icon: '🏡', value: 'casa' },
+                  { icon: '☕', value: 'pet_friendly' },
+                  { icon: '🐕', value: 'zona_perros' },
+                  { icon: '🏞', value: 'mirador' },
+                  { icon: '🚗', value: 'vehiculo' },
                   {
                     icon: '🚶',
-                    label: 'Empezamos a caminar',
                     value: 'inicio_caminata',
                   },
                 ].map(item => (
@@ -233,7 +233,9 @@ const SelectorQueHaPasado: React.FC<SelectorQueHaPasadoProps> = ({
                     disabled={guardando}
                   >
                     <Text style={styles.iconoSubopcion}>{item.icon}</Text>
-                    <Text style={styles.textoSubopcion}>{item.label}</Text>
+                    <Text style={styles.textoSubopcion}>
+                      {t(`paseos:bitacora.lugar.${item.value}`)}
+                    </Text>
                   </Pressable>
                 ))}
               </>
@@ -247,16 +249,16 @@ const SelectorQueHaPasado: React.FC<SelectorQueHaPasadoProps> = ({
                   onPress={() => setPantalla('principal')}
                 >
                   <Icon name="chevron-left" size={20} color={COLOR.PRIMARIO} />
-                  <Text style={styles.textVolver}>Volver</Text>
+                  <Text style={styles.textVolver}>{t('paseos:bitacora.selector.volver')}</Text>
                 </Pressable>
 
-                <Text style={styles.titulo}>Registra este recuerdo</Text>
+                <Text style={styles.titulo}>{t('paseos:bitacora.selector.recuerdo')}</Text>
 
                 {[
-                  { icon: '📸', label: 'Foto', value: 'foto' },
-                  { icon: '🎥', label: 'Video corto', value: 'video' },
-                  { icon: '🎤', label: 'Nota de voz', value: 'voz' },
-                  { icon: '✍️', label: 'Escribir nota', value: 'nota' },
+                  { icon: '📸', value: 'foto' },
+                  { icon: '🎥', value: 'video' },
+                  { icon: '🎤', value: 'voz' },
+                  { icon: '✍️', value: 'nota' },
                 ].map(item => (
                   <Pressable
                     key={item.value}
@@ -265,7 +267,9 @@ const SelectorQueHaPasado: React.FC<SelectorQueHaPasadoProps> = ({
                     disabled={guardando}
                   >
                     <Text style={styles.iconoSubopcion}>{item.icon}</Text>
-                    <Text style={styles.textoSubopcion}>{item.label}</Text>
+                    <Text style={styles.textoSubopcion}>
+                      {t(`paseos:bitacora.recuerdo.${item.value}`)}
+                    </Text>
                   </Pressable>
                 ))}
               </>
@@ -279,63 +283,54 @@ const SelectorQueHaPasado: React.FC<SelectorQueHaPasadoProps> = ({
                   onPress={() => setPantalla('principal')}
                 >
                   <Icon name="chevron-left" size={20} color={COLOR.PRIMARIO} />
-                  <Text style={styles.textVolver}>Volver</Text>
+                  <Text style={styles.textVolver}>{t('paseos:bitacora.selector.volver')}</Text>
                 </Pressable>
 
-                <Text style={styles.titulo}>¿Qué ocurrió?</Text>
+                <Text style={styles.titulo}>{t('paseos:bitacora.selector.que_ocurrio')}</Text>
 
                 {[
                   {
                     icon: '😨',
-                    label: 'La mascota se asustó',
                     value: 'asustó',
                     severidad: 'baja',
                   },
                   {
                     icon: '🤕',
-                    label: 'Se lastimó',
                     value: 'lesion',
                     severidad: 'media',
                   },
                   {
                     icon: '🐕',
-                    label: 'Pelea con otro perro',
                     value: 'pelea',
                     severidad: 'media',
                   },
                   {
                     icon: '🤢',
-                    label: 'Malestar',
                     value: 'malestar',
                     severidad: 'media',
                   },
                   {
                     icon: '🚗',
-                    label: 'Tráfico peligroso',
                     value: 'trafico',
                     severidad: 'baja',
                   },
                   {
                     icon: '🌧',
-                    label: 'Lluvia',
                     value: 'lluvia',
                     severidad: 'baja',
                   },
                   {
                     icon: '🚫',
-                    label: 'Acceso cerrado',
                     value: 'acceso_cerrado',
                     severidad: 'baja',
                   },
                   {
                     icon: '📞',
-                    label: 'Necesito llamar al tutor',
                     value: 'contacto',
                     severidad: 'alta',
                   },
                   {
                     icon: '🚨',
-                    label: 'Emergencia',
                     value: 'emergencia',
                     severidad: 'critica',
                   },
@@ -350,7 +345,9 @@ const SelectorQueHaPasado: React.FC<SelectorQueHaPasadoProps> = ({
                     disabled={guardando}
                   >
                     <Text style={styles.iconoSubopcion}>{item.icon}</Text>
-                    <Text style={styles.textoSubopcion}>{item.label}</Text>
+                    <Text style={styles.textoSubopcion}>
+                      {t(`paseos:bitacora.novedad.${item.value}`)}
+                    </Text>
                   </Pressable>
                 ))}
               </>
@@ -364,7 +361,7 @@ const SelectorQueHaPasado: React.FC<SelectorQueHaPasadoProps> = ({
               onPress={handleClose}
               disabled={guardando}
             >
-              <Text style={styles.textBtnCerrar}>Cerrar</Text>
+              <Text style={styles.textBtnCerrar}>{t('paseos:bitacora.selector.cerrar')}</Text>
             </Pressable>
           </View>
         </View>

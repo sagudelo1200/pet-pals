@@ -10,7 +10,7 @@
  *   eligió). La búsqueda de cuidadores lo usa solo para saber QUIÉNES cubren
  *   una celda; el resto lo lee de `perfiles_publicos`.
  * - `territorio/{celda R8}.operativa`: oferta y demanda. Se RECALCULA contando
- *   (cuidadores verificados del índice, pedidos pendientes, paseos en curso y
+ *   (cuidadores habilitados del índice, pedidos pendientes, paseos en curso y
  *   hechos). No se suma ni se resta: si un aviso se pierde o llega repetido, el
  *   siguiente recálculo deja el número correcto.
  * - `territorio/{celda R9}.narrativa`: lo observado en el paseo, acumulado desde
@@ -29,6 +29,7 @@ import {
   resolucionDe,
   RESOLUCIONES,
 } from '../compartido/geografia';
+import {ofreceServicio} from '../compartido/habilitacion';
 import {
   COLECCION_TERRITORIO,
   armarOperativa,
@@ -55,35 +56,36 @@ interface Cobertura {
   celdas: string[]
   uid: string
   h3_origen: string
-  verificado: boolean
+  /** Habilitado para pasear cuando se escribió (ver ofreceServicio). */
+  habilitado: boolean
 }
 
 /**
- * Dónde atiende un cuidador y si está verificado, según su perfil.
+ * Dónde atiende un cuidador y si está habilitado para pasear, según su perfil.
  * @param {string} uid Cuidador.
  * @param {Dato | undefined} perfil Perfil público (o undefined si no existe).
+ * @param {number} ahoraMs Momento, para saber si su habilitación sigue vigente.
  * @return {Cobertura | null} Cobertura, o null si no tiene ubicación.
  */
 export function coberturaDe(
   uid: string,
-  perfil: Dato | undefined
+  perfil: Dato | undefined,
+  ahoraMs: number
 ): Cobertura | null {
   if (!perfil) return null;
   const celdas = celdasDeCoberturaDe(perfil);
   if (celdas.length === 0) return null;
-  const insignias = Array.isArray(perfil.insignias_verificacion) ?
-    perfil.insignias_verificacion : [];
   return {
     celdas,
     uid,
     h3_origen: esCeldaValida(perfil.h3_r8) ? perfil.h3_r8 : celdas[0],
-    verificado: insignias.includes('IDENTIDAD'),
+    habilitado: ofreceServicio(perfil, 'paseo', ahoraMs),
   };
 }
 
 const mismaCobertura = (a: Cobertura | null, b: Cobertura | null): boolean =>
   a === b || (a !== null && b !== null &&
-    a.verificado === b.verificado &&
+    a.habilitado === b.habilitado &&
     a.h3_origen === b.h3_origen &&
     a.celdas.length === b.celdas.length &&
     a.celdas.every((c) => b.celdas.includes(c)));
@@ -91,7 +93,9 @@ const mismaCobertura = (a: Cobertura | null, b: Cobertura | null): boolean =>
 /**
  * Pone el índice al día cuando cambia el perfil de un cuidador: borra las
  * celdas que dejó de cubrir y escribe las que cubre. No hace nada si lo que
- * importa (celdas, origen, verificación) no cambió.
+ * importa (celdas, origen, habilitación) no cambió. El valor guardado no se
+ * actualiza solo al vencer una habilitación: se corrige en el siguiente cambio
+ * del perfil (el emparejamiento sí lo comprueba con la hora, al buscar).
  * @param {Firestore} db Firestore.
  * @param {string} uid Cuidador.
  * @param {Dato | undefined} antes Perfil antes del cambio.
@@ -106,8 +110,8 @@ export async function sincronizarCobertura(
   despues: Dato | undefined,
   ahora: Timestamp
 ): Promise<string[]> {
-  const a = coberturaDe(uid, antes);
-  const d = coberturaDe(uid, despues);
+  const a = coberturaDe(uid, antes, ahora.toMillis());
+  const d = coberturaDe(uid, despues, ahora.toMillis());
   if (mismaCobertura(a, d)) return [];
 
   const ref = (celda: string) =>
@@ -121,7 +125,7 @@ export async function sincronizarCobertura(
     batch.set(ref(celda), {
       uid,
       h3_origen: d!.h3_origen,
-      verificado: d!.verificado,
+      habilitado: d!.habilitado,
       actualizado_en: ahora,
     });
   }
@@ -172,7 +176,7 @@ export async function recalcularOperativa(
 
   const [cuidadores, pendientes, enCurso, hechos] = await Promise.all([
     contar(db, `${COLECCION_INDICE}/${celda}/${SUBCOLECCION_INDICE}`,
-      [['verificado', true]]),
+      [['habilitado', true]]),
     paseos('PENDIENTE'),
     Promise.all(ESTADOS_EN_CURSO.map(paseos)),
     Promise.all(ESTADOS_HECHOS.map(paseos)),

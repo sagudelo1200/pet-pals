@@ -10,6 +10,7 @@ import {
 } from 'react-native'
 import { COLOR } from '@/constants'
 import Icon from './Icon'
+import { useTranslation } from 'react-i18next'
 import DateTimePickerNative from '@react-native-community/datetimepicker'
 
 interface TimePickerProps {
@@ -21,7 +22,7 @@ interface TimePickerProps {
   style?: ViewStyle | ViewStyle[]
 }
 
-const formatTimeLabel = (time?: string, placeholder = 'Selecciona hora') => {
+const formatTimeLabel = (time?: string, placeholder = '') => {
   if (!time) return placeholder
   return time
 }
@@ -41,9 +42,11 @@ const TimePicker: React.FC<TimePickerProps> = ({
   label,
   value,
   onValueChange,
-  placeholder = 'Selecciona hora',
+  placeholder,
   style,
 }) => {
+  const { t } = useTranslation('comun')
+  const textoPlaceholder = placeholder ?? t('pickers.hora_placeholder')
   const [showPicker, setShowPicker] = useState(false)
   const [tempDate, setTempDate] = useState<Date>(parseTimeToDate(value))
 
@@ -100,7 +103,7 @@ const TimePicker: React.FC<TimePickerProps> = ({
           containerStyle={styles.icon}
         />
         <Text style={[styles.inputText, !value && styles.placeholderText]}>
-          {formatTimeLabel(value || undefined, placeholder)}
+          {formatTimeLabel(value || undefined, textoPlaceholder)}
         </Text>
       </Pressable>
 
@@ -118,13 +121,13 @@ const TimePicker: React.FC<TimePickerProps> = ({
             >
               <View style={styles.iosHeader}>
                 <Pressable onPress={handleCancel} hitSlop={8}>
-                  <Text style={styles.iosCancelText}>Cancelar</Text>
+                  <Text style={styles.iosCancelText}>{t('cancelar')}</Text>
                 </Pressable>
                 <Text style={styles.iosTitle}>
                   {label || 'Selecciona hora'}
                 </Text>
                 <Pressable onPress={handleConfirm} hitSlop={8}>
-                  <Text style={styles.iosConfirmText}>Confirmar</Text>
+                  <Text style={styles.iosConfirmText}>{t('confirmar')}</Text>
                 </Pressable>
               </View>
               <View style={styles.iosPickerWrapper}>

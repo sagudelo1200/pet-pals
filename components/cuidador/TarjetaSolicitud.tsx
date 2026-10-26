@@ -1,3 +1,4 @@
+import { localeActual } from '@/utils/locale'
 import React from 'react'
 import { StyleSheet, View, Text, Image, Pressable } from 'react-native'
 import { Icon } from '@/components/ui'
@@ -19,17 +20,17 @@ export const TarjetaSolicitud: React.FC<Props> = ({ solicitud, onPress }) => {
       ? solicitud.fecha_hora_inicio
       : new Date((solicitud.fecha_hora_inicio as any).seconds * 1000)
 
-  const fechaStr = fecha.toLocaleDateString('es-ES', {
+  const fechaStr = fecha.toLocaleDateString(localeActual(), {
     weekday: 'short',
     day: 'numeric',
     month: 'short',
   })
-  const horaStr = fecha.toLocaleTimeString('es-ES', {
+  const horaStr = fecha.toLocaleTimeString(localeActual(), {
     hour: '2-digit',
     minute: '2-digit',
   })
 
-  const precioStr = (solicitud.precio || 0).toLocaleString('es-CO', {
+  const precioStr = (solicitud.precio || 0).toLocaleString(localeActual(), {
     style: 'currency',
     currency: 'COP',
     minimumFractionDigits: 0,
@@ -66,7 +67,7 @@ export const TarjetaSolicitud: React.FC<Props> = ({ solicitud, onPress }) => {
           <Text style={[styles.badgeText, { color: accentColor }]}>
             {esDirecta
               ? t('cuidador:solicitudes.directa').toUpperCase()
-              : t('cuidador:solicitudes.abierta', 'DISPONIBLE').toUpperCase()}
+              : t('cuidador:solicitudes.abierta').toUpperCase()}
           </Text>
         </View>
         <Text style={styles.fechaText}>

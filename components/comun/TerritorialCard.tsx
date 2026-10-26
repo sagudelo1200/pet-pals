@@ -2,6 +2,9 @@ import React, { useMemo } from 'react'
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native'
 import { useZonaH3 } from '@/hooks/useZonaH3'
 import { COLOR } from '@/constants'
+import { useTranslation } from 'react-i18next'
+
+type Traducir = (_clave: string, _opciones?: Record<string, unknown>) => string
 
 interface Props {
   h3_r9: string
@@ -17,17 +20,18 @@ interface Props {
  * Cada territorio cobra vida como un lugar con personalidad.
  */
 export function TerritorialCard({ h3_r9, onPress }: Props) {
+  const { t } = useTranslation('comun')
   const { zona, loading, error } = useZonaH3(h3_r9)
 
   const narrativa = useMemo(() => {
     if (!zona?.narrativa) return null
-    return generarNarrativa(zona.narrativa)
-  }, [zona?.narrativa])
+    return generarNarrativa(zona.narrativa, t)
+  }, [zona?.narrativa, t])
 
   if (loading) {
     return (
       <View style={styles.container}>
-        <Text style={styles.loading}>Conociendo este lugar...</Text>
+        <Text style={styles.loading}>{t('comun:territorial.cargando')}</Text>
       </View>
     )
   }
@@ -50,13 +54,17 @@ export function TerritorialCard({ h3_r9, onPress }: Props) {
 
       {/* CONFIANZA DE LA COMUNIDAD */}
       <View style={styles.confianza}>
-        <Text style={styles.confianzaTitulo}>Confianza de la Comunidad</Text>
+        <Text style={styles.confianzaTitulo}>
+          {t('comun:territorial.confianza')}
+        </Text>
         <View style={styles.confianzaStats}>
           <Text style={styles.confianzaScore}>{narrativa.confianza}%</Text>
           <View style={styles.confianzaDetalle}>
             <Text style={styles.pequeno}>
-              {zona.narrativa.total_eventos} paseos • {narrativa.meses_historia}
-              m
+              {t('comun:territorial.paseos_meses', {
+                paseos: zona.narrativa.total_eventos,
+                meses: narrativa.meses_historia,
+              })}
             </Text>
           </View>
         </View>
@@ -64,7 +72,7 @@ export function TerritorialCard({ h3_r9, onPress }: Props) {
 
       {/* INSIGHTS OBSERVACIONALES */}
       <View style={styles.insights}>
-        <Text style={styles.seccionTitulo}>Lo que la comunidad observa</Text>
+        <Text style={styles.seccionTitulo}>{t('comun:territorial.observa')}</Text>
         {narrativa.insights.map((insight, idx) => (
           <Text key={idx} style={styles.insight}>
             ✔ {insight}
@@ -74,7 +82,7 @@ export function TerritorialCard({ h3_r9, onPress }: Props) {
 
       {/* RECOMENDACIONES */}
       <View style={styles.recomendaciones}>
-        <Text style={styles.seccionTitulo}>Ideal para</Text>
+        <Text style={styles.seccionTitulo}>{t('comun:territorial.ideal_para')}</Text>
         <View style={styles.ideales}>
           {narrativa.ideal_para.map((item, idx) => (
             <View key={idx} style={styles.tag}>
@@ -84,37 +92,37 @@ export function TerritorialCard({ h3_r9, onPress }: Props) {
         </View>
 
         <Text style={[styles.seccionTitulo, { marginTop: 12 }]}>
-          Mejor horario
+          {t('comun:territorial.mejor_horario')}
         </Text>
         <Text style={styles.horario}>{narrativa.mejor_horario}</Text>
 
         <Text style={[styles.seccionTitulo, { marginTop: 12 }]}>
-          Duración recomendada
+          {t('comun:territorial.duracion')}
         </Text>
         <Text style={styles.duracion}>{narrativa.duracion_optima}</Text>
       </View>
 
       {/* EXPERIENCIAS CON ESTRELLAS */}
       <View style={styles.experiencias}>
-        <Text style={styles.seccionTitulo}>Tipos de experiencia</Text>
+        <Text style={styles.seccionTitulo}>{t('comun:territorial.tipos_experiencia')}</Text>
         <ExperienciaRow
           icono="🎮"
-          label="Juego"
+          label={t('comun:territorial.exp_juego')}
           stars={narrativa.experiencias.juego}
         />
         <ExperienciaRow
           icono="👥"
-          label="Socialización"
+          label={t('comun:territorial.exp_socializacion')}
           stars={narrativa.experiencias.socializacion}
         />
         <ExperienciaRow
           icono="💤"
-          label="Descanso"
+          label={t('comun:territorial.exp_descanso')}
           stars={narrativa.experiencias.descanso}
         />
         <ExperienciaRow
           icono="🔍"
-          label="Exploración"
+          label={t('comun:territorial.exp_exploracion')}
           stars={narrativa.experiencias.exploracion}
         />
       </View>
@@ -172,7 +180,7 @@ interface Narrativa {
   }
 }
 
-function generarNarrativa(narrativaSec: any): Narrativa {
+function generarNarrativa(narrativaSec: any, t: Traducir): Narrativa {
   const indices = narrativaSec.indices || {
     bienestar: 50,
     seguridad: 50,
@@ -184,22 +192,22 @@ function generarNarrativa(narrativaSec: any): Narrativa {
   const total_eventos = narrativaSec.total_eventos || 1
 
   // Generar nombre basado en tipo
-  const nombre = generarNombre(identidad.tipo, indices)
+  const nombre = generarNombre(identidad.tipo, indices, t)
 
   // Generar personalidad (descripción breve)
-  const personalidad = generarPersonalidad(indices, identidad.tipo)
+  const personalidad = generarPersonalidad(indices, identidad.tipo, t)
 
   // Calcular confianza
   const confianza = identidad.confianza || 50
   const meses_historia = Math.floor(Math.random() * 24) + 2
 
   // Generar insights
-  const insights = generarInsights(indices, eventos_por_tipo, total_eventos)
+  const insights = generarInsights(indices, eventos_por_tipo, total_eventos, t)
 
   // Generar recomendaciones
-  const { ideal_para, no_recomendado_para } = generarRecomendaciones(indices)
-  const mejor_horario = generarHorario(indices)
-  const duracion_optima = generarDuracion(indices)
+  const { ideal_para, no_recomendado_para } = generarRecomendaciones(indices, t)
+  const mejor_horario = generarHorario(indices, t)
+  const duracion_optima = generarDuracion(indices, t)
 
   // Generar experiencias (estrellas)
   const experiencias = {
@@ -230,31 +238,26 @@ function generarNarrativa(narrativaSec: any): Narrativa {
   }
 }
 
-function generarNombre(tipo: string, _indices: any): string {
-  const nombres = {
-    parque: 'Parque de los Encuentros',
-    calle: 'Caminata Urbana',
-    comercio: 'Zona Comercial Vivaz',
-    conjunto: 'Conjunto Residencial',
-    otro: 'Rincón del Barrio',
-    mixto: 'Zona Diversa',
-  }
-  return nombres[tipo as keyof typeof nombres] || 'Este Lugar'
+function generarNombre(tipo: string, _indices: any, t: Traducir): string {
+  const conocidos = ['parque', 'calle', 'comercio', 'conjunto', 'otro', 'mixto']
+  return conocidos.includes(tipo)
+    ? t(`comun:territorial.nombres.${tipo}`)
+    : t('comun:territorial.nombres.default')
 }
 
-function generarPersonalidad(indices: any, _tipo: string): string {
+function generarPersonalidad(indices: any, _tipo: string, t: Traducir): string {
   const activo = indices.actividad >= 70
   const social = indices.socializacion >= 70
   const seguro = indices.seguridad >= 70
 
   const adjetivos = []
 
-  if (activo && social) adjetivos.push('dinámica y social')
-  else if (activo) adjetivos.push('activa y energética')
-  else if (social) adjetivos.push('social y tranquila')
-  else adjetivos.push('tranquila y relajada')
+  if (activo && social) adjetivos.push(t('comun:territorial.adj.dinamica_social'))
+  else if (activo) adjetivos.push(t('comun:territorial.adj.activa'))
+  else if (social) adjetivos.push(t('comun:territorial.adj.social'))
+  else adjetivos.push(t('comun:territorial.adj.tranquila'))
 
-  if (seguro) adjetivos.push('muy segura')
+  if (seguro) adjetivos.push(t('comun:territorial.adj.segura'))
 
   return adjetivos.join(', ') + '.'
 }
@@ -262,7 +265,8 @@ function generarPersonalidad(indices: any, _tipo: string): string {
 function generarInsights(
   indices: any,
   eventos_por_tipo: Record<string, number>,
-  total_eventos: number
+  total_eventos: number,
+  t: Traducir
 ): string[] {
   const insights: string[] = []
 
@@ -270,41 +274,44 @@ function generarInsights(
     eventos_por_tipo['juego'] &&
     eventos_por_tipo['juego'] / total_eventos > 0.4
   ) {
-    insights.push('Los perros suelen jugar bastante aquí')
+    insights.push(t('comun:territorial.insights.juegan'))
   }
 
   if (
     eventos_por_tipo['agua'] &&
     eventos_por_tipo['agua'] / total_eventos > 0.2
   ) {
-    insights.push('Excelente disponibilidad de agua')
+    insights.push(t('comun:territorial.insights.agua'))
   }
 
   if (indices.socializacion >= 70) {
-    insights.push('Alta interacción entre mascotas')
+    insights.push(t('comun:territorial.insights.interaccion'))
   }
 
   if (indices.actividad >= 70 && total_eventos > 20) {
-    insights.push('Muy frecuentada por la comunidad')
+    insights.push(t('comun:territorial.insights.frecuentada'))
   }
 
   if (indices.seguridad >= 75) {
-    insights.push('Muy buena percepción de seguridad')
+    insights.push(t('comun:territorial.insights.seguridad'))
   }
 
   if (total_eventos > 50) {
-    insights.push('Uno de los lugares más activos de la zona')
+    insights.push(t('comun:territorial.insights.activos'))
   }
 
   return insights.length > 0
     ? insights.slice(0, 3)
     : [
-        'Lugar tranquilo y poco explorado',
-        'Buena alternativa para paseos relajados',
+        t('comun:territorial.insights.tranquilo'),
+        t('comun:territorial.insights.relajados'),
       ]
 }
 
-function generarRecomendaciones(indices: any): {
+function generarRecomendaciones(
+  indices: any,
+  t: Traducir
+): {
   ideal_para: string[]
   no_recomendado_para: string[]
 } {
@@ -312,49 +319,49 @@ function generarRecomendaciones(indices: any): {
   const no_recomendado_para: string[] = []
 
   if (indices.actividad >= 70) {
-    ideal_para.push('Perros activos')
-    no_recomendado_para.push('Perros ancianos')
+    ideal_para.push(t('comun:territorial.rec.perros_activos'))
+    no_recomendado_para.push(t('comun:territorial.rec.perros_ancianos'))
   } else {
-    ideal_para.push('Perros tranquilos')
-    no_recomendado_para.push('Perros muy activos')
+    ideal_para.push(t('comun:territorial.rec.perros_tranquilos'))
+    no_recomendado_para.push(t('comun:territorial.rec.perros_muy_activos'))
   }
 
   if (indices.socializacion >= 70) {
-    ideal_para.push('Perros sociables')
-    no_recomendado_para.push('Perros tímidos')
+    ideal_para.push(t('comun:territorial.rec.perros_sociables'))
+    no_recomendado_para.push(t('comun:territorial.rec.perros_timidos'))
   }
 
   if (indices.seguridad >= 75) {
-    ideal_para.push('Paseos sin correa')
+    ideal_para.push(t('comun:territorial.rec.sin_correa'))
   } else {
-    no_recomendado_para.push('Zonas muy concurridas')
+    no_recomendado_para.push(t('comun:territorial.rec.zonas_concurridas'))
   }
 
   if (indices.bienestar >= 75) {
-    ideal_para.push('Paseos largos')
+    ideal_para.push(t('comun:territorial.rec.paseos_largos'))
   }
 
   return { ideal_para, no_recomendado_para }
 }
 
-function generarHorario(indices: any): string {
+function generarHorario(indices: any, t: Traducir): string {
   if (indices.actividad >= 70) {
-    return 'Mañana o atardecer (6-10 AM o 4-7 PM)'
+    return t('comun:territorial.horario.manana_atardecer')
   }
   if (indices.seguridad >= 75) {
-    return 'Cualquier hora del día'
+    return t('comun:territorial.horario.cualquiera')
   }
-  return 'Preferiblemente en la mañana'
+  return t('comun:territorial.horario.manana')
 }
 
-function generarDuracion(indices: any): string {
+function generarDuracion(indices: any, t: Traducir): string {
   if (indices.actividad >= 70) {
-    return '30 a 45 minutos'
+    return t('comun:territorial.duracion_opt.larga')
   }
   if (indices.bienestar >= 70) {
-    return '20 a 30 minutos'
+    return t('comun:territorial.duracion_opt.media')
   }
-  return '15 a 25 minutos'
+  return t('comun:territorial.duracion_opt.corta')
 }
 
 // ============================================================================

@@ -1,6 +1,7 @@
 import { useState, useCallback, useRef } from 'react'
 import { SugerenciaAutocomplete } from '@/services/maps/types'
 import { mapasService } from '@/services/maps'
+import { i18n } from '@/services/i18n'
 
 // Inyectamos el servicio configurado (Mock o Google según env)
 const provider = mapasService
@@ -34,7 +35,7 @@ export const usePlacesAutocomplete = (delay = 500) => {
           setSugerencias(resultados)
         } catch (err) {
           console.error(err)
-          setError('Error al buscar sitios')
+          setError(i18n.t('comun:maps.error_busqueda'))
           setSugerencias([])
         } finally {
           setCargando(false)

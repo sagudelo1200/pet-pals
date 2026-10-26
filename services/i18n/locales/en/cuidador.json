@@ -39,6 +39,7 @@
     "sobre_mascota": "About {{nombre}}",
     "detalle_titulo": "Request Detail",
     "directa": "Direct",
+    "abierta": "Available",
     "mascota": "Pet",
     "mascotas": "Pets",
     "ubicacion_por_definir": "Location to be defined",
@@ -60,7 +61,8 @@
     "ubicacion": "Location",
     "perfil_incompleto_titulo": "Incomplete Profile",
     "perfil_incompleto_desc": "You must complete your public caregiver profile before you can accept walk requests.",
-    "ir_a_perfil": "Go to My Profile"
+    "ir_a_perfil": "Go to My Profile",
+    "la_mascota": "the pet"
   },
   "activos": {
     "titulo": "Active Walks",
@@ -97,5 +99,113 @@
     "reseñas": "Reviews from tutors",
     "firma_tutor_verificado": "— Verified tutor · Verified experience",
     "superhost": "Superhost"
+  },
+  "asignaciones": {
+    "sin_hora": "No time",
+    "rechazar": "Decline",
+    "aceptar": "Accept",
+    "ver_mapa": "View map",
+    "finalizar": "Finish",
+    "ver_detalles": "View details",
+    "ganancia": "Earnings: ${{monto}}",
+    "esperando_pago": "Awaiting payment: ${{monto}}",
+    "por_aceptar": "To accept",
+    "en_ejecucion": "In progress",
+    "sin_asignados": "No assigned walks",
+    "sin_asignados_desc": "Tutors will send you walk requests"
+  },
+  "ganancias": {
+    "por_definir": "To be defined",
+    "titulo": "Your earnings",
+    "liquidado": "Settled",
+    "pendiente": "Pending",
+    "porcentaje_recibido": "{{porcentaje}}% received",
+    "paseos_completados": "Completed walks",
+    "cobrados": "Collected",
+    "por_cobrar": "To collect",
+    "proxima_liquidacion": "Next settlement",
+    "se_transferira": "${{monto}} will be transferred",
+    "esperando_pago_tutor": "Awaiting tutor payment: ${{monto}}",
+    "ver_historial": "View earnings history"
+  },
+  "excepcion": {
+    "sin_cambios": "No changes",
+    "sin_cambios_eliminar": "Your schedule for this week matches your base schedule. Do you want to delete the saved exception?",
+    "sin_diferencias": "There are no differences from your base schedule for this week.",
+    "eliminar_excepcion": "Delete exception",
+    "listo": "Done",
+    "guardada": "Weekly exception saved successfully.",
+    "eliminar_mensaje": "This week's override will be deleted and your base weekly schedule will be used.",
+    "semana_personalizada": "Custom week",
+    "guardar_semana": "Save week"
+  },
+  "editar": {
+    "biografia_obligatoria": "The bio is required",
+    "error_guardar": "Error saving",
+    "inicio_antes_fin": "On {{dia}}: start must be before end",
+    "horario_fuera_rango": "The schedule for {{dia}} must be within the allowed range ({{min}} – {{max}})",
+    "experiencia_placeholder": "E.g.: 2 years",
+    "direccion_principal": "Main address",
+    "cambiar": "Change",
+    "agregar": "Add",
+    "sin_direccion": "No address set",
+    "dias_ayuda": "Turn on the days you are available and set the time range for each one."
+  },
+  "cobertura": {
+    "listo": "Done",
+    "actualizada": "Your coverage has been updated.",
+    "titulo": "Coverage",
+    "zonas_titulo": "Coverage zones",
+    "zonas_subtitulo": "Tap the hexagons to turn them on or off",
+    "sin_direccion": "Add an address to your profile to define your coverage zones.",
+    "cargando": "Loading…",
+    "guardar": "Save coverage",
+    "guardando": "Saving…",
+    "zona_seleccionada": "zone selected",
+    "zonas_seleccionadas": "zones selected",
+    "mi_ubicacion": "My location",
+    "cambiar_tema": "Toggle theme",
+    "error_guardar": "The coverage could not be saved. Please try again."
+  },
+  "habilitacion": {
+    "titulo": "My approval",
+    "subtitulo": "To offer {{servicio}}",
+    "estado": {
+      "borrador_titulo": "Complete your approval",
+      "borrador_detalle": "Finish your profile and upload your documents. When everything is ready, send it for review.",
+      "revision_titulo": "We are reviewing your information",
+      "revision_detalle": "We will let you know when we have an answer. Nothing else for you to do.",
+      "aprobada_titulo": "You are approved",
+      "aprobada_detalle": "You can now offer {{servicio}}. The next expiry is {{fecha}}.",
+      "renovar_titulo": "Something needs renewing",
+      "renovar_detalle": "A document has expired. Upload it again and send it for review to keep receiving requests.",
+      "rechazada_titulo": "We could not approve you",
+      "rechazada_detalle": "If you think this is a mistake, contact us.",
+      "suspendida_titulo": "Your approval is suspended",
+      "suspendida_detalle": "You will not receive requests for now."
+    },
+    "equipo_dice": "The team says: {{motivo}}",
+    "rechazado_motivo": "Rejected: {{motivo}}",
+    "vence_el": "Expires on {{fecha}}",
+    "vencio_renueva": "Expired. Upload a new one.",
+    "perfil_falta": "Missing: {{campos}}",
+    "completar_perfil": "Complete my profile",
+    "completa_perfil_para_enviar": "Complete your profile to be able to send.",
+    "campos": {
+      "biografia": "biography",
+      "horario_semanal": "schedule",
+      "h3_r8": "address"
+    },
+    "archivos": {
+      "frente": "Front",
+      "reverso": "Back",
+      "certificado": "Certificate"
+    },
+    "enviar": "Send for review",
+    "error_enviar": "We could not send it",
+    "enviada_titulo": "Sent",
+    "enviada_detalle": "We received your information and are reviewing it.",
+    "error_cargar": "We could not load your approval",
+    "entrar_como_cuidador": "Enter as caregiver"
   }
 }

@@ -87,9 +87,9 @@ const Paseos: React.FC = () => {
         t('paseos:errores.SIN_MASCOTAS_TITULO'),
         t('paseos:errores.SIN_MASCOTAS_MSG'),
         [
-          { text: 'Cancelar', style: 'cancel' },
+          { text: t('comun:cancelar'), style: 'cancel' },
           {
-            text: 'Crear Mascota',
+            text: t('comun:crear_mascota'),
             onPress: () => {
               // @ts-ignore
               navigation.navigate('Mascotas', { openCreate: true })
@@ -267,13 +267,13 @@ const Paseos: React.FC = () => {
 
       <View style={styles.tabs}>
         <Chip
-          label="Próximos"
+          label={t('paseos:tabs.proximos')}
           selected={activeTab === 'proximos'}
           onPress={() => setActiveTab('proximos')}
           style={styles.tab}
         />
         <Chip
-          label="Historial"
+          label={t('paseos:tabs.historial')}
           selected={activeTab === 'historial'}
           onPress={() => setActiveTab('historial')}
           style={styles.tab}

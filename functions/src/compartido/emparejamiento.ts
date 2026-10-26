@@ -81,8 +81,13 @@ export interface Candidato {
   id: string
   nombre: string
   foto?: string
-  /** Verificaciones vigentes (de `perfiles_publicos`, que solo escribe el servidor). */
+  /** Insignias para mostrar (de `perfiles_publicos`, que solo escribe el servidor). */
   insignias: string[]
+  /**
+   * Está habilitado para pasear ahora (la puerta única `ofreceServicio`). Es lo
+   * que decide si puede recibir pedidos; las insignias son solo para mostrar.
+   */
+  habilitado: boolean
   horarioSemanal: Record<string, FranjaDia>
   /** Overrides de la semana del pedido (ver ExcepcionDisponibilidad). */
   overrides?: Record<string, OverrideDia>
@@ -103,7 +108,7 @@ export interface Candidato {
 }
 
 /** Lo que no se negocia: ni se muestra ni se puede tomar. */
-export type MotivoExclusion = 'no_verificado' | 'fuera_de_zona' | 'cupo';
+export type MotivoExclusion = 'no_habilitado' | 'fuera_de_zona' | 'cupo';
 
 /**
  * Algo que el cuidador normalmente no hace, pero que SÍ puede decidir hacer:
@@ -262,7 +267,7 @@ function motivoDeExclusion(
   s: Solicitud,
   a: AjustesEmparejamiento
 ): MotivoExclusion | null {
-  if (!c.insignias.includes('IDENTIDAD')) return 'no_verificado';
+  if (!c.habilitado) return 'no_habilitado';
   if (!c.celdas.includes(s.celdaTutor)) return 'fuera_de_zona';
   // Tope de la plataforma (el de cada cuidador es solo una advertencia)
   if (s.mascotas.length > a.max_mascotas) return 'cupo';

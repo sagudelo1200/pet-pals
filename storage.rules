@@ -1,0 +1,34 @@
+rules_version = '2';
+
+// Firebase Storage de Paw-Path.
+//
+// Todo está denegado salvo las rutas de abajo. Cada clase de archivo tiene su
+// perfil en functions/src/compartido/archivos.ts (PERFILES_ARCHIVO) y su bloque
+// aquí, con los mismos límites de tamaño, tipo y nombre; un test comprueba que
+// coinciden. Un uso nuevo = un perfil + un bloque + una ruta.
+//
+// Los archivos privados se leen en el servidor (Admin SDK): al admin se le
+// entregan URLs firmadas de vida corta, por eso aquí no hay lectura de admin
+// (evitaría una consulta a Firestore en cada lectura).
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    // Perfil `evidencia`: DOCUMENTOS DE SOLICITUDES DE SERVICIO (identidad, ...)
+    //   solicitudes/{uid}/{servicio}/{requisito}/{archivo}
+    // El dueño sube, reemplaza, lee y borra lo suyo. Un nombre fijo por
+    // archivo (frente, reverso...) hace que reemplazar no acumule copias.
+    match /solicitudes/{uid}/{servicio}/{requisito}/{archivo} {
+      allow read, delete: if request.auth != null && request.auth.uid == uid;
+      allow create, update: if request.auth != null
+        && request.auth.uid == uid
+        && archivo.matches('[a-z0-9_]{1,30}')
+        && request.resource.size <= 5 * 1024 * 1024
+        && request.resource.contentType.matches('image/(jpeg|png|webp)|application/pdf');
+    }
+
+    // Todo lo demás: denegado
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

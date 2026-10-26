@@ -28,5 +28,55 @@
     "confirmacionRechazo": "¿Estás seguro de que deseas rechazar este consentimiento?",
     "confirmacionRevocacion": "¿Estás seguro de que deseas revocar tu consentimiento?",
     "consentimientoRegistrado": "Consentimiento registrado exitosamente"
+  },
+  "row": {
+    "reconfirmar_en": "Reconfirmar en: {{fecha}}",
+    "revocar": "Revocar"
+  },
+  "vigencia": {
+    "EXPIRADO": "Expiró; debes reconfirmarlo",
+    "VERSION_DESACTUALIZADA": "Hay una versión nueva",
+    "RECHAZADO": "Rechazado",
+    "REVOCADO": "Revocado",
+    "PENDIENTE": "Pendiente de aceptación"
+  },
+  "badge": {
+    "EXPIRADO": "⏰ Reconfirma tu consentimiento",
+    "VERSION_DESACTUALIZADA": "📝 Nuevos términos disponibles",
+    "RECHAZADO": "❌ Debes aceptar para continuar",
+    "REVOCADO": "↩️ Reactivar consentimiento",
+    "PENDIENTE": "✋ Consentimiento pendiente"
+  },
+  "panel": {
+    "no_autorizado": "No autorizado",
+    "sin_autorizar_desc": "No has autorizado este documento aún",
+    "leer_autorizar": "Leer y autorizar",
+    "expira_en_one": "Expira en {{count}} día",
+    "expira_en_other": "Expira en {{count}} días",
+    "expira_pronto_desc": "Tu autorización expira pronto. Reconfirma para continuar",
+    "reconfirmar": "Reconfirmar autorización",
+    "nueva_version": "Nueva versión disponible",
+    "nueva_version_desc": "Hay una actualización de este documento",
+    "leer_aceptar": "Leer y aceptar",
+    "autorizado": "Autorizado",
+    "autorizado_el": "Autorizado el {{fecha}}",
+    "autorizado_reciente": "Autorizado recientemente",
+    "ver_documento": "Ver documento",
+    "retirar_autorizacion": "Retirar autorización",
+    "rechazado_desc": "Rechazaste esta autorización",
+    "leer_documento": "Leer documento",
+    "retirada": "Autorización retirada",
+    "retirada_desc": "Retiraste esta autorización previamente",
+    "volver_autorizar": "Volver a autorizar",
+    "expirada": "Autorización expirada",
+    "expirada_desc": "Tu autorización venció y necesita ser confirmada nuevamente",
+    "desconocido": "Estado desconocido",
+    "desconocido_desc": "Estado: {{estado}}",
+    "contactar_soporte": "Contactar soporte",
+    "retirar_titulo": "¿Retirar autorización?",
+    "retirar_mensaje": "Si retiras esta autorización, podremos dejar de acceder a tu información personal.",
+    "retirar": "Retirar",
+    "pendientes": "Tienes una o más autorizaciones pendientes de actualizar",
+    "al_dia": "Tus autorizaciones están actualizadas"
   }
 }

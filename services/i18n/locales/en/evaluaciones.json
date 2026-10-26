@@ -53,5 +53,19 @@
     "EVAL_005": "The walk must be completed",
     "EVAL_006": "An evaluation already exists in this context",
     "EVAL_007": "Failed to retrieve evaluation data"
-  }
+  },
+  "selecciona_opcion_cada_campo": "Select an option in each field",
+  "error_guardar_observacion": "Error saving observation",
+  "paseo_debe_estar_completado": "The walk must be completed",
+  "solo_cuidador_observaciones": "Only the caregiver can record observations",
+  "sin_mascotas_paseo": "There are no pets on this walk",
+  "notas_comportamiento_placeholder": "Additional notes about behavior...",
+  "cargando_paseo": "Loading walk...",
+  "paseo_no_encontrado": "Walk not found",
+  "evalua_tutor_pedido": "Please rate the tutor of this walk",
+  "mascotas_del_paseo": "Pets on the walk",
+  "tutor_label": "Tutor: {{nombre}}",
+  "sin_permiso_evaluar": "You do not have permission to create this evaluation",
+  "debes_iniciar_sesion": "You must sign in",
+  "cargando_resumen": "Loading summary..."
 }

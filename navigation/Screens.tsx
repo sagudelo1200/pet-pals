@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from 'react'
 import { View, StyleSheet } from 'react-native'
+import { useTranslation } from 'react-i18next'
 import { createStackNavigator } from '@react-navigation/stack'
 import TutorTabNavigator from '@/navigation/TutorTabNavigator'
 import CuidadorTabNavigator from '@/navigation/CuidadorTabNavigator'
 import AdminTabNavigator from '@/navigation/AdminTabNavigator'
 import AdminZonas from '@/screens/admin/AdminZonas'
 import EditorZona from '@/screens/admin/EditorZona'
+import DetalleHabilitacion from '@/screens/admin/DetalleHabilitacion'
 import ExplorerTabNavigator from '@/navigation/ExplorerTabNavigator'
 import ContadorTabNavigator from '@/navigation/ContadorTabNavigator'
 import AuthNavigator from './AuthNavigator'
@@ -15,6 +17,7 @@ import PaseoActivo from '@/screens/tutor/PaseoActivo'
 import PaseoFinalizado from '@/screens/tutor/PaseoFinalizado'
 import ControlPaseo from '@/screens/cuidador/ControlPaseo'
 import PerfilCuidador from '@/screens/cuidador/PerfilCuidador'
+import MiHabilitacion from '@/screens/comun/MiHabilitacion'
 import ExcepcionSemanal from '@/screens/cuidador/ExcepcionSemanal'
 import CoberturaCuidador from '@/screens/cuidador/CoberturaCuidador'
 import { ChatScreen } from '@/screens/paseos/ChatScreen'
@@ -43,6 +46,7 @@ const CARGA_INICIAL_MS = 3000
  * el grupo de pantallas se reemplaza y su historial se descarta.
  */
 export default function RootNavigator(): React.ReactElement {
+  const { t } = useTranslation('paseos')
   const { user, perfilPublico, rolActivo, activandoRol } = useAuth()
   const [cargaInicialLista, setCargaInicialLista] = useState(false)
 
@@ -58,6 +62,34 @@ export default function RootNavigator(): React.ReactElement {
   // Rol cuya App se muestra; null = flujo de autenticación / selección de rol
   const rolEnApp =
     user && emailVerificado && cargaInicialLista ? (rolActivo ?? null) : null
+
+  // Mi habilitación se abre desde Mi Cuenta en cualquier App con cuenta de
+  // persona (tutor, explorador, cuidador): quien aún no es cuidador la usa
+  // para llegar a serlo, y quien lo es, para renovar
+  const pantallaHabilitacion = (
+    <Stack.Screen
+      name="MiHabilitacion"
+      component={MiHabilitacion}
+      options={{ headerShown: false }}
+    />
+  )
+  // El perfil de cuidador es el primer paso de la habilitación: quien aún no
+  // tiene el rol también lo necesita
+  const pantallasPerfilCuidador = (
+    <>
+      <Stack.Screen name="PerfilCuidador" component={PerfilCuidador} />
+      <Stack.Screen
+        name="ExcepcionSemanal"
+        component={ExcepcionSemanal}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="CoberturaCuidador"
+        component={CoberturaCuidador}
+        options={{ headerShown: false }}
+      />
+    </>
+  )
 
   const renderGrupoRol = () => {
     switch (rolEnApp) {
@@ -75,6 +107,11 @@ export default function RootNavigator(): React.ReactElement {
               component={EditorZona}
               options={{ headerShown: false }}
             />
+            <Stack.Screen
+              name="DetalleHabilitacion"
+              component={DetalleHabilitacion}
+              options={{ headerShown: false }}
+            />
           </Stack.Group>
         )
       case 'contador':
@@ -87,29 +124,22 @@ export default function RootNavigator(): React.ReactElement {
         return (
           <Stack.Group navigationKey="explorador">
             <Stack.Screen name="ExplorerApp" component={ExplorerTabNavigator} />
+            {pantallaHabilitacion}
+            {pantallasPerfilCuidador}
           </Stack.Group>
         )
       case 'cuidador':
         return (
           <Stack.Group navigationKey="cuidador">
             <Stack.Screen name="CuidadorApp" component={CuidadorTabNavigator} />
-            <Stack.Screen name="PerfilCuidador" component={PerfilCuidador} />
-            <Stack.Screen
-              name="ExcepcionSemanal"
-              component={ExcepcionSemanal}
-              options={{ headerShown: false }}
-            />
-            <Stack.Screen
-              name="CoberturaCuidador"
-              component={CoberturaCuidador}
-              options={{ headerShown: false }}
-            />
+            {pantallasPerfilCuidador}
+            {pantallaHabilitacion}
             <Stack.Screen
               name="ControlPaseo"
               component={ControlPaseo}
               options={{
                 headerShown: true,
-                headerTitle: 'Control de Paseo 🐾',
+                headerTitle: t('titulo_control'),
                 headerBackTitleVisible: false,
               }}
             />
@@ -144,6 +174,8 @@ export default function RootNavigator(): React.ReactElement {
         return (
           <Stack.Group navigationKey="tutor">
             <Stack.Screen name="TutorApp" component={TutorTabNavigator} />
+            {pantallaHabilitacion}
+            {pantallasPerfilCuidador}
             <Stack.Screen
               name="DetalleMascota"
               component={DetalleMascota}
@@ -166,7 +198,7 @@ export default function RootNavigator(): React.ReactElement {
               component={PaseoActivo}
               options={{
                 headerShown: true,
-                headerTitle: 'Paseo en Vivo 🐾',
+                headerTitle: t('titulo_en_vivo'),
                 headerBackTitleVisible: false,
               }}
             />

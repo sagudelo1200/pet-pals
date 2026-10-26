@@ -81,8 +81,7 @@ const InicioExplorador = () => {
             <View style={styles.infoRow}>
               <Icon name="lightbulb" size={18} color={COLOR.ENFASIS} />
               <Text style={styles.infoText}>
-                Cada exploración suma huellas y ayuda a descubrir demanda real
-                en tu zona.
+                {t('explorador:impacto.info')}
               </Text>
             </View>
           </Card>
@@ -90,7 +89,7 @@ const InicioExplorador = () => {
 
         {/* SECCIÓN 2: Tu Impacto Territorial */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>📊 Tu Impacto Territorial</Text>
+          <Text style={styles.sectionTitle}>{t('explorador:impacto.titulo')}</Text>
 
           <View style={styles.impactGrid}>
             {/* Impacto 1: Exploraciones */}
@@ -98,11 +97,9 @@ const InicioExplorador = () => {
               <View style={styles.impactContent}>
                 <Text style={styles.impactEmoji}>🗺️</Text>
                 <Text style={styles.impactValue}>{capturas}</Text>
-                <Text style={styles.impactLabel}>Exploraciones</Text>
+                <Text style={styles.impactLabel}>{t('explorador:impacto.exploraciones')}</Text>
                 <Text style={styles.impactDesc}>
-                  {capturas === 1
-                    ? 'Zona visitada y mapeada'
-                    : 'Zonas visitadas y mapeadas'}
+                  {t('explorador:impacto.zona', { count: capturas })}
                 </Text>
               </View>
             </Card>
@@ -112,11 +109,9 @@ const InicioExplorador = () => {
               <View style={styles.impactContent}>
                 <Text style={styles.impactEmoji}>📍</Text>
                 <Text style={styles.impactValue}>{celdas}</Text>
-                <Text style={styles.impactLabel}>Territorios</Text>
+                <Text style={styles.impactLabel}>{t('explorador:impacto.territorios')}</Text>
                 <Text style={styles.impactDesc}>
-                  {celdas === 1
-                    ? 'Área única descubierta'
-                    : 'Áreas únicas descubiertas'}
+                  {t('explorador:impacto.area', { count: celdas })}
                 </Text>
               </View>
             </Card>
@@ -126,7 +121,7 @@ const InicioExplorador = () => {
             <View style={styles.impactFooterRow}>
               <Icon name="heart" size={16} color={COLOR.ENFASIS} />
               <Text style={styles.impactFooterText}>
-                Cada exploración ayuda a las mascotas y cuidadores de tu barrio.
+                {t('explorador:impacto.footer')}
               </Text>
             </View>
           </Card>

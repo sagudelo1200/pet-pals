@@ -1,3 +1,4 @@
+import { i18n } from '@/services/i18n'
 import React, {
   createContext,
   useContext,
@@ -183,7 +184,7 @@ export const ConsentimientosProvider: React.FC<
         setConsentimientos(mapa)
       } catch (err) {
         const mensajeError =
-          err instanceof Error ? err.message : 'Error desconocido'
+          err instanceof Error ? err.message : i18n.t('errores:error_desconocido')
         setError(mensajeError)
         console.error('Error cargando consentimientos:', err)
       } finally {
@@ -265,7 +266,7 @@ export const ConsentimientosProvider: React.FC<
       return data
     } catch (err) {
       const mensajeError =
-        err instanceof Error ? err.message : 'Error desconocido'
+        err instanceof Error ? err.message : i18n.t('errores:error_desconocido')
       console.warn(
         `[ConsentimientosContext] registrarConsentimiento(${tipo_documento}, ${estado}) falló:`,
         err

@@ -22,9 +22,6 @@ export { ServicioPaseoMascota } from './paseo-mascota'
 // Operaciones (genérico, padre de Paseo, Guardería, Vet, etc.)
 export { ServicioOperacion } from './operacion'
 
-// Verificaciones
-export { ServicioVerificaciones } from './verificaciones'
-
 // Chat
 export { ServicioChat } from './chat'
 

@@ -9,6 +9,7 @@ import {
   getDoc,
 } from 'firebase/firestore'
 import type { PerfilPublico } from '@/models/PerfilPublico'
+import { ofreceServicio } from '@/functions/src/compartido/habilitacion'
 import { ESTADOS_PASEO, type Paseo } from '@/models/Paseo'
 
 export interface CuidadorEnZona {
@@ -18,7 +19,8 @@ export interface CuidadorEnZona {
   rating_promedio?: number
   cantidad_paseos?: number
   horario_hoy?: { inicio: string; fin: string }
-  verificado?: boolean
+  /** Habilitado para pasear ahora (puerta única `ofreceServicio`). */
+  habilitado?: boolean
 }
 
 export interface SolicitudEnZona {
@@ -79,7 +81,7 @@ export function useDetallesZonaH3(h3_r8: string | null): DetallesZonaH3 {
               rating_promedio: perfil.rating_promedio,
               cantidad_paseos: perfil.cantidad_paseos_realizados,
               horario_hoy: perfil.horario_semanal?.[hoy],
-              verificado: (perfil.insignias_verificacion?.length ?? 0) > 0,
+              habilitado: ofreceServicio(perfil, 'paseo', Date.now()),
             },
           ]
         })

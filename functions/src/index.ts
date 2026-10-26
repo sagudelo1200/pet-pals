@@ -96,3 +96,12 @@ export {
   avisarCuandoLleguen,
   alCrearPaseoAsignarZona,
 } from './zonas/funciones';
+
+// Habilitaciones (el permiso para ofrecer un servicio: revisión y aprobación)
+export {
+  iniciarHabilitacion,
+  enviarHabilitacion,
+  decidirRequisito,
+  decidirHabilitacion,
+  evidenciaHabilitacion,
+} from './habilitaciones/funciones';

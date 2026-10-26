@@ -1,3 +1,5 @@
+import { localeActual } from '@/utils/locale'
+import { i18n } from '@/services/i18n'
 import { useState, useEffect, useMemo, useCallback } from 'react'
 import { usePoliticaComercial } from '@/hooks/comercial'
 import { formatearCOP } from '@/logic/comercial'
@@ -241,10 +243,14 @@ export const calcularPropuestasCoordinacion = (
           hora_fin: minutesToTime(solicitudFin),
           diferencial:
             offset === 0
-              ? 'Hoy, mismo horario'
+              ? i18n.t('paseos:diferencial.hoy_mismo')
               : offset === 1
-                ? 'Mañana, mismo horario'
-                : `${fecha.toLocaleDateString('es-ES', { weekday: 'short' })} - Mismo horario`,
+                ? i18n.t('paseos:diferencial.manana_mismo')
+                : i18n.t('paseos:diferencial.dia_mismo', {
+                    dia: fecha.toLocaleDateString(localeActual(), {
+                      weekday: 'short',
+                    }),
+                  }),
           prioridad: offset === 0 ? 'alta' : offset === 1 ? 'media' : 'baja',
         })
         continue // Pasar al siguiente día
@@ -272,8 +278,13 @@ export const calcularPropuestasCoordinacion = (
             hora_fin: newFin,
             diferencial:
               offset === 0
-                ? `${margen} min después`
-                : `${margen} min después - ${fecha.toLocaleDateString('es-ES', { weekday: 'short' })}`,
+                ? i18n.t('paseos:diferencial.min_despues', { margen })
+                : i18n.t('paseos:diferencial.min_despues_dia', {
+                    margen,
+                    dia: fecha.toLocaleDateString(localeActual(), {
+                      weekday: 'short',
+                    }),
+                  }),
             prioridad: offset === 0 ? 'alta' : 'media',
           })
           encontroAlternativaAdelante = true
@@ -303,7 +314,7 @@ export const calcularPropuestasCoordinacion = (
               fecha,
               hora_inicio: newHora,
               hora_fin: newFin,
-              diferencial: `${margen} min antes hoy`,
+              diferencial: i18n.t('paseos:diferencial.min_antes_hoy', { margen }),
               prioridad: 'alta',
             })
             break
@@ -391,17 +402,28 @@ export const calcularPropuestasCoordinacion = (
             // Mismo día
             if (horaPropuesta > solicitudInicio) {
               const minutosDespues = horaPropuesta - solicitudInicio
-              diferencial = `Hoy a las ${slot.label} (+${minutosDespues} min)`
+              diferencial = i18n.t('paseos:diferencial.hoy_a_las_despues', {
+                hora: slot.label,
+                minutos: minutosDespues,
+              })
             } else {
               const minutosAntes = solicitudInicio - horaPropuesta
-              diferencial = `Hoy a las ${slot.label} (${minutosAntes} min antes)`
+              diferencial = i18n.t('paseos:diferencial.hoy_a_las_antes', {
+                hora: slot.label,
+                minutos: minutosAntes,
+              })
             }
           } else {
             // Días siguientes
             diferencial =
               offset === 1
-                ? `Mañana a las ${slot.label}`
-                : `${fecha.toLocaleDateString('es-ES', { weekday: 'short' })} a las ${slot.label}`
+                ? i18n.t('paseos:diferencial.manana_a_las', { hora: slot.label })
+                : i18n.t('paseos:diferencial.dia_a_las', {
+                    dia: fecha.toLocaleDateString(localeActual(), {
+                      weekday: 'short',
+                    }),
+                    hora: slot.label,
+                  })
           }
 
           propuestas.push({

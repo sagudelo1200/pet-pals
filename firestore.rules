@@ -210,12 +210,22 @@ service cloud.firestore {
       );
     }
 
-    // Roles que un usuario puede agregarse a sí mismo (agregarRol): nunca admin
+    // Roles que un usuario puede agregarse a sí mismo (agregarRol): tutor y
+    // explorador. Nunca admin ni contador, y tampoco cuidador: ese rol lo otorga
+    // solo el servidor al aprobar la habilitación (functions/src/habilitaciones)
     function roles_agregados_permitidos() {
       return !('roles' in request.resource.data) ||
       request.resource.data.roles.toSet()
       .difference(resource.data.get('roles', []).toSet())
-      .hasOnly(['tutor', 'cuidador', 'explorador']);
+      .hasOnly(['tutor', 'explorador']);
+    }
+
+    // Qué servicios puede ofrecer una persona y sus insignias los escribe solo
+    // el servidor (habilitaciones): nadie se los pone al crear su perfil
+    function perfil_sin_campos_del_servidor(datos) {
+      return !('servicios_habilitados' in datos)
+        && !('servicios_vencen' in datos)
+        && !('insignias_verificacion' in datos);
     }
 
     // La actualización no toca ninguno de estos campos
@@ -266,7 +276,7 @@ service cloud.firestore {
     match /usuarios/{uid} {
       allow read: if autenticado() && (es_mismo_uid(uid) || es_admin());
       allow create: if puede_crear_valido() && es_mismo_uid(uid) && usuario_es_mayor_edad()
-        && request.resource.data.roles.hasOnly(['tutor', 'cuidador', 'explorador'])
+        && request.resource.data.roles.hasOnly(['tutor', 'explorador'])
         && !('bloqueo_financiero' in request.resource.data);
       allow update: if puede_actualizar_valido() && (
       es_admin() ||
@@ -308,16 +318,20 @@ service cloud.firestore {
       allow read: if autenticado() || (resource.data.insignias_verificacion != null && resource.data.insignias_verificacion.size() > 0);
 
       allow create: if puede_crear_valido()
-        && (request.resource.data.creado_por == request.auth.uid || es_admin());
+        && (request.resource.data.creado_por == request.auth.uid || es_admin())
+        && (es_admin() || perfil_sin_campos_del_servidor(request.resource.data));
 
       allow update: if puede_actualizar_valido()
         && (
       // Admin: acceso total
       es_admin() ||
       // Usuario propietario: puede actualizar PERO lo que dice su reputación
-      // (insignias, calificación, paseos) lo escribe solo el servidor
+      // (insignias, calificación, paseos, servicios habilitados) lo escribe
+      // solo el servidor
       (resource.data.creado_por == request.auth.uid && 
       request.resource.data.insignias_verificacion == resource.data.insignias_verificacion &&
+      request.resource.data.get('servicios_habilitados', null) == resource.data.get('servicios_habilitados', null) &&
+      request.resource.data.get('servicios_vencen', null) == resource.data.get('servicios_vencen', null) &&
       request.resource.data.get('rating_promedio', null) == resource.data.get('rating_promedio', null) &&
       request.resource.data.get('cantidad_paseos_realizados', null) == resource.data.get('cantidad_paseos_realizados', null))
       );
@@ -735,6 +749,22 @@ service cloud.firestore {
       // Eliminación: SOLO admin
       // (Revocación de verificaciones, auditoría)
       allow delete: if es_admin();
+    }
+
+    // HABILITACIONES (el permiso de una persona para ofrecer un servicio)
+    // /habilitaciones/{uid}_{servicio}
+    // Las escribe SOLO el servidor (callables iniciar/enviar/decidir). La
+    // persona lee la suya (estado y avance por requisito); el admin, todas.
+    match /habilitaciones/{id} {
+      allow read: if autenticado() && (
+        resource.data.usuario_id == request.auth.uid || es_admin()
+      );
+      allow write: if false;
+
+      match /historial/{entrada} {
+        allow read: if es_admin();
+        allow write: if false;
+      }
     }
 
     // EVALUACIONES - SISTEMA DE CONFIANZA Y REPUTACIÓN

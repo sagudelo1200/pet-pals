@@ -9,6 +9,7 @@ import {
 } from 'react-native'
 import { Icon } from '@/components/ui'
 import { COLOR } from '@/constants'
+import { useTranslation } from 'react-i18next'
 
 interface OTPCodeInputProps {
   onComplete: (_code: string) => Promise<void>
@@ -26,13 +27,14 @@ export function OTPCodeInput({
   onComplete,
   isLoading = false,
   error = '',
-  title = 'Código de verificación',
-  subtitle = 'Ingresa el código de 6 dígitos',
+  title,
+  subtitle,
   intentosFallidos = 0,
   intentosMaximos = 3,
   timeoutSeconds,
   onTimeoutChange,
 }: OTPCodeInputProps) {
+  const { t } = useTranslation('comun')
   const [codigo, setCodigo] = useState('')
   const [localError, setLocalError] = useState('')
   const [isProcessing, setIsProcessing] = useState(false)
@@ -93,12 +95,12 @@ export function OTPCodeInput({
 
   const handleSubmit = async (codigoAValidar: string = codigo) => {
     if (codigoAValidar.length !== 6) {
-      setLocalError('El código debe tener 6 dígitos')
+      setLocalError(t('otp.seis_digitos'))
       return
     }
 
     if (!disponible) {
-      setLocalError('El código ha expirado')
+      setLocalError(t('otp.expirado'))
       return
     }
 
@@ -122,8 +124,8 @@ export function OTPCodeInput({
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.titulo}>{title}</Text>
-        <Text style={styles.subtitulo}>{subtitle}</Text>
+        <Text style={styles.titulo}>{title ?? t('otp.titulo')}</Text>
+        <Text style={styles.subtitulo}>{subtitle ?? t('otp.subtitulo')}</Text>
       </View>
 
       {!estaBloqueado ? (
@@ -170,7 +172,7 @@ export function OTPCodeInput({
               style={[styles.verificandoBox, { opacity: spinnerFadeAnim }]}
             >
               <ActivityIndicator size="small" color={COLOR.PRIMARIO} />
-              <Text style={styles.verificandoTexto}>Verificando código...</Text>
+              <Text style={styles.verificandoTexto}>{t('otp.verificando')}</Text>
             </Animated.View>
           )}
 
@@ -202,7 +204,7 @@ export function OTPCodeInput({
           {!disponible && !isLoading && (
             <View style={styles.expiradoBox}>
               <Text style={styles.expiradoTexto}>
-                El código ha expirado. Solicita uno nuevo.
+                {t('otp.expirado_nuevo')}
               </Text>
             </View>
           )}
@@ -211,7 +213,7 @@ export function OTPCodeInput({
         <View style={styles.bloqueadoBox}>
           <Icon name="lock" size={32} color={COLOR.ERROR} />
           <Text style={styles.bloqueadoTexto}>
-            Intentos agotados. Solicita un nuevo código.
+            {t('otp.agotados')}
           </Text>
         </View>
       )}

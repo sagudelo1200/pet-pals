@@ -1,3 +1,4 @@
+import { localeActual } from '@/utils/locale'
 import React, { useRef, useEffect, useState } from 'react'
 import {
   StyleSheet,
@@ -791,7 +792,7 @@ export const SeleccionarCuidadorPaso = ({
                               color: COLOR.TEXTO,
                             }}
                           >
-                            {item.fecha.toLocaleDateString(undefined, {
+                            {item.fecha.toLocaleDateString(localeActual(), {
                               weekday: 'short',
                               month: 'short',
                               day: 'numeric',
@@ -1030,7 +1031,9 @@ export const SeleccionarCuidadorPaso = ({
                           fecha: fecha || new Date(),
                           hora_inicio: f.inicio,
                           hora_fin: f.fin,
-                          diferencial: 'Franja seleccionada manualmente',
+                          diferencial: t(
+                            'paseos:pasos.seleccionar_cuidador.franja_manual'
+                          ),
                           prioridad: 'media',
                         }
                         setPropuestaSeleccionada(nueva)
@@ -1058,7 +1061,8 @@ export const SeleccionarCuidadorPaso = ({
                     'Confirmar con {{nombre}}'
                   ).replace(
                     '{{nombre}}',
-                    cuidadorCoordinacion?.nombre || 'este cuidador'
+                    cuidadorCoordinacion?.nombre ||
+                      t('paseos:fallback.este_cuidador')
                   )}
                   disabled={!propuestaSeleccionada || cargandoPerfil}
                   onPress={handleConfirmarCoordinacion}
@@ -1138,10 +1142,10 @@ export const SeleccionarCuidadorPaso = ({
                         marginBottom: 2,
                       }}
                     >
-                      📋 Opción 1:
+                      {t('paseos:pasos.seleccionar_cuidador.opcion_1')}
                     </Text>
                     <Text style={{ fontSize: 12, color: COLOR.TEXTO }}>
-                      Ajusta la hora más temprano hoy
+                      {t('paseos:pasos.seleccionar_cuidador.opcion_1_desc')}
                     </Text>
                   </View>
 
@@ -1162,10 +1166,10 @@ export const SeleccionarCuidadorPaso = ({
                         marginBottom: 2,
                       }}
                     >
-                      📅 Opción 2:
+                      {t('paseos:pasos.seleccionar_cuidador.opcion_2')}
                     </Text>
                     <Text style={{ fontSize: 12, color: COLOR.TEXTO }}>
-                      Intenta mañana o próximos días
+                      {t('paseos:pasos.seleccionar_cuidador.opcion_2_desc')}
                     </Text>
                   </View>
 
@@ -1186,10 +1190,10 @@ export const SeleccionarCuidadorPaso = ({
                         marginBottom: 2,
                       }}
                     >
-                      👥 Opción 3:
+                      {t('paseos:pasos.seleccionar_cuidador.opcion_3')}
                     </Text>
                     <Text style={{ fontSize: 12, color: COLOR.TEXTO }}>
-                      Elige otro cuidador de la zona
+                      {t('paseos:pasos.seleccionar_cuidador.opcion_3_desc')}
                     </Text>
                   </View>
                 </View>
@@ -1198,11 +1202,11 @@ export const SeleccionarCuidadorPaso = ({
               {/* BOTONES: Acciones claras */}
               <View style={{ gap: 8, marginTop: 12 }}>
                 <Button
-                  title="Ajustar hora y reintentar"
+                  title={t('paseos:pasos.seleccionar_cuidador.ajustar_hora')}
                   onPress={handleCancelarCoordinacion}
                 />
                 <Button
-                  title="Volver a la lista"
+                  title={t('paseos:pasos.seleccionar_cuidador.volver_lista')}
                   variant="bloque"
                   onPress={handleCancelarCoordinacion}
                 />

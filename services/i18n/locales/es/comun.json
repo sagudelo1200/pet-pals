@@ -32,7 +32,9 @@
     "DOCUMENTO_NO_ENCONTRADO": "El recurso solicitado no existe.",
     "ERROR_CONEXION": "Error de conexión con el servidor en tiempo real.",
     "SIN_DATOS": "No se encontraron datos disponibles.",
-    "OPERACION_CANCELADA": "La operación fue cancelada."
+    "OPERACION_CANCELADA": "La operación fue cancelada.",
+    "ERROR_DESCONOCIDO": "Ocurrió un error inesperado. Intenta nuevamente.",
+    "DATOS_INVALIDOS": "Los datos proporcionados no son válidos."
   },
   "maps": {
     "buscar_placeholder": "Buscar dirección...",
@@ -119,8 +121,159 @@
       "sabado": "Sáb"
     },
     "mes": "Mes",
-    "año": "Año"
+    "año": "Año",
+    "placeholder_fecha_hora": "Selecciona fecha y hora",
+    "manana": "Mañana",
+    "hora": "Hora",
+    "previsualizacion": "Previsualización"
   },
   "algo_salio_mal": "Algo salió mal",
-  "enviando": "Enviando"
+  "enviando": "Enviando",
+  "archivos": {
+    "agregar": "Agregar foto",
+    "subiendo": "Subiendo…",
+    "subida": "Foto guardada",
+    "error_imagen": "No pudimos leer la foto. Intenta con otra.",
+    "error_grande": "La foto es demasiado grande. Intenta con otra.",
+    "error_subida": "No pudimos subir la foto. Revisa tu conexión e intenta de nuevo."
+  },
+  "dias_cortos": {
+    "0": "Dom",
+    "1": "Lun",
+    "2": "Mar",
+    "3": "Mié",
+    "4": "Jue",
+    "5": "Vie",
+    "6": "Sáb"
+  },
+  "codigo": {
+    "ingresa_digitos": "Ingresa {{digitos}} dígitos",
+    "bloqueado": "Demasiados intentos fallidos. Intentos máximos: {{max}}",
+    "incorrecto": "Código incorrecto. Intentos restantes: {{restantes}}",
+    "error_validar": "Error al validar código"
+  },
+  "crear_mascota": "Crear mascota",
+  "pickers": {
+    "hora_placeholder": "Selecciona hora",
+    "duracion_placeholder": "Selecciona duración",
+    "duracion_paseo": "Duración del paseo",
+    "opcion_placeholder": "Selecciona una opción",
+    "minutos": "{{minutos}} min"
+  },
+  "imagen": {
+    "agregar_foto": "Agregar foto",
+    "permisos_titulo": "Permisos necesarios",
+    "permiso_camara": "Necesitamos acceso a tu cámara para continuar.",
+    "permiso_galeria": "Necesitamos acceso a tu galería para continuar.",
+    "error_tomar": "No se pudo tomar la foto",
+    "error_seleccionar": "No se pudo seleccionar la imagen",
+    "seleccionar_foto": "Seleccionar foto",
+    "elige_opcion": "Elige una opción",
+    "camara": "Cámara",
+    "galeria": "Galería",
+    "cambiar": "Cambiar",
+    "cargando": "Cargando...",
+    "tocar_agregar": "Tocar para agregar foto",
+    "cambiar_foto": "Cambiar foto"
+  },
+  "otp": {
+    "titulo": "Código de verificación",
+    "subtitulo": "Ingresa el código de 6 dígitos",
+    "seis_digitos": "El código debe tener 6 dígitos",
+    "expirado": "El código ha expirado",
+    "verificando": "Verificando código...",
+    "expirado_nuevo": "El código ha expirado. Solicita uno nuevo.",
+    "agotados": "Intentos agotados. Solicita un nuevo código."
+  },
+  "mapa": {
+    "creditos": "Créditos del mapa"
+  },
+  "mascota": {
+    "por_revisar": "{{count}} por revisar"
+  },
+  "direcciones": {
+    "donde_recogemos": "¿Dónde recogemos a tu mascota?",
+    "selecciona": "Selecciona una dirección guardada",
+    "vacio": "No tienes direcciones guardadas.",
+    "agregar_nueva": "Agregar nueva dirección",
+    "principal": "Principal",
+    "ubicacion": "Ubicación"
+  },
+  "territorial": {
+    "cargando": "Conociendo este lugar...",
+    "confianza": "Confianza de la comunidad",
+    "paseos_meses": "{{paseos}} paseos • {{meses}}m",
+    "observa": "Lo que la comunidad observa",
+    "ideal_para": "Ideal para",
+    "mejor_horario": "Mejor horario",
+    "duracion": "Duración recomendada",
+    "tipos_experiencia": "Tipos de experiencia",
+    "exp_juego": "Juego",
+    "exp_socializacion": "Socialización",
+    "exp_descanso": "Descanso",
+    "exp_exploracion": "Exploración",
+    "nombres": {
+      "parque": "Parque de los Encuentros",
+      "calle": "Caminata Urbana",
+      "comercio": "Zona Comercial Vivaz",
+      "conjunto": "Conjunto Residencial",
+      "otro": "Rincón del Barrio",
+      "mixto": "Zona Diversa",
+      "default": "Este lugar"
+    },
+    "adj": {
+      "dinamica_social": "dinámica y social",
+      "activa": "activa y energética",
+      "social": "social y tranquila",
+      "tranquila": "tranquila y relajada",
+      "segura": "muy segura"
+    },
+    "insights": {
+      "juegan": "Los perros suelen jugar bastante aquí",
+      "agua": "Excelente disponibilidad de agua",
+      "interaccion": "Alta interacción entre mascotas",
+      "frecuentada": "Muy frecuentada por la comunidad",
+      "seguridad": "Muy buena percepción de seguridad",
+      "activos": "Uno de los lugares más activos de la zona",
+      "tranquilo": "Lugar tranquilo y poco explorado",
+      "relajados": "Buena alternativa para paseos relajados"
+    },
+    "rec": {
+      "perros_activos": "Perros activos",
+      "perros_ancianos": "Perros ancianos",
+      "perros_tranquilos": "Perros tranquilos",
+      "perros_muy_activos": "Perros muy activos",
+      "perros_sociables": "Perros sociables",
+      "perros_timidos": "Perros tímidos",
+      "sin_correa": "Paseos sin correa",
+      "zonas_concurridas": "Zonas muy concurridas",
+      "paseos_largos": "Paseos largos"
+    },
+    "horario": {
+      "manana_atardecer": "Mañana o atardecer (6-10 AM o 4-7 PM)",
+      "cualquiera": "Cualquier hora del día",
+      "manana": "Preferiblemente en la mañana"
+    },
+    "duracion_opt": {
+      "larga": "30 a 45 minutos",
+      "media": "20 a 30 minutos",
+      "corta": "15 a 25 minutos"
+    },
+    "indices_cargando": "Cargando inteligencia...",
+    "bienestar": "Bienestar",
+    "seguridad": "Seguridad",
+    "actividad": "Actividad",
+    "socializacion": "Socialización",
+    "desconocido": "Desconocido",
+    "eventos_actualizado": "{{eventos}} eventos • Actualizado hace poco"
+  },
+  "ajustes": "AJUSTES",
+  "chat_paseo": "Chat del paseo",
+  "ver_perfil_cuidador": "Ver perfil del cuidador",
+  "ver_perfil_cargando": "Cargando perfil",
+  "seccion_proxima": "¡Próximamente!",
+  "privacidad": {
+    "titulo": "Privacidad y autorizaciones",
+    "descripcion": "Gestiona las autorizaciones que nos permiten prestarte nuestros servicios."
+  }
 }

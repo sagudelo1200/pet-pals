@@ -11,16 +11,21 @@ import {
 import { COLOR } from '@/constants'
 import Icon from './Icon'
 import * as ImagePickerLib from 'expo-image-picker'
+import { useTranslation } from 'react-i18next'
 
 interface ImagePickerProps {
   label?: string
   value?: string
-  onValueChange: (_uri: string) => void
+  /** `medidas` son las de la foto elegida (sirven para reducirla antes de subirla). */
+  onValueChange: (_uri: string, _medidas?: { ancho: number; alto: number }) => void
   placeholder?: string
   errorText?: string
   style?: ViewStyle | ViewStyle[]
   testID?: string
   disabled?: boolean
+  /** Recortar al elegir (foto de perfil). Desactívalo para documentos. */
+  allowsEditing?: boolean
+  aspect?: [number, number]
 }
 
 /**
@@ -30,12 +35,15 @@ const ImagePicker: React.FC<ImagePickerProps> = ({
   label,
   value,
   onValueChange,
-  placeholder = 'Agregar foto',
+  placeholder,
   errorText,
   style,
   testID,
   disabled = false,
+  allowsEditing = true,
+  aspect = [1, 1],
 }) => {
+  const { t } = useTranslation('comun')
   const [loading, setLoading] = useState(false)
 
   const requestPermissions = async (type: 'camera' | 'library') => {
@@ -47,8 +55,10 @@ const ImagePicker: React.FC<ImagePickerProps> = ({
 
       if (!permission.granted) {
         Alert.alert(
-          'Permisos necesarios',
-          `Necesitamos acceso a tu ${type === 'camera' ? 'cámara' : 'galería'} para continuar.`
+          t('imagen.permisos_titulo'),
+          type === 'camera'
+            ? t('imagen.permiso_camara')
+            : t('imagen.permiso_galeria')
         )
         return false
       }
@@ -67,17 +77,18 @@ const ImagePicker: React.FC<ImagePickerProps> = ({
     try {
       const result = await ImagePickerLib.launchCameraAsync({
         mediaTypes: 'images',
-        allowsEditing: true,
-        aspect: [1, 1],
+        allowsEditing,
+        ...(allowsEditing ? { aspect } : {}),
         quality: 0.8,
       })
 
       if (!result.canceled && result.assets[0]) {
-        onValueChange(result.assets[0].uri)
+        const { uri, width, height } = result.assets[0]
+        onValueChange(uri, { ancho: width, alto: height })
       }
     } catch (error) {
       console.error('Error picking from camera:', error)
-      Alert.alert('Error', 'No se pudo tomar la foto')
+      Alert.alert(t('error'), t('imagen.error_tomar'))
     } finally {
       setLoading(false)
     }
@@ -91,17 +102,18 @@ const ImagePicker: React.FC<ImagePickerProps> = ({
     try {
       const result = await ImagePickerLib.launchImageLibraryAsync({
         mediaTypes: 'images',
-        allowsEditing: true,
-        aspect: [1, 1],
+        allowsEditing,
+        ...(allowsEditing ? { aspect } : {}),
         quality: 0.8,
       })
 
       if (!result.canceled && result.assets[0]) {
-        onValueChange(result.assets[0].uri)
+        const { uri, width, height } = result.assets[0]
+        onValueChange(uri, { ancho: width, alto: height })
       }
     } catch (error) {
       console.error('Error picking from library:', error)
-      Alert.alert('Error', 'No se pudo seleccionar la imagen')
+      Alert.alert(t('error'), t('imagen.error_seleccionar'))
     } finally {
       setLoading(false)
     }
@@ -109,19 +121,19 @@ const ImagePicker: React.FC<ImagePickerProps> = ({
 
   const showOptions = () => {
     Alert.alert(
-      'Seleccionar foto',
-      'Elige una opción',
+      t('imagen.seleccionar_foto'),
+      t('imagen.elige_opcion'),
       [
         {
-          text: 'Cámara',
+          text: t('imagen.camara'),
           onPress: pickFromCamera,
         },
         {
-          text: 'Galería',
+          text: t('imagen.galeria'),
           onPress: pickFromLibrary,
         },
         {
-          text: 'Cancelar',
+          text: t('cancelar'),
           style: 'cancel',
         },
       ],
@@ -156,7 +168,7 @@ const ImagePicker: React.FC<ImagePickerProps> = ({
             <Image source={{ uri: value }} style={styles.image} />
             <View style={styles.changeOverlay}>
               <Icon name="camera" size={24} color={COLOR.TEXTO} />
-              <Text style={styles.changeText}>Cambiar</Text>
+              <Text style={styles.changeText}>{t('imagen.cambiar')}</Text>
             </View>
           </View>
         ) : (
@@ -171,7 +183,9 @@ const ImagePicker: React.FC<ImagePickerProps> = ({
             <Text
               style={[styles.placeholderText, disabled && styles.textDisabled]}
             >
-              {loading ? 'Cargando...' : placeholder}
+              {loading
+                ? t('imagen.cargando')
+                : (placeholder ?? t('imagen.agregar_foto'))}
             </Text>
           </View>
         )}

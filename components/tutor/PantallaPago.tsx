@@ -30,6 +30,7 @@ import Card from '@/components/ui/Card'
 import Icon from '@/components/ui/Icon'
 import { useOperacionEconomica } from '@/hooks/comercial'
 import { formatearCOP } from '@/logic/comercial'
+import { useTranslation } from 'react-i18next'
 import {
   ServicioEconomia,
   mensajeErrorEconomia,
@@ -50,6 +51,7 @@ export const PantallaPago: React.FC<PantallaPagoProps> = ({
   onPagado,
   onCancel,
 }) => {
+  const { t } = useTranslation('tutor')
   const { operacion, error: errorOperacion } =
     useOperacionEconomica(operacionId)
   const [loading, setLoading] = useState(false)
@@ -69,9 +71,9 @@ export const PantallaPago: React.FC<PantallaPagoProps> = ({
     try {
       const res = await ServicioEconomia.confirmarPago({ operacionId })
       if (res.estado === 'RECHAZADO') {
-        setError(res.mensaje || 'El pago fue rechazado. Intenta de nuevo.')
+        setError(res.mensaje || t('pago.rechazado'))
       } else if (res.estado === 'PENDIENTE') {
-        setError('Tu pago está en proceso. Te avisaremos al confirmarse.')
+        setError(t('pago.en_proceso'))
       }
       // APROBADO: el listener de la operación dispara onPagado
     } catch (err) {
@@ -111,13 +113,13 @@ export const PantallaPago: React.FC<PantallaPagoProps> = ({
           <>
             <Text style={styles.errorText}>{errorOperacion}</Text>
             <Pressable style={styles.botonCancelar} onPress={onCancel}>
-              <Text style={styles.botonCancelarText}>Volver</Text>
+              <Text style={styles.botonCancelarText}>{t('pago.volver')}</Text>
             </Pressable>
           </>
         ) : (
           <>
             <ActivityIndicator color={COLOR.PRIMARIO} />
-            <Text style={styles.subtitulo}>Preparando tu cobro...</Text>
+            <Text style={styles.subtitulo}>{t('pago.preparando')}</Text>
           </>
         )}
       </View>
@@ -132,7 +134,7 @@ export const PantallaPago: React.FC<PantallaPagoProps> = ({
           <Pressable onPress={cerrarCheckout}>
             <Icon name="times" size={24} color="white" />
           </Pressable>
-          <Text style={styles.headerTitle}>Pago Seguro</Text>
+          <Text style={styles.headerTitle}>{t('pago.seguro')}</Text>
           <View style={{ width: 24 }} />
         </View>
 
@@ -148,8 +150,8 @@ export const PantallaPago: React.FC<PantallaPagoProps> = ({
         style={styles.header}
       >
         <View style={styles.headerContent}>
-          <Text style={styles.titulo}>Confirmar Pago</Text>
-          <Text style={styles.subtitulo}>Paseo de {nombreMascota}</Text>
+          <Text style={styles.titulo}>{t('pago.confirmar')}</Text>
+          <Text style={styles.subtitulo}>{t('pago.paseo_de', { mascota: nombreMascota })}</Text>
         </View>
       </LinearGradient>
 
@@ -157,12 +159,12 @@ export const PantallaPago: React.FC<PantallaPagoProps> = ({
         {/* Detalles del paseo */}
         <Card style={styles.card}>
           <View style={styles.detalleRow}>
-            <Text style={styles.detalleLabel}>Mascota:</Text>
+            <Text style={styles.detalleLabel}>{t('pago.mascota')}</Text>
             <Text style={styles.detalleValor}>{nombreMascota}</Text>
           </View>
           <View style={styles.divider} />
           <View style={styles.detalleRow}>
-            <Text style={styles.detalleLabel}>Cuidador:</Text>
+            <Text style={styles.detalleLabel}>{t('pago.cuidador')}</Text>
             <Text style={styles.detalleValor}>{nombreCuidador}</Text>
           </View>
         </Card>
@@ -173,17 +175,22 @@ export const PantallaPago: React.FC<PantallaPagoProps> = ({
             colors={[`${COLOR.PRIMARIO}15`, `${COLOR.PRIMARIO}05`]}
             style={styles.montoGradient}
           >
-            <Text style={styles.montoLabel}>Monto a pagar</Text>
+            <Text style={styles.montoLabel}>{t('pago.monto')}</Text>
             <Text style={styles.montoValor}>
               {formatearCOP(operacion.valor_acordado)}
             </Text>
             <Text style={styles.montoDetalle}>
               {operacion.detalle_precio
-                ? `${operacion.detalle_precio.num_mascotas} mascota(s) · ${operacion.detalle_precio.duracion_minutos} min · `
+                ? t('pago.mascotas_min', {
+                    mascotas: operacion.detalle_precio.num_mascotas,
+                    minutos: operacion.detalle_precio.duracion_minutos,
+                  })
                 : ''}
-              Incluye servicio de cuidado y comisión de plataforma
+              {t('pago.incluye')}
               {operacion.iva_comision > 0
-                ? ` (IVA de la comisión: ${formatearCOP(operacion.iva_comision)})`
+                ? t('pago.iva_comision', {
+                    monto: formatearCOP(operacion.iva_comision),
+                  })
                 : ''}
             </Text>
           </LinearGradient>
@@ -193,7 +200,7 @@ export const PantallaPago: React.FC<PantallaPagoProps> = ({
         <View style={styles.seguridad}>
           <Icon name="lock" size={16} color={COLOR.EXITO} />
           <Text style={styles.seguridadText}>
-            Pago 100% seguro. Tus datos están protegidos.
+            {t('pago.protegido')}
           </Text>
         </View>
 
@@ -212,7 +219,7 @@ export const PantallaPago: React.FC<PantallaPagoProps> = ({
             onPress={onCancel}
             disabled={loading}
           >
-            <Text style={styles.botonCancelarText}>Pagar después</Text>
+            <Text style={styles.botonCancelarText}>{t('pago.pagar_despues')}</Text>
           </Pressable>
 
           <Pressable
@@ -225,7 +232,7 @@ export const PantallaPago: React.FC<PantallaPagoProps> = ({
             ) : (
               <>
                 <Icon name="check-circle" size={20} color="white" />
-                <Text style={styles.botonPagarText}>Pagar Ahora</Text>
+                <Text style={styles.botonPagarText}>{t('pago.pagar_ahora')}</Text>
               </>
             )}
           </Pressable>

@@ -6,6 +6,7 @@ import { PetAvatar } from '@/components/ui/PetAvatar'
 import { AvatarGroup } from '@/components/ui/AvatarGroup'
 import type { Paseo } from '@/models/Paseo'
 import { useTranslation } from 'react-i18next'
+import { localeActual } from '@/utils/locale'
 
 interface ItemHistorialPaseoProps {
   paseo: Paseo
@@ -30,9 +31,9 @@ export const ItemHistorialPaseo: React.FC<ItemHistorialPaseoProps> = ({
 
   const dia = fecha.getDate()
   const mes = fecha
-    .toLocaleDateString('es-ES', { month: 'short' })
+    .toLocaleDateString(localeActual(), { month: 'short' })
     .toUpperCase()
-  const hora = fecha.toLocaleTimeString('es-ES', {
+  const hora = fecha.toLocaleTimeString(localeActual(), {
     hour: '2-digit',
     minute: '2-digit',
   })
@@ -40,7 +41,9 @@ export const ItemHistorialPaseo: React.FC<ItemHistorialPaseoProps> = ({
   const esCompartido = paseo.modalidad === 'compartido'
   const nombreMascota =
     paseo.mascota_nombre_visual ||
-    (esCompartido ? 'Paseo Compartido' : 'Mascota')
+    (esCompartido
+      ? t('paseos:fallback.paseo_compartido')
+      : t('paseos:fallback.mascota'))
 
   const fotoMascota = paseo.mascota_foto_visual
   const fotosMultiples = paseo.mascotas_fotos_visual

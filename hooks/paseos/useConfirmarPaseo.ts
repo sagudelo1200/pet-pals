@@ -1,3 +1,4 @@
+import { i18n } from '@/services/i18n'
 import { useState, useCallback, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useMascotas } from '@/hooks/useMascotas'
@@ -148,7 +149,7 @@ export const useConfirmarPaseo = ({
       return true
     } catch (e: any) {
       console.error('Error creando paseo:', e)
-      setError(e.message || 'Error desconocido')
+      setError(e.message || i18n.t('errores:error_desconocido'))
       return false
     } finally {
       setLoading(false)

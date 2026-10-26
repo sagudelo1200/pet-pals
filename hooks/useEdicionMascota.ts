@@ -219,7 +219,11 @@ export const useEdicionMascota = (
   }
 
   const eliminarMascota = async () => {
-    if (!mascota) return { success: false, error: 'No mascota' }
+    if (!mascota)
+      return {
+        success: false,
+        error: t('mascotas:errores.MASCOTA_NO_ENCONTRADA'),
+      }
 
     // UI Optimista: No esperamos a que termine para dar feedback visual
     // La navegación debe ocurrir inmediatamente en el componente

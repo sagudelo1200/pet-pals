@@ -1,9 +1,9 @@
 /**
  * Foto de entrega del paseo (evidencia de cierre).
  *
- * Firebase Storage todavía no está habilitado en el proyecto: este es el
- * ÚNICO punto que hablará con Storage cuando se implemente. Mientras tanto
- * responde de forma explícita que no está disponible (no finge guardar).
+ * Storage ya está habilitado (ver ServicioArchivos, el único punto que habla con
+ * él) pero esta foto aún no tiene reglas ni ruta en storage.rules: mientras
+ * tanto responde de forma explícita que no está disponible (no finge guardar).
  *
  * Ruta prevista: paseos/{paseoId}/entrega/grupo.jpg (foto del grupo) y
  * paseos/{paseoId}/entrega/{mascotaId}.jpg (foto individual opcional).

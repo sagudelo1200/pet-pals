@@ -1,3 +1,4 @@
+import { localeActual } from '@/utils/locale'
 import React from 'react'
 import { View, Text, StyleSheet, FlatList, RefreshControl } from 'react-native'
 import Screen from '@/components/ui/Screen'
@@ -68,7 +69,7 @@ const HistorialExploraciones = () => {
 
     const timestamp =
       item.creado_en instanceof Date ? item.creado_en : new Date()
-    const formattedDate = new Intl.DateTimeFormat('es-ES', {
+    const formattedDate = new Intl.DateTimeFormat(localeActual(), {
       month: 'short',
       day: 'numeric',
       hour: '2-digit',
@@ -130,7 +131,7 @@ const HistorialExploraciones = () => {
             {/* Fila 4: Huellas inmediatas (siempre) */}
             <View style={styles.immediatePawsRow}>
               <Icon name="bolt" size={12} color={COLOR.PRIMARIO} />
-              <Text style={styles.immediatePawsText}>+3 🐾 por explorar</Text>
+              <Text style={styles.immediatePawsText}>{t('explorador:historial.huellas_inmediatas')}</Text>
             </View>
 
             {/* Observaciones si existen */}

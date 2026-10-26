@@ -32,7 +32,9 @@
     "DOCUMENTO_NO_ENCONTRADO": "The requested resource does not exist.",
     "ERROR_CONEXION": "Connection error with the realtime server.",
     "SIN_DATOS": "No data available.",
-    "OPERACION_CANCELADA": "The operation was cancelled."
+    "OPERACION_CANCELADA": "The operation was cancelled.",
+    "ERROR_DESCONOCIDO": "An unexpected error occurred. Please try again.",
+    "DATOS_INVALIDOS": "The data provided is not valid."
   },
   "maps": {
     "buscar_placeholder": "Search address...",
@@ -119,8 +121,159 @@
       "sabado": "Sat"
     },
     "mes": "Month",
-    "año": "Year"
+    "año": "Year",
+    "placeholder_fecha_hora": "Select date and time",
+    "manana": "Tomorrow",
+    "hora": "Time",
+    "previsualizacion": "Preview"
   },
   "algo_salio_mal": "Something went wrong",
-  "enviando": "Sending"
+  "enviando": "Sending",
+  "archivos": {
+    "agregar": "Add photo",
+    "subiendo": "Uploading…",
+    "subida": "Photo saved",
+    "error_imagen": "We couldn't read the photo. Try another one.",
+    "error_grande": "The photo is too large. Try another one.",
+    "error_subida": "We couldn't upload the photo. Check your connection and try again."
+  },
+  "dias_cortos": {
+    "0": "Sun",
+    "1": "Mon",
+    "2": "Tue",
+    "3": "Wed",
+    "4": "Thu",
+    "5": "Fri",
+    "6": "Sat"
+  },
+  "codigo": {
+    "ingresa_digitos": "Enter {{digitos}} digits",
+    "bloqueado": "Too many failed attempts. Maximum attempts: {{max}}",
+    "incorrecto": "Incorrect code. Remaining attempts: {{restantes}}",
+    "error_validar": "Error validating code"
+  },
+  "crear_mascota": "Create pet",
+  "pickers": {
+    "hora_placeholder": "Select time",
+    "duracion_placeholder": "Select duration",
+    "duracion_paseo": "Walk duration",
+    "opcion_placeholder": "Select an option",
+    "minutos": "{{minutos}} min"
+  },
+  "imagen": {
+    "agregar_foto": "Add photo",
+    "permisos_titulo": "Permissions required",
+    "permiso_camara": "We need access to your camera to continue.",
+    "permiso_galeria": "We need access to your gallery to continue.",
+    "error_tomar": "Could not take the photo",
+    "error_seleccionar": "Could not select the image",
+    "seleccionar_foto": "Select photo",
+    "elige_opcion": "Choose an option",
+    "camara": "Camera",
+    "galeria": "Gallery",
+    "cambiar": "Change",
+    "cargando": "Loading...",
+    "tocar_agregar": "Tap to add a photo",
+    "cambiar_foto": "Change photo"
+  },
+  "otp": {
+    "titulo": "Verification code",
+    "subtitulo": "Enter the 6-digit code",
+    "seis_digitos": "The code must have 6 digits",
+    "expirado": "The code has expired",
+    "verificando": "Verifying code...",
+    "expirado_nuevo": "The code has expired. Request a new one.",
+    "agotados": "Attempts exhausted. Request a new code."
+  },
+  "mapa": {
+    "creditos": "Map credits"
+  },
+  "mascota": {
+    "por_revisar": "{{count}} to review"
+  },
+  "direcciones": {
+    "donde_recogemos": "Where should we pick up your pet?",
+    "selecciona": "Select a saved address",
+    "vacio": "You have no saved addresses.",
+    "agregar_nueva": "Add new address",
+    "principal": "Primary",
+    "ubicacion": "Location"
+  },
+  "territorial": {
+    "cargando": "Getting to know this place...",
+    "confianza": "Community trust",
+    "paseos_meses": "{{paseos}} walks • {{meses}}m",
+    "observa": "What the community observes",
+    "ideal_para": "Ideal for",
+    "mejor_horario": "Best time",
+    "duracion": "Recommended duration",
+    "tipos_experiencia": "Types of experience",
+    "exp_juego": "Play",
+    "exp_socializacion": "Socializing",
+    "exp_descanso": "Rest",
+    "exp_exploracion": "Exploration",
+    "nombres": {
+      "parque": "Meeting Park",
+      "calle": "Urban Stroll",
+      "comercio": "Lively Commercial Area",
+      "conjunto": "Residential Complex",
+      "otro": "Neighborhood Corner",
+      "mixto": "Diverse Area",
+      "default": "This place"
+    },
+    "adj": {
+      "dinamica_social": "dynamic and social",
+      "activa": "active and energetic",
+      "social": "social and calm",
+      "tranquila": "calm and relaxed",
+      "segura": "very safe"
+    },
+    "insights": {
+      "juegan": "Dogs tend to play a lot here",
+      "agua": "Excellent water availability",
+      "interaccion": "High interaction between pets",
+      "frecuentada": "Very popular with the community",
+      "seguridad": "Very good perception of safety",
+      "activos": "One of the most active places in the area",
+      "tranquilo": "Quiet, little-explored place",
+      "relajados": "Good option for relaxed walks"
+    },
+    "rec": {
+      "perros_activos": "Active dogs",
+      "perros_ancianos": "Senior dogs",
+      "perros_tranquilos": "Calm dogs",
+      "perros_muy_activos": "Very active dogs",
+      "perros_sociables": "Sociable dogs",
+      "perros_timidos": "Shy dogs",
+      "sin_correa": "Off-leash walks",
+      "zonas_concurridas": "Very crowded areas",
+      "paseos_largos": "Long walks"
+    },
+    "horario": {
+      "manana_atardecer": "Morning or evening (6-10 AM or 4-7 PM)",
+      "cualquiera": "Any time of day",
+      "manana": "Preferably in the morning"
+    },
+    "duracion_opt": {
+      "larga": "30 to 45 minutes",
+      "media": "20 to 30 minutes",
+      "corta": "15 to 25 minutes"
+    },
+    "indices_cargando": "Loading insights...",
+    "bienestar": "Wellbeing",
+    "seguridad": "Safety",
+    "actividad": "Activity",
+    "socializacion": "Socializing",
+    "desconocido": "Unknown",
+    "eventos_actualizado": "{{eventos}} events • Updated recently"
+  },
+  "ajustes": "SETTINGS",
+  "chat_paseo": "Walk chat",
+  "ver_perfil_cuidador": "View caregiver profile",
+  "ver_perfil_cargando": "Loading profile",
+  "seccion_proxima": "Coming soon!",
+  "privacidad": {
+    "titulo": "Privacy and authorizations",
+    "descripcion": "Manage the authorizations that allow us to provide you with our services."
+  }
 }

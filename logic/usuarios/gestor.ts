@@ -14,6 +14,8 @@ import { GestorPerfilPublico } from './perfilPublico'
 export const CODIGOS_ERROR_USUARIO = {
   NO_ENCONTRADO: 'USUARIO_NO_ENCONTRADO',
   ADMIN_EXCLUSIVO: 'ADMIN_EXCLUSIVO',
+  /** Ser cuidador pasa por la habilitación: no se asigna desde la app. */
+  REQUIERE_HABILITACION: 'REQUIERE_HABILITACION',
 } as const
 
 export const GestorUsuarios = {
@@ -29,10 +31,17 @@ export const GestorUsuarios = {
 
   async agregarRol(
     uid: string,
-    nuevoRol: RolUsuario,
-    datosBase?: { nombre?: string; foto?: string }
+    nuevoRol: RolUsuario
   ): Promise<CrudResult<void>> {
     try {
+      // El rol de cuidador lo otorga el servidor al aprobar la habilitación
+      if (nuevoRol === 'cuidador') {
+        return {
+          success: false,
+          error: CODIGOS_ERROR_USUARIO.REQUIERE_HABILITACION,
+        }
+      }
+
       const userRes = await ServicioUsuario.obtenerPorId(uid)
       if (!userRes.success || !userRes.data)
         return { success: false, error: CODIGOS_ERROR_USUARIO.NO_ENCONTRADO }
@@ -67,20 +76,6 @@ export const GestorUsuarios = {
 
       if (!resUsuario.success)
         return { success: false, error: resUsuario.error }
-
-      // Si el nuevo rol es cuidador, crear perfil público si no existe
-      if (nuevoRol === 'cuidador') {
-        const perfilRes = await GestorPerfilPublico.obtenerPorId(uid)
-        if (!perfilRes.success) {
-          await GestorPerfilPublico.inicializarPerfil(uid, {
-            nombre: datosBase?.nombre || usuario.nombre || 'Usuario',
-            foto: datosBase?.foto || usuario.foto || '',
-            verificacion: 'pendiente',
-            rating_promedio: 0,
-            tarifa_por_hora: 15000,
-          } as any)
-        }
-      }
 
       return { success: true }
     } catch (e: any) {

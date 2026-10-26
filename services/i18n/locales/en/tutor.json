@@ -25,7 +25,11 @@
     "ultimos_movimientos": "Latest movements",
     "sin_actividad_titulo": "No activity yet",
     "sin_actividad_desc": "Completed walks will appear here",
-    "ver_historial": "View history"
+    "ver_historial": "View history",
+    "fecha_hoy": "Today",
+    "fecha_manana": "Tomorrow",
+    "fecha_ayer": "Yesterday",
+    "fecha_hace_dias": "{{dias}}d ago"
   },
   "solicitud": {
     "paso_mascota": "Select your pet",
@@ -55,7 +59,71 @@
       "ver_en_mapa": "View on map",
       "nueva_btn": "New",
       "direccion_btn": "Address",
-      "seleccionar_para_ver": "Select an address to view on the map"
+      "seleccionar_para_ver": "Select an address to view on the map",
+      "usar_actual": "Use my current location",
+      "ubicacion_actual": "📍 My current location"
     }
+  },
+  "pago": {
+    "volver": "Back",
+    "preparando": "Preparing your charge...",
+    "seguro": "Secure payment",
+    "confirmar": "Confirm payment",
+    "paseo_de": "{{mascota}}'s walk",
+    "mascota": "Pet:",
+    "cuidador": "Caregiver:",
+    "monto": "Amount to pay",
+    "mascotas_min": "{{mascotas}} pet(s) · {{minutos}} min · ",
+    "incluye": "Includes care service and platform fee",
+    "iva_comision": " (VAT on the fee: {{monto}})",
+    "protegido": "100% secure payment. Your data is protected.",
+    "pagar_despues": "Pay later",
+    "pagar_ahora": "Pay now",
+    "rechazado": "The payment was rejected. Please try again.",
+    "en_proceso": "Your payment is being processed. We will notify you once it is confirmed."
+  },
+  "obligaciones": {
+    "sin_fecha": "No date",
+    "pagado": "Paid",
+    "pendiente": "Pending",
+    "pagado_el": "Paid on {{fecha}}",
+    "reclamo_en_revision": "Your claim is under review. You will not receive reminders for this charge in the meantime.",
+    "reclamo_resuelto": "We reviewed your claim and the charge stands.",
+    "cobro_cierre_equipo": "This charge was generated because the team closed the handoff without your code. You can file a claim until {{fecha}}.",
+    "no_estoy_de_acuerdo": "I disagree",
+    "pagar": "Pay {{monto}}",
+    "titulo": "My obligations",
+    "pendiente_de_pagar": "Pending payment",
+    "ya_pagado": "Already paid",
+    "paseos_one": "{{count}} walk",
+    "paseos_other": "{{count}} walks",
+    "paseos_completados_one": "{{count}} completed walk",
+    "paseos_completados_other": "{{count}} completed walks",
+    "vacio": "No obligations recorded",
+    "bloqueo": "You have an overdue payment. Until you pay it you will not be able to request new walks.",
+    "sin_deudas": "No debts!",
+    "sin_deudas_desc": "All your walks have been paid successfully",
+    "total_pagado": "Total paid: ${{monto}}"
+  },
+  "reclamo": {
+    "enviado": "Claim sent",
+    "enviado_desc": "The Paw-Path team will review it. In the meantime you will not receive reminders for this charge.",
+    "no_enviado": "Could not send",
+    "descripcion": "This charge was generated because the team closed the walk handoff. Tell us what happened so we can review it.",
+    "placeholder": "E.g.: my pet was not handed over",
+    "enviando": "Sending…",
+    "enviar": "Send claim"
+  },
+  "entrega": {
+    "validada": "✅ Handoff validated",
+    "validada_desc": "Walk confirmed. Proceed to payment.",
+    "intentos_agotados": "❌ Attempts exhausted",
+    "contacta_cuidador": "Contact the caregiver to resolve this.",
+    "titulo": "Validate handoff",
+    "entregado_por": "{{mascota}} was handed over successfully by {{cuidador}}",
+    "ingresa_codigo": "Enter the 6-digit code you received",
+    "limpiar": "AC",
+    "intentos_restantes": "Remaining attempts: {{restantes}}/3",
+    "validar_codigo": "Validate code"
   }
 }

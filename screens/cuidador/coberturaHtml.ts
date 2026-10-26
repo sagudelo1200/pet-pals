@@ -12,19 +12,44 @@ import {
  * La selección de celdas se gestiona en JS dentro del WebView.
  * Al guardar, se llama window.ReactNativeWebView.postMessage({ type:'save', cells:[...] })
  */
+/** Textos visibles dentro del WebView (se pasan ya traducidos) */
+export interface TextosCobertura {
+  lang: string
+  cargando: string
+  guardar: string
+  guardando: string
+  zonaSeleccionada: string
+  zonasSeleccionadas: string
+  miUbicacion: string
+  cambiarTema: string
+}
+
+const TEXTOS_COBERTURA_ES: TextosCobertura = {
+  lang: 'es',
+  cargando: 'Cargando…',
+  guardar: 'Guardar cobertura',
+  guardando: 'Guardando…',
+  zonaSeleccionada: 'zona seleccionada',
+  zonasSeleccionadas: 'zonas seleccionadas',
+  miUbicacion: 'Mi ubicación',
+  cambiarTema: 'Cambiar tema',
+}
+
 export function construirHTMLCobertura(
   h3Home: string,
   selectedCellsInit: string[],
   bottomInset: number = 0,
-  topInset: number = 0
+  topInset: number = 0,
+  textos: TextosCobertura = TEXTOS_COBERTURA_ES
 ): string {
+  const textosJSON = JSON.stringify(textos)
   const h3HomeJSON = JSON.stringify(h3Home)
   const selectedJSON = JSON.stringify(selectedCellsInit)
   // Altura del footer nativo incluyendo safe area
   const footerBottom = 14 + bottomInset
 
   return `<!DOCTYPE html>
-<html lang="es">
+<html lang="${textos.lang}">
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport"
@@ -96,13 +121,14 @@ export function construirHTMLCobertura(
 <body>
   <div id="map"></div>
   <div id="footer">
-    <span id="count-text">Cargando…</span>
-    <button id="save-btn">Guardar cobertura</button>
+    <span id="count-text">${textos.cargando}</span>
+    <button id="save-btn">${textos.guardar}</button>
   </div>
 
   <script>
     var H3_R8      = ${h3HomeJSON};
     var INIT_CELLS = ${selectedJSON};
+    var T = ${textosJSON};
     var RADIO_MAPA = 3;   // gridDisk k=3 → 37 celdas visibles alrededor del centro
 
     var SEL_FILL    = '#1D8F73';
@@ -131,7 +157,7 @@ export function construirHTMLCobertura(
       onAdd: function () {
         var btn = L.DomUtil.create('div', 'leaflet-bar leaflet-control');
         btn.innerHTML = '&#x2316;';
-        btn.title = 'Mi ubicación';
+        btn.title = T.miUbicacion;
         btn.style.cssText = [
           'background:#121918','color:#2DB391','cursor:pointer',
           'width:36px','height:36px','display:flex',
@@ -176,7 +202,7 @@ ${JS_ATRIBUCION}
       onAdd: function () {
         var btn = L.DomUtil.create('div', 'leaflet-bar leaflet-control');
         btn.innerHTML = '&#x2600;&#xFE0F;';
-        btn.title = 'Cambiar tema';
+        btn.title = T.cambiarTema;
         btn.style.cssText = [
           'background:#121918','color:#EBF4F2','cursor:pointer',
           'width:36px','height:36px','display:flex',
@@ -260,7 +286,7 @@ ${JS_ATRIBUCION}
     function updateCount() {
       var n = selectedCells.size;
       document.getElementById('count-text').textContent =
-        n + (n === 1 ? ' zona seleccionada' : ' zonas seleccionadas');
+        n + ' ' + (n === 1 ? T.zonaSeleccionada : T.zonasSeleccionadas);
     }
 
     function loadVisible() {
@@ -285,7 +311,7 @@ ${JS_ATRIBUCION}
     document.getElementById('save-btn').addEventListener('click', function () {
       var btn = document.getElementById('save-btn');
       btn.disabled = true;
-      btn.textContent = 'Guardando\u2026';
+      btn.textContent = T.guardando;
       window.ReactNativeWebView.postMessage(JSON.stringify({
         type: 'save',
         cells: Array.from(selectedCells),

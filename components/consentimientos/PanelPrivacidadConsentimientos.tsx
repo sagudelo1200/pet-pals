@@ -5,6 +5,8 @@ import { ConsentimientoUI } from '@/context/ConsentimientosContext'
 import { ModalLeerConsentimiento } from './ModalLeerConsentimiento'
 import { Card, Button, Icon } from '@/components/ui'
 import { COLOR } from '@/constants/Theme'
+import { useTranslation } from 'react-i18next'
+import { localeActual } from '@/utils/locale'
 
 /**
  * Panel de Privacidad y Autorizaciones
@@ -29,6 +31,7 @@ interface EstadoVisual {
 }
 
 export const PanelPrivacidadConsentimientos: React.FC = () => {
+  const { t } = useTranslation('consentimientos')
   const { consentimientos, aceptarConsentimiento, revocarConsentimiento } =
     useConsentimientos()
 
@@ -47,9 +50,9 @@ export const PanelPrivacidadConsentimientos: React.FC = () => {
       return {
         icono: 'times-circle',
         iconoColor: COLOR.SUBTEXTO,
-        estado: 'No autorizado',
-        descripcion: 'No has autorizado este documento aún',
-        accionPrimaria: { texto: 'Leer y autorizar', tipo: 'aceptar' as const },
+        estado: t('panel.no_autorizado'),
+        descripcion: t('panel.sin_autorizar_desc'),
+        accionPrimaria: { texto: t('panel.leer_autorizar'), tipo: 'aceptar' as const },
         accionSecundaria: null,
       }
     }
@@ -72,10 +75,10 @@ export const PanelPrivacidadConsentimientos: React.FC = () => {
       return {
         icono: 'exclamation-triangle',
         iconoColor: COLOR.ALERTA,
-        estado: `Expira en ${diasRestantes} día${diasRestantes === 1 ? '' : 's'}`,
-        descripcion: 'Tu autorización expira pronto. Reconfirma para continuar',
+        estado: t('panel.expira_en', { count: diasRestantes }),
+        descripcion: t('panel.expira_pronto_desc'),
         accionPrimaria: {
-          texto: 'Reconfirmar autorización',
+          texto: t('panel.reconfirmar'),
           tipo: 'aceptar' as const,
         },
         accionSecundaria: null,
@@ -87,9 +90,9 @@ export const PanelPrivacidadConsentimientos: React.FC = () => {
       return {
         icono: 'exclamation-circle',
         iconoColor: COLOR.ALERTA,
-        estado: 'Nueva versión disponible',
-        descripcion: 'Hay una actualización de este documento',
-        accionPrimaria: { texto: 'Leer y aceptar', tipo: 'aceptar' as const },
+        estado: t('panel.nueva_version'),
+        descripcion: t('panel.nueva_version_desc'),
+        accionPrimaria: { texto: t('panel.leer_aceptar'), tipo: 'aceptar' as const },
         accionSecundaria: null,
       }
     }
@@ -102,30 +105,29 @@ export const PanelPrivacidadConsentimientos: React.FC = () => {
           consentimiento.fecha_evento instanceof Date
             ? consentimiento.fecha_evento
             : new Date(consentimiento.fecha_evento)
-        fechaFormato = fecha.toLocaleDateString('es-ES', {
+        fechaFormato = fecha.toLocaleDateString(localeActual(), {
           day: 'numeric',
           month: 'short',
           year: 'numeric',
         })
       } catch (e) {
-        fechaFormato = 'recientemente'
+        fechaFormato = ''
         console.error('Error al formatear la fecha del consentimiento:', e)
       }
 
       // Descripción corta según fecha
-      let descripcion = 'Autorizado recientemente'
-      if (fechaFormato !== 'recientemente') {
-        descripcion = `Autorizado el ${fechaFormato}`
-      }
+      const descripcion = fechaFormato
+        ? t('panel.autorizado_el', { fecha: fechaFormato })
+        : t('panel.autorizado_reciente')
 
       return {
         icono: 'check-circle',
         iconoColor: COLOR.EXITO,
-        estado: 'Autorizado',
-        descripcion: `${descripcion}`,
-        accionPrimaria: { texto: 'Ver documento', tipo: 'aceptar' as const },
+        estado: t('panel.autorizado'),
+        descripcion,
+        accionPrimaria: { texto: t('panel.ver_documento'), tipo: 'aceptar' as const },
         accionSecundaria: {
-          texto: 'Retirar autorización',
+          texto: t('panel.retirar_autorizacion'),
           tipo: 'revocar' as const,
         },
       }
@@ -136,9 +138,9 @@ export const PanelPrivacidadConsentimientos: React.FC = () => {
       return {
         icono: 'times-circle',
         iconoColor: COLOR.SUBTEXTO,
-        estado: 'No autorizado',
-        descripcion: 'Rechazaste esta autorización',
-        accionPrimaria: { texto: 'Leer documento', tipo: 'aceptar' as const },
+        estado: t('panel.no_autorizado'),
+        descripcion: t('panel.rechazado_desc'),
+        accionPrimaria: { texto: t('panel.leer_documento'), tipo: 'aceptar' as const },
         accionSecundaria: null,
       }
     }
@@ -148,10 +150,10 @@ export const PanelPrivacidadConsentimientos: React.FC = () => {
       return {
         icono: 'ban',
         iconoColor: COLOR.ALERTA,
-        estado: 'Autorización retirada',
-        descripcion: 'Retiraste esta autorización previamente',
+        estado: t('panel.retirada'),
+        descripcion: t('panel.retirada_desc'),
         accionPrimaria: {
-          texto: 'Volver a autorizar',
+          texto: t('panel.volver_autorizar'),
           tipo: 'aceptar' as const,
         },
         accionSecundaria: null,
@@ -163,11 +165,10 @@ export const PanelPrivacidadConsentimientos: React.FC = () => {
       return {
         icono: 'history',
         iconoColor: COLOR.ALERTA,
-        estado: 'Autorización expirada',
-        descripcion:
-          'Tu autorización venció y necesita ser confirmada nuevamente',
+        estado: t('panel.expirada'),
+        descripcion: t('panel.expirada_desc'),
         accionPrimaria: {
-          texto: 'Reconfirmar autorización',
+          texto: t('panel.reconfirmar'),
           tipo: 'aceptar' as const,
         },
         accionSecundaria: null,
@@ -182,9 +183,9 @@ export const PanelPrivacidadConsentimientos: React.FC = () => {
     return {
       icono: 'exclamation-triangle',
       iconoColor: COLOR.ALERTA,
-      estado: 'Estado desconocido',
-      descripcion: `Estado: ${estado}`,
-      accionPrimaria: { texto: 'Contactar soporte', tipo: 'aceptar' as const },
+      estado: t('panel.desconocido'),
+      descripcion: t('panel.desconocido_desc', { estado }),
+      accionPrimaria: { texto: t('panel.contactar_soporte'), tipo: 'aceptar' as const },
       accionSecundaria: null,
     }
   }
@@ -198,12 +199,12 @@ export const PanelPrivacidadConsentimientos: React.FC = () => {
       } else {
         // Revocar
         await Alert.alert(
-          '¿Retirar autorización?',
-          'Si retiras esta autorización, podremos dejar de acceder a tu información personal.',
+          t('panel.retirar_titulo'),
+          t('panel.retirar_mensaje'),
           [
-            { text: 'Cancelar', style: 'cancel' },
+            { text: t('comun:cancelar'), style: 'cancel' },
             {
-              text: 'Retirar',
+              text: t('panel.retirar'),
               style: 'destructive',
               onPress: async () => {
                 setCargandoAccion(true)
@@ -218,7 +219,7 @@ export const PanelPrivacidadConsentimientos: React.FC = () => {
         )
       }
     },
-    [revocarConsentimiento]
+    [revocarConsentimiento, t]
   )
 
   const handleAceptarDesdeModal = useCallback(
@@ -262,14 +263,14 @@ export const PanelPrivacidadConsentimientos: React.FC = () => {
           <>
             <Icon name="exclamation-circle" size={20} color={COLOR.ALERTA} />
             <Text style={styles.estadoTexto}>
-              Tienes una o más autorizaciones pendientes de actualizar
+              {t('panel.pendientes')}
             </Text>
           </>
         ) : (
           <>
             <Icon name="check-circle" size={20} color={COLOR.EXITO} />
             <Text style={styles.estadoTexto}>
-              Tus autorizaciones están actualizadas
+              {t('panel.al_dia')}
             </Text>
           </>
         )}

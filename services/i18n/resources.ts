@@ -20,7 +20,21 @@ const NAMESPACE_LIST = [
   'evaluaciones',
   'consentimientos',
   'notificaciones',
+  'errores',
 ] as const
+
+// Fusión profunda: paseos_control comparte la raíz 'control' con paseos.json
+function mezclar(base: any, extra: any): any {
+  const out = { ...base }
+  for (const [k, v] of Object.entries(extra ?? {})) {
+    const b = out[k]
+    out[k] =
+      v && typeof v === 'object' && b && typeof b === 'object'
+        ? mezclar(b, v)
+        : v
+  }
+  return out
+}
 
 // Mapa de módulos por idioma (agregar pt, fr, etc. aquí)
 const LOCALE_MODULES = { es, en }
@@ -35,7 +49,7 @@ export const resources = Object.fromEntries(
         if (ns === 'paseos') {
           return [
             ns,
-            { ...(module as any).paseos, ...(module as any).paseos_control },
+            mezclar((module as any).paseos, (module as any).paseos_control),
           ]
         }
         return [ns, (module as any)[ns]]

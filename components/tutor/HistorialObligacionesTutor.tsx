@@ -31,9 +31,12 @@ import { ServicioAuth } from '@/services/firebase'
 import { useBloqueoFinanciero } from '@/hooks/comercial'
 import { formatearCOP } from '@/logic/comercial'
 import { PantallaPago } from './PantallaPago'
+import { useTranslation } from 'react-i18next'
+import { localeActual } from '@/utils/locale'
 import { ModalReclamoCobro } from './ModalReclamoCobro'
 
 export const HistorialObligacionesTutor: React.FC = () => {
+  const { t } = useTranslation('tutor')
   const { bloqueado } = useBloqueoFinanciero()
   const [pagando, setPagando] = useState<Obligacion | null>(null)
   const [reclamando, setReclamando] = useState<string | null>(null)
@@ -83,9 +86,9 @@ export const HistorialObligacionesTutor: React.FC = () => {
   }, [obligacionesData])
 
   const formatearFecha = (timestamp: any) => {
-    if (!timestamp) return 'Sin fecha'
+    if (!timestamp) return t('obligaciones.sin_fecha')
     const fecha = timestamp.toDate?.() || new Date(timestamp)
-    return fecha.toLocaleDateString('es-ES', {
+    return fecha.toLocaleDateString(localeActual(), {
       month: 'short',
       day: 'numeric',
       year: 'numeric',
@@ -135,7 +138,9 @@ export const HistorialObligacionesTutor: React.FC = () => {
                     : styles.estadoTextoPendiente,
                 ]}
               >
-                {esCumplida ? 'Pagado' : 'Pendiente'}
+                {esCumplida
+                  ? t('obligaciones.pagado')
+                  : t('obligaciones.pendiente')}
               </Text>
             </View>
 
@@ -145,7 +150,7 @@ export const HistorialObligacionesTutor: React.FC = () => {
                 esCumplida ? styles.montoLiquidada : styles.montoPendiente,
               ]}
             >
-              ${item.valor.toLocaleString()}
+              ${item.valor.toLocaleString(localeActual())}
             </Text>
           </View>
         </View>
@@ -154,7 +159,9 @@ export const HistorialObligacionesTutor: React.FC = () => {
           <View style={styles.obligacionFooter}>
             <Icon name="check-circle" size={12} color={COLOR.EXITO} />
             <Text style={styles.liquidadaEn}>
-              Pagado el {formatearFecha(item.cumplido_en)}
+              {t('obligaciones.pagado_el', {
+                fecha: formatearFecha(item.cumplido_en),
+              })}
             </Text>
           </View>
         )}
@@ -163,24 +170,23 @@ export const HistorialObligacionesTutor: React.FC = () => {
           <View style={styles.avisoReclamo}>
             {item.reclamo?.estado === 'ABIERTO' ? (
               <Text style={styles.avisoReclamoTexto}>
-                Tu reclamo está en revisión. No recibirás recordatorios por este
-                cobro mientras tanto.
+                {t('obligaciones.reclamo_en_revision')}
               </Text>
             ) : item.reclamo ? (
               <Text style={styles.avisoReclamoTexto}>
-                Revisamos tu reclamo y se mantiene el cobro.
+                {t('obligaciones.reclamo_resuelto')}
               </Text>
             ) : item.reclamo_hasta &&
               ((item.reclamo_hasta as any).toMillis?.() ??
                 new Date(item.reclamo_hasta as any).getTime()) > Date.now() ? (
               <>
                 <Text style={styles.avisoReclamoTexto}>
-                  Este cobro se generó porque el equipo cerró la entrega sin tu
-                  código. Puedes reclamar hasta el{' '}
-                  {formatearFecha(item.reclamo_hasta)}.
+                  {t('obligaciones.cobro_cierre_equipo', {
+                    fecha: formatearFecha(item.reclamo_hasta),
+                  })}
                 </Text>
                 <Pressable onPress={() => setReclamando(item.id)}>
-                  <Text style={styles.enlaceReclamo}>No estoy de acuerdo</Text>
+                  <Text style={styles.enlaceReclamo}>{t('obligaciones.no_estoy_de_acuerdo')}</Text>
                 </Pressable>
               </>
             ) : null}
@@ -200,7 +206,7 @@ export const HistorialObligacionesTutor: React.FC = () => {
             >
               <Icon name="credit-card" size={16} color="white" />
               <Text style={styles.botonTexto}>
-                Pagar {formatearCOP(item.valor)}
+                {t('obligaciones.pagar', { monto: formatearCOP(item.valor) })}
               </Text>
             </LinearGradient>
           </Pressable>
@@ -230,34 +236,33 @@ export const HistorialObligacionesTutor: React.FC = () => {
         style={styles.resumenContainer}
       >
         <View style={styles.resumenContent}>
-          <Text style={styles.resumenTitulo}>Mis Obligaciones</Text>
+          <Text style={styles.resumenTitulo}>{t('obligaciones.titulo')}</Text>
 
           {tieneObligacionesPendientes && (
             <View style={styles.resumenCards}>
               <Card style={[styles.resumenCard, styles.resumenCardPendiente]}>
-                <Text style={styles.resumenLabel}>Pendiente de pagar</Text>
+                <Text style={styles.resumenLabel}>{t('obligaciones.pendiente_de_pagar')}</Text>
                 <Text style={styles.resumenValor}>
-                  ${totalPendiente.toLocaleString()}
+                  ${totalPendiente.toLocaleString(localeActual())}
                 </Text>
                 <Text style={styles.resumenDetalle}>
-                  {obligacionesPendientes.length} paseo
-                  {obligacionesPendientes.length !== 1 ? 's' : ''}
+                  {t('obligaciones.paseos', {
+                    count: obligacionesPendientes.length,
+                  })}
                 </Text>
               </Card>
 
               {totalLiquidada > 0 && (
                 <Card style={[styles.resumenCard, styles.resumenCardLiquidada]}>
-                  <Text style={styles.resumenLabel}>Ya pagado</Text>
+                  <Text style={styles.resumenLabel}>{t('obligaciones.ya_pagado')}</Text>
                   <Text style={styles.resumenValor}>
-                    ${totalLiquidada.toLocaleString()}
+                    ${totalLiquidada.toLocaleString(localeActual())}
                   </Text>
                   <Text style={styles.resumenDetalle}>
-                    {obligaciones.filter(o => o.estado === 'CUMPLIDA').length}{' '}
-                    paseo
-                    {obligaciones.filter(o => o.estado === 'CUMPLIDA')
-                      .length !== 1
-                      ? 's'
-                      : ''}
+                    {t('obligaciones.paseos', {
+                      count: obligaciones.filter(o => o.estado === 'CUMPLIDA')
+                        .length,
+                    })}
                   </Text>
                 </Card>
               )}
@@ -274,7 +279,7 @@ export const HistorialObligacionesTutor: React.FC = () => {
               <View style={styles.emptyContainer}>
                 <Icon name="inbox" size={48} color={COLOR.SUBTEXTO} />
                 <Text style={styles.emptyText}>
-                  No hay obligaciones registradas
+                  {t('obligaciones.vacio')}
                 </Text>
               </View>
             ) : (
@@ -292,8 +297,7 @@ export const HistorialObligacionesTutor: React.FC = () => {
               <View style={styles.avisoBloqueo}>
                 <Icon name="lock" size={16} color={COLOR.ERROR} />
                 <Text style={styles.avisoBloqueoTexto}>
-                  Tienes un pago vencido. Mientras no lo pagues no podrás
-                  solicitar nuevos paseos.
+                  {t('obligaciones.bloqueo')}
                 </Text>
               </View>
             </View>
@@ -314,19 +318,23 @@ export const HistorialObligacionesTutor: React.FC = () => {
                   <Icon name="check-circle" size={48} color="white" />
                 </LinearGradient>
               </View>
-              <Text style={styles.successTitulo}>¡Sin deudas!</Text>
+              <Text style={styles.successTitulo}>{t('obligaciones.sin_deudas')}</Text>
               <Text style={styles.successTexto}>
-                Todos tus paseos han sido pagados correctamente
+                {t('obligaciones.sin_deudas_desc')}
               </Text>
 
               {totalLiquidada > 0 && (
                 <View style={styles.successStats}>
                   <Text style={styles.successStatsTexto}>
-                    Total pagado: ${totalLiquidada.toLocaleString()}
+                    {t('obligaciones.total_pagado', {
+                      monto: totalLiquidada.toLocaleString(localeActual()),
+                    })}
                   </Text>
                   <Text style={styles.successStatsTexto}>
-                    {obligaciones.filter(o => o.estado === 'CUMPLIDA').length}{' '}
-                    paseos completados
+                    {t('obligaciones.paseos_completados', {
+                      count: obligaciones.filter(o => o.estado === 'CUMPLIDA')
+                        .length,
+                    })}
                   </Text>
                 </View>
               )}
@@ -343,8 +351,8 @@ export const HistorialObligacionesTutor: React.FC = () => {
         {pagando && (
           <PantallaPago
             operacionId={pagando.operacion_id}
-            nombreMascota="tu mascota"
-            nombreCuidador="tu cuidador"
+            nombreMascota={t('paseos:fallback.tu_mascota')}
+            nombreCuidador={t('paseos:fallback.tu_cuidador')}
             onPagado={() => setPagando(null)}
             onCancel={() => setPagando(null)}
           />

@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useAuth } from '@/context/AuthContext'
 import { GestorUsuarios } from '@/logic/usuarios'
 import type { RolUsuario } from '@/models/Usuario'
+import { i18n } from '@/services/i18n'
 
 export const useCambiarRol = () => {
   const { user, profile, recargarPerfil } = useAuth()
@@ -18,10 +19,7 @@ export const useCambiarRol = () => {
     setError(null)
 
     try {
-      const res = await GestorUsuarios.agregarRol(user.uid, nuevoRol, {
-        nombre: (profile as any).nombre || user.displayName || 'Usuario',
-        foto: (profile as any).foto || user.photoURL || '',
-      })
+      const res = await GestorUsuarios.agregarRol(user.uid, nuevoRol)
 
       if (!res.success) {
         throw new Error(res.error || 'Error al actualizar rol')
@@ -34,7 +32,7 @@ export const useCambiarRol = () => {
       setCargando(false)
       return { success: true }
     } catch (err: any) {
-      const errorMsg = err.message || 'Error al cambiar rol'
+      const errorMsg = err.message || i18n.t('perfil:error_cambiar_rol')
       setError(errorMsg)
       setCargando(false)
       return { success: false, error: errorMsg }

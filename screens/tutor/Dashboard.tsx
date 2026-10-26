@@ -194,8 +194,8 @@ const Dashboard: React.FC = () => {
 
     if (!puedeAbrirChat) {
       Alert.alert(
-        'Chat no disponible',
-        'El chat se activará cuando el paseo esté confirmado y tenga cuidador asignado.'
+        t('paseos:chat_no_disponible'),
+        t('paseos:chat_no_disponible_desc')
       )
       return
     }
@@ -239,9 +239,9 @@ const Dashboard: React.FC = () => {
         t('paseos:errores.SIN_MASCOTAS_TITULO'),
         t('paseos:errores.SIN_MASCOTAS_MSG'),
         [
-          { text: 'Cancelar', style: 'cancel' },
+          { text: t('comun:cancelar'), style: 'cancel' },
           {
-            text: 'Crear Mascota',
+            text: t('comun:crear_mascota'),
             onPress: () => setMostrarCrearMascota(true),
           },
         ]

@@ -1,6 +1,7 @@
 import React from 'react'
 import { StyleSheet, View, Text } from 'react-native'
 import { useTranslation } from 'react-i18next'
+import { localeActual } from '@/utils/locale'
 import { COLOR } from '@/constants'
 import Card from './Card'
 import Icon from './Icon'
@@ -22,7 +23,7 @@ const TarjetaPaseo: React.FC<TarjetaPaseoProps> = ({ paseo, onPress }) => {
   const { t } = useTranslation()
 
   const formatDate = (date: Date) => {
-    return date.toLocaleDateString('es-ES', {
+    return date.toLocaleDateString(localeActual(), {
       weekday: 'short',
       day: 'numeric',
       month: 'short',
@@ -30,7 +31,7 @@ const TarjetaPaseo: React.FC<TarjetaPaseoProps> = ({ paseo, onPress }) => {
   }
 
   const formatTime = (date: Date) => {
-    return date.toLocaleTimeString('es-ES', {
+    return date.toLocaleTimeString(localeActual(), {
       hour: '2-digit',
       minute: '2-digit',
     })
@@ -41,7 +42,9 @@ const TarjetaPaseo: React.FC<TarjetaPaseoProps> = ({ paseo, onPress }) => {
   const nombreMascota =
     paseo.mascota_nombre_visual ||
     paseo.mascotaNombre ||
-    (esCompartido ? 'Paseo Compartido' : 'Mascota')
+    (esCompartido
+      ? t('paseos:fallback.paseo_compartido')
+      : t('paseos:fallback.mascota'))
 
   const fotoMascota = paseo.mascota_foto_visual || paseo.mascotaFoto
   const fotosMultiples = paseo.mascotas_fotos_visual

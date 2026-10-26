@@ -1,3 +1,4 @@
+import { i18n } from '@/services/i18n'
 import { useEffect, useState, useRef } from 'react'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { mapasService } from '@/services/maps'
@@ -130,7 +131,7 @@ export function useRutaARecogida({
         setRuta(nuevaRuta)
         yaIntentoRef.current = true
       } catch (err) {
-        const mensaje = err instanceof Error ? err.message : 'Error desconocido'
+        const mensaje = err instanceof Error ? err.message : i18n.t('errores:error_desconocido')
         setError(mensaje)
         yaIntentoRef.current = true
       } finally {

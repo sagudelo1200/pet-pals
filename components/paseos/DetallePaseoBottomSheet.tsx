@@ -15,6 +15,7 @@ import { BottomSheet, Button, Icon, Avatar } from '@/components/ui'
 import { COLOR } from '@/constants'
 import { Paseo, ESTADOS_PASEO } from '@/models/Paseo'
 import { useTranslation } from 'react-i18next'
+import { localeActual } from '@/utils/locale'
 import { GestorPerfilPublico } from '@/logic/usuarios/perfilPublico'
 import { GestorPaseos } from '@/logic/paseos'
 import { PerfilPublico } from '@/models/PerfilPublico'
@@ -226,7 +227,7 @@ const DetallePaseoBottomSheet: React.FC<Props> = ({
 
       <Text style={styles.statusTitle}>
         {t('paseos:estados.pendiente_titulo_mascota', {
-          mascota: paseo.mascota_nombre_visual || 'tu mascota',
+          mascota: paseo.mascota_nombre_visual || t('paseos:fallback.tu_mascota'),
         })}
       </Text>
 
@@ -238,23 +239,23 @@ const DetallePaseoBottomSheet: React.FC<Props> = ({
         <View style={styles.progressStep}>
           <ActivityIndicator size="small" color={COLOR.PRIMARIO} />
           <Text style={[styles.progressText, styles.progressTextActive]}>
-            Buscando
+            {t('paseos:progreso.buscando')}
           </Text>
         </View>
         <View style={styles.progressLine} />
         <View style={styles.progressStep}>
           <Icon name="check-circle" size={16} color={COLOR.SUBTEXTO} />
-          <Text style={styles.progressText}>Aceptado</Text>
+          <Text style={styles.progressText}>{t('paseos:progreso.aceptado')}</Text>
         </View>
         <View style={styles.progressLine} />
         <View style={styles.progressStep}>
           <Icon name="clock" size={16} color={COLOR.SUBTEXTO} />
-          <Text style={styles.progressText}>En camino</Text>
+          <Text style={styles.progressText}>{t('paseos:progreso.en_camino')}</Text>
         </View>
         <View style={styles.progressLine} />
         <View style={styles.progressStep}>
           <Icon name="paw" size={16} color={COLOR.SUBTEXTO} />
-          <Text style={styles.progressText}>Paseo</Text>
+          <Text style={styles.progressText}>{t('paseos:progreso.paseo')}</Text>
         </View>
       </View>
 
@@ -279,19 +280,19 @@ const DetallePaseoBottomSheet: React.FC<Props> = ({
           <Text style={styles.statusTitle}>
             {enCamino
               ? t('paseos:estados.en_camino_titulo', {
-                  nombre: paseo.cuidador_nombre_visual || 'El cuidador',
+                  nombre: paseo.cuidador_nombre_visual || t('paseos:fallback.el_cuidador'),
                 })
               : t('paseos:estados.confirmado_titulo', {
-                  mascota: paseo.mascota_nombre_visual || 'Tu mascota',
+                  mascota: paseo.mascota_nombre_visual || t('paseos:fallback.tu_mascota_cap'),
                 })}
           </Text>
           <Text style={styles.description}>
             {enCamino
               ? t('paseos:estados.en_camino_desc', {
-                  mascota: paseo.mascota_nombre_visual || 'tu mascota',
+                  mascota: paseo.mascota_nombre_visual || t('paseos:fallback.tu_mascota'),
                 })
               : t('paseos:estados.confirmado_desc', {
-                  cuidador: paseo.cuidador_nombre_visual || 'El cuidador',
+                  cuidador: paseo.cuidador_nombre_visual || t('paseos:fallback.el_cuidador'),
                 })}
           </Text>
           {!enCamino && (
@@ -313,12 +314,12 @@ const DetallePaseoBottomSheet: React.FC<Props> = ({
         <View style={styles.progressContainer}>
           <View style={styles.progressStep}>
             <Icon name="check-circle" size={16} color={COLOR.EXITO} />
-            <Text style={styles.progressText}>Solicitud</Text>
+            <Text style={styles.progressText}>{t('paseos:progreso.solicitud')}</Text>
           </View>
           <View style={styles.progressLineActive} />
           <View style={styles.progressStep}>
             <Icon name="check-circle" size={16} color={COLOR.EXITO} />
-            <Text style={styles.progressText}>Aceptado</Text>
+            <Text style={styles.progressText}>{t('paseos:progreso.aceptado')}</Text>
           </View>
           <View
             style={enCamino ? styles.progressLineActive : styles.progressLine}
@@ -336,13 +337,13 @@ const DetallePaseoBottomSheet: React.FC<Props> = ({
                   : styles.progressText
               }
             >
-              En camino
+              {t('paseos:progreso.en_camino')}
             </Text>
           </View>
           <View style={styles.progressLine} />
           <View style={styles.progressStep}>
             <Icon name="paw" size={16} color={COLOR.SUBTEXTO} />
-            <Text style={styles.progressText}>Paseo</Text>
+            <Text style={styles.progressText}>{t('paseos:progreso.paseo')}</Text>
           </View>
         </View>
 
@@ -418,13 +419,13 @@ const DetallePaseoBottomSheet: React.FC<Props> = ({
               : t('paseos:estados.completado_titulo')}
           </Text>
           <Text style={styles.description}>
-            {fecha.toLocaleDateString(undefined, {
+            {fecha.toLocaleDateString(localeActual(), {
               weekday: 'long',
               day: 'numeric',
               month: 'long',
             })}{' '}
             •{' '}
-            {fecha.toLocaleTimeString([], {
+            {fecha.toLocaleTimeString(localeActual(), {
               hour: '2-digit',
               minute: '2-digit',
             })}

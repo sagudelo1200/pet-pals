@@ -117,7 +117,7 @@ export const usePedirCelularSiFalta = (
 
         if (!res.success) {
           throw new Error(
-            res.error || (t('usuarios.errores.error_guardar_celular') as string)
+            res.error || (t('usuarios:errores.error_guardar_celular') as string)
           )
         }
 

@@ -1,16 +1,16 @@
 {
   "errores": {
-    "proveedor_invalido": "Proveedor no soportado. Usa Google o Mapbox.",
-    "proveedor_o_place_id_requerido": "Se requiere proveedor y place_id.",
-    "coordenadas_requeridas": "Se requieren coordenadas para la ubicación.",
-    "coordenadas_invalidas": "Coordenadas inválidas.",
-    "direccion_formateada_requerida": "La dirección formateada es obligatoria.",
-    "componentes_demasiado_grandes": "Los componentes de dirección son demasiado grandes.",
-    "permiso_denegado": "No tenemos permiso para acceder a tu ubicación. Por favor, actívalo en ajustes.",
-    "gps_desactivado": "El GPS o los servicios de ubicación están desactivados.",
-    "timeout": "Se agotó el tiempo esperando tu ubicación. Revisa tu señal.",
-    "error_dispositivo": "Hubo un error al intentar obtener la ubicación desde tu dispositivo.",
-    "direccion_no_encontrada": "No pudimos encontrar una dirección para esas coordenadas.",
-    "generico": "Error al procesar la ubicación. Intenta nuevamente más tarde."
+    "proveedor_invalido": "Unsupported provider. Use Google or Mapbox.",
+    "proveedor_o_place_id_requerido": "Provider and place_id are required.",
+    "coordenadas_requeridas": "Coordinates are required for the location.",
+    "coordenadas_invalidas": "Invalid coordinates.",
+    "direccion_formateada_requerida": "The formatted address is required.",
+    "componentes_demasiado_grandes": "The address components are too large.",
+    "permiso_denegado": "We do not have permission to access your location. Please enable it in settings.",
+    "gps_desactivado": "GPS or location services are turned off.",
+    "timeout": "Timed out waiting for your location. Check your signal.",
+    "error_dispositivo": "There was an error getting the location from your device.",
+    "direccion_no_encontrada": "We could not find an address for those coordinates.",
+    "generico": "Error processing the location. Please try again later."
   }
 }

@@ -4,6 +4,7 @@ import { Avatar } from '@/components/ui'
 import { ModalPerfilCuidador } from '@/components/cuidador/ModalPerfilCuidador'
 import { useCuidadorPerfilModal } from '@/hooks/useCuidadorPerfilModal'
 import { COLOR } from '@/constants'
+import { useTranslation } from 'react-i18next'
 
 interface CuidadorAvatarButtonProps {
   /**
@@ -53,6 +54,7 @@ export function CuidadorAvatarButton({
   onPerfilAbierto,
   onPerfilCerrado,
 }: CuidadorAvatarButtonProps) {
+  const { t } = useTranslation('comun')
   const { perfil, loading, visible, cargarPerfil, cerrar } =
     useCuidadorPerfilModal()
 
@@ -72,7 +74,7 @@ export function CuidadorAvatarButton({
         onPress={handlePress}
         disabled={loading}
         activeOpacity={0.7}
-        accessibilityLabel={`${nombre} - ${!loading ? 'Ver perfil del cuidador' : 'Cargando perfil'}`}
+        accessibilityLabel={`${nombre} - ${!loading ? t('ver_perfil_cuidador') : t('ver_perfil_cargando')}`}
       >
         <Avatar uri={foto} name={nombre} size={size} />
         {loading && (

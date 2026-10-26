@@ -4,6 +4,8 @@
  */
 
 import { Paseo, ESTADOS_PASEO } from '@/models/Paseo'
+import { i18n } from '@/services/i18n'
+import { localeActual } from '@/utils/locale'
 
 /**
  * Obtiene el próximo paseo activo del usuario.
@@ -82,18 +84,18 @@ export function formatFechaDashboard(fecha: Date | string): string {
   const esFechaManana = fechaObj.toDateString() === manana.toDateString()
   const esFechaAyer = fechaObj.toDateString() === ayer.toDateString()
 
-  if (esFechaHoy) return 'Hoy'
-  if (esFechaManana) return 'Mañana'
-  if (esFechaAyer) return 'Ayer'
+  if (esFechaHoy) return i18n.t('tutor:dashboard.fecha_hoy')
+  if (esFechaManana) return i18n.t('tutor:dashboard.fecha_manana')
+  if (esFechaAyer) return i18n.t('tutor:dashboard.fecha_ayer')
 
   // Para fechas más lejanas, mostrar "Hace X días"
   const diffDias = Math.floor(
     (hoy.getTime() - fechaObj.getTime()) / (1000 * 60 * 60 * 24)
   )
-  if (diffDias > 0 && diffDias < 30) return `Hace ${diffDias}d`
+  if (diffDias > 0 && diffDias < 30) return i18n.t('tutor:dashboard.fecha_hace_dias', { dias: diffDias })
 
   // Por defecto, formato corto
-  return fechaObj.toLocaleDateString('es-ES', {
+  return fechaObj.toLocaleDateString(localeActual(), {
     day: 'numeric',
     month: 'short',
   })
@@ -106,7 +108,7 @@ export function formatFechaDashboard(fecha: Date | string): string {
  */
 export function formatHora(fecha: Date | string): string {
   const fechaObj = new Date(fecha)
-  return fechaObj.toLocaleTimeString('es-ES', {
+  return fechaObj.toLocaleTimeString(localeActual(), {
     hour: '2-digit',
     minute: '2-digit',
   })
@@ -118,18 +120,24 @@ export function formatHora(fecha: Date | string): string {
  * @returns String descriptivo del evento
  */
 export function construirDescripcionActividad(paseo: Paseo): string {
-  const mascotaNombre = paseo.mascota_nombre_visual || 'Mascota'
-  const cuidadorNombre = paseo.cuidador_nombre_visual || 'Cuidador'
+  const mascotaNombre = paseo.mascota_nombre_visual || i18n.t('paseos:fallback.mascota')
+  const cuidadorNombre = paseo.cuidador_nombre_visual || i18n.t('paseos:fallback.cuidador')
 
   switch (paseo.estado) {
     case ESTADOS_PASEO.COMPLETADO:
-      return `Paseo completado: ${mascotaNombre} con ${cuidadorNombre}`
+      return i18n.t('paseos:actividad.completado', {
+        mascota: mascotaNombre,
+        cuidador: cuidadorNombre,
+      })
     case ESTADOS_PASEO.FINALIZADO:
-      return `Paseo finalizado: ${mascotaNombre} con ${cuidadorNombre}`
+      return i18n.t('paseos:actividad.finalizado', {
+        mascota: mascotaNombre,
+        cuidador: cuidadorNombre,
+      })
     case ESTADOS_PASEO.CANCELADO:
-      return `Paseo cancelado: ${mascotaNombre}`
+      return i18n.t('paseos:actividad.cancelado', { mascota: mascotaNombre })
     default:
-      return `Paseo: ${mascotaNombre}`
+      return i18n.t('paseos:actividad.default', { mascota: mascotaNombre })
   }
 }
 

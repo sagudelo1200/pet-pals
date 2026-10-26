@@ -28,6 +28,8 @@ import { useCollection } from '@/hooks'
 import type { Obligacion } from '@/models/operacionesEconomicas'
 import { ServicioAuth } from '@/services/firebase'
 import { usePoliticaComercial } from '@/hooks/comercial'
+import { useTranslation } from 'react-i18next'
+import { localeActual } from '@/utils/locale'
 
 interface MisGananciasCuidadorProps {
   onVerDetalles?: () => void
@@ -36,6 +38,7 @@ interface MisGananciasCuidadorProps {
 export const MisGananciasCuidador: React.FC<MisGananciasCuidadorProps> = ({
   onVerDetalles,
 }) => {
+  const { t } = useTranslation('cuidador')
   const [ganancia, setGanancia] = useState({
     totalGanancia: 0,
     totalPendiente: 0,
@@ -94,7 +97,7 @@ export const MisGananciasCuidador: React.FC<MisGananciasCuidadorProps> = ({
   }, [obligacionesData])
 
   const getProximaLiquidacion = () => {
-    if (!politica) return 'Por definir'
+    if (!politica) return t('ganancias.por_definir')
     const hoy = new Date()
     const diaSemana = hoy.getDay()
     const diaPago = politica.liquidacion.dia_pago
@@ -105,7 +108,7 @@ export const MisGananciasCuidador: React.FC<MisGananciasCuidadorProps> = ({
       hoy.getDate() + (diasFaltantes === 0 ? 7 : diasFaltantes)
     )
 
-    return proximaFecha.toLocaleDateString('es-ES', {
+    return proximaFecha.toLocaleDateString(localeActual(), {
       weekday: 'long',
       month: 'short',
       day: 'numeric',
@@ -136,9 +139,9 @@ export const MisGananciasCuidador: React.FC<MisGananciasCuidadorProps> = ({
       >
         <View style={styles.headerPrincipal}>
           <View>
-            <Text style={styles.labelPrincipal}>Tus Ganancias</Text>
+            <Text style={styles.labelPrincipal}>{t('ganancias.titulo')}</Text>
             <Text style={styles.valorPrincipal}>
-              ${ganancia.totalGanancia.toLocaleString()}
+              ${ganancia.totalGanancia.toLocaleString(localeActual())}
             </Text>
           </View>
           <View style={styles.iconoPrincipal}>
@@ -153,9 +156,11 @@ export const MisGananciasCuidador: React.FC<MisGananciasCuidadorProps> = ({
               <Icon name="check" size={14} color="white" />
             </View>
             <View style={styles.desgloseInfo}>
-              <Text style={styles.desgloseLabel}>Liquidado</Text>
+              <Text style={styles.desgloseLabel}>
+                {t('ganancias.liquidado')}
+              </Text>
               <Text style={styles.desgloseValor}>
-                ${ganancia.totalLiquidado.toLocaleString()}
+                ${ganancia.totalLiquidado.toLocaleString(localeActual())}
               </Text>
             </View>
           </View>
@@ -167,9 +172,11 @@ export const MisGananciasCuidador: React.FC<MisGananciasCuidadorProps> = ({
               <Icon name="clock" size={14} color={COLOR.PRIMARIO} />
             </View>
             <View style={styles.desgloseInfo}>
-              <Text style={styles.desgloseLabel}>Pendiente</Text>
+              <Text style={styles.desgloseLabel}>
+                {t('ganancias.pendiente')}
+              </Text>
               <Text style={[styles.desgloseValor, { color: COLOR.PRIMARIO }]}>
-                ${ganancia.totalPendiente.toLocaleString()}
+                ${ganancia.totalPendiente.toLocaleString(localeActual())}
               </Text>
             </View>
           </View>
@@ -183,7 +190,9 @@ export const MisGananciasCuidador: React.FC<MisGananciasCuidadorProps> = ({
             />
           </View>
           <Text style={styles.porcentajeTexto}>
-            {porcentajeLiquidado}% recibido
+            {t('ganancias.porcentaje_recibido', {
+              porcentaje: porcentajeLiquidado,
+            })}
           </Text>
         </View>
       </LinearGradient>
@@ -201,7 +210,9 @@ export const MisGananciasCuidador: React.FC<MisGananciasCuidadorProps> = ({
               </LinearGradient>
             </View>
             <View style={styles.cardDetalleInfo}>
-              <Text style={styles.cardDetalleLabel}>Paseos Completados</Text>
+              <Text style={styles.cardDetalleLabel}>
+                {t('ganancias.paseos_completados')}
+              </Text>
               <Text style={styles.cardDetalleValor}>
                 {ganancia.paseosPendientes + ganancia.paseosLiquidados}
               </Text>
@@ -220,7 +231,9 @@ export const MisGananciasCuidador: React.FC<MisGananciasCuidadorProps> = ({
               </LinearGradient>
             </View>
             <View style={styles.cardDetalleInfo}>
-              <Text style={styles.cardDetalleLabel}>Cobrados</Text>
+              <Text style={styles.cardDetalleLabel}>
+                {t('ganancias.cobrados')}
+              </Text>
               <Text style={[styles.cardDetalleValor, { color: COLOR.EXITO }]}>
                 {ganancia.paseosLiquidados}
               </Text>
@@ -239,7 +252,9 @@ export const MisGananciasCuidador: React.FC<MisGananciasCuidadorProps> = ({
               </LinearGradient>
             </View>
             <View style={styles.cardDetalleInfo}>
-              <Text style={styles.cardDetalleLabel}>Por Cobrar</Text>
+              <Text style={styles.cardDetalleLabel}>
+                {t('ganancias.por_cobrar')}
+              </Text>
               <Text style={[styles.cardDetalleValor, { color: COLOR.ALERTA }]}>
                 {ganancia.paseosPendientes}
               </Text>
@@ -261,19 +276,26 @@ export const MisGananciasCuidador: React.FC<MisGananciasCuidadorProps> = ({
           </View>
 
           <View style={styles.liquidacionInfo}>
-            <Text style={styles.liquidacionLabel}>Próxima liquidación</Text>
+            <Text style={styles.liquidacionLabel}>
+              {t('ganancias.proxima_liquidacion')}
+            </Text>
             <Text style={styles.liquidacionFecha}>
               {getProximaLiquidacion()}
             </Text>
             {ganancia.totalListo > 0 && (
               <Text style={styles.liquidacionEstimado}>
-                Se transferirá ${ganancia.totalListo.toLocaleString()}
+                {t('ganancias.se_transferira', {
+                  monto: ganancia.totalListo.toLocaleString(localeActual()),
+                })}
               </Text>
             )}
             {ganancia.totalPendiente > ganancia.totalListo && (
               <Text style={styles.liquidacionEstimado}>
-                Esperando pago del tutor: $
-                {(ganancia.totalPendiente - ganancia.totalListo).toLocaleString()}
+                {t('ganancias.esperando_pago_tutor', {
+                  monto: (
+                    ganancia.totalPendiente - ganancia.totalListo
+                  ).toLocaleString(localeActual()),
+                })}
               </Text>
             )}
           </View>
@@ -288,7 +310,7 @@ export const MisGananciasCuidador: React.FC<MisGananciasCuidadorProps> = ({
       {onVerDetalles && (
         <Pressable style={styles.botonVerDetalles} onPress={onVerDetalles}>
           <Text style={styles.botonVerDetallesTexto}>
-            Ver historial de ganancias
+            {t('ganancias.ver_historial')}
           </Text>
           <Icon name="arrow-right" size={16} color={COLOR.PRIMARIO} />
         </Pressable>

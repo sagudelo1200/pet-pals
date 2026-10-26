@@ -23,10 +23,7 @@ import ImagePicker from '@/components/ui/ImagePicker'
 import { TimePicker } from '@/components/ui'
 import { useAuth } from '@/context/AuthContext'
 import type { PerfilPublico, FranjaHoraria } from '@/models/PerfilPublico'
-import {
-  TAMANOS,
-  type Tamano,
-} from '@/functions/src/compartido/emparejamiento'
+import { TAMANOS, type Tamano } from '@/functions/src/compartido/emparejamiento'
 import { GestorPerfilPublico } from '@/logic/usuarios/perfilPublico'
 import { celdaPrincipalDe } from '@/logic/ubicaciones/celdaPrincipal'
 import { useEstadoDeServicio } from '@/hooks/useEstadoDeServicio'
@@ -40,14 +37,15 @@ import type { StackNavigationProp } from '@react-navigation/stack'
 
 type Nav = StackNavigationProp<AuthStackParamList>
 
+/** `label` es la clave i18n del nombre corto del día */
 const DIAS_SEMANA: { key: string; label: string }[] = [
-  { key: '1', label: 'Lun' },
-  { key: '2', label: 'Mar' },
-  { key: '3', label: 'Mié' },
-  { key: '4', label: 'Jue' },
-  { key: '5', label: 'Vie' },
-  { key: '6', label: 'Sáb' },
-  { key: '0', label: 'Dom' },
+  { key: '1', label: 'comun:dias_cortos.1' },
+  { key: '2', label: 'comun:dias_cortos.2' },
+  { key: '3', label: 'comun:dias_cortos.3' },
+  { key: '4', label: 'comun:dias_cortos.4' },
+  { key: '5', label: 'comun:dias_cortos.5' },
+  { key: '6', label: 'comun:dias_cortos.6' },
+  { key: '0', label: 'comun:dias_cortos.0' },
 ]
 
 const DEFAULT_INICIO = '08:00'
@@ -102,7 +100,9 @@ const PerfilCuidador: React.FC = () => {
       setFoto(data.foto || '')
       setBiografia(data.biografia || '')
       setExperiencia(data.experiencia || '')
-      setTamanos(data.tamanos_aceptados?.length ? data.tamanos_aceptados : [...TAMANOS])
+      setTamanos(
+        data.tamanos_aceptados?.length ? data.tamanos_aceptados : [...TAMANOS]
+      )
       setMaxMascotas(data.max_mascotas ?? null)
       // tarifa_por_hora no se usa en MVP
       setHorarioSemanal(data.horario_semanal || {})
@@ -158,7 +158,7 @@ const PerfilCuidador: React.FC = () => {
     if (!user) return
 
     if (!biografia.trim()) {
-      Alert.alert(t('comun:error'), 'La biografía es obligatoria')
+      Alert.alert(t('comun:error'), t('cuidador:editar.biografia_obligatoria'))
       return
     }
     // Nota: la asignación de tarifa por cuidador está desactivada en MVP.
@@ -169,14 +169,20 @@ const PerfilCuidador: React.FC = () => {
       if (inicio >= fin) {
         Alert.alert(
           t('comun:error'),
-          `En ${DIAS_SEMANA.find(d => d.key === key)?.label}: inicio debe ser anterior al fin`
+          t('cuidador:editar.inicio_antes_fin', {
+            dia: t(DIAS_SEMANA.find(d => d.key === key)?.label ?? ''),
+          })
         )
         return
       }
       if (!LogicMatching.esHorarioLaboralValido(inicio, fin)) {
         Alert.alert(
           t('comun:error'),
-          `El horario de ${DIAS_SEMANA.find(d => d.key === key)?.label} debe estar dentro del rango permitido (${LogicMatching.HORA_MINIMA_SERVICIO} – ${LogicMatching.HORA_MAXIMA_SERVICIO})`
+          t('cuidador:editar.horario_fuera_rango', {
+            dia: t(DIAS_SEMANA.find(d => d.key === key)?.label ?? ''),
+            min: LogicMatching.HORA_MINIMA_SERVICIO,
+            max: LogicMatching.HORA_MAXIMA_SERVICIO,
+          })
         )
         return
       }
@@ -211,7 +217,10 @@ const PerfilCuidador: React.FC = () => {
         { text: 'OK', onPress: () => navigation.goBack() },
       ])
     } else {
-      Alert.alert(t('comun:error'), res.error || 'Error al guardar')
+      Alert.alert(
+        t('comun:error'),
+        res.error || t('cuidador:editar.error_guardar')
+      )
     }
   }
 
@@ -284,7 +293,7 @@ const PerfilCuidador: React.FC = () => {
           <View style={styles.row}>
             <TextInput
               label={t('perfil:editar.experiencia_label')}
-              placeholder="Ej: 2 años"
+              placeholder={t('cuidador:editar.experiencia_placeholder')}
               value={experiencia}
               onChangeText={setExperiencia}
               style={[styles.input, styles.flex1, { marginRight: 12 }]}
@@ -329,7 +338,10 @@ const PerfilCuidador: React.FC = () => {
                     accessibilityState={{ selected: activo }}
                   >
                     <Text
-                      style={[styles.chipTexto, activo && styles.chipTextoActivo]}
+                      style={[
+                        styles.chipTexto,
+                        activo && styles.chipTextoActivo,
+                      ]}
                     >
                       {t(`perfil:editar.tamanos.${tamano}`)}
                     </Text>
@@ -342,7 +354,8 @@ const PerfilCuidador: React.FC = () => {
             </Text>
             <View style={styles.chipsFila}>
               {Array.from({ length: topeMascotas }, (_, i) => i + 1).map(n => {
-                const activo = Math.min(maxMascotas ?? topeMascotas, topeMascotas) === n
+                const activo =
+                  Math.min(maxMascotas ?? topeMascotas, topeMascotas) === n
                 return (
                   <TouchableOpacity
                     key={n}
@@ -352,7 +365,10 @@ const PerfilCuidador: React.FC = () => {
                     accessibilityState={{ selected: activo }}
                   >
                     <Text
-                      style={[styles.chipTexto, activo && styles.chipTextoActivo]}
+                      style={[
+                        styles.chipTexto,
+                        activo && styles.chipTextoActivo,
+                      ]}
                     >
                       {n}
                     </Text>
@@ -365,10 +381,14 @@ const PerfilCuidador: React.FC = () => {
           {/* Dirección principal */}
           <View style={styles.direccionSection}>
             <View style={styles.direccionRow}>
-              <Text style={styles.direccionLabel}>Dirección principal</Text>
+              <Text style={styles.direccionLabel}>
+                {t('cuidador:editar.direccion_principal')}
+              </Text>
               <TouchableOpacity onPress={() => setMostrarBuscadorDir(v => !v)}>
                 <Text style={styles.direccionCambiarText}>
-                  {principalDir ? 'Cambiar' : 'Agregar'}
+                  {principalDir
+                    ? t('cuidador:editar.cambiar')
+                    : t('cuidador:editar.agregar')}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -378,7 +398,7 @@ const PerfilCuidador: React.FC = () => {
               </Text>
             ) : (
               <Text style={styles.sinDireccionText}>
-                Sin dirección configurada
+                {t('cuidador:editar.sin_direccion')}
               </Text>
             )}
             {mostrarBuscadorDir && (
@@ -424,8 +444,7 @@ const PerfilCuidador: React.FC = () => {
           keyboardShouldPersistTaps="handled"
         >
           <Text style={styles.sectionSubtitle}>
-            Activa los días disponibles y configura el rango horario de cada
-            uno.
+            {t('cuidador:editar.dias_ayuda')}
           </Text>
 
           {DIAS_SEMANA.map(({ key, label }) => {
@@ -433,7 +452,7 @@ const PerfilCuidador: React.FC = () => {
             const franja = horarioSemanal[key]
             return (
               <View key={key} style={styles.diaFila}>
-                <Text style={styles.diaLabel}>{label}</Text>
+                <Text style={styles.diaLabel}>{t(label)}</Text>
                 <View style={styles.diaCenter}>
                   {activo && franja && (
                     <>

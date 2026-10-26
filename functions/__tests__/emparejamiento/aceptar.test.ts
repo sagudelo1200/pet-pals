@@ -51,6 +51,7 @@ function sembrarCuidador(id: string, perfil: Record<string, unknown> = {}) {
     nombre: 'Ana Pérez',
     foto: 'ana.jpg',
     insignias_verificacion: ['EMAIL', 'IDENTIDAD'],
+    servicios_habilitados: ['paseo'],
     horario_semanal: HORARIO,
     h3_r8: CELDA,
     rating_promedio: 4.5,
@@ -127,9 +128,15 @@ describe('aceptarPaseo', () => {
     });
   });
 
-  test('sin identidad verificada no puede aceptar', async () => {
-    sembrarCuidador('c1', {insignias_verificacion: ['EMAIL']});
-    await expect(aceptar()).rejects.toThrow(/identidad/);
+  test('sin habilitación no puede aceptar, aunque tenga la insignia de identidad', async () => {
+    sembrarCuidador('c1', {servicios_habilitados: []});
+    await expect(aceptar()).rejects.toThrow(/habilitado/);
+    expect(paseoGuardado()?.estado).toBe('PENDIENTE');
+  });
+
+  test('con la habilitación vencida tampoco', async () => {
+    sembrarCuidador('c1', {servicios_vencen: {paseo: 1}});
+    await expect(aceptar()).rejects.toThrow(/habilitado/);
     expect(paseoGuardado()?.estado).toBe('PENDIENTE');
   });
 
@@ -313,8 +320,8 @@ describe('validarAsignacionAlCrear', () => {
     });
   });
 
-  test('un cuidador sin verificar se descarta aunque el horario calce', async () => {
-    sembrarCuidador('c1', {insignias_verificacion: ['EMAIL']});
+  test('un cuidador sin habilitar se descarta aunque el horario calce', async () => {
+    sembrarCuidador('c1', {servicios_habilitados: []});
     mockDb.__seed('operaciones/p1', paseo({id_cuidador: 'c1'}));
     await expect(validar()).resolves.toBe(true);
   });

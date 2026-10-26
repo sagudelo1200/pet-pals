@@ -85,7 +85,14 @@
     "error_cargar": "Error al cargar los paseos",
     "motivo_requerido": "Se requiere un motivo para esta acción",
     "mascota_no_disponible": "Mascota no disponible",
-    "MASCOTA_YA_TIENE_PASEO": "Esta mascota ya tiene un paseo activo en este momento."
+    "MASCOTA_YA_TIENE_PASEO": "Esta mascota ya tiene un paseo activo en este momento.",
+    "ESTADO_NO_ESPERADO": "El paseo no está en el estado esperado para esta acción.",
+    "UBICACION_INVALIDA": "La ubicación del paseo no es válida.",
+    "COORDENADAS_INVALIDAS": "Las coordenadas del paseo no son válidas.",
+    "CODIGO_RECOGIDA_FORMATO_INVALIDO": "El código de recogida debe tener 6 dígitos.",
+    "CODIGO_RECOGIDA_INCORRECTO": "El código de recogida es incorrecto.",
+    "CODIGO_RECOGIDA_BLOQUEADO": "Demasiados intentos fallidos. El código de recogida quedó bloqueado.",
+    "CODIGO_RECOGIDA_VALIDADO": "El código de recogida ya fue validado."
   },
   "boton_solicitar": "Solicitar paseo",
   "flujo": {
@@ -174,7 +181,16 @@
       "razones": {
         "nuevo": "Nuevo en la comunidad",
         "destacado": "Muy bien calificado"
-      }
+      },
+      "opcion_1": "📋 Opción 1:",
+      "opcion_2": "📅 Opción 2:",
+      "opcion_3": "👥 Opción 3:",
+      "opcion_1_desc": "Ajusta la hora más temprano hoy",
+      "opcion_2_desc": "Intenta mañana o próximos días",
+      "opcion_3_desc": "Elige otro cuidador de la zona",
+      "ajustar_hora": "Ajustar hora y reintentar",
+      "volver_lista": "Volver a la lista",
+      "franja_manual": "Franja seleccionada manualmente"
     },
     "confirmar": {
       "titulo": "Revisa y confirma",
@@ -192,7 +208,8 @@
       "total": "Total a pagar",
       "btn_confirmar": "Confirmar Solicitud",
       "exito_titulo": "¡Solicitud Enviada!",
-      "exito_msg": "Tu solicitud ha sido enviada a {{name}}."
+      "exito_msg": "Tu solicitud ha sido enviada a {{name}}.",
+      "incluye_iva": " (incluye IVA)"
     }
   },
   "solicitado": {
@@ -526,5 +543,184 @@
     },
     "avisame": "Avísame cuando lleguemos",
     "avisaremos": "Listo: te avisaremos en cuanto lleguemos."
+  },
+  "tabs": {
+    "proximos": "Próximos",
+    "historial": "Historial"
+  },
+  "chat_no_disponible": "Chat no disponible",
+  "chat_no_disponible_desc": "El chat se activará cuando el paseo esté confirmado y tenga cuidador asignado.",
+  "punto_recogida": "Punto de recogida",
+  "recogere_aqui": "Aquí recogeré a tu mascota",
+  "info_no_encontrada": "No se encontró la información del paseo.",
+  "bitacora": {
+    "selector": {
+      "titulo": "¿Qué acaba de pasar?",
+      "mascota_titulo": "La mascota hizo algo",
+      "mascota_detalle": "Registra qué hizo tu perro",
+      "lugar_titulo": "Llegamos a algún lugar",
+      "lugar_detalle": "Marca dónde estuvieron",
+      "momento_titulo": "Quiero guardar este momento",
+      "momento_detalle": "Captura foto o nota",
+      "novedad_titulo": "Ocurrió una novedad",
+      "novedad_detalle": "Reporta un evento",
+      "volver": "Volver",
+      "cerrar": "Cerrar",
+      "que_hizo": "¿Qué hizo?",
+      "donde": "¿Dónde estuvieron?",
+      "recuerdo": "Registra este recuerdo",
+      "que_ocurrio": "¿Qué ocurrió?"
+    },
+    "mascota": {
+      "necesidades": "Hizo sus necesidades",
+      "corrio": "Corrió mucho",
+      "juego": "Jugó",
+      "agua": "Tomó agua",
+      "descanso": "Descansó",
+      "socializacion_perros": "Saludó otros perros",
+      "socializacion_personas": "Saludó personas",
+      "miedo": "Se asustó",
+      "comio": "Comió algo"
+    },
+    "lugar": {
+      "parque": "Parque",
+      "sendero": "Sendero",
+      "rio": "Río o lago",
+      "casa": "Casa",
+      "pet_friendly": "Pet friendly",
+      "zona_perros": "Zona de perros",
+      "mirador": "Mirador",
+      "vehiculo": "Subimos al carro",
+      "inicio_caminata": "Empezamos a caminar"
+    },
+    "recuerdo": {
+      "foto": "Foto",
+      "video": "Video corto",
+      "voz": "Nota de voz",
+      "nota": "Escribir nota"
+    },
+    "novedad": {
+      "asustó": "La mascota se asustó",
+      "lesion": "Se lastimó",
+      "pelea": "Pelea con otro perro",
+      "malestar": "Malestar",
+      "trafico": "Tráfico peligroso",
+      "lluvia": "Lluvia",
+      "acceso_cerrado": "Acceso cerrado",
+      "contacto": "Necesito llamar al tutor",
+      "emergencia": "Emergencia"
+    },
+    "acciones": {
+      "necesidades": "Hizo sus necesidades",
+      "corrio": "Corrió mucho",
+      "juego": "Jugó",
+      "agua": "Tomó agua",
+      "descanso": "Descansó",
+      "socializacion_perros": "Saludó otros perros",
+      "socializacion_personas": "Saludó personas",
+      "miedo": "Se asustó",
+      "comio": "Comió",
+      "lugar_parque": "Llegamos al parque",
+      "lugar_sendero": "Entramos a sendero",
+      "lugar_rio": "Visitamos un río/lago",
+      "lugar_casa": "Regresamos a casa",
+      "lugar_pet_friendly": "Visitamos lugar pet friendly",
+      "lugar_zona_perros": "Entramos a zona de perros",
+      "lugar_mirador": "Llegamos al mirador",
+      "lugar_vehiculo": "Subimos al carro",
+      "lugar_inicio_caminata": "Empezamos a caminar",
+      "recuerdo_foto": "Capturamos una foto",
+      "recuerdo_video": "Grabamos un video",
+      "recuerdo_voz": "Nota de voz",
+      "recuerdo_nota": "Nota escrita",
+      "incidente_asustó": "Se asustó",
+      "incidente_lesion": "Se lastimó",
+      "incidente_pelea": "Pelea con otro perro",
+      "incidente_malestar": "Presentó malestar",
+      "incidente_trafico": "Tráfico peligroso",
+      "incidente_lluvia": "Lluvia",
+      "incidente_acceso_cerrado": "Acceso cerrado",
+      "incidente_contacto": "Necesitó contacto",
+      "incidente_emergencia": "Emergencia",
+      "novedad_asustó": "Se asustó",
+      "novedad_lesion": "Se lastimó",
+      "novedad_pelea": "Pelea con otro perro",
+      "novedad_malestar": "Presentó malestar",
+      "novedad_trafico": "Tráfico peligroso",
+      "novedad_lluvia": "Lluvia",
+      "novedad_acceso_cerrado": "Acceso cerrado",
+      "novedad_contacto": "Necesitó contacto",
+      "novedad_emergencia": "Emergencia"
+    },
+    "momento_registrado": "Momento registrado",
+    "timeline": {
+      "vacio": "Aún no hay momentos registrados en este paseo.",
+      "vacio_detalle": "Toca ➕ para empezar a contar la historia.",
+      "titulo": "Historia del paseo"
+    }
+  },
+  "finalizar": {
+    "sin_camara": "Necesitamos acceso a la cámara",
+    "sin_galeria": "Necesitamos acceso a la galería",
+    "error_foto": "Error al tomar foto",
+    "error_galeria": "Error al seleccionar foto",
+    "foto_requerida": "Debes tomar una foto de confirmación",
+    "error_guardar_foto": "No se pudo guardar la foto. Intenta de nuevo.",
+    "exito_titulo": "✅ Paseo finalizado",
+    "exito_mensaje": "El servicio ha sido registrado. Esperando confirmación del tutor.",
+    "error": "Error al finalizar paseo",
+    "titulo": "Finalizar paseo",
+    "duracion": "Duración: {{minutos}} minutos",
+    "confirma_con_foto": "Confirma con foto del paseo finalizado",
+    "foto_grupo": "Foto del grupo",
+    "foto_confirmacion": "Foto de confirmación",
+    "procura_todos": "Procura que se vean todos: {{nombres}}",
+    "toma_foto": "Toma una foto del paseo",
+    "camara": "Cámara",
+    "galeria": "Galería",
+    "observaciones": "Observaciones (opcional)",
+    "observaciones_placeholder": "¿Cómo le fue a la mascota? (ej: 'Muy feliz, corrió todo el tiempo')",
+    "info_posterior": "Después de confirmar, el tutor validará la entrega y procederá al pago. Recibirás notificación cuando se liquide.",
+    "confirmar": "Confirmar finalización"
+  },
+  "progreso": {
+    "buscando": "Buscando",
+    "solicitud": "Solicitud",
+    "aceptado": "Aceptado",
+    "en_camino": "En camino",
+    "paseo": "Paseo"
+  },
+  "fallback": {
+    "tu_mascota": "tu mascota",
+    "tu_mascota_cap": "Tu mascota",
+    "el_cuidador": "El cuidador",
+    "este_cuidador": "este cuidador",
+    "tu_cuidador": "tu cuidador",
+    "paseo_compartido": "Paseo compartido",
+    "mascota": "Mascota",
+    "cuidador": "Cuidador"
+  },
+  "codigo": {
+    "validado_avanzamos": "Una vez validado, avanzaremos automáticamente"
+  },
+  "titulo_control": "Control de paseo 🐾",
+  "titulo_en_vivo": "Paseo en vivo 🐾",
+  "actividad": {
+    "completado": "Paseo completado: {{mascota}} con {{cuidador}}",
+    "finalizado": "Paseo finalizado: {{mascota}} con {{cuidador}}",
+    "cancelado": "Paseo cancelado: {{mascota}}",
+    "default": "Paseo: {{mascota}}"
+  },
+  "diferencial": {
+    "hoy_mismo": "Hoy, mismo horario",
+    "manana_mismo": "Mañana, mismo horario",
+    "dia_mismo": "{{dia}} - Mismo horario",
+    "min_despues": "{{margen}} min después",
+    "min_despues_dia": "{{margen}} min después - {{dia}}",
+    "min_antes_hoy": "{{margen}} min antes hoy",
+    "hoy_a_las_despues": "Hoy a las {{hora}} (+{{minutos}} min)",
+    "hoy_a_las_antes": "Hoy a las {{hora}} ({{minutos}} min antes)",
+    "manana_a_las": "Mañana a las {{hora}}",
+    "dia_a_las": "{{dia}} a las {{hora}}"
   }
 }

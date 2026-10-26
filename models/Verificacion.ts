@@ -1,17 +1,16 @@
 import { BaseModel } from './BaseModel'
 
+import type {
+  ProveedorExterno,
+  TipoVerificacion as TipoVerificacionCompartido,
+} from '@/functions/src/compartido/servicios'
+
 /**
  * Tipos de verificación que puede tener un usuario.
- * Escalable: permite agregar nuevos tipos sin cambiar schema.
+ * Escalable: permite agregar nuevos tipos sin cambiar schema. La lista vive en
+ * el catálogo compartido de servicios (functions/src/compartido/servicios.ts).
  */
-export type TipoVerificacion =
-  | 'EMAIL'
-  | 'IDENTIDAD'
-  | 'CERTIFICADO'
-  | 'ANTECEDENTES'
-  | 'TELEFONO'
-  | 'DOMICILIO'
-  | 'FORMACION'
+export type TipoVerificacion = TipoVerificacionCompartido
 
 /**
  * Estados posibles de una verificación.
@@ -35,7 +34,7 @@ export type MetodoVerificacion = 'MANUAL' | 'AUTOMATICO' | 'PROVEEDOR'
  * Proveedor externo de verificación (si aplica).
  * Usado cuando metodo = 'PROVEEDOR'.
  */
-export type ProveedorVerificacion = 'sumsub' | 'veriff' | 'onfido' | 'custom'
+export type ProveedorVerificacion = ProveedorExterno
 
 /**
  * Resultado técnico granular de una verificación.

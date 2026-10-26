@@ -27,6 +27,8 @@ import Icon from '@/components/ui/Icon'
 import { useCollection } from '@/hooks'
 import type { Paseo } from '@/models/Paseo'
 import { ServicioAuth } from '@/services/firebase'
+import { useTranslation } from 'react-i18next'
+import { localeActual } from '@/utils/locale'
 
 interface DashboardAsignacionesCuidadorProps {
   onAceptarPaseo?: (_paseoId: string) => void
@@ -38,6 +40,7 @@ interface DashboardAsignacionesCuidadorProps {
 export const DashboardAsignaciones: React.FC<
   DashboardAsignacionesCuidadorProps
 > = ({ onAceptarPaseo, onRechazarPaseo, onFinalizarPaseo, onVerDetalles }) => {
+  const { t } = useTranslation(['cuidador', 'paseos'])
   const [paseos, setPaseos] = useState<Paseo[]>([])
   const [loading, setLoading] = useState(true)
   const [estadisticas, setEstadisticas] = useState({
@@ -98,52 +101,47 @@ export const DashboardAsignaciones: React.FC<
 
   const getEstadoInfo = (estado: string) => {
     const info: {
-      [key: string]: { icon: string; color: string; label: string }
+      [key: string]: { icon: string; color: string }
     } = {
       CONFIRMADO: {
         icon: 'exclamation-circle',
         color: COLOR.PRIMARIO,
-        label: 'Confirmado',
       },
       EN_CAMINO: {
         icon: 'play-circle',
         color: COLOR.ALERTA,
-        label: 'En camino',
       },
       EN_PUNTO_RECOGIDA: {
         icon: 'map-pin',
         color: COLOR.ALERTA,
-        label: 'En punto de recogida',
       },
       EN_PROGRESO: {
         icon: 'play-circle',
         color: COLOR.ALERTA,
-        label: 'En progreso',
       },
       FINALIZADO: {
         icon: 'check-circle',
         color: COLOR.EXITO,
-        label: 'Finalizado',
       },
       COMPLETADO: {
         icon: 'award',
         color: COLOR.INFO,
-        label: 'Completado',
       },
     }
-    return (
-      info[estado] || {
-        icon: 'question-circle',
-        color: COLOR.SUBTEXTO,
-        label: estado,
-      }
-    )
+    const base = info[estado] || {
+      icon: 'question-circle',
+      color: COLOR.SUBTEXTO,
+    }
+    return {
+      ...base,
+      label: t(`paseos:estados.${estado}`, { defaultValue: estado }),
+    }
   }
 
   const formatearHora = (timestamp: any) => {
-    if (!timestamp) return 'Sin hora'
+    if (!timestamp) return t('cuidador:asignaciones.sin_hora')
     const fecha = timestamp.toDate?.() || new Date(timestamp)
-    return fecha.toLocaleTimeString('es-ES', {
+    return fecha.toLocaleTimeString(localeActual(), {
       hour: '2-digit',
       minute: '2-digit',
     })
@@ -202,7 +200,9 @@ export const DashboardAsignaciones: React.FC<
                 onPress={() => onRechazarPaseo?.(item.id)}
               >
                 <Icon name="times-circle" size={16} color={COLOR.ERROR} />
-                <Text style={styles.textoRechazar}>Rechazar</Text>
+                <Text style={styles.textoRechazar}>
+                  {t('cuidador:asignaciones.rechazar')}
+                </Text>
               </Pressable>
 
               <Pressable
@@ -210,7 +210,9 @@ export const DashboardAsignaciones: React.FC<
                 onPress={() => onAceptarPaseo?.(item.id)}
               >
                 <Icon name="check-circle" size={16} color="white" />
-                <Text style={styles.textoAceptar}>Aceptar</Text>
+                <Text style={styles.textoAceptar}>
+                  {t('cuidador:asignaciones.aceptar')}
+                </Text>
               </Pressable>
             </>
           )}
@@ -222,7 +224,9 @@ export const DashboardAsignaciones: React.FC<
                 onPress={() => onVerDetalles?.(item.id)}
               >
                 <Icon name="map-pin" size={16} color={COLOR.PRIMARIO} />
-                <Text style={styles.textoSecundario}>Ver Mapa</Text>
+                <Text style={styles.textoSecundario}>
+                  {t('cuidador:asignaciones.ver_mapa')}
+                </Text>
               </Pressable>
 
               <Pressable
@@ -230,7 +234,9 @@ export const DashboardAsignaciones: React.FC<
                 onPress={() => onFinalizarPaseo?.(item.id)}
               >
                 <Icon name="flag" size={16} color="white" />
-                <Text style={styles.textoPrimario}>Finalizar</Text>
+                <Text style={styles.textoPrimario}>
+                  {t('cuidador:asignaciones.finalizar')}
+                </Text>
               </Pressable>
             </>
           )}
@@ -241,7 +247,9 @@ export const DashboardAsignaciones: React.FC<
               onPress={() => onVerDetalles?.(item.id)}
             >
               <Icon name="info" size={16} color={COLOR.PRIMARIO} />
-              <Text style={styles.textoSecundario}>Ver Detalles</Text>
+              <Text style={styles.textoSecundario}>
+                {t('cuidador:asignaciones.ver_detalles')}
+              </Text>
             </Pressable>
           )}
         </View>
@@ -263,8 +271,16 @@ export const DashboardAsignaciones: React.FC<
               ]}
             >
               {item.estado === 'COMPLETADO'
-                ? `Ganancia: $${(item.valor_acordado * 0.9).toLocaleString()}`
-                : `Esperando pago: $${(item.valor_acordado * 0.9).toLocaleString()}`}
+                ? t('cuidador:asignaciones.ganancia', {
+                    monto: (item.valor_acordado * 0.9).toLocaleString(
+                      localeActual()
+                    ),
+                  })
+                : t('cuidador:asignaciones.esperando_pago', {
+                    monto: (item.valor_acordado * 0.9).toLocaleString(
+                      localeActual()
+                    ),
+                  })}
             </Text>
           </View>
         )}
@@ -300,7 +316,9 @@ export const DashboardAsignaciones: React.FC<
                 </LinearGradient>
               </View>
               <Text style={styles.statValor}>{estadisticas.disponibles}</Text>
-              <Text style={styles.statLabel}>Por aceptar</Text>
+              <Text style={styles.statLabel}>
+                {t('cuidador:asignaciones.por_aceptar')}
+              </Text>
             </Card>
           )}
 
@@ -315,7 +333,9 @@ export const DashboardAsignaciones: React.FC<
                 </LinearGradient>
               </View>
               <Text style={styles.statValor}>{estadisticas.enProgreso}</Text>
-              <Text style={styles.statLabel}>En ejecución</Text>
+              <Text style={styles.statLabel}>
+                {t('cuidador:asignaciones.en_ejecucion')}
+              </Text>
             </Card>
           )}
         </ScrollView>
@@ -331,9 +351,11 @@ export const DashboardAsignaciones: React.FC<
             >
               <View style={styles.emptyContent}>
                 <Icon name="inbox" size={48} color={COLOR.SUBTEXTO} />
-                <Text style={styles.emptyTitle}>Sin paseos asignados</Text>
+                <Text style={styles.emptyTitle}>
+                  {t('cuidador:asignaciones.sin_asignados')}
+                </Text>
                 <Text style={styles.emptyText}>
-                  Los tutores te enviarán solicitudes de paseos
+                  {t('cuidador:asignaciones.sin_asignados_desc')}
                 </Text>
               </View>
             </LinearGradient>

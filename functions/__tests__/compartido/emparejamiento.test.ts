@@ -45,6 +45,7 @@ const cuidador = (cambios: Partial<Candidato> = {}): Candidato => ({
   id: 'c1',
   nombre: 'Ana',
   insignias: ['EMAIL', 'IDENTIDAD'],
+  habilitado: true,
   horarioSemanal: HORARIO_LUN_A_VIE,
   celdas: [CELDA],
   distanciaKm: 1.5,
@@ -83,9 +84,15 @@ describe('elegibilidad', () => {
     expect(estado(cuidador()).estado).toBe('disponible');
   });
 
-  test('sin identidad verificada se excluye', () => {
-    expect(estado(cuidador({insignias: ['EMAIL']})))
-      .toEqual({estado: 'excluido', motivo: 'no_verificado'});
+  test('sin habilitación vigente se excluye', () => {
+    expect(estado(cuidador({habilitado: false})))
+      .toEqual({estado: 'excluido', motivo: 'no_habilitado'});
+  });
+
+  test('las insignias son solo para mostrar: no habilitan ni excluyen', () => {
+    expect(estado(cuidador({insignias: []})).estado).toBe('disponible');
+    expect(estado(cuidador({insignias: ['EMAIL', 'IDENTIDAD'], habilitado: false})))
+      .toEqual({estado: 'excluido', motivo: 'no_habilitado'});
   });
 
   test('si no cubre la celda del tutor se excluye', () => {
@@ -350,7 +357,7 @@ describe('emparejar', () => {
       cuidador({id: 'ocupado', nombre: 'Zoe', agenda: [{
         inicioMs: instanteDe(FECHA, '10:00'), finMs: instanteDe(FECHA, '11:00'),
       }]}),
-      cuidador({id: 'sin_id', nombre: 'Eva', insignias: ['EMAIL']}),
+      cuidador({id: 'sin_id', nombre: 'Eva', habilitado: false}),
       cuidador({id: 'lejos', nombre: 'Bea', distanciaKm: 2.8}),
       cuidador({id: 'conoce', nombre: 'Tito', paseosConMascota: {m1: 2}}),
       cuidador({id: 'cerca', nombre: 'Ana', distanciaKm: 0.2}),
@@ -401,7 +408,7 @@ describe('esBloqueante (lo que se exige al crear o aceptar)', () => {
     const seis = solicitud({
       mascotas: Array.from({length: 5}, (_, i) => ({id: `m${i}`, nombre: 'x'})),
     });
-    expect(ver(cuidador({insignias: []}))).toBe(true);
+    expect(ver(cuidador({habilitado: false}))).toBe(true);
     expect(ver(cuidador({celdas: []}))).toBe(true);
     expect(ver(cuidador(), seis)).toBe(true); // más que el tope del servicio
   });

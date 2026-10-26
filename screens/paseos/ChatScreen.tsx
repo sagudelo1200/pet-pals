@@ -1,3 +1,4 @@
+import { localeActual } from '@/utils/locale'
 import React, { useRef, useEffect, useState } from 'react'
 import {
   View,
@@ -121,7 +122,7 @@ export const ChatScreen: React.FC = () => {
             ]}
           >
             {item.creado_en
-              ? new Date(item.creado_en).toLocaleTimeString([], {
+              ? new Date(item.creado_en).toLocaleTimeString(localeActual(), {
                   hour: '2-digit',
                   minute: '2-digit',
                 })

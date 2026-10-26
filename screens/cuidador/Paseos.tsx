@@ -2,13 +2,15 @@ import { COLOR } from '@/constants'
 import React from 'react'
 import { Text } from 'react-native'
 import Screen from '@/components/ui/Screen'
+import { useTranslation } from 'react-i18next'
 
 const Paseos = () => {
+  const { t } = useTranslation(['paseos', 'comun'])
   return (
     <Screen style={styles.container}>
-      <Text style={styles.text}>¡Paseos!</Text>
+      <Text style={styles.text}>{t('paseos:titulo')}</Text>
       <Text style={styles.subText}>
-        Esta sección está en desarrollo. ¡Mantente atento a las actualizaciones!
+        {t('comun:en_desarrollo')}
       </Text>
     </Screen>
   )

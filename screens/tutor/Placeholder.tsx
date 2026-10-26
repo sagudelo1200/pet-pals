@@ -3,17 +3,19 @@ import React from 'react'
 import { Text, Alert } from 'react-native'
 import { Card, Button, Spacer } from '@/components/ui'
 import Screen from '@/components/ui/Screen'
+import { useTranslation } from 'react-i18next'
 
 const Placeholder = () => {
+  const { t } = useTranslation('comun')
   return (
     <Screen
       scroll
       style={styles.container}
       contentContainerStyle={{ padding: 16 }}
     >
-      <Text style={styles.text}>¡Próximamente!</Text>
+      <Text style={styles.text}>{t('seccion_proxima')}</Text>
       <Text style={styles.subText}>
-        Esta sección está en desarrollo. ¡Mantente atento a las actualizaciones!
+        {t('en_desarrollo')}
       </Text>
       <Spacer size={12} />
 

@@ -1,3 +1,4 @@
+import { i18n } from '@/services/i18n'
 import React, { useEffect, useMemo, useRef, useState, useCallback } from 'react'
 import {
   StyleSheet,
@@ -559,7 +560,7 @@ const ControlPaseo: React.FC = () => {
         }
       } else {
         // ❌ Código inválido: lanzar error con los intentos actualizados
-        const error = 'error' in res ? res.error : 'Error desconocido'
+        const error = 'error' in res ? res.error : i18n.t('errores:error_desconocido')
         const intentosFallidos =
           'intentosFallidos' in res ? res.intentosFallidos : undefined
         const intentosRestantes =

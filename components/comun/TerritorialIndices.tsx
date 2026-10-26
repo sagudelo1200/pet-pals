@@ -2,6 +2,7 @@ import React from 'react'
 import { View, Text, StyleSheet } from 'react-native'
 import { useZonaH3 } from '@/hooks/useZonaH3'
 import { COLOR } from '@/constants'
+import { useTranslation } from 'react-i18next'
 
 interface Props {
   h3_r9: string
@@ -14,12 +15,13 @@ interface Props {
  * @param h3_r9 - Identificador de celda H3 R9
  */
 export function TerritorialIndices({ h3_r9 }: Props) {
+  const { t } = useTranslation('comun')
   const { zona, loading, error } = useZonaH3(h3_r9)
 
   if (loading) {
     return (
       <View style={styles.container}>
-        <Text style={styles.label}>Cargando inteligencia...</Text>
+        <Text style={styles.label}>{t('territorial.indices_cargando')}</Text>
       </View>
     )
   }
@@ -44,18 +46,18 @@ export function TerritorialIndices({ h3_r9 }: Props) {
       {identidad && (
         <View style={styles.identidad}>
           <Text style={styles.label}>
-            📍 {identidad.tipo || 'Desconocido'} ({identidad.confianza}%)
+            📍 {identidad.tipo || t('territorial.desconocido')} ({identidad.confianza}%)
           </Text>
         </View>
       )}
 
       {/* Índices */}
       <View style={styles.indicesGrid}>
-        <IndiceCard label="Bienestar" value={indices.bienestar} icon="❤️" />
-        <IndiceCard label="Seguridad" value={indices.seguridad} icon="🛡️" />
-        <IndiceCard label="Actividad" value={indices.actividad} icon="⚡" />
+        <IndiceCard label={t('territorial.bienestar')} value={indices.bienestar} icon="❤️" />
+        <IndiceCard label={t('territorial.seguridad')} value={indices.seguridad} icon="🛡️" />
+        <IndiceCard label={t('territorial.actividad')} value={indices.actividad} icon="⚡" />
         <IndiceCard
-          label="Socialización"
+          label={t('territorial.socializacion')}
           value={indices.socializacion}
           icon="👥"
         />
@@ -64,7 +66,9 @@ export function TerritorialIndices({ h3_r9 }: Props) {
       {/* Eventos agregados */}
       <View style={styles.eventos}>
         <Text style={styles.pequeno}>
-          {narrativa.total_eventos} eventos • Actualizado hace poco
+          {t('territorial.eventos_actualizado', {
+            eventos: narrativa.total_eventos,
+          })}
         </Text>
       </View>
     </View>

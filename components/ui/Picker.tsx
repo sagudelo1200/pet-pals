@@ -10,6 +10,7 @@ import {
 } from 'react-native'
 import { COLOR } from '@/constants'
 import Icon from './Icon'
+import { useTranslation } from 'react-i18next'
 
 interface PickerOption {
   label: string
@@ -36,16 +37,17 @@ const Picker: React.FC<PickerProps> = ({
   value: _value,
   onValueChange,
   options,
-  placeholder = 'Selecciona una opción',
+  placeholder,
   errorText,
   style,
   testID,
   disabled = false,
 }) => {
+  const { t } = useTranslation('comun')
   const [modalVisible, setModalVisible] = useState(false)
 
   const selectedOption = options.find(opt => opt.value === _value)
-  const displayText = selectedOption?.label || placeholder
+  const displayText = selectedOption?.label || (placeholder ?? t('pickers.opcion_placeholder'))
 
   const containerStyle: ViewStyle | ViewStyle[] = [
     styles.container,

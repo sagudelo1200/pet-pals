@@ -25,7 +25,11 @@
     "ultimos_movimientos": "Últimos movimientos",
     "sin_actividad_titulo": "Sin actividad aún",
     "sin_actividad_desc": "Los paseos completados aparecerán aquí",
-    "ver_historial": "Ver historial"
+    "ver_historial": "Ver historial",
+    "fecha_hoy": "Hoy",
+    "fecha_manana": "Mañana",
+    "fecha_ayer": "Ayer",
+    "fecha_hace_dias": "Hace {{dias}}d"
   },
   "solicitud": {
     "paso_mascota": "Selecciona tu mascota",
@@ -59,5 +63,67 @@
       "direccion_btn": "Dirección",
       "seleccionar_para_ver": "Selecciona una dirección para ver en el mapa"
     }
+  },
+  "pago": {
+    "volver": "Volver",
+    "preparando": "Preparando tu cobro...",
+    "seguro": "Pago seguro",
+    "confirmar": "Confirmar pago",
+    "paseo_de": "Paseo de {{mascota}}",
+    "mascota": "Mascota:",
+    "cuidador": "Cuidador:",
+    "monto": "Monto a pagar",
+    "mascotas_min": "{{mascotas}} mascota(s) · {{minutos}} min · ",
+    "incluye": "Incluye servicio de cuidado y comisión de plataforma",
+    "iva_comision": " (IVA de la comisión: {{monto}})",
+    "protegido": "Pago 100% seguro. Tus datos están protegidos.",
+    "pagar_despues": "Pagar después",
+    "pagar_ahora": "Pagar ahora",
+    "rechazado": "El pago fue rechazado. Intenta de nuevo.",
+    "en_proceso": "Tu pago está en proceso. Te avisaremos al confirmarse."
+  },
+  "obligaciones": {
+    "sin_fecha": "Sin fecha",
+    "pagado": "Pagado",
+    "pendiente": "Pendiente",
+    "pagado_el": "Pagado el {{fecha}}",
+    "reclamo_en_revision": "Tu reclamo está en revisión. No recibirás recordatorios por este cobro mientras tanto.",
+    "reclamo_resuelto": "Revisamos tu reclamo y se mantiene el cobro.",
+    "cobro_cierre_equipo": "Este cobro se generó porque el equipo cerró la entrega sin tu código. Puedes reclamar hasta el {{fecha}}.",
+    "no_estoy_de_acuerdo": "No estoy de acuerdo",
+    "pagar": "Pagar {{monto}}",
+    "titulo": "Mis obligaciones",
+    "pendiente_de_pagar": "Pendiente de pagar",
+    "ya_pagado": "Ya pagado",
+    "paseos_one": "{{count}} paseo",
+    "paseos_other": "{{count}} paseos",
+    "paseos_completados_one": "{{count}} paseo completado",
+    "paseos_completados_other": "{{count}} paseos completados",
+    "vacio": "No hay obligaciones registradas",
+    "bloqueo": "Tienes un pago vencido. Mientras no lo pagues no podrás solicitar nuevos paseos.",
+    "sin_deudas": "¡Sin deudas!",
+    "sin_deudas_desc": "Todos tus paseos han sido pagados correctamente",
+    "total_pagado": "Total pagado: ${{monto}}"
+  },
+  "reclamo": {
+    "enviado": "Reclamo enviado",
+    "enviado_desc": "El equipo de Paw-Path lo revisará. Mientras tanto no recibirás recordatorios por este cobro.",
+    "no_enviado": "No se pudo enviar",
+    "descripcion": "Este cobro se generó porque el equipo cerró la entrega del paseo. Cuéntanos qué pasó para revisarlo.",
+    "placeholder": "Ej: mi mascota no fue entregada",
+    "enviando": "Enviando…",
+    "enviar": "Enviar reclamo"
+  },
+  "entrega": {
+    "validada": "✅ Entrega validada",
+    "validada_desc": "Paseo confirmado. Proceder a pago.",
+    "intentos_agotados": "❌ Intentos agotados",
+    "contacta_cuidador": "Contacta al cuidador para resolver.",
+    "titulo": "Validar entrega",
+    "entregado_por": "{{mascota}} fue entregado correctamente por {{cuidador}}",
+    "ingresa_codigo": "Ingresa el código de 6 dígitos recibido",
+    "limpiar": "AC",
+    "intentos_restantes": "Intentos restantes: {{restantes}}/3",
+    "validar_codigo": "Validar código"
   }
 }

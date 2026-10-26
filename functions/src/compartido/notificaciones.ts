@@ -120,6 +120,50 @@ export const CATALOGO_NOTIFICACIONES = {
       cuerpo: 'Cancelamos tu solicitud porque todavía no atendemos esa zona.',
     }),
   },
+  HABILITACION_APROBADA: {
+    categoria: 'operativa',
+    canales: ['app', 'push'],
+    obligatoria: false,
+    accion: 'abrir_habilitacion',
+    plantilla: (datos) => ({
+      titulo: '✅ Ya puedes ofrecer tu servicio',
+      cuerpo: `Tu habilitación para ${datos.servicio} fue aprobada. ` +
+        'Empezarás a recibir solicitudes.',
+    }),
+  },
+  HABILITACION_DEVUELTA: {
+    categoria: 'operativa',
+    canales: ['app', 'push'],
+    obligatoria: false,
+    accion: 'abrir_habilitacion',
+    plantilla: (datos) => ({
+      titulo: 'Necesitamos que corrijas algo',
+      cuerpo: `Revisamos tu habilitación para ${datos.servicio}. ` +
+        `${datos.motivo ?? ''}`.trim(),
+    }),
+  },
+  HABILITACION_RECHAZADA: {
+    categoria: 'operativa',
+    canales: ['app', 'push'],
+    obligatoria: false,
+    accion: 'abrir_habilitacion',
+    plantilla: (datos) => ({
+      titulo: 'No pudimos aprobar tu habilitación',
+      cuerpo: `Tu habilitación para ${datos.servicio} no fue aprobada. ` +
+        `${datos.motivo ?? ''}`.trim(),
+    }),
+  },
+  HABILITACION_SUSPENDIDA: {
+    categoria: 'operativa',
+    canales: ['app', 'push'],
+    obligatoria: false,
+    accion: 'abrir_habilitacion',
+    plantilla: (datos) => ({
+      titulo: 'Tu habilitación fue suspendida',
+      cuerpo: `Suspendimos tu habilitación para ${datos.servicio}. ` +
+        `${datos.motivo ?? ''}`.trim(),
+    }),
+  },
   COBRO_PENDIENTE: {
     categoria: 'pagos',
     canales: ['app', 'push', 'email'],

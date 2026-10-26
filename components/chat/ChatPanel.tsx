@@ -1,3 +1,4 @@
+import { localeActual } from '@/utils/locale'
 import React, { useRef, useEffect, useState } from 'react'
 import {
   View,
@@ -135,7 +136,7 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
               ]}
             >
               {item.creado_en
-                ? new Date(item.creado_en).toLocaleTimeString([], {
+                ? new Date(item.creado_en).toLocaleTimeString(localeActual(), {
                     hour: '2-digit',
                     minute: '2-digit',
                   })
@@ -169,7 +170,7 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
           <View style={styles.header}>
             <View style={styles.headerContent}>
               <Text style={styles.title}>
-                {t('chat:titulo') || 'Chat del Paseo'}
+                {t('chat:titulo')}
               </Text>
               <Text style={styles.subtitle}>
                 {conversacion ? t('chat:en_linea') : t('comun:cargando')}

@@ -1,6 +1,7 @@
 // Tipos de navegación simplificados para Paw-Path
 
 import { Mascota } from '@/models/Mascota'
+import type { TipoServicio } from '@/functions/src/compartido/servicios'
 
 // Stack principal de autenticación
 export type AuthStackParamList = {
@@ -20,6 +21,8 @@ export type AuthStackParamList = {
 
   AdminZonas: undefined
   EditorZona: { zonaId?: string }
+  DetalleHabilitacion: { id: string }
+  MiHabilitacion: { servicio: TipoServicio; abrirPerfil?: boolean }
 
   PerfilCuidador: undefined
   ExcepcionSemanal: { isoSemana: string }
@@ -68,6 +71,7 @@ export type CuidadorTabParamList = {
 // Tabs para el rol de Admin
 export type AdminTabParamList = {
   AdminAjustes: undefined
+  AdminHabilitaciones: undefined
   AdminEconomia: undefined
   TerritorioVivo: undefined
   MiCuenta: undefined

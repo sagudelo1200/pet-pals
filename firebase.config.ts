@@ -1,10 +1,10 @@
 import { initializeApp, type FirebaseOptions } from 'firebase/app'
 // @ts-ignore
-import { initializeAuth, getReactNativePersistence } from 'firebase/auth'
+import { initializeAuth, getReactNativePersistence, connectAuthEmulator } from 'firebase/auth'
 import { getFirestore, connectFirestoreEmulator } from 'firebase/firestore'
 import { getDatabase, connectDatabaseEmulator } from 'firebase/database'
 import { getFunctions, connectFunctionsEmulator } from 'firebase/functions'
-import { connectAuthEmulator } from 'firebase/auth'
+import { getStorage, connectStorageEmulator } from 'firebase/storage'
 import Constants from 'expo-constants'
 // Persistencia de la sesión entre reinicios de la app
 import ReactNativeAsyncStorage from '@react-native-async-storage/async-storage'
@@ -27,6 +27,7 @@ let auth: any = null
 let db: any = null
 let rtdb: any = null
 let functions: any = null
+let storage: any = null
 
 try {
   if (!firebaseConfig) {
@@ -54,6 +55,7 @@ try {
   db = getFirestore(app)
   rtdb = getDatabase(app)
   functions = getFunctions(app)
+  storage = getStorage(app)
 
   if (emuladores) {
     const { host } = emuladores
@@ -62,6 +64,7 @@ try {
     connectFirestoreEmulator(db, host, 8080)
     connectDatabaseEmulator(rtdb, host, 9000)
     connectFunctionsEmulator(functions, host, 5001)
+    connectStorageEmulator(storage, host, 9199)
   }
 } catch (_e) {
   console.warn('[firebase.config] initializeApp falló (Firebase no disponible):', _e)
@@ -70,6 +73,7 @@ try {
   db = {} as any
   rtdb = {} as any
   functions = {} as any
+  storage = {} as any
 }
 
-export { auth, db, rtdb, functions }
+export { auth, db, rtdb, functions, storage }

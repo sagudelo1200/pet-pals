@@ -85,7 +85,14 @@
     "error_cargar": "Error loading walks",
     "motivo_requerido": "A reason is required for this action",
     "mascota_no_disponible": "Pet not available",
-    "MASCOTA_YA_TIENE_PASEO": "This pet already has an active walk right now."
+    "MASCOTA_YA_TIENE_PASEO": "This pet already has an active walk right now.",
+    "ESTADO_NO_ESPERADO": "The walk is not in the expected state for this action.",
+    "UBICACION_INVALIDA": "The walk location is not valid.",
+    "COORDENADAS_INVALIDAS": "The walk coordinates are not valid.",
+    "CODIGO_RECOGIDA_FORMATO_INVALIDO": "The pickup code must have 6 digits.",
+    "CODIGO_RECOGIDA_INCORRECTO": "The pickup code is incorrect.",
+    "CODIGO_RECOGIDA_BLOQUEADO": "Too many failed attempts. The pickup code has been locked.",
+    "CODIGO_RECOGIDA_VALIDADO": "The pickup code has already been validated."
   },
   "boton_solicitar": "Request walk",
   "flujo": {
@@ -174,7 +181,16 @@
       "razones": {
         "nuevo": "New to the community",
         "destacado": "Highly rated"
-      }
+      },
+      "opcion_1": "📋 Option 1:",
+      "opcion_2": "📅 Option 2:",
+      "opcion_3": "👥 Option 3:",
+      "opcion_1_desc": "Adjust the time to earlier today",
+      "opcion_2_desc": "Try tomorrow or the coming days",
+      "opcion_3_desc": "Choose another caregiver in the area",
+      "ajustar_hora": "Adjust time and retry",
+      "volver_lista": "Back to the list",
+      "franja_manual": "Time slot selected manually"
     },
     "confirmar": {
       "titulo": "Review and confirm",
@@ -192,7 +208,8 @@
       "total": "Total to pay",
       "btn_confirmar": "Confirm Request",
       "exito_titulo": "Request Sent!",
-      "exito_msg": "Your request has been sent to {{name}}."
+      "exito_msg": "Your request has been sent to {{name}}.",
+      "incluye_iva": " (includes VAT)"
     }
   },
   "solicitado": {
@@ -306,7 +323,9 @@
     "exito_mensaje": "The walk with {{mascota}} has been successfully completed.",
     "tiempo_total": "TOTAL TIME",
     "finalizar_volver": "Finish and Return",
-    "registrar_paseo": "Register walk"
+    "registrar_paseo": "Register walk",
+    "notificacion_titulo": "Walk in progress",
+    "notificacion_cuerpo": "Paw-Path is recording the route."
   },
   "finalizado": {
     "titulo": "Walk Completed!",
@@ -524,5 +543,184 @@
     },
     "avisame": "Let me know when you arrive",
     "avisaremos": "Done: we will let you know as soon as we arrive."
+  },
+  "tabs": {
+    "proximos": "Upcoming",
+    "historial": "History"
+  },
+  "chat_no_disponible": "Chat unavailable",
+  "chat_no_disponible_desc": "Chat will be enabled once the walk is confirmed and has an assigned caregiver.",
+  "punto_recogida": "Pickup point",
+  "recogere_aqui": "I'll pick up your pet here",
+  "info_no_encontrada": "Walk information was not found.",
+  "bitacora": {
+    "selector": {
+      "titulo": "What just happened?",
+      "mascota_titulo": "The pet did something",
+      "mascota_detalle": "Record what your dog did",
+      "lugar_titulo": "We arrived somewhere",
+      "lugar_detalle": "Mark where you were",
+      "momento_titulo": "I want to save this moment",
+      "momento_detalle": "Capture a photo or note",
+      "novedad_titulo": "Something came up",
+      "novedad_detalle": "Report an event",
+      "volver": "Back",
+      "cerrar": "Close",
+      "que_hizo": "What did it do?",
+      "donde": "Where were you?",
+      "recuerdo": "Save this memory",
+      "que_ocurrio": "What happened?"
+    },
+    "mascota": {
+      "necesidades": "Did its business",
+      "corrio": "Ran a lot",
+      "juego": "Played",
+      "agua": "Drank water",
+      "descanso": "Rested",
+      "socializacion_perros": "Greeted other dogs",
+      "socializacion_personas": "Greeted people",
+      "miedo": "Got scared",
+      "comio": "Ate something"
+    },
+    "lugar": {
+      "parque": "Park",
+      "sendero": "Trail",
+      "rio": "River or lake",
+      "casa": "Home",
+      "pet_friendly": "Pet friendly",
+      "zona_perros": "Dog area",
+      "mirador": "Viewpoint",
+      "vehiculo": "We got in the car",
+      "inicio_caminata": "We started walking"
+    },
+    "recuerdo": {
+      "foto": "Photo",
+      "video": "Short video",
+      "voz": "Voice note",
+      "nota": "Write a note"
+    },
+    "novedad": {
+      "asustó": "The pet got scared",
+      "lesion": "Got hurt",
+      "pelea": "Fight with another dog",
+      "malestar": "Feeling unwell",
+      "trafico": "Dangerous traffic",
+      "lluvia": "Rain",
+      "acceso_cerrado": "Access closed",
+      "contacto": "I need to call the tutor",
+      "emergencia": "Emergency"
+    },
+    "acciones": {
+      "necesidades": "Did its business",
+      "corrio": "Ran a lot",
+      "juego": "Played",
+      "agua": "Drank water",
+      "descanso": "Rested",
+      "socializacion_perros": "Greeted other dogs",
+      "socializacion_personas": "Greeted people",
+      "miedo": "Got scared",
+      "comio": "Ate",
+      "lugar_parque": "We arrived at the park",
+      "lugar_sendero": "We entered a trail",
+      "lugar_rio": "We visited a river/lake",
+      "lugar_casa": "We went back home",
+      "lugar_pet_friendly": "We visited a pet-friendly place",
+      "lugar_zona_perros": "We entered a dog area",
+      "lugar_mirador": "We arrived at the viewpoint",
+      "lugar_vehiculo": "We got in the car",
+      "lugar_inicio_caminata": "We started walking",
+      "recuerdo_foto": "We captured a photo",
+      "recuerdo_video": "We recorded a video",
+      "recuerdo_voz": "Voice note",
+      "recuerdo_nota": "Written note",
+      "incidente_asustó": "Got scared",
+      "incidente_lesion": "Got hurt",
+      "incidente_pelea": "Fight with another dog",
+      "incidente_malestar": "Felt unwell",
+      "incidente_trafico": "Dangerous traffic",
+      "incidente_lluvia": "Rain",
+      "incidente_acceso_cerrado": "Access closed",
+      "incidente_contacto": "Needed contact",
+      "incidente_emergencia": "Emergency",
+      "novedad_asustó": "Got scared",
+      "novedad_lesion": "Got hurt",
+      "novedad_pelea": "Fight with another dog",
+      "novedad_malestar": "Felt unwell",
+      "novedad_trafico": "Dangerous traffic",
+      "novedad_lluvia": "Rain",
+      "novedad_acceso_cerrado": "Access closed",
+      "novedad_contacto": "Needed contact",
+      "novedad_emergencia": "Emergency"
+    },
+    "momento_registrado": "Moment recorded",
+    "timeline": {
+      "vacio": "No moments have been recorded on this walk yet.",
+      "vacio_detalle": "Tap ➕ to start telling the story.",
+      "titulo": "Walk story"
+    }
+  },
+  "finalizar": {
+    "sin_camara": "We need access to the camera",
+    "sin_galeria": "We need access to the gallery",
+    "error_foto": "Error taking photo",
+    "error_galeria": "Error selecting photo",
+    "foto_requerida": "You must take a confirmation photo",
+    "error_guardar_foto": "The photo could not be saved. Please try again.",
+    "exito_titulo": "✅ Walk finished",
+    "exito_mensaje": "The service has been recorded. Awaiting confirmation from the tutor.",
+    "error": "Error finishing walk",
+    "titulo": "Finish walk",
+    "duracion": "Duration: {{minutos}} minutes",
+    "confirma_con_foto": "Confirm with a photo of the finished walk",
+    "foto_grupo": "Group photo",
+    "foto_confirmacion": "Confirmation photo",
+    "procura_todos": "Try to get everyone in the shot: {{nombres}}",
+    "toma_foto": "Take a photo of the walk",
+    "camara": "Camera",
+    "galeria": "Gallery",
+    "observaciones": "Notes (optional)",
+    "observaciones_placeholder": "How did the pet do? (e.g. 'Very happy, ran the whole time')",
+    "info_posterior": "After you confirm, the tutor will validate the handoff and proceed to payment. You will be notified once it is settled.",
+    "confirmar": "Confirm finish"
+  },
+  "progreso": {
+    "buscando": "Searching",
+    "solicitud": "Request",
+    "aceptado": "Accepted",
+    "en_camino": "On the way",
+    "paseo": "Walk"
+  },
+  "fallback": {
+    "tu_mascota": "your pet",
+    "tu_mascota_cap": "Your pet",
+    "el_cuidador": "The caregiver",
+    "este_cuidador": "this caregiver",
+    "tu_cuidador": "your caregiver",
+    "paseo_compartido": "Shared walk",
+    "mascota": "Pet",
+    "cuidador": "Caregiver"
+  },
+  "codigo": {
+    "validado_avanzamos": "Once validated, we will continue automatically"
+  },
+  "titulo_control": "Walk control 🐾",
+  "titulo_en_vivo": "Live walk 🐾",
+  "actividad": {
+    "completado": "Walk completed: {{mascota}} with {{cuidador}}",
+    "finalizado": "Walk finished: {{mascota}} with {{cuidador}}",
+    "cancelado": "Walk canceled: {{mascota}}",
+    "default": "Walk: {{mascota}}"
+  },
+  "diferencial": {
+    "hoy_mismo": "Today, same time",
+    "manana_mismo": "Tomorrow, same time",
+    "dia_mismo": "{{dia}} - Same time",
+    "min_despues": "{{margen}} min later",
+    "min_despues_dia": "{{margen}} min later - {{dia}}",
+    "min_antes_hoy": "{{margen}} min earlier today",
+    "hoy_a_las_despues": "Today at {{hora}} (+{{minutos}} min)",
+    "hoy_a_las_antes": "Today at {{hora}} ({{minutos}} min earlier)",
+    "manana_a_las": "Tomorrow at {{hora}}",
+    "dia_a_las": "{{dia}} at {{hora}}"
   }
 }

@@ -3,6 +3,7 @@ import { ServicioCrudBase } from '@/services/firebase/firestore/base'
 import { PerfilPublico } from '@/models/PerfilPublico'
 import { CrudResult } from '@/services/firebase/comun'
 import { ERR } from '@/constants'
+import { ofreceServicio } from '@/functions/src/compartido/habilitacion'
 
 /**
  * Gestor de Perfiles Públicos (Cuidadores).
@@ -10,45 +11,33 @@ import { ERR } from '@/constants'
  */
 export class GestorPerfilPublico {
   /**
-   * Obtiene la lista de paseadores verificados (con IDENTIDAD verificada), ordenados por rating.
-   * VALIDACIÓN: insignias_verificacion debe contener 'IDENTIDAD' (no solo EMAIL).
-   * Ejemplo: Un tutor solo puede solicitar paseos a cuidadores con identidad verificada.
+   * Cuidadores habilitados para pasear, con mejor calificación primero. Usa la
+   * puerta única (`ofreceServicio`): quien tiene la habilitación vencida no
+   * aparece aunque su perfil todavía la liste.
+   * Sin ordenar en la consulta (así no hace falta un índice compuesto): se
+   * ordena aquí.
    */
-  static async obtenerCuidadoresDestacados(
-    limite: number = 20
+  static async obtenerCuidadoresDisponibles(
+    ahoraMs: number = Date.now()
   ): Promise<CrudResult<PerfilPublico[]>> {
-    return ServicioPerfilPublico.buscarPerfiles(
+    const res = await ServicioPerfilPublico.buscarPerfiles(
       [
         {
-          campo: 'insignias_verificacion',
+          campo: 'servicios_habilitados',
           op: 'array-contains',
-          valor: 'IDENTIDAD',
+          valor: 'paseo',
         },
       ],
-      { campo: 'rating_promedio', dir: 'desc' },
-      limite
+      undefined,
+      50
     )
-  }
-
-  /**
-   * Obtiene cuidadores disponibles y verificados (con IDENTIDAD verificada).
-   * VALIDACIÓN: insignias_verificacion debe contener 'IDENTIDAD'.
-   * Usado para filtrado de disponibilidad en búsqueda de paseos.
-   */
-  static async obtenerCuidadoresDisponibles(): Promise<
-    CrudResult<PerfilPublico[]>
-  > {
-    return ServicioPerfilPublico.buscarPerfiles(
-      [
-        {
-          campo: 'insignias_verificacion',
-          op: 'array-contains',
-          valor: 'IDENTIDAD',
-        },
-      ],
-      { campo: 'rating_promedio', dir: 'desc' },
-      21
-    )
+    if (!res.success || !res.data) return res
+    return {
+      success: true,
+      data: res.data
+        .filter(p => ofreceServicio(p, 'paseo', ahoraMs))
+        .sort((a, b) => (b.rating_promedio ?? 0) - (a.rating_promedio ?? 0)),
+    }
   }
 
   /**
@@ -56,26 +45,6 @@ export class GestorPerfilPublico {
    */
   static async obtenerPorId(id: string): Promise<CrudResult<PerfilPublico>> {
     return ServicioPerfilPublico.obtenerPorId(id)
-  }
-
-  /**
-   * Asegura que un usuario tenga un perfil público básico.
-   * Se usa durante el registro o cambio de rol.
-   */
-  static async inicializarPerfil(
-    uid: string,
-    datos: Partial<PerfilPublico>
-  ): Promise<CrudResult<PerfilPublico>> {
-    if (!uid) return { success: false, error: ERR.COMUN.NO_AUTENTICADO }
-
-    // Lógica: si no tiene nombre, usar un fallback
-    const payload: Partial<PerfilPublico> = {
-      ...datos,
-      rating_promedio: datos.rating_promedio || 0,
-      cantidad_paseos_realizados: datos.cantidad_paseos_realizados || 0,
-    }
-
-    return ServicioPerfilPublico.guardarConId(uid, payload)
   }
 
   /**

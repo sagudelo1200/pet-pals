@@ -20,17 +20,19 @@ import { LogicMatching } from '@/logic/paseos/matching'
 import type { FranjaHoraria } from '@/models/PerfilPublico'
 import type { OverrideDia } from '@/models/ExcepcionDisponibilidad'
 import type { AuthStackParamList } from '@/navigation/types'
+import { useTranslation } from 'react-i18next'
 
 type RouteT = RouteProp<AuthStackParamList, 'ExcepcionSemanal'>
 
-const DIAS_SEMANA: { key: string; label: string; nombre: string }[] = [
-  { key: '1', label: 'Lun', nombre: 'Lunes' },
-  { key: '2', label: 'Mar', nombre: 'Martes' },
-  { key: '3', label: 'Mié', nombre: 'Miércoles' },
-  { key: '4', label: 'Jue', nombre: 'Jueves' },
-  { key: '5', label: 'Vie', nombre: 'Viernes' },
-  { key: '6', label: 'Sáb', nombre: 'Sábado' },
-  { key: '0', label: 'Dom', nombre: 'Domingo' },
+/** `label` es la clave i18n del nombre corto del día */
+const DIAS_SEMANA: { key: string; label: string }[] = [
+  { key: '1', label: 'comun:dias_cortos.1' },
+  { key: '2', label: 'comun:dias_cortos.2' },
+  { key: '3', label: 'comun:dias_cortos.3' },
+  { key: '4', label: 'comun:dias_cortos.4' },
+  { key: '5', label: 'comun:dias_cortos.5' },
+  { key: '6', label: 'comun:dias_cortos.6' },
+  { key: '0', label: 'comun:dias_cortos.0' },
 ]
 
 type EstadoDia = {
@@ -47,6 +49,7 @@ type EstadoDia = {
  * sobreescribiendo el horario_semanal recurrente.
  */
 const ExcepcionSemanal: React.FC = () => {
+  const { t } = useTranslation(['cuidador', 'comun'])
   const navigation = useNavigation()
   const route = useRoute<RouteT>()
   const { isoSemana } = route.params
@@ -160,12 +163,12 @@ const ExcepcionSemanal: React.FC = () => {
       // Sin cambios reales: eliminar excepción si existe
       if (excepcion) {
         Alert.alert(
-          'Sin cambios',
-          'Tu horario para esta semana coincide con el horario base. ¿Deseas eliminar la excepción guardada?',
+          t('cuidador:excepcion.sin_cambios'),
+          t('cuidador:excepcion.sin_cambios_eliminar'),
           [
-            { text: 'Cancelar', style: 'cancel' },
+            { text: t('comun:cancelar'), style: 'cancel' },
             {
-              text: 'Eliminar excepción',
+              text: t('cuidador:excepcion.eliminar_excepcion'),
               style: 'destructive',
               onPress: async () => {
                 setGuardando(true)
@@ -178,8 +181,8 @@ const ExcepcionSemanal: React.FC = () => {
         )
       } else {
         Alert.alert(
-          'Sin cambios',
-          'No hay diferencias con tu horario base para esta semana.'
+          t('cuidador:excepcion.sin_cambios'),
+          t('cuidador:excepcion.sin_diferencias')
         )
       }
       return
@@ -188,20 +191,22 @@ const ExcepcionSemanal: React.FC = () => {
     setGuardando(true)
     await guardar(overrides)
     setGuardando(false)
-    Alert.alert('Listo', 'Excepción semanal guardada correctamente.', [
-      { text: 'OK', onPress: () => navigation.goBack() },
-    ])
+    Alert.alert(
+      t('cuidador:excepcion.listo'),
+      t('cuidador:excepcion.guardada'),
+      [{ text: t('comun:ok'), onPress: () => navigation.goBack() }]
+    )
   }
 
   const handleEliminar = () => {
     if (!excepcion) return
     Alert.alert(
-      'Eliminar excepción',
-      'Se eliminará el override de esta semana y se usará tu horario semanal base.',
+      t('cuidador:excepcion.eliminar_excepcion'),
+      t('cuidador:excepcion.eliminar_mensaje'),
       [
-        { text: 'Cancelar', style: 'cancel' },
+        { text: t('comun:cancelar'), style: 'cancel' },
         {
-          text: 'Eliminar',
+          text: t('comun:eliminar'),
           style: 'destructive',
           onPress: async () => {
             setGuardando(true)
@@ -216,7 +221,10 @@ const ExcepcionSemanal: React.FC = () => {
 
   return (
     <Screen style={styles.container}>
-      <ScreenHeader title="Semana personalizada" subtitle={isoSemana} />
+      <ScreenHeader
+        title={t('cuidador:excepcion.semana_personalizada')}
+        subtitle={isoSemana}
+      />
 
       <ScrollView
         style={styles.scrollView}
@@ -234,7 +242,7 @@ const ExcepcionSemanal: React.FC = () => {
           if (!estado) return null
           return (
             <View key={key} style={styles.diaFila}>
-              <Text style={styles.diaLabel}>{label}</Text>
+              <Text style={styles.diaLabel}>{t(label)}</Text>
               <View style={styles.diaCenter}>
                 {estado.activo && (
                   <>
@@ -264,7 +272,7 @@ const ExcepcionSemanal: React.FC = () => {
 
         {excepcion && (
           <Button
-            title="Eliminar excepción"
+            title={t('cuidador:excepcion.eliminar_excepcion')}
             onPress={handleEliminar}
             loading={cargando || guardando}
             style={styles.eliminarBtn}
@@ -274,7 +282,7 @@ const ExcepcionSemanal: React.FC = () => {
 
       <View style={styles.footer}>
         <Button
-          title="Guardar semana"
+          title={t('cuidador:excepcion.guardar_semana')}
           onPress={handleGuardar}
           loading={guardando || cargando}
         />

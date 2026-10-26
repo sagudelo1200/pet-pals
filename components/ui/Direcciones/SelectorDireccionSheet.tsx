@@ -7,6 +7,7 @@ import Icon from '../Icon'
 import Badge from '../Badge'
 import Spacer from '../Spacer'
 import { UbicacionRef } from '@/models/Ubicacion'
+import { useTranslation } from 'react-i18next'
 
 interface SelectorDireccionSheetProps {
   visible: boolean
@@ -25,6 +26,7 @@ export const SelectorDireccionSheet: React.FC<SelectorDireccionSheetProps> = ({
   alSeleccionar,
   onAgregarNueva,
 }) => {
+  const { t } = useTranslation('comun')
   const renderItem = ({ item }: { item: UbicacionRef }) => {
     const esPrincipal = item.ubicacion_id === principalId
     const alias = item.alias?.toLowerCase() || ''
@@ -59,11 +61,11 @@ export const SelectorDireccionSheet: React.FC<SelectorDireccionSheetProps> = ({
 
         <View style={styles.infoBox}>
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-            <Text style={styles.alias}>{item.alias || 'Ubicación'}</Text>
+            <Text style={styles.alias}>{item.alias || t('direcciones.ubicacion')}</Text>
             {esPrincipal && (
               <>
                 <Spacer horizontal size={8} />
-                <Badge label="Principal" variant="primario" size="sm" />
+                <Badge label={t('direcciones.principal')} variant="primario" size="sm" />
               </>
             )}
           </View>
@@ -82,10 +84,10 @@ export const SelectorDireccionSheet: React.FC<SelectorDireccionSheetProps> = ({
     <BottomSheet visible={visible} onClose={onClose} height={500}>
       <View style={styles.header}>
         <Text h5 bold color={COLOR.TEXTO}>
-          ¿Dónde recogemos a tu mascota?
+          {t('direcciones.donde_recogemos')}
         </Text>
         <Text size={14} color={COLOR.SUBTEXTO}>
-          Selecciona una dirección guardada
+          {t('direcciones.selecciona')}
         </Text>
       </View>
 
@@ -98,7 +100,7 @@ export const SelectorDireccionSheet: React.FC<SelectorDireccionSheetProps> = ({
           <View style={styles.empty}>
             <Icon name="map-marker-off" size={40} color={COLOR.INACTIVO} />
             <Spacer size={12} />
-            <Text color={COLOR.SUBTEXTO}>No tienes direcciones guardadas.</Text>
+            <Text color={COLOR.SUBTEXTO}>{t('direcciones.vacio')}</Text>
           </View>
         }
       />
@@ -108,7 +110,7 @@ export const SelectorDireccionSheet: React.FC<SelectorDireccionSheetProps> = ({
           <Icon name="plus" size={20} color={COLOR.TEXTO} />
           <Spacer horizontal size={8} />
           <Text bold color={COLOR.TEXTO}>
-            Agregar nueva dirección
+            {t('direcciones.agregar_nueva')}
           </Text>
         </TouchableOpacity>
       </View>

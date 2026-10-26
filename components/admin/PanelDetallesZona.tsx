@@ -129,8 +129,8 @@ export const PanelDetallesZona: React.FC<PanelDetallesZonaProps> = ({
                 <View style={styles.itemCuidador}>
                   <View style={styles.cuidadorInfo}>
                     <Text style={styles.cuidadorNombre}>{item.nombre}</Text>
-                    {item.verificado && (
-                      <Text style={styles.badge}>✓ Verificado</Text>
+                    {item.habilitado && (
+                      <Text style={styles.badge}>✓ Habilitado</Text>
                     )}
                   </View>
 

@@ -52,7 +52,7 @@ export default function PaseoFinalizado() {
   const handleRate = useCallback(
     (rating: number, comentario?: string, comentarioPrivado?: string) => {
       if (!paseo || !user?.uid) {
-        Alert.alert('Error', t('error_datos_incompletos'))
+        Alert.alert(t('comun:error'), t('error_datos_incompletos'))
         return
       }
       if (rating <= 2) {
@@ -60,7 +60,7 @@ export default function PaseoFinalizado() {
           t('confirmar_baja_titulo'),
           t('confirmar_baja_mensaje', { rating }),
           [
-            { text: t('comun:boton.cancelar'), style: 'cancel' },
+            { text: t('comun:cancelar'), style: 'cancel' },
             {
               text: t('comun:aceptar'),
               onPress: () => {
@@ -81,7 +81,7 @@ export default function PaseoFinalizado() {
       <View style={styles.center}>
         <ActivityIndicator size="large" color={COLOR.PRIMARIO} />
         <Text style={{ color: COLOR.TEXTO, marginTop: 20 }}>
-          Cargando resumen...
+          {t('cargando_resumen')}
         </Text>
       </View>
     )
@@ -91,10 +91,10 @@ export default function PaseoFinalizado() {
     return (
       <View style={styles.center}>
         <Text style={styles.subtitle}>
-          No se encontró la información del paseo.
+          {t('paseos:info_no_encontrada')}
         </Text>
         <Spacer size={20} />
-        <Button title="Volver" onPress={() => navigation.popToTop()} />
+        <Button title={t('comun:volver')} onPress={() => navigation.popToTop()} />
       </View>
     )
   }

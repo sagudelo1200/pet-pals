@@ -19,8 +19,10 @@ import ScreenHeader from '@/components/ui/ScreenHeader'
 import { VisorEnlaceMapa } from '@/components/ui/VisorEnlaceMapa'
 import { urlEnlaceMapa } from '@/services/maps/carto'
 import { construirHTMLCobertura } from './coberturaHtml'
+import { useTranslation } from 'react-i18next'
 
 export default function CoberturaCuidador() {
+  const { t, i18n } = useTranslation(['cuidador', 'comun'])
   const navigation = useNavigation()
   const { user, profile } = useAuth()
   const insets = useSafeAreaInsets()
@@ -45,10 +47,20 @@ export default function CoberturaCuidador() {
       h3Home,
       selectedCells,
       insets.bottom,
-      insets.top
+      insets.top,
+      {
+        lang: i18n.language?.startsWith('en') ? 'en' : 'es',
+        cargando: t('cuidador:cobertura.cargando'),
+        guardar: t('cuidador:cobertura.guardar'),
+        guardando: t('cuidador:cobertura.guardando'),
+        zonaSeleccionada: t('cuidador:cobertura.zona_seleccionada'),
+        zonasSeleccionadas: t('cuidador:cobertura.zonas_seleccionadas'),
+        miUbicacion: t('cuidador:cobertura.mi_ubicacion'),
+        cambiarTema: t('cuidador:cobertura.cambiar_tema'),
+      }
     )
     // eslint-disable-next-line
-  }, [h3Home, insets.bottom, insets.top])
+  }, [h3Home, insets.bottom, insets.top, i18n.language])
 
   const handleMessage = async (event: WebViewMessageEvent) => {
     try {
@@ -73,9 +85,11 @@ export default function CoberturaCuidador() {
       setSaving(false)
 
       if (res.success) {
-        Alert.alert('Listo', 'Tu cobertura ha sido actualizada.', [
-          { text: 'OK', onPress: () => navigation.goBack() },
-        ])
+        Alert.alert(
+          t('cuidador:cobertura.listo'),
+          t('cuidador:cobertura.actualizada'),
+          [{ text: t('comun:ok'), onPress: () => navigation.goBack() }]
+        )
       } else {
         console.error(
           '[CoberturaCuidador] Error al guardar cobertura:',
@@ -83,12 +97,12 @@ export default function CoberturaCuidador() {
         )
         Alert.alert(
           'Error',
-          res.error || 'No se pudo guardar la cobertura. Intenta de nuevo.'
+          res.error || t('cuidador:cobertura.error_guardar')
         )
         // Reactivar el botón en el WebView si el guardado falla
         webViewRef.current?.injectJavaScript(`
           var btn = document.getElementById('save-btn');
-          if (btn) { btn.disabled = false; btn.textContent = 'Guardar cobertura'; }
+          if (btn) { btn.disabled = false; btn.textContent = ${JSON.stringify(t('cuidador:cobertura.guardar'))}; }
           true;
         `)
       }
@@ -103,7 +117,7 @@ export default function CoberturaCuidador() {
   if (loading) {
     return (
       <View style={[styles.container, { paddingTop: insets.top }]}>
-        <ScreenHeader title="Cobertura" />
+        <ScreenHeader title={t('cuidador:cobertura.titulo')} />
         <View style={styles.centered}>
           <ActivityIndicator size="large" color={COLOR.PRIMARIO} />
         </View>
@@ -114,11 +128,10 @@ export default function CoberturaCuidador() {
   if (!h3Home) {
     return (
       <View style={[styles.container, { paddingTop: insets.top }]}>
-        <ScreenHeader title="Cobertura" />
+        <ScreenHeader title={t('cuidador:cobertura.titulo')} />
         <View style={styles.centered}>
           <Text style={styles.emptyText}>
-            Agrega una dirección en tu perfil para definir tus zonas de
-            cobertura.
+            {t('cuidador:cobertura.sin_direccion')}
           </Text>
         </View>
       </View>
@@ -132,8 +145,8 @@ export default function CoberturaCuidador() {
     // (Screen los añade y bloquean los eventos táctiles del WebView)
     <View style={[styles.container, { paddingTop: insets.top }]}>
       <ScreenHeader
-        title="Zonas de cobertura"
-        subtitle="Toca los hexágonos para activar o desactivar"
+        title={t('cuidador:cobertura.zonas_titulo')}
+        subtitle={t('cuidador:cobertura.zonas_subtitulo')}
       />
 
       <WebView

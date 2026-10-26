@@ -27,6 +27,7 @@ import Card from '@/components/ui/Card'
 import Icon from '@/components/ui/Icon'
 import { validarRecepcionTutor } from '@/logic/paseos/casosDeUso'
 import { useCodigoInput } from '@/hooks'
+import { useTranslation } from 'react-i18next'
 
 interface ModalValidacionEntregaProps {
   visible: boolean
@@ -48,6 +49,7 @@ export const ModalValidacionEntrega: React.FC<ModalValidacionEntregaProps> = ({
   onDismiss,
 }) => {
   const insets = useSafeAreaInsets()
+  const { t } = useTranslation(['tutor', 'comun'])
   const {
     codigo,
     loading,
@@ -77,18 +79,21 @@ export const ModalValidacionEntrega: React.FC<ModalValidacionEntregaProps> = ({
     const resultado = await handleValidar()
     if (resultado.success) {
       // ✅ Validación exitosa
-      Alert.alert('✅ Entrega validada', 'Paseo confirmado. Proceder a pago.', [
+      Alert.alert(
+        t('tutor:entrega.validada'),
+        t('tutor:entrega.validada_desc'),
+        [
         {
-          text: 'OK',
+          text: t('comun:ok'),
           onPress: onSuccess,
         },
       ])
     } else if (bloqueado) {
       // ❌ Intentos agotados
       Alert.alert(
-        '❌ Intentos agotados',
-        'Contacta al cuidador para resolver.',
-        [{ text: 'OK', onPress: onDismiss }]
+        t('tutor:entrega.intentos_agotados'),
+        t('tutor:entrega.contacta_cuidador'),
+        [{ text: t('comun:ok'), onPress: onDismiss }]
       )
     }
   }
@@ -141,16 +146,18 @@ export const ModalValidacionEntrega: React.FC<ModalValidacionEntregaProps> = ({
                     <Icon name="check-circle" size={32} color="white" />
                   </LinearGradient>
                 </View>
-                <Text style={styles.titulo}>Validar Entrega</Text>
+                <Text style={styles.titulo}>{t('tutor:entrega.titulo')}</Text>
                 <Text style={styles.subtitulo}>
-                  {nombreMascota} fue entregado correctamente por{' '}
-                  {nombreCuidador}
+                  {t('tutor:entrega.entregado_por', {
+                    mascota: nombreMascota,
+                    cuidador: nombreCuidador,
+                  })}
                 </Text>
               </View>
 
               <Card style={styles.card}>
                 <Text style={styles.instruccion}>
-                  Ingresa el código de 6 dígitos recibido
+                  {t('tutor:entrega.ingresa_codigo')}
                 </Text>
 
                 {/* Input visual */}
@@ -186,7 +193,7 @@ export const ModalValidacionEntrega: React.FC<ModalValidacionEntregaProps> = ({
                       onPress={resetear}
                       disabled={loading}
                     >
-                      <Text style={styles.clearText}>AC</Text>
+                      <Text style={styles.clearText}>{t('tutor:entrega.limpiar')}</Text>
                     </Pressable>
                     <DigitButton digit="0" />
                     <Pressable
@@ -213,7 +220,9 @@ export const ModalValidacionEntrega: React.FC<ModalValidacionEntregaProps> = ({
 
                 {/* Intentos */}
                 <Text style={styles.intentos}>
-                  Intentos restantes: {intentosRestantes}/3
+                  {t('tutor:entrega.intentos_restantes', {
+                    restantes: intentosRestantes,
+                  })}
                 </Text>
 
                 {/* Botón validar */}
@@ -231,7 +240,7 @@ export const ModalValidacionEntrega: React.FC<ModalValidacionEntregaProps> = ({
                   ) : (
                     <>
                       <Icon name="check" size={20} color="white" />
-                      <Text style={styles.botonText}>Validar Código</Text>
+                      <Text style={styles.botonText}>{t('tutor:entrega.validar_codigo')}</Text>
                     </>
                   )}
                 </Pressable>

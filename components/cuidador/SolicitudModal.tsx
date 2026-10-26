@@ -1,3 +1,4 @@
+import { localeActual } from '@/utils/locale'
 import React, { useState, useEffect } from 'react'
 import { View, Text, StyleSheet, Alert, ScrollView } from 'react-native'
 import { useNavigation } from '@react-navigation/native'
@@ -146,7 +147,7 @@ const SolicitudModal: React.FC<Props> = ({ visible, paseo, onClose }) => {
 
   const mascotasAMostrar = mascotas
 
-  const precioStr = new Intl.NumberFormat('es-CO', {
+  const precioStr = new Intl.NumberFormat(localeActual(), {
     style: 'currency',
     currency: 'COP',
     maximumFractionDigits: 0,
@@ -234,7 +235,7 @@ const SolicitudModal: React.FC<Props> = ({ visible, paseo, onClose }) => {
   }
 
   const fechaFormat = paseo.fecha_hora_inicio
-    ? new Intl.DateTimeFormat('es-ES', {
+    ? new Intl.DateTimeFormat(localeActual(), {
         weekday: 'short',
         day: 'numeric',
         month: 'short',
@@ -367,7 +368,9 @@ const SolicitudModal: React.FC<Props> = ({ visible, paseo, onClose }) => {
           {expediente && (
             <Text style={styles.expedienteTexto}>
               {t('cuidador:solicitudes.sobre_mascota', 'Sobre {{nombre}}', {
-                nombre: mascotasAMostrar[0]?.nombre || 'la mascota',
+                nombre:
+                  mascotasAMostrar[0]?.nombre ||
+                  t('cuidador:solicitudes.la_mascota'),
               })}
               : {expediente}
             </Text>

@@ -9,6 +9,7 @@ import {
 } from 'react-native'
 import React, { useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { localeActual } from '@/utils/locale'
 import { COLOR } from '@/constants'
 import { Button, Card, Icon } from '@/components/ui'
 import Switch from '@/components/ui/Switch'
@@ -87,7 +88,7 @@ export const ConfirmarPaseoPaso = ({
 
   // Funcionalidad activable por el admin (configuración `funcionalidades`)
   const { paseo_compartido } = useConfiguracion('funcionalidades')
-  const cop = (v: number) => `$${v.toLocaleString('es-CO')}`
+  const cop = (v: number) => `$${v.toLocaleString(localeActual())}`
 
   const confirmarReservaInterno = async () => {
     const success = await confirmarReserva()
@@ -99,10 +100,10 @@ export const ConfirmarPaseoPaso = ({
             cuidador?.nombre ||
             t('paseos:pasos.confirmar.solicitud_abierta_nombre'),
         }),
-        [{ text: 'OK', onPress: onConfirm }]
+        [{ text: t('comun:ok'), onPress: onConfirm }]
       )
     } else if (error) {
-      Alert.alert('Error', error)
+      Alert.alert(t('comun:error'), error)
     }
   }
 
@@ -118,7 +119,7 @@ export const ConfirmarPaseoPaso = ({
 
   const formatDate = (date: Date | null) => {
     if (!date) return ''
-    return date.toLocaleDateString() // Simplificado por ahora
+    return date.toLocaleDateString(localeActual())
   }
 
   return (
@@ -278,7 +279,9 @@ export const ConfirmarPaseoPaso = ({
                 <View style={styles.priceRowCompact}>
                   <Text style={styles.priceLabel}>
                     Paw-Path
-                    {desglose.iva_comision > 0 ? ' (incluye IVA)' : ''}
+                    {desglose.iva_comision > 0
+                      ? t('paseos:pasos.confirmar.incluye_iva')
+                      : ''}
                   </Text>
                   <Text style={styles.priceValue}>
                     {cop(desglose.remuneracion_mandatario)}
@@ -337,7 +340,7 @@ export const ConfirmarPaseoPaso = ({
             const res = await guardarCelular(celularIngresado)
             if (!res.success) {
               Alert.alert(
-                'Error',
+                t('comun:error'),
                 res.error || t('errores.generico', { ns: 'usuarios' })
               )
             }

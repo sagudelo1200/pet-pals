@@ -2,6 +2,7 @@
 // Responsabilidad: orquestar operaciones de negocio (crear, aceptar, iniciar,
 // finalizar, validar códigos, etc.) apoyándose en los servicios de datos y en
 // el gestor de paseo activo. No contiene estado propio.
+import { i18n } from '@/services/i18n'
 import {
   ServicioAuth,
   ServicioPaseo,
@@ -807,7 +808,7 @@ export async function validarCodigoRecogida(
 
   if (!res.success) {
     // Registrar evento de fallo
-    const errorMsg = 'error' in res ? res.error : 'Error desconocido'
+    const errorMsg = 'error' in res ? res.error : i18n.t('errores:error_desconocido')
     const esBloqueo = errorMsg === ERR.PASEOS.CODIGO_RECOGIDA_BLOQUEADO
     const esFormatoInvalido =
       errorMsg === ERR.PASEOS.CODIGO_RECOGIDA_FORMATO_INVALIDO

@@ -6,7 +6,11 @@
  */
 
 jest.mock('@/services/firebase/firestore/colecciones/perfiles_publicos', () => ({
-  ServicioPerfilPublico: { guardarConId: jest.fn(), obtenerPorId: jest.fn() },
+  ServicioPerfilPublico: {
+    guardarConId: jest.fn(),
+    obtenerPorId: jest.fn(),
+    buscarPerfiles: jest.fn(),
+  },
 }))
 jest.mock('@/services/firebase/firestore/base', () => ({
   ServicioCrudBase: { obtenerPorId: jest.fn() },
@@ -124,6 +128,53 @@ describe('GestorPerfilPublico.actualizarCeldasCobertura', () => {
     expect(ServicioPerfilPublico.guardarConId).toHaveBeenCalledWith('c1', {
       celdas_cobertura: [H3_B],
       h3_r8: H3_A,
+    })
+  })
+})
+
+describe('GestorPerfilPublico.obtenerCuidadoresDisponibles', () => {
+  const AHORA = 1_800_000_000_000
+  const perfil = (id: string, extra: Record<string, unknown> = {}) => ({
+    id,
+    nombre: id,
+    servicios_habilitados: ['paseo'],
+    ...extra,
+  })
+
+  beforeEach(() => {
+    jest.clearAllMocks()
+  })
+
+  it('pregunta por la habilitación, no por la insignia de identidad', async () => {
+    mock(ServicioPerfilPublico.buscarPerfiles).mockResolvedValue({ success: true, data: [] })
+    await GestorPerfilPublico.obtenerCuidadoresDisponibles(AHORA)
+    const [filtros, orden] = mock(ServicioPerfilPublico.buscarPerfiles).mock.calls[0]
+    expect(filtros).toEqual([
+      { campo: 'servicios_habilitados', op: 'array-contains', valor: 'paseo' },
+    ])
+    // Sin ordenar en la consulta: así no hace falta un índice compuesto
+    expect(orden).toBeUndefined()
+  })
+
+  it('descarta la habilitación vencida y ordena por calificación', async () => {
+    mock(ServicioPerfilPublico.buscarPerfiles).mockResolvedValue({
+      success: true,
+      data: [
+        perfil('regular', { rating_promedio: 3.5 }),
+        perfil('vencida', { rating_promedio: 5, servicios_vencen: { paseo: AHORA } }),
+        perfil('mejor', { rating_promedio: 4.8 }),
+        perfil('nueva'),
+      ],
+    })
+    const res = await GestorPerfilPublico.obtenerCuidadoresDisponibles(AHORA)
+    expect(res.data?.map(p => p.id)).toEqual(['mejor', 'regular', 'nueva'])
+  })
+
+  it('un error de la consulta se devuelve tal cual', async () => {
+    mock(ServicioPerfilPublico.buscarPerfiles).mockResolvedValue({ success: false, error: 'X' })
+    expect(await GestorPerfilPublico.obtenerCuidadoresDisponibles(AHORA)).toEqual({
+      success: false,
+      error: 'X',
     })
   })
 })

@@ -1,3 +1,4 @@
+import { i18n } from '@/services/i18n'
 import { ServicioCrudBase } from '@/services/firebase/firestore/base'
 import { Mascota } from '@/models/Mascota'
 import { CrudResult } from '@/services/firebase/comun'
@@ -161,7 +162,7 @@ export class ServicioMascota {
       },
       _err => {
         console.error('Error en listener de mascotas (creadas):', _err)
-        onError(_err.message || 'Error desconocido')
+        onError(_err.message || i18n.t('errores:error_desconocido'))
       }
     )
 
@@ -173,7 +174,7 @@ export class ServicioMascota {
       },
       _err => {
         console.error('Error en listener de mascotas (compartidas):', _err)
-        onError(_err.message || 'Error desconocido')
+        onError(_err.message || i18n.t('errores:error_desconocido'))
       }
     )
 
@@ -235,7 +236,7 @@ export class ServicioMascota {
       },
       err => {
         console.error('Error en listener de mascota:', err)
-        onError(err.message || 'Error desconocido')
+        onError(err.message || i18n.t('errores:error_desconocido'))
       }
     )
 

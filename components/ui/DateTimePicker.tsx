@@ -12,6 +12,7 @@ import Icon from './Icon'
 import { Calendar, LocaleConfig } from 'react-native-calendars'
 import DateTimePickerNative from '@react-native-community/datetimepicker'
 import Button from './Button'
+import { useTranslation } from 'react-i18next'
 
 LocaleConfig.locales['es'] = LocaleConfig.locales['es'] || {}
 LocaleConfig.locales['es'] = {
@@ -56,6 +57,47 @@ LocaleConfig.locales['es'] = {
   dayNamesShort: ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'],
   today: 'Hoy',
 }
+LocaleConfig.locales['en'] = {
+  monthNames: [
+    'January',
+    'February',
+    'March',
+    'April',
+    'May',
+    'June',
+    'July',
+    'August',
+    'September',
+    'October',
+    'November',
+    'December',
+  ],
+  monthNamesShort: [
+    'Jan',
+    'Feb',
+    'Mar',
+    'Apr',
+    'May',
+    'Jun',
+    'Jul',
+    'Aug',
+    'Sep',
+    'Oct',
+    'Nov',
+    'Dec',
+  ],
+  dayNames: [
+    'Sunday',
+    'Monday',
+    'Tuesday',
+    'Wednesday',
+    'Thursday',
+    'Friday',
+    'Saturday',
+  ],
+  dayNamesShort: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
+  today: 'Today',
+}
 LocaleConfig.defaultLocale = 'es'
 
 interface DateTimePickerProps {
@@ -75,10 +117,7 @@ const formatDateForCalendar = (date: Date): string => {
   return `${year}-${month}-${day}`
 }
 
-const formatDateLabel = (
-  date?: Date,
-  placeholder = 'Selecciona fecha y hora'
-) => {
+const formatDateLabel = (date?: Date, placeholder = '') => {
   if (!date) return placeholder
   const d = date.getDate().toString().padStart(2, '0')
   const m = (date.getMonth() + 1).toString().padStart(2, '0')
@@ -92,11 +131,16 @@ const DateTimePicker: React.FC<DateTimePickerProps> = ({
   label,
   value,
   onValueChange,
-  placeholder = 'Selecciona fecha y hora',
+  placeholder,
   style,
   minimumDate,
   maximumDate,
 }) => {
+  const { t, i18n } = useTranslation('comun')
+  const idioma = i18n.language?.startsWith('en') ? 'en' : 'es'
+  LocaleConfig.defaultLocale = idioma
+  const textoPlaceholder =
+    placeholder ?? t('datepicker.placeholder_fecha_hora')
   const [showPicker, setShowPicker] = useState(false)
   const [tempDate, setTempDate] = useState<Date>(value || new Date())
   const [showNativeTime, setShowNativeTime] = useState(false)
@@ -186,7 +230,7 @@ const DateTimePicker: React.FC<DateTimePickerProps> = ({
           containerStyle={styles.icon}
         />
         <Text style={[styles.inputText, !value && styles.placeholderText]}>
-          {formatDateLabel(value, placeholder)}
+          {formatDateLabel(value, textoPlaceholder)}
         </Text>
       </Pressable>
 
@@ -220,25 +264,26 @@ const DateTimePicker: React.FC<DateTimePickerProps> = ({
 
             <View style={styles.shortcutsRow}>
               <Button
-                title="Hoy"
+                title={t('datepicker.hoy')}
                 variant="secundario"
                 onPress={setToday}
                 style={{ marginRight: 8 }}
               />
               <Button
-                title="Mañana"
+                title={t('datepicker.manana')}
                 variant="secundario"
                 onPress={setTomorrow}
                 style={{ marginRight: 8 }}
               />
               <Button
-                title="Hora"
+                title={t('datepicker.hora')}
                 variant="secundario"
                 onPress={() => setShowNativeTime(true)}
               />
             </View>
 
             <Calendar
+              key={idioma}
               current={value ? formatDateForCalendar(value) : undefined}
               onDayPress={handleDayPress}
               markedDates={markedDates}
@@ -270,7 +315,7 @@ const DateTimePicker: React.FC<DateTimePickerProps> = ({
             />
 
             <View style={styles.previewRow}>
-              <Text style={styles.previewLabel}>Previsualización</Text>
+              <Text style={styles.previewLabel}>{t('datepicker.previsualizacion')}</Text>
               <Text style={styles.previewValue}>
                 {formatDateLabel(tempDate)}
               </Text>
@@ -278,13 +323,13 @@ const DateTimePicker: React.FC<DateTimePickerProps> = ({
 
             <View style={styles.modalActions}>
               <Button
-                title="Cancelar"
+                title={t('cancelar')}
                 variant="bloque"
                 onPress={() => setShowPicker(false)}
                 style={{ flex: 1, marginRight: 8 }}
               />
               <Button
-                title="Aceptar"
+                title={t('aceptar')}
                 variant="primario"
                 onPress={apply}
                 style={{ flex: 1 }}

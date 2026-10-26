@@ -13,6 +13,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { HOSTS_ATRIBUCION } from '@/services/maps/carto'
 import { COLOR } from '@/constants'
 import Icon from './Icon'
+import { useTranslation } from 'react-i18next'
 
 interface Props {
   url: string | null
@@ -25,6 +26,7 @@ interface Props {
  */
 export const VisorEnlaceMapa: React.FC<Props> = ({ url, onCerrar }) => {
   const insets = useSafeAreaInsets()
+  const { t } = useTranslation('comun')
 
   return (
     <Modal
@@ -37,12 +39,12 @@ export const VisorEnlaceMapa: React.FC<Props> = ({ url, onCerrar }) => {
       <View style={[styles.contenedor, { paddingBottom: insets.bottom }]}>
         <View style={styles.cabecera}>
           <Text style={styles.titulo} numberOfLines={1}>
-            Créditos del mapa
+            {t('mapa.creditos')}
           </Text>
           <TouchableOpacity
             onPress={onCerrar}
             style={styles.cerrar}
-            accessibilityLabel="Cerrar"
+            accessibilityLabel={t('cerrar')}
             activeOpacity={0.7}
           >
             <Icon name="times" size={20} color={COLOR.TEXTO} />

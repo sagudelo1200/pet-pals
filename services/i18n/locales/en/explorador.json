@@ -2,7 +2,9 @@
   "inicio": "Home",
   "sugerencias": "Suggestions",
   "mapa": "Map",
-  "historial": "History",
+  "historial": {
+    "huellas_inmediatas": "+3 🐾 per exploration"
+  },
   "bienvenido_explorador": "Territorial Explorer",
   "ayuda_mapear_territorio": "Help discover where pet owners are",
   "mis_contribuciones": "Your Paws",
@@ -135,5 +137,20 @@
   "rango_1_2": "1-2",
   "rango_3_5": "3-5",
   "rango_6_10": "6-10",
-  "rango_10_plus": "10+"
+  "rango_10_plus": "10+",
+  "captura_foto_opcional": "Photo capture (optional)",
+  "impacto": {
+    "info": "Every exploration earns paws and helps uncover real demand in your area.",
+    "titulo": "📊 Your territorial impact",
+    "exploraciones": "Explorations",
+    "zona_one": "Area visited and mapped",
+    "zona_other": "Areas visited and mapped",
+    "territorios": "Territories",
+    "area_one": "Unique area discovered",
+    "area_other": "Unique areas discovered",
+    "footer": "Every exploration helps the pets and caregivers in your neighborhood."
+  },
+  "resumen": {
+    "xp_valor": "+25 XP"
+  }
 }

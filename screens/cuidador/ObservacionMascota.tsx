@@ -87,7 +87,7 @@ export default function ObservacionMascota() {
 
   const handleGuardarObservacion = async () => {
     if (!paseo || !user?.uid || !mascotaActual) {
-      Alert.alert('Error', t('error_datos_incompletos'))
+      Alert.alert(t('comun:error'), t('error_datos_incompletos'))
       return
     }
 
@@ -95,7 +95,7 @@ export default function ObservacionMascota() {
     const compania = seleccion.compania
     const tolerancia = seleccion.tolerancia
     if (!ritmo || !compania || !tolerancia) {
-      Alert.alert('Error', 'Selecciona una opción en cada campo')
+      Alert.alert(t('comun:error'), t('selecciona_opcion_cada_campo'))
       return
     }
 
@@ -124,15 +124,15 @@ export default function ObservacionMascota() {
           t('observacion_expediente_mensaje', {
             nombre: mascotaActual.nombre,
           }),
-          [{ text: 'OK', onPress: siguienteMascota }]
+          [{ text: t('comun:ok'), onPress: siguienteMascota }]
         )
       } else {
-        Alert.alert('Error', 'Error al guardar observación')
+        Alert.alert(t('comun:error'), t('error_guardar_observacion'))
       }
     } catch (error) {
       console.error('Error creando observación:', error)
 
-      let mensajeError = 'Error al guardar observación'
+      let mensajeError = t('error_guardar_observacion')
       const errorObj = error as { code?: string; message?: string }
 
       if (errorObj?.code === 'already-exists') {
@@ -140,12 +140,12 @@ export default function ObservacionMascota() {
         siguienteMascota()
         return
       } else if (errorObj?.code === 'failed-precondition') {
-        mensajeError = 'El paseo debe estar completado'
+        mensajeError = t('paseo_debe_estar_completado')
       } else if (errorObj?.code === 'permission-denied') {
-        mensajeError = 'Solo el cuidador puede registrar observaciones'
+        mensajeError = t('solo_cuidador_observaciones')
       }
 
-      Alert.alert('Error', mensajeError)
+      Alert.alert(t('comun:error'), mensajeError)
     } finally {
       setObservando(false)
     }
@@ -188,7 +188,7 @@ export default function ObservacionMascota() {
     return (
       <View style={styles.center}>
         <Text style={{ color: COLOR.TEXTO }}>
-          No hay mascotas en este paseo
+          {t('sin_mascotas_paseo')}
         </Text>
         <Spacer size={16} />
         <Button
@@ -256,7 +256,7 @@ export default function ObservacionMascota() {
           styles.inputMultiline,
           { borderColor: COLOR.BORDE, color: COLOR.TEXTO },
         ]}
-        placeholder="Notas adicionales sobre el comportamiento..."
+        placeholder={t('notas_comportamiento_placeholder')}
         value={comentario}
         onChangeText={setComentario}
         multiline

@@ -11,6 +11,7 @@ import { Button } from '@/components/ui'
 import { abrirReclamoCobro } from '@/services/firebase/entrega'
 import { mensajeErrorCallable } from '@/services/firebase/callable'
 import { validarMotivo } from '@/functions/src/compartido/versionables'
+import { useTranslation } from 'react-i18next'
 
 interface Props {
   visible: boolean
@@ -23,6 +24,7 @@ export const ModalReclamoCobro: React.FC<Props> = ({
   obligacionId,
   onCerrar,
 }) => {
+  const { t } = useTranslation(['tutor', 'comun'])
   const [motivo, setMotivo] = useState('')
   const [enviando, setEnviando] = useState(false)
 
@@ -34,11 +36,11 @@ export const ModalReclamoCobro: React.FC<Props> = ({
       setMotivo('')
       onCerrar()
       Alert.alert(
-        'Reclamo enviado',
-        'El equipo de Paw-Path lo revisará. Mientras tanto no recibirás recordatorios por este cobro.'
+        t('tutor:reclamo.enviado'),
+        t('tutor:reclamo.enviado_desc')
       )
     } catch (e) {
-      Alert.alert('No se pudo enviar', mensajeErrorCallable(e))
+      Alert.alert(t('tutor:reclamo.no_enviado'), mensajeErrorCallable(e))
     } finally {
       setEnviando(false)
     }
@@ -53,29 +55,30 @@ export const ModalReclamoCobro: React.FC<Props> = ({
     >
       <View style={styles.fondo}>
         <View style={styles.caja}>
-          <Text style={styles.titulo}>No estoy de acuerdo</Text>
+          <Text style={styles.titulo}>{t('tutor:obligaciones.no_estoy_de_acuerdo')}</Text>
           <Text style={styles.texto}>
-            Este cobro se generó porque el equipo cerró la entrega del paseo.
-            Cuéntanos qué pasó para revisarlo.
+            {t('tutor:reclamo.descripcion')}
           </Text>
           <TextInput
             style={styles.input}
             value={motivo}
             onChangeText={setMotivo}
-            placeholder="Ej: mi mascota no fue entregada"
+            placeholder={t('tutor:reclamo.placeholder')}
             placeholderTextColor={COLOR.SUBTEXTO}
             multiline
             maxLength={300}
           />
           <View style={styles.acciones}>
             <Button
-              title="Cancelar"
+              title={t('comun:cancelar')}
               variant="contorno"
               onPress={onCerrar}
               disabled={enviando}
             />
             <Button
-              title={enviando ? 'Enviando…' : 'Enviar reclamo'}
+              title={
+                enviando ? t('tutor:reclamo.enviando') : t('tutor:reclamo.enviar')
+              }
               onPress={enviar}
               disabled={enviando || validarMotivo(motivo) !== null}
             />

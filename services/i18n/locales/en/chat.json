@@ -23,7 +23,7 @@
     "other": "{{count}} hours ago"
   },
   "time_recently": "Recently",
-  "_notice": "System bitácora messages - generated automatically when caregiver records events",
+  "_notice": "System log messages - generated automatically when the caregiver records events",
   "sistema": {
     "entrega": {
       "pendiente": "⏳ The walk is over. Enter the delivery code to confirm your pet is back."

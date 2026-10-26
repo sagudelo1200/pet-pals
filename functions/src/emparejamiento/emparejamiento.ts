@@ -44,6 +44,7 @@ import {
   type Solicitud,
   type Tamano,
 } from '../compartido/emparejamiento';
+import {ofreceServicio} from '../compartido/habilitacion';
 import {leerConfiguracion} from '../comun/configuracion';
 import {ErrorNegocio} from '../comun/errores';
 import {notificar} from '../comun/notificar';
@@ -184,7 +185,8 @@ async function armarCandidato(
   db: Firestore,
   id: string,
   p: Pick<PeticionBusqueda, 'fecha' | 'celda'>,
-  vinculos: Record<string, number>
+  vinculos: Record<string, number>,
+  ahoraMs: number
 ): Promise<Candidato | null> {
   const [perfilDoc, excepcionDoc, agendaSnap] = await Promise.all([
     db.doc(`perfiles_publicos/${id}`).get(),
@@ -214,6 +216,7 @@ async function armarCandidato(
     foto: esTexto(perfil.foto) ? perfil.foto : undefined,
     insignias: Array.isArray(perfil.insignias_verificacion) ?
       perfil.insignias_verificacion.filter(esTexto) : [],
+    habilitado: ofreceServicio(perfil, 'paseo', ahoraMs),
     horarioSemanal: (perfil.horario_semanal ?? {}) as Candidato['horarioSemanal'],
     overrides: excepcionDoc.data()?.overrides as
       Record<string, OverrideDia> | undefined,
@@ -269,7 +272,7 @@ export async function buscarCuidadores(
     .filter((id) => id !== uid).slice(0, MAX_CANDIDATOS);
   const vinculos = await leerVinculos(db, p.mascotaIds);
   const candidatos = (await Promise.all(
-    ids.map((id) => armarCandidato(db, id, p, vinculos.get(id) ?? {}))
+    ids.map((id) => armarCandidato(db, id, p, vinculos.get(id) ?? {}, ahoraMs))
   )).filter((c): c is Candidato => c !== null);
 
   const evaluados = emparejar(candidatos, {
@@ -371,9 +374,9 @@ export async function evaluarCuidadorParaPaseo(
   ]);
   const candidato = await armarCandidato(db, cuidadorId,
     {fecha: solicitud.fecha, celda: solicitud.celdaTutor},
-    vinculos.get(cuidadorId) ?? {});
+    vinculos.get(cuidadorId) ?? {}, ahoraMs);
   // Sin perfil público no es un cuidador: nunca puede tomar un paseo
-  if (!candidato) return {estado: 'excluido', motivo: 'no_verificado'};
+  if (!candidato) return {estado: 'excluido', motivo: 'no_habilitado'};
   const reglas: AjustesEmparejamiento = {
     ...ajustes,
     priorizar_conocidos: expediente.priorizar_conocidos,
@@ -383,7 +386,7 @@ export async function evaluarCuidadorParaPaseo(
 }
 
 const MENSAJES_BLOQUEO: Record<string, string> = {
-  no_verificado: 'Tu identidad aún no está verificada',
+  no_habilitado: 'Aún no estás habilitado para ofrecer este servicio',
   fuera_de_zona: 'Este paseo está fuera de tu zona de cobertura',
   cupo: 'Este paseo tiene más perros de los que permite el servicio',
   ocupado: 'Ya tienes otro paseo en ese horario',

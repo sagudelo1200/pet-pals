@@ -28,5 +28,55 @@
     "confirmacionRechazo": "Are you sure you want to reject this consent?",
     "confirmacionRevocacion": "Are you sure you want to revoke your consent?",
     "consentimientoRegistrado": "Consent registered successfully"
+  },
+  "row": {
+    "reconfirmar_en": "Reconfirm on: {{fecha}}",
+    "revocar": "Revoke"
+  },
+  "vigencia": {
+    "EXPIRADO": "Expired; you must reconfirm it",
+    "VERSION_DESACTUALIZADA": "A new version is available",
+    "RECHAZADO": "Rejected",
+    "REVOCADO": "Revoked",
+    "PENDIENTE": "Pending acceptance"
+  },
+  "badge": {
+    "EXPIRADO": "⏰ Reconfirm your consent",
+    "VERSION_DESACTUALIZADA": "📝 New terms available",
+    "RECHAZADO": "❌ You must accept to continue",
+    "REVOCADO": "↩️ Reactivate consent",
+    "PENDIENTE": "✋ Consent pending"
+  },
+  "panel": {
+    "no_autorizado": "Not authorized",
+    "sin_autorizar_desc": "You have not authorized this document yet",
+    "leer_autorizar": "Read and authorize",
+    "expira_en_one": "Expires in {{count}} day",
+    "expira_en_other": "Expires in {{count}} days",
+    "expira_pronto_desc": "Your authorization expires soon. Reconfirm to continue",
+    "reconfirmar": "Reconfirm authorization",
+    "nueva_version": "New version available",
+    "nueva_version_desc": "There is an update to this document",
+    "leer_aceptar": "Read and accept",
+    "autorizado": "Authorized",
+    "autorizado_el": "Authorized on {{fecha}}",
+    "autorizado_reciente": "Authorized recently",
+    "ver_documento": "View document",
+    "retirar_autorizacion": "Withdraw authorization",
+    "rechazado_desc": "You declined this authorization",
+    "leer_documento": "Read document",
+    "retirada": "Authorization withdrawn",
+    "retirada_desc": "You previously withdrew this authorization",
+    "volver_autorizar": "Authorize again",
+    "expirada": "Authorization expired",
+    "expirada_desc": "Your authorization expired and needs to be confirmed again",
+    "desconocido": "Unknown status",
+    "desconocido_desc": "Status: {{estado}}",
+    "contactar_soporte": "Contact support",
+    "retirar_titulo": "Withdraw authorization?",
+    "retirar_mensaje": "If you withdraw this authorization, we may stop accessing your personal information.",
+    "retirar": "Withdraw",
+    "pendientes": "You have one or more authorizations pending update",
+    "al_dia": "Your authorizations are up to date"
   }
 }

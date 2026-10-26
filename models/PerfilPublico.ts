@@ -64,20 +64,34 @@ export interface PerfilPublico extends BaseModel {
   tarifa_por_hora?: number
 
   /**
+   * Servicios que la persona puede ofrecer (habilitación aprobada), p. ej.
+   * ['paseo']. Lo escribe SOLO el servidor al aprobar o suspender; se puede
+   * consultar con array-contains. Para decidir si puede recibir pedidos usa
+   * `ofreceServicio` (compara también el vencimiento), no este campo suelto.
+   */
+  servicios_habilitados?: string[]
+  /**
+   * Instante (ms) en que vence la habilitación de cada servicio que vence:
+   * `{ paseo: 1830000000000 }`. Solo lo escribe el servidor.
+   */
+  servicios_vencen?: Record<string, number>
+
+  /**
    * Verificaciones completadas y vigentes del usuario.
    * Array de tipos verificados: 'EMAIL', 'IDENTIDAD', 'CERTIFICADO', 'ANTECEDENTES', etc.
    * Ejemplo: ['EMAIL', 'IDENTIDAD'] = usuario verificado en estos tipos.
    *
-   * USOS (ambos válidos):
-   * 1. 🎨 UI: Mostrar badges/insignias en perfil público
-   * 2. ✅ Lógica: Validaciones, autorización, filtros de disponibilidad
+   * USO: mostrar badges/insignias en el perfil público y saber si el correo
+   * está verificado. NO decide si alguien puede ofrecer un servicio: eso lo dice
+   * la habilitación (`ofreceServicio`, ver servicios_habilitados).
    *
    * Sincronizado automáticamente por trigger actualizarInsignias en cada cambio.
    * Fuente de verdad: colección verificaciones (este campo es caché precomputado).
+   * Una insignia con vigencia (p. ej. ANTECEDENTES) puede seguir mostrándose
+   * hasta el siguiente cambio aunque ya haya vencido.
    *
    * VALIDACIONES COMUNES:
    * - Email verificado: insignias_verificacion?.includes('EMAIL')
-   * - Paseador disponible: insignias_verificacion?.includes('IDENTIDAD')
    * - Premium: insignias_verificacion?.length >= 3
    * - Superhost (medalla tipo Airbnb): insignias_verificacion?.includes('SUPERHOST')
    *   Otorgada/revocada automáticamente por la Cloud Function alCrearEvaluacion

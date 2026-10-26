@@ -9,6 +9,8 @@ import {
 } from 'react-native'
 import { COLOR } from '@/constants/Theme'
 import { ConsentimientoUI } from '@/context/ConsentimientosContext'
+import { useTranslation } from 'react-i18next'
+import { localeActual } from '@/utils/locale'
 
 interface ConsentimentoRowProps {
   consentimiento: ConsentimientoUI
@@ -28,6 +30,7 @@ export const ConsentimientoRow: React.FC<ConsentimentoRowProps> = ({
   onRevocar,
   modo = 'lectura',
 }) => {
+  const { t } = useTranslation('consentimientos')
   const [operandoLocal, setOperandoLocal] = React.useState(false)
 
   const esAceptado = consentimiento.estado === 'ACEPTADO'
@@ -59,22 +62,30 @@ export const ConsentimientoRow: React.FC<ConsentimentoRowProps> = ({
       <View style={styles.header}>
         <Text style={styles.titulo}>{consentimiento.titulo}</Text>
         <Text style={[styles.estado, { color: colorEstado }]}>
-          {iconoEstado} {consentimiento.estado}
+          {iconoEstado}{' '}
+          {t(`estados.${consentimiento.estado}`, {
+            defaultValue: consentimiento.estado,
+          })}
         </Text>
       </View>
 
       {!consentimiento.vigente && consentimiento.motivo_no_vigencia && (
         <Text style={styles.alerta}>
-          ⚠️ {consentimiento.motivo_no_vigencia}
+          ⚠️{' '}
+          {t(`vigencia.${consentimiento.motivo_no_vigencia}`, {
+            defaultValue: consentimiento.motivo_no_vigencia,
+          })}
         </Text>
       )}
 
       {consentimiento.fecha_proxima_reconfirmacion && (
         <Text style={styles.fecha}>
-          Reconfirmar en:{' '}
-          {consentimiento.fecha_proxima_reconfirmacion.toLocaleDateString(
-            'es-CO'
-          )}
+          {t('row.reconfirmar_en', {
+            fecha:
+              consentimiento.fecha_proxima_reconfirmacion.toLocaleDateString(
+                localeActual()
+              ),
+          })}
         </Text>
       )}
 
@@ -106,7 +117,7 @@ export const ConsentimientoRow: React.FC<ConsentimentoRowProps> = ({
               {operandoLocal ? (
                 <ActivityIndicator color="#fff" size="small" />
               ) : (
-                <Text style={styles.textoBoton}>Revocar</Text>
+                <Text style={styles.textoBoton}>{t('row.revocar')}</Text>
               )}
             </Pressable>
           ) : null}

@@ -194,7 +194,7 @@ export function ModalIngresarCodigo({
                 style={{ marginRight: 8 }}
               />
               <Text style={styles.avisoUnicoTutorTexto}>
-                Una vez validado, avanzaremos automáticamente
+                {t('paseos:codigo.validado_avanzamos')}
               </Text>
             </View>
           )}

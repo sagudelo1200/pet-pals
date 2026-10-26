@@ -53,5 +53,19 @@
     "EVAL_005": "El paseo debe estar completado",
     "EVAL_006": "Ya existe una evaluación en este contexto",
     "EVAL_007": "Fallo al obtener datos de evaluación"
-  }
+  },
+  "selecciona_opcion_cada_campo": "Selecciona una opción en cada campo",
+  "error_guardar_observacion": "Error al guardar observación",
+  "paseo_debe_estar_completado": "El paseo debe estar completado",
+  "solo_cuidador_observaciones": "Solo el cuidador puede registrar observaciones",
+  "sin_mascotas_paseo": "No hay mascotas en este paseo",
+  "notas_comportamiento_placeholder": "Notas adicionales sobre el comportamiento...",
+  "cargando_paseo": "Cargando paseo...",
+  "paseo_no_encontrado": "Paseo no encontrado",
+  "evalua_tutor_pedido": "Por favor, evalúa al tutor de este paseo",
+  "mascotas_del_paseo": "Mascotas del paseo",
+  "tutor_label": "Tutor: {{nombre}}",
+  "sin_permiso_evaluar": "No tienes permiso para crear esta evaluación",
+  "debes_iniciar_sesion": "Debes iniciar sesión",
+  "cargando_resumen": "Cargando resumen..."
 }

@@ -52,6 +52,7 @@ const perfil = {
   nombre: 'Ana',
   h3_r8: R8,
   insignias_verificacion: ['IDENTIDAD'],
+  servicios_habilitados: ['paseo'],
 };
 
 beforeEach(() => {
@@ -68,7 +69,7 @@ describe('alCambiarCoberturaTerritorio', () => {
     });
 
     expect(mockDb.__docs.get(`indice_cobertura/${R8}/cuidadores/c1`))
-      .toMatchObject({uid: 'c1', verificado: true});
+      .toMatchObject({uid: 'c1', habilitado: true});
     expect(territorio(R8)!.operativa).toMatchObject({
       cuidadores_count: 1, estado: 'disponible',
     });

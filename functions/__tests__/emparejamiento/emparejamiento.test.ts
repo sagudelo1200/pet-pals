@@ -43,6 +43,7 @@ function sembrarCuidador(
   mockDb.__seed(`perfiles_publicos/${id}`, {
     nombre: id.toUpperCase(),
     insignias_verificacion: ['EMAIL', 'IDENTIDAD'],
+    servicios_habilitados: ['paseo'],
     horario_semanal: HORARIO,
     h3_r8: CELDA,
     rating_promedio: 4.5,
@@ -124,10 +125,18 @@ describe('buscarCuidadores', () => {
     });
   });
 
-  test('no confía en el índice: sin identidad verificada en el perfil no aparece', async () => {
+  test('no confía en el índice: sin habilitación en el perfil no aparece', async () => {
     sembrarCuidador('ok');
-    // se anota a sí mismo en el índice, pero su perfil (que no controla) no lo verifica
-    sembrarCuidador('tramposo', {insignias_verificacion: ['EMAIL']});
+    // se anota a sí mismo en el índice, pero su perfil (que no controla) no lo habilita
+    sembrarCuidador('tramposo', {servicios_habilitados: []});
+    // la insignia de identidad sola tampoco alcanza
+    sembrarCuidador('solo_insignia', {servicios_habilitados: undefined});
+    expect(await ids()).toEqual(['ok']);
+  });
+
+  test('una habilitación vencida deja de aparecer sin que nadie la marque', async () => {
+    sembrarCuidador('ok');
+    sembrarCuidador('vencido', {servicios_vencen: {paseo: 1}});
     expect(await ids()).toEqual(['ok']);
   });
 

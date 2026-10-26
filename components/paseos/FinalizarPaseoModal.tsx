@@ -32,6 +32,7 @@ import Icon from '@/components/ui/Icon'
 import { ServicioPaseo } from '@/services/firebase'
 import { useConfiguracion } from '@/hooks/configuracion/useConfiguracion'
 import { subirFotoEntrega } from '@/services/firebase/evidencias/fotoEntrega'
+import { useTranslation } from 'react-i18next'
 
 interface FinalizarPaseoModalProps {
   visible: boolean
@@ -53,6 +54,7 @@ export const FinalizarPaseoModal: React.FC<FinalizarPaseoModalProps> = ({
   onSuccess,
   onDismiss,
 }) => {
+  const { t } = useTranslation(['paseos', 'comun'])
   const { foto_entrega_obligatoria: requiereFoto } = useConfiguracion('paseos')
   const [fotoUri, setFotoUri] = useState<string | null>(null)
   const [observaciones, setObservaciones] = useState('')
@@ -64,7 +66,7 @@ export const FinalizarPaseoModal: React.FC<FinalizarPaseoModalProps> = ({
       const { status } = await ImagePicker.requestCameraPermissionsAsync()
 
       if (status !== 'granted') {
-        setError('Necesitamos acceso a la cámara')
+        setError(t('paseos:finalizar.sin_camara'))
         return
       }
 
@@ -81,7 +83,7 @@ export const FinalizarPaseoModal: React.FC<FinalizarPaseoModalProps> = ({
       }
     } catch (err) {
       console.error('[FinalizarPaseoModal] Error cámara:', err)
-      setError('Error al tomar foto')
+      setError(t('paseos:finalizar.error_foto'))
     }
   }
 
@@ -90,7 +92,7 @@ export const FinalizarPaseoModal: React.FC<FinalizarPaseoModalProps> = ({
       const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync()
 
       if (status !== 'granted') {
-        setError('Necesitamos acceso a la galería')
+        setError(t('paseos:finalizar.sin_galeria'))
         return
       }
 
@@ -107,13 +109,13 @@ export const FinalizarPaseoModal: React.FC<FinalizarPaseoModalProps> = ({
       }
     } catch (err) {
       console.error('[FinalizarPaseoModal] Error galería:', err)
-      setError('Error al seleccionar foto')
+      setError(t('paseos:finalizar.error_galeria'))
     }
   }
 
   const handleConfirmarFinalizacion = async () => {
     if (requiereFoto && !fotoUri) {
-      setError('Debes tomar una foto de confirmación')
+      setError(t('paseos:finalizar.foto_requerida'))
       return
     }
 
@@ -124,7 +126,7 @@ export const FinalizarPaseoModal: React.FC<FinalizarPaseoModalProps> = ({
       if (requiereFoto && fotoUri) {
         const foto = await subirFotoEntrega(paseoId, fotoUri)
         if (!foto.success) {
-          setError('No se pudo guardar la foto. Intenta de nuevo.')
+          setError(t('paseos:finalizar.error_guardar_foto'))
           return
         }
         await ServicioPaseo.actualizar(paseoId, {
@@ -152,11 +154,11 @@ export const FinalizarPaseoModal: React.FC<FinalizarPaseoModalProps> = ({
       }
 
       Alert.alert(
-        '✅ Paseo Finalizado',
-        'El servicio ha sido registrado. Esperando confirmación del tutor.',
+        t('paseos:finalizar.exito_titulo'),
+        t('paseos:finalizar.exito_mensaje'),
         [
           {
-            text: 'OK',
+            text: t('comun:ok'),
             onPress: () => {
               setFotoUri(null)
               setObservaciones('')
@@ -168,7 +170,7 @@ export const FinalizarPaseoModal: React.FC<FinalizarPaseoModalProps> = ({
       )
     } catch (err) {
       console.error('[FinalizarPaseoModal] Error:', err)
-      setError(err instanceof Error ? err.message : 'Error al finalizar paseo')
+      setError(err instanceof Error ? err.message : t('paseos:finalizar.error'))
     } finally {
       setLoading(false)
     }
@@ -193,7 +195,7 @@ export const FinalizarPaseoModal: React.FC<FinalizarPaseoModalProps> = ({
               </Pressable>
 
               <View style={styles.headerContent}>
-                <Text style={styles.titulo}>Finalizar Paseo</Text>
+                <Text style={styles.titulo}>{t('paseos:finalizar.titulo')}</Text>
                 <Text style={styles.subtitulo}>{nombresMascotas}</Text>
               </View>
 
@@ -209,14 +211,16 @@ export const FinalizarPaseoModal: React.FC<FinalizarPaseoModalProps> = ({
                 <View style={styles.infoRow}>
                   <Icon name="clock" size={16} color={COLOR.PRIMARIO} />
                   <Text style={styles.infoTexto}>
-                    Duración: {duracionMinutos} minutos
+                    {t('paseos:finalizar.duracion', {
+                      minutos: duracionMinutos,
+                    })}
                   </Text>
                 </View>
                 {requiereFoto && (
                   <View style={[styles.infoRow, { marginTop: 8 }]}>
                     <Icon name="smile" size={16} color={COLOR.PRIMARIO} />
                     <Text style={styles.infoTexto}>
-                      Confirma con foto del paseo finalizado
+                      {t('paseos:finalizar.confirma_con_foto')}
                     </Text>
                   </View>
                 )}
@@ -227,12 +231,14 @@ export const FinalizarPaseoModal: React.FC<FinalizarPaseoModalProps> = ({
                 <Card style={styles.fotoCard}>
                   <Text style={styles.seccionTitulo}>
                     {cantidadMascotas > 1
-                      ? 'Foto del grupo'
-                      : 'Foto de Confirmación'}
+                      ? t('paseos:finalizar.foto_grupo')
+                      : t('paseos:finalizar.foto_confirmacion')}
                   </Text>
                   {cantidadMascotas > 1 && (
                     <Text style={styles.infoTexto}>
-                      Procura que se vean todos: {nombresMascotas}
+                      {t('paseos:finalizar.procura_todos', {
+                        nombres: nombresMascotas,
+                      })}
                     </Text>
                   )}
 
@@ -258,7 +264,7 @@ export const FinalizarPaseoModal: React.FC<FinalizarPaseoModalProps> = ({
                       >
                         <Icon name="camera" size={48} color={COLOR.PRIMARIO} />
                         <Text style={styles.placeholderText}>
-                          Toma una foto del paseo
+                          {t('paseos:finalizar.toma_foto')}
                         </Text>
                       </LinearGradient>
                     </View>
@@ -271,7 +277,7 @@ export const FinalizarPaseoModal: React.FC<FinalizarPaseoModalProps> = ({
                       disabled={loading}
                     >
                       <Icon name="camera" size={18} color="white" />
-                      <Text style={styles.botonFotoTexto}>Cámara</Text>
+                      <Text style={styles.botonFotoTexto}>{t('paseos:finalizar.camara')}</Text>
                     </Pressable>
 
                     <Pressable
@@ -281,7 +287,7 @@ export const FinalizarPaseoModal: React.FC<FinalizarPaseoModalProps> = ({
                     >
                       <Icon name="image" size={18} color={COLOR.PRIMARIO} />
                       <Text style={styles.botonFotoTextoSecundario}>
-                        Galería
+                        {t('paseos:finalizar.galeria')}
                       </Text>
                     </Pressable>
                   </View>
@@ -291,11 +297,11 @@ export const FinalizarPaseoModal: React.FC<FinalizarPaseoModalProps> = ({
               {/* Observaciones */}
               <Card style={styles.obsCard}>
                 <Text style={styles.seccionTitulo}>
-                  Observaciones (Opcional)
+                  {t('paseos:finalizar.observaciones')}
                 </Text>
                 <TextInput
                   style={styles.textInput}
-                  placeholder="¿Cómo le fue a la mascota? (ej: 'Muy feliz, corrió todo el tiempo')"
+                  placeholder={t('paseos:finalizar.observaciones_placeholder')}
                   placeholderTextColor={COLOR.SUBTEXTO}
                   multiline
                   numberOfLines={4}
@@ -322,8 +328,7 @@ export const FinalizarPaseoModal: React.FC<FinalizarPaseoModalProps> = ({
               <View style={styles.infoGeneralContainer}>
                 <Icon name="info" size={16} color={COLOR.PRIMARIO} />
                 <Text style={styles.infoGeneralTexto}>
-                  Después de confirmar, el tutor validará la entrega y procederá
-                  al pago. Recibirás notificación cuando se liquide.
+                  {t('paseos:finalizar.info_posterior')}
                 </Text>
               </View>
             </ScrollView>
@@ -335,7 +340,7 @@ export const FinalizarPaseoModal: React.FC<FinalizarPaseoModalProps> = ({
                 onPress={onDismiss}
                 disabled={loading}
               >
-                <Text style={styles.botonCancelarTexto}>Cancelar</Text>
+                <Text style={styles.botonCancelarTexto}>{t('comun:cancelar')}</Text>
               </Pressable>
 
               <Pressable
@@ -353,7 +358,7 @@ export const FinalizarPaseoModal: React.FC<FinalizarPaseoModalProps> = ({
                   <>
                     <Icon name="check-circle" size={18} color="white" />
                     <Text style={styles.botonConfirmarTexto}>
-                      Confirmar Finalización
+                      {t('paseos:finalizar.confirmar')}
                     </Text>
                   </>
                 )}

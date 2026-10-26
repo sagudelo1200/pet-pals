@@ -15,7 +15,8 @@
     "error_cargar": "We couldn't load your pets. Please try again",
     "error_cargar_imagen": "We couldn't upload the selected image.",
     "imagen_demasiado_grande": "Image is too large. Maximum allowed: {{tamaño_maximo}}",
-    "sincronizacion_fallida": "Synchronization error"
+    "sincronizacion_fallida": "Synchronization error",
+    "foto_muy_grande": "Photo is too large"
   },
   "lista": {
     "titulo": "Your Pets",
@@ -162,7 +163,8 @@
     "error": "An error occurred. Please try again.",
     "permisos_galeria": "We need permission to access your gallery",
     "permisos_camara": "We need permission to access your camera",
-    "rollback_realizado": "Changes couldn't be saved. Reverted to the previous version."
+    "rollback_realizado": "Changes couldn't be saved. Reverted to the previous version.",
+    "cambios_no_guardados_paseo": "You have unsaved changes. Do you want to save them before requesting a walk?"
   },
   "completitud": {
     "nivel_1": "Basic Profile",
@@ -296,5 +298,8 @@
     "tamaño_grande_descriptor": "Large size",
     "tamaño_gigante": "Preferably giant dogs",
     "tamaño_gigante_descriptor": "Giant size"
+  },
+  "unidades": {
+    "kg": "kg"
   }
 }

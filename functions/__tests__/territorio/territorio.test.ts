@@ -32,7 +32,8 @@ import {
   padreDe,
 } from '../../src/compartido/geografia';
 
-const AHORA = mockFirestore.MOCK_TIMESTAMP.fromMillis(1_700_000_000_000);
+const AHORA_MS = 1_700_000_000_000;
+const AHORA = mockFirestore.MOCK_TIMESTAMP.fromMillis(AHORA_MS);
 const LAT = 4.6486;
 const LNG = -74.0628;
 const R8 = celdaDe(LAT, LNG, 'cobertura');
@@ -43,6 +44,7 @@ const perfil = (extra: Record<string, unknown> = {}) => ({
   nombre: 'Ana',
   h3_r8: R8,
   insignias_verificacion: ['EMAIL', 'IDENTIDAD'],
+  servicios_habilitados: ['paseo'],
   ...extra,
 });
 const indice = (celda: string, uid: string) =>
@@ -60,25 +62,34 @@ beforeEach(() => {
 });
 
 describe('coberturaDe', () => {
-  test('celdas, origen y verificación salen del perfil', () => {
-    const c = coberturaDe('c1', perfil())!;
+  test('celdas, origen y habilitación salen del perfil', () => {
+    const c = coberturaDe('c1', perfil(), AHORA_MS)!;
     expect(c.celdas).toHaveLength(19);
     expect(c.h3_origen).toBe(R8);
-    expect(c.verificado).toBe(true);
+    expect(c.habilitado).toBe(true);
   });
 
-  test('sin identidad verificada no cuenta como verificado', () => {
-    expect(coberturaDe('c1', perfil({insignias_verificacion: ['EMAIL']}))!.verificado)
+  test('solo cuenta quien está habilitado para pasear, no quien tiene la insignia de identidad', () => {
+    const sinHabilitar = perfil({servicios_habilitados: []});
+    expect(sinHabilitar.insignias_verificacion).toContain('IDENTIDAD');
+    expect(coberturaDe('c1', sinHabilitar, AHORA_MS)!.habilitado).toBe(false);
+    expect(coberturaDe('c1', perfil({servicios_habilitados: undefined}), AHORA_MS)!.habilitado)
       .toBe(false);
   });
 
+  test('una habilitación vencida no cuenta', () => {
+    const vence = perfil({servicios_vencen: {paseo: AHORA_MS}});
+    expect(coberturaDe('c1', vence, AHORA_MS - 1)!.habilitado).toBe(true);
+    expect(coberturaDe('c1', vence, AHORA_MS)!.habilitado).toBe(false);
+  });
+
   test('sin ubicación (o sin perfil) no hay cobertura', () => {
-    expect(coberturaDe('c1', {nombre: 'Ana'})).toBeNull();
-    expect(coberturaDe('c1', undefined)).toBeNull();
+    expect(coberturaDe('c1', {nombre: 'Ana'}, AHORA_MS)).toBeNull();
+    expect(coberturaDe('c1', undefined, AHORA_MS)).toBeNull();
   });
 
   test('con celdas manuales, el origen puede no ser una de ellas', () => {
-    const c = coberturaDe('c1', perfil({celdas_cobertura: [VECINA]}))!;
+    const c = coberturaDe('c1', perfil({celdas_cobertura: [VECINA]}), AHORA_MS)!;
     expect(c.celdas).toEqual([VECINA]);
     expect(c.h3_origen).toBe(R8);
   });
@@ -92,7 +103,7 @@ describe('sincronizarCobertura (índice)', () => {
     expect(afectadas).toHaveLength(19);
     expect(entradasDe('c1')).toHaveLength(19);
     expect(indice(R8, 'c1')).toEqual({
-      uid: 'c1', h3_origen: R8, verificado: true, actualizado_en: AHORA,
+      uid: 'c1', h3_origen: R8, habilitado: true, actualizado_en: AHORA,
     });
   });
 
@@ -128,15 +139,15 @@ describe('sincronizarCobertura (índice)', () => {
   });
 
   test('una verificación nueva (o revocada) se refleja sin que el cuidador haga nada', async () => {
-    const sinVerificar = perfil({insignias_verificacion: ['EMAIL']});
-    await sincronizarCobertura(mockDb, 'c1', undefined, sinVerificar, AHORA);
-    expect(indice(R8, 'c1')!.verificado).toBe(false);
+    const sinHabilitar = perfil({servicios_habilitados: []});
+    await sincronizarCobertura(mockDb, 'c1', undefined, sinHabilitar, AHORA);
+    expect(indice(R8, 'c1')!.habilitado).toBe(false);
 
-    await sincronizarCobertura(mockDb, 'c1', sinVerificar, perfil(), AHORA);
-    expect(indice(R8, 'c1')!.verificado).toBe(true);
+    await sincronizarCobertura(mockDb, 'c1', sinHabilitar, perfil(), AHORA);
+    expect(indice(R8, 'c1')!.habilitado).toBe(true);
 
-    await sincronizarCobertura(mockDb, 'c1', perfil(), sinVerificar, AHORA);
-    expect(indice(R8, 'c1')!.verificado).toBe(false);
+    await sincronizarCobertura(mockDb, 'c1', perfil(), sinHabilitar, AHORA);
+    expect(indice(R8, 'c1')!.habilitado).toBe(false);
   });
 
   test('si se borra el perfil, sale de todas las celdas', async () => {
@@ -157,16 +168,16 @@ describe('sincronizarCobertura (índice)', () => {
 });
 
 describe('recalcularOperativa (oferta y demanda)', () => {
-  const sembrarCuidadores = (verificados: number, sinVerificar = 0) => {
+  const sembrarCuidadores = (verificados: number, sinHabilitar = 0) => {
     for (let i = 0; i < verificados; i++) {
-      mockDb.__seed(`indice_cobertura/${R8}/cuidadores/v${i}`, {uid: `v${i}`, verificado: true});
+      mockDb.__seed(`indice_cobertura/${R8}/cuidadores/v${i}`, {uid: `v${i}`, habilitado: true});
     }
-    for (let i = 0; i < sinVerificar; i++) {
-      mockDb.__seed(`indice_cobertura/${R8}/cuidadores/s${i}`, {uid: `s${i}`, verificado: false});
+    for (let i = 0; i < sinHabilitar; i++) {
+      mockDb.__seed(`indice_cobertura/${R8}/cuidadores/s${i}`, {uid: `s${i}`, habilitado: false});
     }
   };
 
-  test('cuenta cuidadores verificados, pedidos pendientes, paseos en curso y hechos', async () => {
+  test('cuenta cuidadores habilitados, pedidos pendientes, paseos en curso y hechos', async () => {
     sembrarCuidadores(3, 2);
     mockDb.__seed('operaciones/p1', paseo({estado: 'PENDIENTE'}));
     mockDb.__seed('operaciones/p2', paseo({estado: 'PENDIENTE'}));
@@ -380,7 +391,7 @@ describe('sumarEventoATerritorio (narrativa)', () => {
 describe('reconstruirTerritorio', () => {
   test('arma el índice de todos los perfiles y la oferta/demanda de sus celdas', async () => {
     mockDb.__seed('perfiles_publicos/c1', perfil());
-    mockDb.__seed('perfiles_publicos/c2', perfil({insignias_verificacion: ['EMAIL']}));
+    mockDb.__seed('perfiles_publicos/c2', perfil({servicios_habilitados: []}));
     mockDb.__seed('perfiles_publicos/c3', {nombre: 'Sin ubicación'});
     mockDb.__seed('operaciones/p1', paseo());
 
@@ -388,8 +399,8 @@ describe('reconstruirTerritorio', () => {
 
     expect(resultado.perfiles).toBe(2);
     expect(resultado.celdas).toBe(19);
-    expect(indice(R8, 'c1')!.verificado).toBe(true);
-    expect(indice(R8, 'c2')!.verificado).toBe(false);
+    expect(indice(R8, 'c1')!.habilitado).toBe(true);
+    expect(indice(R8, 'c2')!.habilitado).toBe(false);
     expect(territorio(R8)!.operativa).toMatchObject({
       cuidadores_count: 1, demanda_total: 1, estado: 'activa',
     });

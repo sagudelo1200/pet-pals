@@ -5,6 +5,8 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
 import AdminAjustes from '@/screens/admin/AdminAjustes'
 import TerritorioVivo from '@/screens/admin/TerritorioVivo'
 import AdminEconomia from '@/screens/admin/AdminEconomia'
+import AdminHabilitaciones from '@/screens/admin/AdminHabilitaciones'
+import { useHabilitaciones } from '@/hooks/admin/useHabilitaciones'
 import MiCuenta from '@/screens/comun/MiCuenta'
 import { Icon } from '@/components/ui'
 import { COLOR } from '@/constants'
@@ -14,6 +16,8 @@ const Tab = createBottomTabNavigator<AdminTabParamList>()
 
 const AdminTabNavigator: React.FC = () => {
   const insets = useSafeAreaInsets()
+  // Lo que espera revisión se ve como contador en la pestaña
+  const { habilitaciones: porRevisar } = useHabilitaciones('EN_REVISION')
 
   return (
     <Tab.Navigator
@@ -52,6 +56,17 @@ const AdminTabNavigator: React.FC = () => {
           tabBarLabel: 'Ajustes',
           tabBarIcon: ({ color, size }) => (
             <Icon name="cog" color={color} size={size} />
+          ),
+        }}
+      />
+      <Tab.Screen
+        name="AdminHabilitaciones"
+        component={AdminHabilitaciones}
+        options={{
+          tabBarLabel: 'Habilitaciones',
+          tabBarBadge: porRevisar.length > 0 ? porRevisar.length : undefined,
+          tabBarIcon: ({ color, size }) => (
+            <Icon name="clipboard-check" color={color} size={size} />
           ),
         }}
       />

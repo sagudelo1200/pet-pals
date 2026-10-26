@@ -2,6 +2,7 @@ import React from 'react'
 import { View, Image, Pressable, Text, StyleSheet } from 'react-native'
 import { COLOR } from '@/constants'
 import Icon from '@/components/ui/Icon'
+import { useTranslation } from 'react-i18next'
 import PerroSvg from '@/assets/imgs/undraw/perro.svg'
 
 interface HeroMascotaProps {
@@ -17,6 +18,7 @@ export const HeroMascota: React.FC<HeroMascotaProps> = ({
   onChangePhoto,
   panHandlers,
 }) => {
+  const { t } = useTranslation('comun')
   return (
     <View style={styles.heroContainer} {...panHandlers}>
       {foto ? (
@@ -37,7 +39,7 @@ export const HeroMascota: React.FC<HeroMascotaProps> = ({
           hitSlop={20}
         >
           <Icon name="camera" size={20} color={COLOR.TEXTO} />
-          <Text style={styles.changePhotoText}>Cambiar foto</Text>
+          <Text style={styles.changePhotoText}>{t('imagen.cambiar_foto')}</Text>
         </Pressable>
       )}
 

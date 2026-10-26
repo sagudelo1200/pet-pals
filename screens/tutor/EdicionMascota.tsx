@@ -1,3 +1,4 @@
+import { i18n } from '@/services/i18n'
 import React, { useCallback, useMemo, useEffect, useState } from 'react'
 import {
   View,
@@ -111,7 +112,7 @@ export const EdicionMascota = () => {
     } catch (error) {
       Alert.alert(
         t('mascotas:errores.error_guardar'),
-        error instanceof Error ? error.message : 'Error desconocido'
+        error instanceof Error ? error.message : i18n.t('errores:error_desconocido')
       )
     }
   }, [guardarCambios, navigation, t])

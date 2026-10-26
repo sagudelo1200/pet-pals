@@ -2,20 +2,22 @@ import React from 'react'
 import { Pressable, Text, StyleSheet } from 'react-native'
 import { COLOR } from '@/constants/Theme'
 import { useConsentimientos } from '@/hooks'
+import { useTranslation } from 'react-i18next'
 
 interface BadgeConsentimientoPendienteProps {
   tipo_documento: string
   onPress?: () => void
 }
 
+/** `texto` es la clave i18n (consentimientos:badge.*) */
 const CONFIG_BADGE: Record<string, { texto: string; color: string }> = {
-  EXPIRADO: { texto: '⏰ Reconfirma tu consentimiento', color: COLOR.ALERTA },
+  EXPIRADO: { texto: 'badge.EXPIRADO', color: COLOR.ALERTA },
   VERSION_DESACTUALIZADA: {
-    texto: '📝 Nuevos términos disponibles',
+    texto: 'badge.VERSION_DESACTUALIZADA',
     color: COLOR.ERROR,
   },
-  RECHAZADO: { texto: '❌ Debes aceptar para continuar', color: COLOR.ERROR },
-  REVOCADO: { texto: '↩️ Reactivar consentimiento', color: COLOR.ALERTA },
+  RECHAZADO: { texto: 'badge.RECHAZADO', color: COLOR.ERROR },
+  REVOCADO: { texto: 'badge.REVOCADO', color: COLOR.ALERTA },
 }
 
 /**
@@ -24,13 +26,14 @@ const CONFIG_BADGE: Record<string, { texto: string; color: string }> = {
 export const BadgeConsentimientoPendiente: React.FC<
   BadgeConsentimientoPendienteProps
 > = ({ tipo_documento, onPress }) => {
+  const { t } = useTranslation('consentimientos')
   const { evaluarVigencia } = useConsentimientos()
   const resultado = evaluarVigencia(tipo_documento)
 
   if (resultado.vigente) return null
 
   const config = CONFIG_BADGE[resultado.motivo_no_vigencia || ''] || {
-    texto: '✋ Consentimiento pendiente',
+    texto: 'badge.PENDIENTE',
     color: COLOR.ALERTA,
   }
 
@@ -39,7 +42,7 @@ export const BadgeConsentimientoPendiente: React.FC<
       style={[styles.container, { backgroundColor: config.color }]}
       onPress={onPress}
     >
-      <Text style={styles.texto}>{config.texto}</Text>
+      <Text style={styles.texto}>{t(config.texto)}</Text>
     </Pressable>
   )
 }

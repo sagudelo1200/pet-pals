@@ -39,6 +39,7 @@
     "sobre_mascota": "Sobre {{nombre}}",
     "detalle_titulo": "Detalle de Solicitud",
     "directa": "Directa",
+    "abierta": "Disponible",
     "mascota": "Mascota",
     "mascotas": "Mascotas",
     "ubicacion_por_definir": "Ubicación por definir",
@@ -60,7 +61,8 @@
     "ubicacion": "Ubicación",
     "perfil_incompleto_titulo": "Perfil Incompleto",
     "perfil_incompleto_desc": "Debes completar tu perfil público de cuidador antes de poder aceptar solicitudes de paseo.",
-    "ir_a_perfil": "Ir a Mi Perfil"
+    "ir_a_perfil": "Ir a Mi Perfil",
+    "la_mascota": "la mascota"
   },
   "activos": {
     "titulo": "Paseos Activos",
@@ -97,5 +99,113 @@
     "reseñas": "Reseñas de tutores",
     "firma_tutor_verificado": "— Tutor verificado · Experiencia verificada",
     "superhost": "Superhost"
+  },
+  "asignaciones": {
+    "sin_hora": "Sin hora",
+    "rechazar": "Rechazar",
+    "aceptar": "Aceptar",
+    "ver_mapa": "Ver mapa",
+    "finalizar": "Finalizar",
+    "ver_detalles": "Ver detalles",
+    "ganancia": "Ganancia: ${{monto}}",
+    "esperando_pago": "Esperando pago: ${{monto}}",
+    "por_aceptar": "Por aceptar",
+    "en_ejecucion": "En ejecución",
+    "sin_asignados": "Sin paseos asignados",
+    "sin_asignados_desc": "Los tutores te enviarán solicitudes de paseos"
+  },
+  "ganancias": {
+    "por_definir": "Por definir",
+    "titulo": "Tus ganancias",
+    "liquidado": "Liquidado",
+    "pendiente": "Pendiente",
+    "porcentaje_recibido": "{{porcentaje}}% recibido",
+    "paseos_completados": "Paseos completados",
+    "cobrados": "Cobrados",
+    "por_cobrar": "Por cobrar",
+    "proxima_liquidacion": "Próxima liquidación",
+    "se_transferira": "Se transferirá ${{monto}}",
+    "esperando_pago_tutor": "Esperando pago del tutor: ${{monto}}",
+    "ver_historial": "Ver historial de ganancias"
+  },
+  "excepcion": {
+    "sin_cambios": "Sin cambios",
+    "sin_cambios_eliminar": "Tu horario para esta semana coincide con el horario base. ¿Deseas eliminar la excepción guardada?",
+    "sin_diferencias": "No hay diferencias con tu horario base para esta semana.",
+    "eliminar_excepcion": "Eliminar excepción",
+    "listo": "Listo",
+    "guardada": "Excepción semanal guardada correctamente.",
+    "eliminar_mensaje": "Se eliminará el override de esta semana y se usará tu horario semanal base.",
+    "semana_personalizada": "Semana personalizada",
+    "guardar_semana": "Guardar semana"
+  },
+  "editar": {
+    "biografia_obligatoria": "La biografía es obligatoria",
+    "error_guardar": "Error al guardar",
+    "inicio_antes_fin": "En {{dia}}: inicio debe ser anterior al fin",
+    "horario_fuera_rango": "El horario de {{dia}} debe estar dentro del rango permitido ({{min}} – {{max}})",
+    "experiencia_placeholder": "Ej: 2 años",
+    "direccion_principal": "Dirección principal",
+    "cambiar": "Cambiar",
+    "agregar": "Agregar",
+    "sin_direccion": "Sin dirección configurada",
+    "dias_ayuda": "Activa los días disponibles y configura el rango horario de cada uno."
+  },
+  "cobertura": {
+    "listo": "Listo",
+    "actualizada": "Tu cobertura ha sido actualizada.",
+    "titulo": "Cobertura",
+    "zonas_titulo": "Zonas de cobertura",
+    "zonas_subtitulo": "Toca los hexágonos para activar o desactivar",
+    "sin_direccion": "Agrega una dirección en tu perfil para definir tus zonas de cobertura.",
+    "cargando": "Cargando…",
+    "guardar": "Guardar cobertura",
+    "guardando": "Guardando…",
+    "zona_seleccionada": "zona seleccionada",
+    "zonas_seleccionadas": "zonas seleccionadas",
+    "mi_ubicacion": "Mi ubicación",
+    "cambiar_tema": "Cambiar tema",
+    "error_guardar": "No se pudo guardar la cobertura. Intenta de nuevo."
+  },
+  "habilitacion": {
+    "titulo": "Mi habilitación",
+    "subtitulo": "Para ofrecer {{servicio}}",
+    "estado": {
+      "borrador_titulo": "Completa tu habilitación",
+      "borrador_detalle": "Termina tu perfil y sube tus documentos. Cuando todo esté listo, envíala a revisión.",
+      "revision_titulo": "Estamos revisando tu información",
+      "revision_detalle": "Te avisaremos cuando tengamos una respuesta. No tienes que hacer nada más.",
+      "aprobada_titulo": "Estás habilitado",
+      "aprobada_detalle": "Ya puedes ofrecer {{servicio}}. Lo próximo que vence es el {{fecha}}.",
+      "renovar_titulo": "Hay algo por renovar",
+      "renovar_detalle": "Un documento venció. Súbelo de nuevo y envíalo a revisión para seguir recibiendo solicitudes.",
+      "rechazada_titulo": "No pudimos aprobar tu habilitación",
+      "rechazada_detalle": "Si crees que es un error, escríbenos.",
+      "suspendida_titulo": "Tu habilitación está suspendida",
+      "suspendida_detalle": "Por ahora no recibirás solicitudes."
+    },
+    "equipo_dice": "El equipo dice: {{motivo}}",
+    "rechazado_motivo": "Rechazado: {{motivo}}",
+    "vence_el": "Vence el {{fecha}}",
+    "vencio_renueva": "Venció. Sube uno nuevo.",
+    "perfil_falta": "Falta: {{campos}}",
+    "completar_perfil": "Completar mi perfil",
+    "completa_perfil_para_enviar": "Completa tu perfil para poder enviar.",
+    "campos": {
+      "biografia": "biografía",
+      "horario_semanal": "horario",
+      "h3_r8": "dirección"
+    },
+    "archivos": {
+      "frente": "Frente",
+      "reverso": "Reverso",
+      "certificado": "Certificado"
+    },
+    "enviar": "Enviar a revisión",
+    "error_enviar": "No pudimos enviarla",
+    "enviada_titulo": "Enviada",
+    "enviada_detalle": "Recibimos tu información y la estamos revisando.",
+    "error_cargar": "No pudimos cargar tu habilitación",
+    "entrar_como_cuidador": "Entrar como cuidador"
   }
 }

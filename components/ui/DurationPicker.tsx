@@ -12,6 +12,7 @@ import { COLOR } from '@/constants'
 import Icon from './Icon'
 import Chip from './Chip'
 import Button from './Button'
+import { useTranslation } from 'react-i18next'
 
 interface DurationPickerProps {
   label?: string
@@ -22,11 +23,12 @@ interface DurationPickerProps {
 }
 
 const formatDurationLabel = (
-  duration?: number,
-  placeholder = 'Selecciona duración'
+  duration: number | undefined,
+  placeholder: string,
+  minutos: (_n: number) => string
 ) => {
   if (!duration) return placeholder
-  return `${duration} min`
+  return minutos(duration)
 }
 
 const DURATIONS = [45, 60, 90, 120]
@@ -35,9 +37,12 @@ const DurationPicker: React.FC<DurationPickerProps> = ({
   label,
   value,
   onValueChange,
-  placeholder = 'Selecciona duración',
+  placeholder,
   style,
 }) => {
+  const { t } = useTranslation('comun')
+  const textoPlaceholder = placeholder ?? t('pickers.duracion_placeholder')
+  const minutos = (n: number) => t('pickers.minutos', { minutos: n })
   const [show, setShow] = useState(false)
 
   const containerStyle: ViewStyle | ViewStyle[] = [
@@ -67,7 +72,7 @@ const DurationPicker: React.FC<DurationPickerProps> = ({
           containerStyle={styles.icon}
         />
         <Text style={[styles.inputText, !value && styles.placeholderText]}>
-          {formatDurationLabel(value || undefined, placeholder)}
+          {formatDurationLabel(value || undefined, textoPlaceholder, minutos)}
         </Text>
       </Pressable>
 
@@ -96,7 +101,7 @@ const DurationPicker: React.FC<DurationPickerProps> = ({
               </Pressable>
             </View>
 
-            <Text style={styles.sectionLabel}>Duración del paseo</Text>
+            <Text style={styles.sectionLabel}>{t('pickers.duracion_paseo')}</Text>
             <FlatList
               data={DURATIONS}
               numColumns={2}
@@ -104,7 +109,7 @@ const DurationPicker: React.FC<DurationPickerProps> = ({
               renderItem={({ item }) => (
                 <View style={styles.chipWrap}>
                   <Chip
-                    label={`${item} min`}
+                    label={minutos(item)}
                     selected={item === value}
                     onPress={() => apply(item)}
                   />
@@ -115,7 +120,7 @@ const DurationPicker: React.FC<DurationPickerProps> = ({
 
             <View style={styles.modalActions}>
               <Button
-                title="Cerrar"
+                title={t('cerrar')}
                 variant="bloque"
                 onPress={() => setShow(false)}
                 style={{ flex: 1 }}

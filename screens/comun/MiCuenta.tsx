@@ -55,16 +55,18 @@ const MiCuenta = () => {
     }
   }
 
+  // Ser cuidador no se activa con un botón: pasa por la habilitación (perfil y
+  // documentos revisados). Al empezar se abre de una vez la edición del perfil
+  const abrirHabilitacion = (abrirPerfil: boolean) =>
+    navigation.navigate('MiHabilitacion', { servicio: 'paseo', abrirPerfil })
+
   const handleActivarRol = async (rol: RolUsuario) => {
     const resultado = await cambiarRol(rol)
 
     if (resultado.success) {
       Alert.alert(
         t('perfil:exito'),
-        t('perfil:rol_activado', {
-          rol,
-          extra: rol === 'cuidador' ? t('perfil:perfil_publico_creado') : '',
-        }),
+        t('perfil:rol_activado', { rol }),
         [
           {
             text: 'OK',
@@ -130,16 +132,26 @@ const MiCuenta = () => {
       </LinearGradient>
 
       <View style={styles.content}>
-        {/* Acción rápida para cuidador */}
+        {/* Acciones rápidas para cuidador */}
         {rolActivo === 'cuidador' && (
-          <Button
-            title={t('perfil:perfil_publico')}
-            icon="id-card"
-            variant="secundario"
-            size="sm"
-            style={styles.quickAction}
-            onPress={() => navigation.navigate('PerfilCuidador')}
-          />
+          <>
+            <Button
+              title={t('perfil:perfil_publico')}
+              icon="id-card"
+              variant="secundario"
+              size="sm"
+              style={styles.quickAction}
+              onPress={() => navigation.navigate('PerfilCuidador')}
+            />
+            <Button
+              title={t('cuidador:habilitacion.titulo')}
+              icon="clipboard-check"
+              variant="secundario"
+              size="sm"
+              style={styles.quickAction}
+              onPress={() => abrirHabilitacion(false)}
+            />
+          </>
         )}
 
         {/* Sección de Roles */}
@@ -212,8 +224,7 @@ const MiCuenta = () => {
                 icon="walking"
                 variant="contorno"
                 size="sm"
-                onPress={() => handleActivarRol('cuidador')}
-                loading={cargandoRol}
+                onPress={() => abrirHabilitacion(true)}
               />
             )}
 
@@ -232,10 +243,9 @@ const MiCuenta = () => {
 
         {/* Sección Privacidad y Autorizaciones */}
         <View style={[styles.section, styles.consentimientosSection]}>
-          <Text style={styles.sectionTitle}>Privacidad y autorizaciones</Text>
+          <Text style={styles.sectionTitle}>{t('comun:privacidad.titulo')}</Text>
           <Text style={styles.sectionDescription}>
-            Gestiona las autorizaciones que nos permiten prestarte nuestros
-            servicios.
+            {t('comun:privacidad.descripcion')}
           </Text>
           <PanelPrivacidadConsentimientos />
         </View>

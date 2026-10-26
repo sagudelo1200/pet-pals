@@ -49,39 +49,9 @@ const ICONOS_ACCIONES: Record<string, string> = {
   'incidente:emergencia': '🚨',
 }
 
-const LABELS_ACCIONES: Record<string, string> = {
-  necesidades: 'Hizo sus necesidades',
-  corrio: 'Corrió mucho',
-  juego: 'Jugó',
-  agua: 'Tomó agua',
-  descanso: 'Descansó',
-  socializacion_perros: 'Saludó otros perros',
-  socializacion_personas: 'Saludó personas',
-  miedo: 'Se asustó',
-  comio: 'Comió',
-  'lugar:parque': 'Llegamos al parque',
-  'lugar:sendero': 'Entramos a sendero',
-  'lugar:rio': 'Visitamos un río/lago',
-  'lugar:casa': 'Regresamos a casa',
-  'lugar:pet_friendly': 'Visitamos lugar pet friendly',
-  'lugar:zona_perros': 'Entramos a zona de perros',
-  'lugar:mirador': 'Llegamos al mirador',
-  'lugar:vehiculo': 'Subimos al carro',
-  'lugar:inicio_caminata': 'Empezamos a caminar',
-  'recuerdo:foto': 'Capturamos una foto',
-  'recuerdo:video': 'Grabamos un video',
-  'recuerdo:voz': 'Nota de voz',
-  'recuerdo:nota': 'Nota escrita',
-  'incidente:asustó': 'Se asustó',
-  'incidente:lesion': 'Se lastimó',
-  'incidente:pelea': 'Pelea con otro perro',
-  'incidente:malestar': 'Presentó malestar',
-  'incidente:trafico': 'Tráfico peligroso',
-  'incidente:lluvia': 'Lluvia',
-  'incidente:acceso_cerrado': 'Acceso cerrado',
-  'incidente:contacto': 'Necesitó contacto',
-  'incidente:emergencia': 'Emergencia',
-}
+/** Clave i18n de la etiqueta de una acción de bitácora (':' no es válido en claves) */
+const claveAccion = (accion: string) =>
+  `paseos:bitacora.acciones.${accion.replace(':', '_')}`
 
 const formatearHora = (fecha: Date | number): string => {
   const d = fecha instanceof Date ? fecha : new Date(fecha)
@@ -95,9 +65,11 @@ const TarjetaBitacora: React.FC<{ bitacora: EventoPaseo & { id: string } }> = ({
 }) => {
   const payload = bitacora.payload as PayloadBitacora
 
+  const { t } = useTranslation()
   const icono = ICONOS_ACCIONES[payload.accion] || '📝'
-  const label =
-    LABELS_ACCIONES[payload.accion] || payload.accion || 'Momento registrado'
+  const label = payload.accion
+    ? t(claveAccion(payload.accion), { defaultValue: payload.accion })
+    : t('paseos:bitacora.momento_registrado')
   const hora = formatearHora(bitacora.creado_en)
 
   return (
@@ -124,7 +96,7 @@ export const TimelineHistoriaPaseo: React.FC<TimelineHistoriaPaseoProps> = ({
   bitacoras,
   cargando = false,
 }) => {
-  const { t: _t } = useTranslation()
+  const { t } = useTranslation()
 
   if (cargando) {
     return (
@@ -138,10 +110,10 @@ export const TimelineHistoriaPaseo: React.FC<TimelineHistoriaPaseoProps> = ({
     return (
       <View style={styles.vacio}>
         <Text style={styles.textoVacio}>
-          Aún no hay momentos registrados en este paseo.
+          {t('paseos:bitacora.timeline.vacio')}
         </Text>
         <Text style={styles.textoVacioDetalle}>
-          Toca ➕ para empezar a contar la historia.
+          {t('paseos:bitacora.timeline.vacio_detalle')}
         </Text>
       </View>
     )
@@ -149,7 +121,7 @@ export const TimelineHistoriaPaseo: React.FC<TimelineHistoriaPaseoProps> = ({
 
   return (
     <View style={styles.container}>
-      <Text style={styles.titulo}>Historia del paseo</Text>
+      <Text style={styles.titulo}>{t('paseos:bitacora.timeline.titulo')}</Text>
       <FlatList
         data={bitacoras}
         keyExtractor={item => item.id}

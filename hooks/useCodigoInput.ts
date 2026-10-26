@@ -14,6 +14,7 @@
  */
 
 import { useState, useCallback } from 'react'
+import { i18n } from '@/services/i18n'
 
 interface UseCodigoInputConfig {
   digitos: number // Cantidad máxima de dígitos (4 o 6)
@@ -65,17 +66,16 @@ export function useCodigoInput({
   const handleValidar = useCallback(async () => {
     // Validar longitud
     if (codigo.length !== digitos) {
-      setError(`Ingresa ${digitos} dígitos`)
-      return { success: false, error: `Ingresa ${digitos} dígitos` }
+      const msg = i18n.t('comun:codigo.ingresa_digitos', { digitos })
+      setError(msg)
+      return { success: false, error: msg }
     }
 
     // Validar si está bloqueado
     if (bloqueado) {
-      setError(`Demasiados intentos fallidos. Intentos máximos: ${maxIntentos}`)
-      return {
-        success: false,
-        error: `Demasiados intentos fallidos. Intentos máximos: ${maxIntentos}`,
-      }
+      const msg = i18n.t('comun:codigo.bloqueado', { max: maxIntentos })
+      setError(msg)
+      return { success: false, error: msg }
     }
 
     setLoading(true)
@@ -96,7 +96,9 @@ export function useCodigoInput({
 
         const mensajeError =
           resultado.error ||
-          `Código incorrecto. Intentos restantes: ${maxIntentos - nuevoIntento}`
+          i18n.t('comun:codigo.incorrecto', {
+            restantes: maxIntentos - nuevoIntento,
+          })
 
         setError(mensajeError)
         return {
@@ -106,7 +108,9 @@ export function useCodigoInput({
       }
     } catch (err) {
       const errorMsg =
-        err instanceof Error ? err.message : 'Error al validar código'
+        err instanceof Error
+          ? err.message
+          : i18n.t('comun:codigo.error_validar')
       setError(errorMsg)
       return { success: false, error: errorMsg }
     } finally {

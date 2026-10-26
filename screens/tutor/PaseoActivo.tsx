@@ -470,9 +470,9 @@ export default function PaseoActivo({ route, navigation }: Props) {
               zIndex={500}
               pinColor="transparent"
               anchor={{ x: 0.52, y: 0.52 }}
-              title="Punto de recogida"
+              title={t('paseos:punto_recogida')}
               description={
-                paseo?.ubicacion_inicio_txt || 'Aquí recogeré a tu mascota'
+                paseo?.ubicacion_inicio_txt || t('paseos:recogere_aqui')
               }
             >
               <PawMarkerPickup />

@@ -20,6 +20,7 @@ import {
 } from '../models/consentimientos.validators';
 import {obtenerVersionVigente} from '../comun/versionado';
 import {ErrorNegocio} from '../comun/errores';
+import {sumarMesesCalendario} from '../compartido/fechas';
 import {
   esTipoConsentimiento,
   tipoVersionableConsentimiento,
@@ -290,28 +291,3 @@ export const registrarConsentimiento = onCall(
     }
   }
 );
-
-/**
- * Suma meses calendario correctamente.
- *
- * Ej:
- * 31 enero + 1 mes = 28/29 febrero
- * y no 3 marzo.
- */
-function sumarMesesCalendario(fecha: Date, meses: number): Date {
-  const resultado = new Date(fecha);
-  const diaOriginal = resultado.getDate();
-
-  resultado.setDate(1);
-  resultado.setMonth(resultado.getMonth() + meses);
-
-  const ultimoDiaMes = new Date(
-    resultado.getFullYear(),
-    resultado.getMonth() + 1,
-    0
-  ).getDate();
-
-  resultado.setDate(Math.min(diaOriginal, ultimoDiaMes));
-
-  return resultado;
-}

@@ -46,7 +46,7 @@ export default function CuidadorEvaluaTutor() {
 
   const handleRate = async (rating: number, privado?: string) => {
     if (!paseo || !user?.uid || !paseo.creado_por) {
-      Alert.alert('Error', t('error_datos_incompletos'))
+      Alert.alert(t('comun:error'), t('error_datos_incompletos'))
       return
     }
 
@@ -83,7 +83,7 @@ export default function CuidadorEvaluaTutor() {
           ]
         )
       } else {
-        Alert.alert('Error', t('error_creando'))
+        Alert.alert(t('comun:error'), t('error_creando'))
       }
     } catch (error) {
       console.error('Error creando evaluación:', error)
@@ -109,14 +109,14 @@ export default function CuidadorEvaluaTutor() {
         )
         return
       } else if (errorObj?.code === 'failed-precondition') {
-        mensajeError = 'El paseo debe estar completado'
+        mensajeError = t('paseo_debe_estar_completado')
       } else if (errorObj?.code === 'permission-denied') {
-        mensajeError = 'No tienes permiso para crear esta evaluación'
+        mensajeError = t('sin_permiso_evaluar')
       } else if (errorObj?.code === 'unauthenticated') {
-        mensajeError = 'Debes iniciar sesión'
+        mensajeError = t('debes_iniciar_sesion')
       }
 
-      Alert.alert('Error', mensajeError)
+      Alert.alert(t('comun:error'), mensajeError)
     } finally {
       setEnviando(false)
     }
@@ -155,7 +155,7 @@ export default function CuidadorEvaluaTutor() {
       <View style={styles.center}>
         <ActivityIndicator size="large" color={COLOR.PRIMARIO} />
         <Spacer size={20} />
-        <Text style={{ color: COLOR.TEXTO }}>Cargando paseo...</Text>
+        <Text style={{ color: COLOR.TEXTO }}>{t('cargando_paseo')}</Text>
       </View>
     )
   }
@@ -163,7 +163,7 @@ export default function CuidadorEvaluaTutor() {
   if (!paseo) {
     return (
       <View style={styles.center}>
-        <Text style={{ color: COLOR.TEXTO }}>Paseo no encontrado</Text>
+        <Text style={{ color: COLOR.TEXTO }}>{t('paseo_no_encontrado')}</Text>
         <Spacer size={16} />
         <Button
           title={t('comun:cancelar')}
@@ -183,7 +183,7 @@ export default function CuidadorEvaluaTutor() {
 
       <Spacer size={16} />
       <Text style={{ color: COLOR.TEXTO, textAlign: 'center' }}>
-        Por favor, evalúa al tutor de este paseo
+        {t('evalua_tutor_pedido')}
       </Text>
 
       <Spacer size={20} />
@@ -194,10 +194,10 @@ export default function CuidadorEvaluaTutor() {
         ]}
       >
         <Text style={{ color: COLOR.TEXTO, fontWeight: 'bold' }}>
-          Mascotas del paseo
+          {t('mascotas_del_paseo')}
         </Text>
         <Text style={{ color: COLOR.TEXTO, fontSize: 12, marginTop: 4 }}>
-          Tutor: {paseo.creado_por}
+          {t('tutor_label', { nombre: paseo.creado_por })}
         </Text>
       </View>
 

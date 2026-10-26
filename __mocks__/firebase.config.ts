@@ -1,4 +1,5 @@
 export const db = {} as any
 export const auth = {} as any
 export const rtdb = {} as any
-export default { db, auth, rtdb }
+export const storage = {} as any
+export default { db, auth, rtdb, storage }

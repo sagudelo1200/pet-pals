@@ -215,7 +215,7 @@ const ResumenExploracion = ({ route, navigation }: any) => {
                 <Text style={styles.recompensaLabel}>
                   {t('explorador:xp_ganado')}
                 </Text>
-                <Text style={styles.recompensaValue}>+25 XP</Text>
+                <Text style={styles.recompensaValue}>{t('explorador:resumen.xp_valor')}</Text>
               </View>
             </View>
           </LinearGradient>

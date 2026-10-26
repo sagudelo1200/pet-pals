@@ -1,3 +1,4 @@
+import { localeActual } from '@/utils/locale'
 import React from 'react'
 import { View, Text, StyleSheet, Pressable } from 'react-native'
 import { useTranslation } from 'react-i18next'
@@ -274,7 +275,7 @@ export const SeccionSalud: React.FC<SeccionSaludProps> = ({
                     </Text>
                     {vacuna.fecha && (
                       <Text style={styles.pillDate}>
-                        {new Date(vacuna.fecha).toLocaleDateString('es-CO', {
+                        {new Date(vacuna.fecha).toLocaleDateString(localeActual(), {
                           month: 'short',
                           year: 'numeric',
                         })}

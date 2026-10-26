@@ -13,6 +13,7 @@ import { calcularCompletitud } from '@/logic/mascotas/calcularCompletitud'
 import Avatar from './Avatar'
 import Icon from './Icon'
 import Chip from './Chip'
+import { useTranslation } from 'react-i18next'
 import type { Mascota } from '@/models/Mascota'
 
 interface PetCardProps {
@@ -38,6 +39,7 @@ const PetCard: React.FC<PetCardProps> = ({
   testID,
   porRevisar = 0,
 }) => {
+  const { t } = useTranslation('comun')
   const scaleAnim = useRef(new Animated.Value(0)).current
   const opacityAnim = useRef(new Animated.Value(0)).current
 
@@ -109,9 +111,7 @@ const PetCard: React.FC<PetCardProps> = ({
 
             {porRevisar > 0 && (
               <Text style={styles.porRevisar}>
-                {porRevisar === 1
-                  ? '1 por revisar'
-                  : `${porRevisar} por revisar`}
+                {t('mascota.por_revisar', { count: porRevisar })}
               </Text>
             )}
 

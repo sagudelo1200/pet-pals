@@ -2,6 +2,7 @@ import React from 'react'
 import { View, StyleSheet, Pressable, Image, Text } from 'react-native'
 import { COLOR } from '@/constants'
 import Icon from './Icon'
+import { useTranslation } from 'react-i18next'
 
 interface PetAvatarProps {
   uri?: string
@@ -23,6 +24,7 @@ export const PetAvatar: React.FC<PetAvatarProps> = ({
   editable = false,
   onPress,
 }) => {
+  const { t } = useTranslation('comun')
   const avatarSize = SIZES[size]
 
   const content = (
@@ -72,7 +74,7 @@ export const PetAvatar: React.FC<PetAvatarProps> = ({
     return (
       <Pressable onPress={onPress} style={styles.pressable}>
         {content}
-        {!uri && <Text style={styles.editText}>Tocar para agregar foto</Text>}
+        {!uri && <Text style={styles.editText}>{t('imagen.tocar_agregar')}</Text>}
       </Pressable>
     )
   }

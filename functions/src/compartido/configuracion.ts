@@ -40,6 +40,9 @@ export interface ConfiguracionAreas {
     aprendizajes_en_resumen: number
     priorizar_conocidos: boolean
   }
+  servicios: {
+    antecedentes_vigencia_meses: number
+  }
   emparejamiento: {
     peso_continuidad: number
     peso_calificacion: number
@@ -196,6 +199,19 @@ export const CATALOGO_CONFIGURACION: {
         descripcion: 'Al elegir cuidador, los que ya pasearon a la mascota ' +
           'aparecen primero y con su número de paseos',
         porDefecto: true,
+      },
+    },
+  },
+  servicios: {
+    titulo: 'Registro de cuidadores',
+    lectura: 'servidor',
+    valores: {
+      antecedentes_vigencia_meses: {
+        tipo: 'entero', titulo: 'Vigencia de los antecedentes',
+        descripcion: 'Meses que vale el certificado de antecedentes judiciales ' +
+          'desde que se aprueba; al vencer, el cuidador debe renovarlo. No ' +
+          'cambia los ya aprobados',
+        porDefecto: 12, min: 1, max: 60, unidad: 'meses',
       },
     },
   },
