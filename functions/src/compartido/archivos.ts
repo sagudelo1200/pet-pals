@@ -29,6 +29,13 @@ export const PERFILES_ARCHIVO = {
     lado_max: 1600,
     calidad: 0.7,
   },
+  /** Foto del grupo que el cuidador sube al terminar un paseo. */
+  foto_entrega: {
+    max_mb: 3,
+    tipos: ['image/jpeg', 'image/png', 'image/webp'],
+    lado_max: 1600,
+    calidad: 0.7,
+  },
 } satisfies Record<string, PerfilArchivo>;
 
 export type TipoPerfilArchivo = keyof typeof PERFILES_ARCHIVO;

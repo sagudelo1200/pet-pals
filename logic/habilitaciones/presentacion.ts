@@ -9,7 +9,7 @@ import {
   type EstadoHabilitacion,
   type EstadoRequisito,
 } from '@/functions/src/compartido/habilitacion'
-import type { Habilitacion } from '@/models/Habilitacion'
+import type { EntradaHistorial, Habilitacion } from '@/models/Habilitacion'
 
 export type VarianteEstado = 'alerta' | 'exito' | 'neutral' | 'error' | 'info'
 
@@ -77,6 +77,22 @@ export function etiquetaDecision(
 }
 
 /**
+ * Clave de traducción del botón de una decisión
+ * (`admin:habilitaciones.decisiones.<clave>`).
+ * @param estado Estado actual de la habilitación.
+ * @param decision Decisión.
+ * @return Clave de la decisión.
+ */
+export function claveDecision(
+  estado: EstadoHabilitacion,
+  decision: DecisionHabilitacion
+): string {
+  return decision === 'REABRIR' && estado === 'EN_REVISION'
+    ? 'REABRIR_EN_REVISION'
+    : decision
+}
+
+/**
  * ¿La decisión exige que el equipo escriba un motivo?
  * @param estado Estado actual.
  * @param decision Decisión.
@@ -128,4 +144,96 @@ export function fechaCorta(fecha: Date | null | undefined): string {
   const d = String(fecha.getDate()).padStart(2, '0')
   const m = String(fecha.getMonth() + 1).padStart(2, '0')
   return `${d}/${m}/${fecha.getFullYear()}`
+}
+
+/** Quién hizo el cambio, para mostrarlo sin ids. */
+export type QuienCambio = 'persona' | 'equipo' | 'sistema'
+
+export interface MovimientoHistorial {
+  /** Clave del texto: `admin:habilitaciones.historial.<clave>`. */
+  clave: string
+  /** Si el texto lleva el nombre del requisito. */
+  conRequisito: boolean
+  tono: VarianteEstado
+  quien: QuienCambio
+}
+
+const ESTADO_REQUISITO_A_CLAVE: Record<string, [string, VarianteEstado]> = {
+  EN_REVISION: ['requisito_en_revision', 'alerta'],
+  VERIFICADO: ['requisito_verificado', 'exito'],
+  RECHAZADO: ['requisito_rechazado', 'error'],
+  EXPIRADO: ['requisito_expirado', 'error'],
+  PENDIENTE: ['requisito_pendiente', 'neutral'],
+}
+
+/**
+ * Cómo se cuenta un movimiento del historial: una frase con lo que pasó
+ * ("Identidad: verificado", "Devuelta para corregir"), su color y quién lo
+ * hizo, en vez de "de → a" con los estados internos.
+ * @param entrada Entrada del historial.
+ * @param usuarioId Persona dueña de la habilitación.
+ * @return Qué texto, color y autor mostrar.
+ */
+export function describirMovimiento(
+  entrada: EntradaHistorial,
+  usuarioId: string
+): MovimientoHistorial {
+  const quien: QuienCambio =
+    entrada.autor === 'sistema'
+      ? 'sistema'
+      : entrada.autor === usuarioId
+        ? 'persona'
+        : 'equipo'
+
+  if (entrada.requisito) {
+    const [clave, tono] = ESTADO_REQUISITO_A_CLAVE[entrada.a] ?? [
+      'requisito_otro',
+      'neutral',
+    ]
+    return { clave, conRequisito: true, tono, quien }
+  }
+
+  switch (entrada.a) {
+    case 'EN_REVISION':
+      return { clave: 'enviada', conRequisito: false, tono: 'alerta', quien }
+    case 'APROBADA':
+      return {
+        clave: entrada.de === 'SUSPENDIDA' ? 'reactivada' : 'aprobada',
+        conRequisito: false,
+        tono: 'exito',
+        quien,
+      }
+    case 'RECHAZADA':
+      return { clave: 'rechazada', conRequisito: false, tono: 'error', quien }
+    case 'SUSPENDIDA':
+      return { clave: 'suspendida', conRequisito: false, tono: 'error', quien }
+    case 'BORRADOR':
+      return {
+        clave:
+          entrada.de === 'EN_REVISION'
+            ? 'devuelta'
+            : entrada.de === 'APROBADA'
+              ? 'renovacion'
+              : entrada.de
+                ? 'reabierta'
+                : 'creada',
+        conRequisito: false,
+        tono: 'neutral',
+        quien,
+      }
+    default:
+      return { clave: 'otro', conRequisito: false, tono: 'neutral', quien }
+  }
+}
+
+/**
+ * Fecha y hora cortas (dd/mm/aaaa · hh:mm, 24 h) sin depender de Intl.
+ * @param fecha Fecha, si la hay.
+ * @return Texto, o cadena vacía.
+ */
+export function fechaHoraCorta(fecha: Date | null | undefined): string {
+  if (!fecha) return ''
+  const h = String(fecha.getHours()).padStart(2, '0')
+  const m = String(fecha.getMinutes()).padStart(2, '0')
+  return `${fechaCorta(fecha)} · ${h}:${m}`
 }

@@ -9,8 +9,6 @@
     "celular": {
       "titulo_modal": "Your phone number is important",
       "descripcion_modal": "We need your phone number so tutors and caregivers can contact you with confidence. It's essential for coordinating walks and ensuring your pets' safety.",
-      "titulo_modal_cuidador": "Confirm your phone number to accept walks",
-      "descripcion_modal_cuidador": "Tutors could contact you directly. Share your phone number so we can securely connect them with you.",
       "placeholder": "300 123 4567 or +57 300 123 4567",
       "label": "Phone number",
       "exito": "Phone number saved successfully"

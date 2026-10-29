@@ -9,6 +9,7 @@
 import React, { useEffect, useState } from 'react'
 import { View, Text, TextInput, StyleSheet, Alert } from 'react-native'
 import { COLOR } from '@/constants'
+import { useTranslation } from 'react-i18next'
 import { Button, Switch } from '@/components/ui'
 import { usePoliticaComercial } from '@/hooks/comercial'
 import { desglosarPaseo, formatearCOP } from '@/logic/comercial'
@@ -27,60 +28,35 @@ import { CampoMotivo } from './CampoMotivo'
 import { PanelVersiones } from './PanelVersiones'
 import { estilosAdmin } from './estilosAdmin'
 
-const DIAS = [
-  'Domingo',
-  'Lunes',
-  'Martes',
-  'Miércoles',
-  'Jueves',
-  'Viernes',
-  'Sábado',
+/** Claves de `comun:datepicker.dias`, indexadas por día de la semana (0 = domingo) */
+const DIAS_CLAVES = [
+  'domingo',
+  'lunes',
+  'martes',
+  'miercoles',
+  'jueves',
+  'viernes',
+  'sabado',
 ]
 
-// Campos numéricos editables: clave → [etiqueta, ayuda]
+// Campos numéricos editables: clave → si tiene texto de ayuda
+// (etiquetas y ayudas en `admin:politica.campos.<clave>`)
 const CAMPOS = {
-  base_por_hora: ['Precio por hora (COP)', 'Paseo de 1 mascota, 60 minutos'],
-  mascota_adicional: ['Recargo por mascota adicional (COP/hora)', ''],
-  porcentaje_plataforma: [
-    'Comisión Paw-Path (%)',
-    'El resto es para el cuidador',
-  ],
-  porcentaje_iva: [
-    'IVA sobre la comisión (%)',
-    'Solo grava la comisión, no el dinero del cuidador',
-  ],
-  plazo_pago_horas: [
-    'Plazo para pagar (horas)',
-    'Desde que finaliza el paseo; luego se envían recordatorios',
-  ],
-  bloqueo_tras_horas: [
-    'Bloquear tras (horas)',
-    'Sin pagar, el tutor no puede pedir nuevos paseos',
-  ],
-  max_recordatorios: ['Máximo de recordatorios', ''],
-  intervalo_recordatorios_horas: ['Horas entre recordatorios', ''],
-  horario_desde: ['Recordatorios desde (hora 0-23)', 'Hora de Colombia'],
-  horario_hasta: ['Recordatorios hasta (hora 1-24)', ''],
-  dia_corte: [
-    'Día de corte (0=domingo … 6=sábado)',
-    'El periodo cierra a las 23:59',
-  ],
-  dia_pago: [
-    'Día de pago (0=domingo … 6=sábado)',
-    'Informativo para el cuidador',
-  ],
-  monto_minimo: [
-    'Monto mínimo a liquidar (COP)',
-    'Si no se alcanza, pasa a la semana siguiente',
-  ],
-  ventana_reclamo_horas: [
-    'Ventana de reclamo (horas)',
-    'Tiempo del tutor para reclamar un cobro cerrado por el equipo',
-  ],
-  cierre_automatico_horas: [
-    'Cierre automático tras (horas, 0 = apagado)',
-    'Cierra la entrega sin confirmar solo, desde que el cuidador finaliza',
-  ],
+  base_por_hora: true,
+  mascota_adicional: false,
+  porcentaje_plataforma: true,
+  porcentaje_iva: true,
+  plazo_pago_horas: true,
+  bloqueo_tras_horas: true,
+  max_recordatorios: false,
+  intervalo_recordatorios_horas: false,
+  horario_desde: true,
+  horario_hasta: false,
+  dia_corte: true,
+  dia_pago: true,
+  monto_minimo: true,
+  ventana_reclamo_horas: true,
+  cierre_automatico_horas: true,
 } as const
 
 type Campo = keyof typeof CAMPOS
@@ -180,24 +156,33 @@ function aPolitica(
 /** Vista previa: paseo de 1 hora con 1 y con 2 mascotas. */
 export const VistaPrevia: React.FC<{ politica: DatosPoliticaComercial }> = ({
   politica,
-}) => (
-  <View style={styles.vistaPrevia}>
-    <Text style={estilosAdmin.label}>Vista previa (paseo de 1 hora)</Text>
-    {[1, 2].map(mascotas => {
-      const d = desglosarPaseo(politica, mascotas, 60)
-      return (
-        <Text key={mascotas} style={estilosAdmin.ayuda}>
-          {mascotas} {mascotas === 1 ? 'mascota' : 'mascotas'}: tutor paga{' '}
-          {formatearCOP(d.valor_acordado)} · cuidador recibe{' '}
-          {formatearCOP(d.recursos_administrados)} · Paw-Path{' '}
-          {formatearCOP(d.comision_base)} + IVA {formatearCOP(d.iva_comision)}
-        </Text>
-      )
-    })}
-  </View>
-)
+}) => {
+  const { t } = useTranslation('admin')
+  return (
+    <View style={styles.vistaPrevia}>
+      <Text style={estilosAdmin.label}>
+        {t('politica.vista_previa.titulo')}
+      </Text>
+      {[1, 2].map(mascotas => {
+        const d = desglosarPaseo(politica, mascotas, 60)
+        return (
+          <Text key={mascotas} style={estilosAdmin.ayuda}>
+            {t('politica.vista_previa.linea', {
+              count: mascotas,
+              tutor: formatearCOP(d.valor_acordado),
+              cuidador: formatearCOP(d.recursos_administrados),
+              comision: formatearCOP(d.comision_base),
+              iva: formatearCOP(d.iva_comision),
+            })}
+          </Text>
+        )
+      })}
+    </View>
+  )
+}
 
 export const FormularioPoliticaComercial: React.FC = () => {
+  const { t } = useTranslation(['admin', 'comun'])
   const { politica, cargando, error } = usePoliticaComercial()
   const [form, setForm] = useState<Record<Campo, string> | null>(null)
   const [opciones, setOpciones] = useState<Opciones | null>(null)
@@ -225,26 +210,30 @@ export const FormularioPoliticaComercial: React.FC = () => {
         motivo,
       })
       Alert.alert(
-        r.nueva ? '✅ Publicada' : 'Sin cambios',
         r.nueva
-          ? `Política comercial v${r.version} vigente desde ahora.`
-          : 'Los valores son iguales a la versión vigente; no se creó versión.'
+          ? t('admin:politica.publicada')
+          : t('admin:politica.sin_cambios'),
+        r.nueva
+          ? t('admin:politica.publicada_desc', { version: r.version })
+          : t('admin:politica.sin_cambios_desc')
       )
       if (r.nueva) setMotivo('')
     } catch (e) {
-      Alert.alert('❌ No se publicó', mensajeErrorCallable(e))
+      Alert.alert(t('admin:politica.no_publico'), mensajeErrorCallable(e))
     } finally {
       setPublicando(false)
     }
   }
 
   if (cargando)
-    return <Text style={estilosAdmin.ayuda}>Cargando política…</Text>
+    return (
+      <Text style={estilosAdmin.ayuda}>{t('admin:politica.cargando')}</Text>
+    )
   if (!politica || !form || !opciones || !borrador) {
     return (
       <Text style={estilosAdmin.ayuda}>
-        {error || 'No hay política publicada'}. Crea la versión 1 con `npm run
-        seed:base`.
+        {error || t('admin:politica.sin_politica')}.
+        {t('admin:politica.crear_v1')}
       </Text>
     )
   }
@@ -252,12 +241,18 @@ export const FormularioPoliticaComercial: React.FC = () => {
   return (
     <View>
       <Text style={estilosAdmin.vigente}>
-        Vigente: versión {politica.version}
+        {t('admin:politica.vigente', { version: politica.version })}
       </Text>
       {(Object.keys(CAMPOS) as Campo[]).map(campo => {
-        const [etiqueta, ayuda] = CAMPOS[campo]
+        const etiqueta = t(`admin:politica.campos.${campo}.etiqueta`)
+        const ayuda = CAMPOS[campo]
+          ? t(`admin:politica.campos.${campo}.ayuda`)
+          : ''
         const esDia = campo === 'dia_corte' || campo === 'dia_pago'
-        const dia = DIAS[Number(form[campo])]
+        const claveDia = DIAS_CLAVES[Number(form[campo])]
+        const dia = claveDia
+          ? t(`comun:datepicker.dias.${claveDia}`)
+          : undefined
         return (
           <View key={campo}>
             <Text style={estilosAdmin.label}>{etiqueta}</Text>
@@ -280,42 +275,44 @@ export const FormularioPoliticaComercial: React.FC = () => {
       <Switch
         value={opciones.ivaAplica}
         onValueChange={v => setOpciones({ ...opciones, ivaAplica: v })}
-        label="Cobrar IVA sobre la comisión"
-        description="Si Paw-Path es responsable de IVA"
+        label={t('admin:politica.opciones.iva_aplica.label')}
+        description={t('admin:politica.opciones.iva_aplica.desc')}
       />
       <Switch
         value={opciones.ivaIncluido}
         onValueChange={v => setOpciones({ ...opciones, ivaIncluido: v })}
-        label="IVA incluido en el precio"
-        description="Si se desactiva, el IVA se suma al precio que paga el tutor"
+        label={t('admin:politica.opciones.iva_incluido.label')}
+        description={t('admin:politica.opciones.iva_incluido.desc')}
       />
       <Switch
         value={opciones.soloRecaudadas}
         onValueChange={v => setOpciones({ ...opciones, soloRecaudadas: v })}
-        label="Liquidar solo paseos ya pagados por el tutor"
-        description="Si se desactiva, Paw-Path paga al cuidador aunque el tutor no haya pagado"
+        label={t('admin:politica.opciones.solo_recaudadas.label')}
+        description={t('admin:politica.opciones.solo_recaudadas.desc')}
       />
       <Switch
         value={opciones.documentoSoporte}
         onValueChange={v => setOpciones({ ...opciones, documentoSoporte: v })}
-        label="Documento soporte al pagar a cuidadores"
-        description="Para cuidadores no obligados a facturar (DIAN)"
+        label={t('admin:politica.opciones.documento_soporte.label')}
+        description={t('admin:politica.opciones.documento_soporte.desc')}
       />
       <Switch
         value={opciones.cobrarSiCierraEquipo}
         onValueChange={v =>
           setOpciones({ ...opciones, cobrarSiCierraEquipo: v })
         }
-        label="El equipo puede cerrar una entrega sin confirmar y cobrar"
-        description="Si el tutor no confirma, el equipo cierra a favor del cuidador y se genera el cobro (el tutor puede reclamar)"
+        label={t('admin:politica.opciones.cobrar_si_cierra_equipo.label')}
+        description={t('admin:politica.opciones.cobrar_si_cierra_equipo.desc')}
       />
       <Switch
         value={opciones.cierreRequiereEvidencia}
         onValueChange={v =>
           setOpciones({ ...opciones, cierreRequiereEvidencia: v })
         }
-        label="El cierre automático exige evidencia"
-        description="Foto del grupo subida por el cuidador"
+        label={t('admin:politica.opciones.cierre_requiere_evidencia.label')}
+        description={t(
+          'admin:politica.opciones.cierre_requiere_evidencia.desc'
+        )}
       />
       {errores.length > 0 ? (
         <Text style={estilosAdmin.errores}>{errores.join('\n')}</Text>
@@ -325,7 +322,11 @@ export const FormularioPoliticaComercial: React.FC = () => {
       <CampoMotivo value={motivo} onChange={setMotivo} />
       <View style={estilosAdmin.acciones}>
         <Button
-          title={publicando ? 'Publicando…' : 'Publicar nueva versión'}
+          title={
+            publicando
+              ? t('admin:politica.publicando')
+              : t('admin:politica.publicar')
+          }
           onPress={publicar}
           variant="primario"
           disabled={
@@ -335,7 +336,7 @@ export const FormularioPoliticaComercial: React.FC = () => {
       </View>
 
       <Text style={[estilosAdmin.label, styles.historial]}>
-        Últimas versiones
+        {t('admin:politica.ultimas_versiones')}
       </Text>
       <PanelVersiones tipo={TIPO_POLITICA_COMERCIAL} />
     </View>

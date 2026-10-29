@@ -16,6 +16,8 @@ import ScreenHeader from '@/components/ui/ScreenHeader'
 import { estilosAdmin } from '@/components/admin/estilosAdmin'
 import { TarjetaRequisito } from '@/components/admin/habilitaciones/TarjetaRequisito'
 import { useHabilitacionDetalle } from '@/hooks/admin/useHabilitacionDetalle'
+import { useDoc } from '@/hooks/useDoc'
+import { perfilParaRequisitos } from '@/logic/habilitaciones/miHabilitacion'
 import {
   decidirHabilitacion,
   decidirRequisito,
@@ -25,8 +27,10 @@ import {
   ETIQUETA_ESTADO,
   VARIANTE_ESTADO,
   decisionExigeMotivo,
-  etiquetaDecision,
-  fechaCorta,
+  claveDecision,
+  describirMovimiento,
+  fechaHoraCorta,
+  type VarianteEstado,
 } from '@/logic/habilitaciones/presentacion'
 import {
   decisionesPosibles,
@@ -39,6 +43,15 @@ import {
 } from '@/functions/src/compartido/servicios'
 import { MAX_MOTIVO } from '@/functions/src/compartido/versionables'
 import type { AuthStackParamList } from '@/navigation/types'
+import { useTranslation } from 'react-i18next'
+
+const COLOR_TONO: Record<VarianteEstado, string> = {
+  exito: COLOR.EXITO,
+  alerta: COLOR.ALERTA,
+  error: COLOR.ERROR,
+  info: COLOR.PRIMARIO,
+  neutral: COLOR.INACTIVO,
+}
 
 const VARIANTE_DECISION: Record<
   DecisionHabilitacion,
@@ -55,11 +68,26 @@ const VARIANTE_DECISION: Record<
  * decisiones del equipo y el historial.
  */
 const DetalleHabilitacion: React.FC = () => {
+  const { t } = useTranslation(['admin', 'comun'])
   const { id } =
     useRoute<RouteProp<AuthStackParamList, 'DetalleHabilitacion'>>().params
   const insets = useSafeAreaInsets()
-  const { habilitacion: h, historial, cargando, error } =
-    useHabilitacionDetalle(id)
+  const {
+    habilitacion: h,
+    historial,
+    cargando,
+    error,
+  } = useHabilitacionDetalle(id)
+  // Lo que comprueba el sistema (perfil, celular) se calcula con los datos de la
+  // persona, igual que lo hace el servidor
+  const uidPersona = h?.usuario_id
+  const { data: perfilPublico } = useDoc<any>('perfiles_publicos', uidPersona, {
+    listen: true,
+    enabled: !!uidPersona,
+  })
+  const { data: usuario } = useDoc<any>('usuarios', uidPersona, {
+    enabled: !!uidPersona,
+  })
   const [trabajando, setTrabajando] = useState(false)
   const [decision, setDecision] = useState<DecisionHabilitacion | null>(null)
   const [motivo, setMotivo] = useState('')
@@ -69,26 +97,38 @@ const DetalleHabilitacion: React.FC = () => {
     try {
       await accion()
     } catch (e) {
-      Alert.alert('No se pudo completar', mensajeErrorCallable(e))
+      Alert.alert(
+        t('admin:habilitaciones.detalle.no_se_pudo'),
+        mensajeErrorCallable(e)
+      )
     } finally {
       setTrabajando(false)
     }
   }
 
   const aprobar = (requisito: string) => {
+    const def = h && requisitosDe(h.servicio).find(r => r.id === requisito)
     const titulo =
-      h && requisitosDe(h.servicio).find(r => r.id === requisito)?.titulo
-    Alert.alert(`Aprobar ${titulo ?? requisito}`, '¿La evidencia es válida?', [
-      { text: 'Cancelar', style: 'cancel' },
-      {
-        text: 'Aprobar',
-        onPress: () => {
-          void ejecutar(() =>
-            decidirRequisito({ id, requisito, decision: 'APROBAR' })
-          )
+      h && def
+        ? t(`comun:servicios.${h.servicio}.requisitos.${requisito}.titulo`, {
+            defaultValue: def.titulo,
+          })
+        : requisito
+    Alert.alert(
+      t('admin:habilitaciones.detalle.aprobar_titulo', { requisito: titulo }),
+      t('admin:habilitaciones.detalle.evidencia_valida'),
+      [
+        { text: t('comun:cancelar'), style: 'cancel' },
+        {
+          text: t('admin:habilitaciones.detalle.aprobar'),
+          onPress: () => {
+            void ejecutar(() =>
+              decidirRequisito({ id, requisito, decision: 'APROBAR' })
+            )
+          },
         },
-      },
-    ])
+      ]
+    )
   }
 
   const rechazar = (requisito: string, motivoRechazo: string) => {
@@ -126,9 +166,11 @@ const DetalleHabilitacion: React.FC = () => {
   if (error || !h) {
     return (
       <View style={[styles.contenedor, { paddingTop: insets.top }]}>
-        <ScreenHeader title="Habilitación" />
+        <ScreenHeader title={t('admin:habilitaciones.detalle.titulo_vacio')} />
         <View style={styles.centrado}>
-          <Text style={styles.error}>{error ?? 'La habilitación no existe.'}</Text>
+          <Text style={styles.error}>
+            {error ?? t('admin:habilitaciones.detalle.no_existe')}
+          </Text>
         </View>
       </View>
     )
@@ -139,8 +181,10 @@ const DetalleHabilitacion: React.FC = () => {
   return (
     <View style={[styles.contenedor, { paddingTop: insets.top }]}>
       <ScreenHeader
-        title={h.usuario_nombre || 'Sin nombre'}
-        subtitle={CATALOGO_SERVICIOS[h.servicio].titulo}
+        title={h.usuario_nombre || t('admin:habilitaciones.sin_nombre')}
+        subtitle={t(`comun:servicios.${h.servicio}.titulo`, {
+          defaultValue: CATALOGO_SERVICIOS[h.servicio].titulo,
+        })}
       />
       <ScrollView
         contentContainerStyle={[
@@ -150,40 +194,48 @@ const DetalleHabilitacion: React.FC = () => {
       >
         <Card style={styles.tarjeta}>
           <View style={styles.encabezado}>
-            <Text style={styles.titulo}>Estado</Text>
+            <Text style={styles.titulo}>
+              {t('admin:habilitaciones.detalle.estado')}
+            </Text>
             <Badge
-              label={ETIQUETA_ESTADO[h.estado]}
+              label={t(`comun:habilitacion.estados.${h.estado}`, {
+                defaultValue: ETIQUETA_ESTADO[h.estado],
+              })}
               variant={VARIANTE_ESTADO[h.estado]}
               size="sm"
             />
           </View>
           {h.motivo && <Text style={styles.alerta}>{h.motivo}</Text>}
-          <Text style={styles.detalle}>Usuario: {h.usuario_id}</Text>
+          <Text style={styles.detalle}>
+            {t('admin:habilitaciones.detalle.usuario', { id: h.usuario_id })}
+          </Text>
         </Card>
 
-        <Text style={styles.seccion}>Requisitos</Text>
+        <Text style={styles.seccion}>
+          {t('admin:habilitaciones.detalle.requisitos')}
+        </Text>
         {requisitosDe(h.servicio).map(def => {
           const progreso = h.requisitos[def.id]
-          const estado =
-            def.verificacion === null
-              ? 'VERIFICADO'
-              : estadoDelRequisito(
-                  def,
-                  progreso && {
-                    estado: progreso.estado,
-                    venceEnMs: progreso.vence_en?.getTime() ?? null,
-                  },
-                  null,
-                  Date.now()
-                )
+          const estado = estadoDelRequisito(
+            def,
+            progreso && {
+              estado: progreso.estado,
+              venceEnMs: progreso.vence_en?.getTime() ?? null,
+            },
+            perfilParaRequisitos(perfilPublico, usuario),
+            Date.now()
+          )
           return (
             <TarjetaRequisito
               key={def.id}
               habilitacionId={id}
+              servicio={h.servicio}
               definicion={def}
               progreso={progreso}
               estado={estado}
-              puedeDecidir={estado === 'EN_REVISION' && def.validador === 'manual'}
+              puedeDecidir={
+                estado === 'EN_REVISION' && def.validador === 'manual'
+              }
               trabajando={trabajando}
               onAprobar={aprobar}
               onRechazar={rechazar}
@@ -193,13 +245,17 @@ const DetalleHabilitacion: React.FC = () => {
 
         {decisionesPosibles(h.estado).length > 0 && (
           <>
-            <Text style={styles.seccion}>Decisión sobre la habilitación</Text>
+            <Text style={styles.seccion}>
+              {t('admin:habilitaciones.detalle.decision')}
+            </Text>
             {!decision ? (
               <View style={styles.acciones}>
                 {decisionesPosibles(h.estado).map(d => (
                   <Button
                     key={d}
-                    title={etiquetaDecision(h.estado, d)}
+                    title={t(
+                      `admin:habilitaciones.decisiones.${claveDecision(h.estado, d)}`
+                    )}
                     variant={VARIANTE_DECISION[d]}
                     size="sm"
                     disabled={trabajando}
@@ -210,23 +266,29 @@ const DetalleHabilitacion: React.FC = () => {
             ) : (
               <Card style={styles.tarjeta}>
                 <Text style={styles.titulo}>
-                  {etiquetaDecision(h.estado, decision)}
+                  {t(
+                    `admin:habilitaciones.decisiones.${claveDecision(h.estado, decision)}`
+                  )}
                 </Text>
                 <Text style={estilosAdmin.label}>
-                  {exigeMotivo ? 'Motivo (obligatorio)' : 'Motivo (opcional)'}
+                  {exigeMotivo
+                    ? t('admin:habilitaciones.detalle.motivo_obligatorio')
+                    : t('admin:habilitaciones.detalle.motivo_opcional')}
                 </Text>
                 <TextInput
                   style={estilosAdmin.input}
                   value={motivo}
                   onChangeText={setMotivo}
-                  placeholder="La persona lo verá"
+                  placeholder={t(
+                    'admin:habilitaciones.detalle.motivo_placeholder'
+                  )}
                   placeholderTextColor={COLOR.SUBTEXTO}
                   maxLength={MAX_MOTIVO}
                   multiline
                 />
                 <View style={styles.acciones}>
                   <Button
-                    title="Confirmar"
+                    title={t('admin:habilitaciones.detalle.confirmar')}
                     variant={VARIANTE_DECISION[decision]}
                     size="sm"
                     loading={trabajando}
@@ -234,7 +296,7 @@ const DetalleHabilitacion: React.FC = () => {
                     onPress={confirmarDecision}
                   />
                   <Button
-                    title="Cancelar"
+                    title={t('comun:cancelar')}
                     variant="ghost"
                     size="sm"
                     onPress={() => {
@@ -248,20 +310,56 @@ const DetalleHabilitacion: React.FC = () => {
           </>
         )}
 
-        <Text style={styles.seccion}>Historial</Text>
+        <Text style={styles.seccion}>
+          {t('admin:habilitaciones.detalle.historial')}
+        </Text>
         {historial.length === 0 ? (
-          <Text style={styles.detalle}>Sin movimientos todavía.</Text>
+          <Text style={styles.detalle}>
+            {t('admin:habilitaciones.detalle.sin_movimientos')}
+          </Text>
         ) : (
-          historial.slice(0, 15).map(e => (
-            <View key={e.id} style={styles.entrada}>
+          <View>
+            {historial.slice(0, 15).map((e, indice, visibles) => {
+              const m = describirMovimiento(e, h.usuario_id)
+              const ultimo = indice === visibles.length - 1
+              return (
+                <View key={e.id} style={styles.entrada}>
+                  <View style={styles.riel}>
+                    <View
+                      style={[styles.punto, { backgroundColor: COLOR_TONO[m.tono] }]}
+                    />
+                    {!ultimo && <View style={styles.linea} />}
+                  </View>
+                  <View style={styles.entradaTexto}>
+                    <Text style={styles.entradaTitulo}>
+                      {t(`admin:habilitaciones.historial.${m.clave}`, {
+                        requisito: e.requisito
+                          ? t(
+                              `comun:servicios.${h.servicio}.requisitos.${e.requisito}.titulo`,
+                              { defaultValue: e.requisito }
+                            )
+                          : '',
+                      })}
+                    </Text>
+                    {e.motivo ? (
+                      <Text style={styles.entradaMotivo}>“{e.motivo}”</Text>
+                    ) : null}
+                    <Text style={styles.autor}>
+                      {fechaHoraCorta(e.en)} ·{' '}
+                      {t(`admin:habilitaciones.historial.quien.${m.quien}`)}
+                    </Text>
+                  </View>
+                </View>
+              )
+            })}
+            {historial.length > 15 && (
               <Text style={styles.detalle}>
-                {fechaCorta(e.en)} · {e.requisito ? `${e.requisito}: ` : ''}
-                {e.de} → {e.a}
+                {t('admin:habilitaciones.historial.mas', {
+                  cantidad: historial.length - 15,
+                })}
               </Text>
-              {e.motivo ? <Text style={styles.detalle}>“{e.motivo}”</Text> : null}
-              <Text style={styles.autor}>{e.autor}</Text>
-            </View>
-          ))
+            )}
+          </View>
         )}
       </ScrollView>
     </View>
@@ -271,7 +369,12 @@ const DetalleHabilitacion: React.FC = () => {
 const styles = StyleSheet.create({
   contenedor: { flex: 1, backgroundColor: COLOR.BASE },
   contenido: { padding: 20, gap: 8 },
-  centrado: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 },
+  centrado: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 24,
+  },
   error: { color: COLOR.ERROR, textAlign: 'center' },
   seccion: {
     color: COLOR.TEXTO,
@@ -290,8 +393,19 @@ const styles = StyleSheet.create({
   detalle: { color: COLOR.SUBTEXTO, fontSize: 12 },
   alerta: { color: COLOR.ALERTA, fontSize: 13, fontWeight: '600' },
   acciones: { flexDirection: 'row', gap: 8, marginTop: 8, flexWrap: 'wrap' },
-  entrada: { paddingVertical: 6, gap: 2 },
-  autor: { color: COLOR.INACTIVO, fontSize: 11 },
+  entrada: { flexDirection: 'row', gap: 12 },
+  riel: { alignItems: 'center', width: 12 },
+  punto: { width: 10, height: 10, borderRadius: 5, marginTop: 4 },
+  linea: {
+    flex: 1,
+    width: 1,
+    backgroundColor: COLOR.BORDE,
+    marginVertical: 2,
+  },
+  entradaTexto: { flex: 1, gap: 2, paddingBottom: 14 },
+  entradaTitulo: { color: COLOR.TEXTO, fontSize: 13, fontWeight: '600' },
+  entradaMotivo: { color: COLOR.SUBTEXTO, fontSize: 12, fontStyle: 'italic' },
+  autor: { color: COLOR.SUBTEXTO, fontSize: 11 },
 })
 
 export default DetalleHabilitacion

@@ -10,6 +10,7 @@ import { useTranslation } from 'react-i18next'
 import { useNavigation, useFocusEffect } from '@react-navigation/native'
 import { COLOR } from '@/constants'
 import { EstadisticaCard } from '@/components/cuidador/EstadisticaCard'
+import { AvisoVencimientoHabilitacion } from '@/components/cuidador/AvisoVencimientoHabilitacion'
 import {
   DashboardAsignaciones,
   MisGananciasCuidador,
@@ -91,6 +92,9 @@ const Dashboard: React.FC = () => {
           />
         }
       >
+        {/* Habilitación por vencer o vencida */}
+        <AvisoVencimientoHabilitacion />
+
         {/* Estadísticas con diseño premium */}
         <View style={styles.estadisticas}>
           {/* Principal: Paseos Activos */}

@@ -1,0 +1,609 @@
+{
+  "tabs": {
+    "ajustes": "Settings",
+    "habilitaciones": "Approvals",
+    "economia": "Economy",
+    "territorio": "Territory",
+    "mi_cuenta": "My account"
+  },
+  "ajustes": {
+    "titulo": "Settings",
+    "documentos_legales": "Legal documents"
+  },
+  "economia": {
+    "titulo": "Economy",
+    "solo_lectura": "Read only",
+    "liquidaciones": "Caregiver settlements",
+    "entregas": "Handoffs to review",
+    "cobros": "Pending tutor charges",
+    "documentos_recientes": "Recent accounting documents",
+    "documentos_error": "Accounting documents with errors",
+    "politica": "Commercial policy"
+  },
+  "politica": {
+    "campos": {
+      "base_por_hora": {
+        "etiqueta": "Price per hour (COP)",
+        "ayuda": "Walk with 1 pet, 60 minutes"
+      },
+      "mascota_adicional": {
+        "etiqueta": "Surcharge per additional pet (COP/hour)"
+      },
+      "porcentaje_plataforma": {
+        "etiqueta": "Paw-Path commission (%)",
+        "ayuda": "The rest goes to the caregiver"
+      },
+      "porcentaje_iva": {
+        "etiqueta": "VAT on the commission (%)",
+        "ayuda": "Only applies to the commission, not the caregiver's money"
+      },
+      "plazo_pago_horas": {
+        "etiqueta": "Payment deadline (hours)",
+        "ayuda": "From when the walk ends; reminders are sent afterwards"
+      },
+      "bloqueo_tras_horas": {
+        "etiqueta": "Block after (hours)",
+        "ayuda": "Without paying, the tutor cannot request new walks"
+      },
+      "max_recordatorios": {
+        "etiqueta": "Maximum reminders"
+      },
+      "intervalo_recordatorios_horas": {
+        "etiqueta": "Hours between reminders"
+      },
+      "horario_desde": {
+        "etiqueta": "Reminders from (hour 0-23)",
+        "ayuda": "Colombia time"
+      },
+      "horario_hasta": {
+        "etiqueta": "Reminders until (hour 1-24)"
+      },
+      "dia_corte": {
+        "etiqueta": "Cut-off day (0=Sunday … 6=Saturday)",
+        "ayuda": "The period closes at 23:59"
+      },
+      "dia_pago": {
+        "etiqueta": "Payment day (0=Sunday … 6=Saturday)",
+        "ayuda": "For the caregiver's information"
+      },
+      "monto_minimo": {
+        "etiqueta": "Minimum amount to settle (COP)",
+        "ayuda": "If not reached, it moves to the following week"
+      },
+      "ventana_reclamo_horas": {
+        "etiqueta": "Claim window (hours)",
+        "ayuda": "Time the tutor has to dispute a charge closed by the team"
+      },
+      "cierre_automatico_horas": {
+        "etiqueta": "Auto-close after (hours, 0 = off)",
+        "ayuda": "Closes the unconfirmed handoff on its own, from when the caregiver finishes"
+      }
+    },
+    "opciones": {
+      "iva_aplica": {
+        "label": "Charge VAT on the commission",
+        "desc": "If Paw-Path is responsible for VAT"
+      },
+      "iva_incluido": {
+        "label": "VAT included in the price",
+        "desc": "If turned off, VAT is added to the price the tutor pays"
+      },
+      "solo_recaudadas": {
+        "label": "Settle only walks already paid by the tutor",
+        "desc": "If turned off, Paw-Path pays the caregiver even if the tutor has not paid"
+      },
+      "documento_soporte": {
+        "label": "Supporting document when paying caregivers",
+        "desc": "For caregivers not required to invoice (DIAN)"
+      },
+      "cobrar_si_cierra_equipo": {
+        "label": "The team can close an unconfirmed handoff and charge",
+        "desc": "If the tutor does not confirm, the team closes in favor of the caregiver and the charge is generated (the tutor can dispute it)"
+      },
+      "cierre_requiere_evidencia": {
+        "label": "Automatic closing requires evidence",
+        "desc": "Group photo uploaded by the caregiver"
+      }
+    },
+    "vista_previa": {
+      "titulo": "Preview (1-hour walk)",
+      "linea_one": "{{count}} pet: tutor pays {{tutor}} · caregiver receives {{cuidador}} · Paw-Path {{comision}} + VAT {{iva}}",
+      "linea_other": "{{count}} pets: tutor pays {{tutor}} · caregiver receives {{cuidador}} · Paw-Path {{comision}} + VAT {{iva}}"
+    },
+    "publicada": "✅ Published",
+    "sin_cambios": "No changes",
+    "publicada_desc": "Commercial policy v{{version}} is in force from now on.",
+    "sin_cambios_desc": "The values are the same as the current version; no version was created.",
+    "no_publico": "❌ Not published",
+    "cargando": "Loading policy…",
+    "sin_politica": "No policy published",
+    "crear_v1": " Create version 1 with `npm run seed:base`.",
+    "vigente": "In force: version {{version}}",
+    "publicando": "Publishing…",
+    "publicar": "Publish new version",
+    "ultimas_versiones": "Latest versions",
+    "resumen": {
+      "precio_hora": "Price per hour",
+      "mascota_adicional": "Additional pet (per hour)",
+      "comision": "Paw-Path commission",
+      "iva": "VAT on the commission",
+      "iva_valor": "{{porcentaje}} % ({{modo}})",
+      "iva_incluido": "included in the price",
+      "iva_se_suma": "added to the price",
+      "iva_no_aplica": "not applicable",
+      "plazo": "Payment deadline",
+      "bloqueo": "Block after",
+      "bloqueo_valor": "{{horas}} h unpaid",
+      "corte": "Settlement cut-off",
+      "dia_pago": "Payment day",
+      "monto_minimo": "Minimum amount to settle",
+      "solo_pagado": "Settle only what is already paid",
+      "documento_soporte": "Supporting document to caregivers",
+      "cierre_equipo": "Team can close unconfirmed handoff and charge",
+      "ventana_reclamo": "Tutor claim window",
+      "cierre_auto": "Automatic handoff closing",
+      "cierre_auto_valor": "after {{horas}} h",
+      "cierre_auto_evidencia": "after {{horas}} h (with evidence)",
+      "apagado": "off"
+    }
+  },
+  "comun": {
+    "si": "yes",
+    "no": "no",
+    "sistema": "System"
+  },
+  "liquidaciones": {
+    "titulo_alerta": "Settlements",
+    "creadas_one": "{{count}} settlement created",
+    "creadas_other": "{{count}} settlements created",
+    "ninguna": "There are no payments ready to settle (or they do not reach the minimum amount)",
+    "error": "❌ Error",
+    "falta_referencia": "Reference missing",
+    "escribe_referencia": "Enter the transfer reference",
+    "confirmar_pago": "Confirm payment",
+    "confirmar_pago_msg": "Record transfer {{referencia}} for {{monto}}?",
+    "registrar": "Record",
+    "generando": "Generating…",
+    "generar": "Generate settlements now",
+    "vacio": "There are no settlements to pay",
+    "detalle_paseos_one": "{{count}} walk",
+    "detalle_paseos_other": "{{count}} walks",
+    "hasta": "until {{fecha}}",
+    "referencia_placeholder": "Transfer reference",
+    "registrando": "Recording…",
+    "registrar_pago": "Record payment"
+  },
+  "entregas": {
+    "no_se_pudo": "❌ Could not complete",
+    "motivo_placeholder": "Reason for the decision (it is recorded)",
+    "hace_horas": "{{horas}} h ago",
+    "sin_confirmar": "Unconfirmed handoffs",
+    "vacio": "There are no handoffs to review",
+    "paseo": "Walk",
+    "tutor": "Tutor: ",
+    "cuidador": " · Caregiver: ",
+    "finalizado": "Finished {{hace}}",
+    "con_foto": " · with group photo",
+    "sin_foto": " · no photo",
+    "cerrar_a_favor": "Close in favor of the caregiver",
+    "abrir_disputa": "Open dispute",
+    "reclamos": "Charge claims",
+    "reclamos_vacio": "There are no open claims",
+    "mantener_cobro": "Keep charge",
+    "anular_cobro": "Cancel charge"
+  },
+  "cobros": {
+    "vacio": "There are no pending charges",
+    "detalle_one": " · {{horas}} h ago · {{count}} reminder",
+    "detalle_other": " · {{horas}} h ago · {{count}} reminders",
+    "vencido": "Overdue: tutor blocked"
+  },
+  "documentos": {
+    "tipos": {
+      "FACTURA_VENTA": "Sales invoice",
+      "RECIBO_CAJA": "Cash receipt",
+      "DOCUMENTO_SOPORTE": "Supporting document",
+      "RECIBO_PAGO": "Payment receipt",
+      "NOTA_CREDITO": "Credit note",
+      "COMPROBANTE": "Accounting voucher"
+    },
+    "sin_enviar": "Not sent",
+    "quedo_en_estado": "The document is in status {{estado}}",
+    "error": "❌ Error",
+    "vacio_lectura": "There are no accounting documents yet",
+    "vacio": "All documents are reflected in the accounting system",
+    "envio": " · delivery {{estado}}",
+    "intentos_one": "{{id}} · {{count}} attempt",
+    "intentos_other": "{{id}} · {{count}} attempts",
+    "reintentando": "Retrying…",
+    "reintentar": "Retry delivery"
+  },
+  "configuracion": {
+    "paseos": {
+      "titulo": "Walks",
+      "max_mascotas": {
+        "titulo": "Maximum pets per walk",
+        "descripcion": "Pet limit in a single walk (shared walks too). Each caregiver can choose to work with fewer, never more"
+      },
+      "escalada_minutos": {
+        "titulo": "Escalate directed request after",
+        "descripcion": "If the chosen caregiver does not respond, the request is opened to other caregivers"
+      },
+      "foto_entrega_obligatoria": {
+        "titulo": "Handoff photo required",
+        "descripcion": "Requires the caregiver to upload the group photo to finish the walk"
+      },
+      "entrega_aviso_horas": {
+        "titulo": "Remind the tutor after",
+        "descripcion": "Hours from when the caregiver finishes the walk until the tutor is reminded to confirm the handoff (chat message)"
+      },
+      "entrega_revision_horas": {
+        "titulo": "Send to team review after",
+        "descripcion": "Hours from when the caregiver finishes the walk until, if the tutor has not confirmed the handoff, it goes to the team queue"
+      },
+      "servicio_desde_min": {
+        "titulo": "First service hour",
+        "descripcion": "Earliest time a walk can start and a caregiver can declare their schedule, in minutes from midnight, Colombia time (330 = 5:30 a.m.)"
+      },
+      "servicio_hasta_min": {
+        "titulo": "Last service hour",
+        "descripcion": "Time by which the last walk of the day must end, in minutes from midnight, Colombia time (1350 = 10:30 p.m.)"
+      },
+      "margen_horario_min": {
+        "titulo": "Margin over the caregiver schedule",
+        "descripcion": "Courtesy minutes: a walk that starts a little earlier or ends a little later than the declared schedule is still considered within it"
+      },
+      "antelacion_min": {
+        "titulo": "Minimum notice for a walk",
+        "descripcion": "Minutes that must remain before the start of a walk today for it to be requested or accepted"
+      },
+      "descanso_entre_paseos_min": {
+        "titulo": "Rest between walks",
+        "descripcion": "Free minutes a caregiver needs between the end of one walk and the start of the next"
+      }
+    },
+    "zonas": {
+      "titulo": "Service zones",
+      "exigir_zona": {
+        "titulo": "Serve only in defined zones",
+        "descripcion": "If active, services can only be requested (and caregivers only receive requests) in active or pilot zones. Anyone trying outside is recorded as interested. Leave it off until the first zone is defined"
+      }
+    },
+    "auth": {
+      "titulo": "Email verification (OTP)",
+      "otp_minutos_expiracion": {
+        "titulo": "Code validity",
+        "descripcion": "Minutes during which the sent code is valid"
+      },
+      "otp_segundos_reenvio": {
+        "titulo": "Wait before resending",
+        "descripcion": "Seconds between code sends (prevents abuse and costs)"
+      },
+      "otp_max_intentos": {
+        "titulo": "Allowed attempts",
+        "descripcion": "Failed attempts before the code is blocked"
+      }
+    },
+    "evaluaciones": {
+      "titulo": "Evaluations",
+      "dias_revelacion": {
+        "titulo": "Possible reveal days",
+        "descripcion": "An evaluation without a counterpart is revealed on one of these days, at random (the evaluated person does not know when)"
+      }
+    },
+    "funcionalidades": {
+      "titulo": "Features",
+      "paseo_compartido": {
+        "titulo": "Shared walk",
+        "descripcion": "Allows choosing shared walks when booking"
+      }
+    },
+    "expediente": {
+      "titulo": "Getting to know the pet",
+      "dias_vigencia_aprendizaje": {
+        "titulo": "Days a learning stays valid",
+        "descripcion": "A learning about the pet (\"gets nervous around motorbikes\") stops showing in the summary if it is not seen again within these days. It is not deleted."
+      },
+      "repeticiones_para_firme": {
+        "titulo": "Times to consider a learning firm",
+        "descripcion": "Times a learning must be observed (or seen by 2 different caregivers) to go from \"observed\" to \"firm\""
+      },
+      "aprendizajes_en_resumen": {
+        "titulo": "Learnings per section in the pre-walk summary",
+        "descripcion": "Maximum learnings the caregiver sees before the walk in each section (what works, what to avoid, keep in mind)"
+      },
+      "priorizar_conocidos": {
+        "titulo": "Prioritize caregivers who already know the pet",
+        "descripcion": "When choosing a caregiver, those who have already walked the pet appear first with their number of walks"
+      }
+    },
+    "habilitaciones": {
+      "titulo": "Caregiver approval",
+      "antecedentes_vigencia_meses": {
+        "titulo": "Background check validity",
+        "descripcion": "Months the criminal background certificate is valid from approval; when it expires, the caregiver must renew it. It does not change those already approved"
+      }
+    },
+    "emparejamiento": {
+      "titulo": "Caregiver matching",
+      "peso_continuidad": {
+        "titulo": "Weight of knowing the pet",
+        "descripcion": "How much a caregiver who already walked the order's pets moves up the list (applies only if \"Prioritize caregivers who already know the pet\" is active)"
+      },
+      "peso_calificacion": {
+        "titulo": "Weight of the rating",
+        "descripcion": "How much the caregiver's rating weighs (smoothed: with few walks it weighs less)"
+      },
+      "peso_cercania": {
+        "titulo": "Weight of proximity",
+        "descripcion": "How much it weighs that the caregiver lives near the tutor"
+      },
+      "paseos_para_confiar": {
+        "titulo": "Walks to trust the rating",
+        "descripcion": "With fewer walks than this, the rating is blended with an initial one and the caregiver is shown as \"new\""
+      },
+      "penalizacion_por_aviso": {
+        "titulo": "Warning penalty",
+        "descripcion": "How much a caregiver drops in the list when the order does not fully fit them (a size they do not usually care for, more dogs than they prefer). It does not hide them: the tutor is warned and the caregiver decides"
+      },
+      "max_resultados": {
+        "titulo": "Caregivers shown",
+        "descripcion": "Maximum caregivers returned to the tutor when choosing"
+      }
+    },
+    "unidades": {
+      "min": "min",
+      "h": "h",
+      "s": "s",
+      "dias": "days",
+      "meses": "months",
+      "paseos": "walks"
+    },
+    "guardado": "✅ Saved",
+    "actualizado": "Updated: {{lista}}. It applies everywhere in less than a minute.",
+    "nada": "nothing",
+    "no_se_guardo": "❌ Not saved",
+    "guardando": "Saving…",
+    "guardar": "Save changes",
+    "descartar": "Discard",
+    "ultimos_cambios": "Latest changes"
+  },
+  "motivo": {
+    "titulo": "Reason for the change",
+    "placeholder": "E.g.: seasonal price adjustment",
+    "ayuda": "It is recorded in the version history"
+  },
+  "versiones": {
+    "reactivada": "✅ Reactivated",
+    "reactivada_desc": "The content of v{{version}} is now in force as v{{nueva}}.",
+    "ya_vigente": "That content is already the current one.",
+    "no_reactivo": "❌ Not reactivated",
+    "vacio": "There are no published versions yet.",
+    "vigente": "CURRENT",
+    "historica": "HISTORICAL",
+    "desde": "From {{desde}}",
+    "desde_hasta": "From {{desde}} until {{hasta}}",
+    "por": "By ",
+    "huella": " · fingerprint {{hash}}",
+    "reactivando": "Reactivating…",
+    "volver_a": "Go back to v{{version}}",
+    "reactivar": "Reactivate"
+  },
+  "historial": {
+    "vacio": "No changes recorded."
+  },
+  "consentimientos": {
+    "tipos": {
+      "TERMINOS_SERVICIO": "Terms of Service",
+      "DATOS_PERSONALES": "Personal Data Processing",
+      "MARKETING_COMUNICACIONES": "Marketing Communications"
+    },
+    "publicada": "✅ Published",
+    "sin_cambios": "No changes",
+    "publicada_desc": "{{tipo}} v{{version}} is in force. Those who accepted the previous one will have to reconfirm.",
+    "sin_cambios_desc": "The content is the same as the current one; no version was created.",
+    "no_publico": "❌ Not published",
+    "error": "❌ Error",
+    "vigente": "In force: version {{version}}",
+    "sin_version": "No version published",
+    "titulo": "Title",
+    "texto": "Text (Markdown)",
+    "roles": "Roles that accept it",
+    "roles_placeholder": "Empty = all (e.g. tutor, cuidador)",
+    "meses": "Reconfirm every (months)",
+    "meses_placeholder": "Empty = no reconfirmation required",
+    "obligatorio": "Mandatory",
+    "obligatorio_desc": "The app cannot be used without accepting it",
+    "publicando": "Publishing…",
+    "publicar": "Publish new version",
+    "ultimas_versiones": "Latest versions"
+  },
+  "zonas": {
+    "titulo": "Zones",
+    "subtitulo": "Named areas over the territory",
+    "nueva": "New zone",
+    "sin_servicio_titulo": "They ask for service and we have not arrived yet",
+    "sin_servicio_detalle": "{{tutores}} to request a walk and {{cuidadores}} in {{celdas}} outside the service area. They show in purple on the Territory map.",
+    "tutores_one": "{{count}} tutor tried",
+    "tutores_other": "{{count}} tutors tried",
+    "cuidadores_viven_one": "{{count}} caregiver lives",
+    "cuidadores_viven_other": "{{count}} caregivers live",
+    "celdas_one": "{{count}} cell",
+    "celdas_other": "{{count}} cells",
+    "excluidas": " · {{count}} excluded",
+    "vacio": "There are no zones yet. Create the first one by painting the neighborhoods you want to serve.",
+    "resumen": "{{demanda}} pending requests · {{paseos}} walks in progress · average coverage {{cobertura}}",
+    "sin_cobertura_one": "{{count}} cell with requests and no caregivers",
+    "sin_cobertura_other": "{{count}} cells with requests and no caregivers",
+    "estados": {
+      "piloto": "pilot",
+      "activa": "active",
+      "cerrada": "closed"
+    },
+    "editor": {
+      "faltan_datos": "Missing information",
+      "faltan_datos_desc": "Enter the name, the city and the reason for the change.",
+      "listo": "Done",
+      "guardada": "The zone was saved.",
+      "no_se_pudo_guardar": "Could not save",
+      "zona": "Zone",
+      "no_existe": "This zone no longer exists.",
+      "subtitulo": "Tap the hexagons to add them to the zone",
+      "datos": "Zone details",
+      "nombre": "Name",
+      "nombre_placeholder": "E.g.: Chicó",
+      "ciudad": "City",
+      "ciudad_placeholder": "E.g.: Bogotá",
+      "estado": "Status",
+      "mapa": {
+        "barrios": "Neighborhoods",
+        "ajuste_fino": "Fine tuning",
+        "agregar": "Add",
+        "excluir": "Exclude",
+        "guardar": "Save zone",
+        "guardando": "Saving…",
+        "celda": "cell",
+        "celdas": "cells",
+        "excluida": "excluded",
+        "excluidas": "excluded",
+        "ya_es_de": "This cell already belongs to the zone \"{nombre}\"",
+        "solo_excluir_dentro": "You can only exclude within what the zone already covers",
+        "acerca": "Zoom in to see the cells of this scale"
+      }
+    }
+  },
+  "territorio": {
+    "cargando": "Loading zones…",
+    "celdas_resolucion": "{{count}} cells {{resolucion}}",
+    "celdas": "{{count}} cells",
+    "boton_zonas": "Zones",
+    "mapa": {
+      "mi_ubicacion": "My location",
+      "cambiar_tema": "Toggle theme",
+      "cambiar_r9": "Click: switch to R9",
+      "cambiar_r8": "Click: switch to R8",
+      "ver_inteligencia": "Switch to Insights",
+      "ver_estado": "Switch to Status",
+      "bienestar": "Wellbeing",
+      "seguridad": "Safety",
+      "actividad": "Activity",
+      "socializacion": "Socializing",
+      "sin_datos": "No data",
+      "estado": "Status",
+      "inteligencia": "Insights",
+      "tipo": "Type",
+      "eventos": "Events",
+      "cuidadores": "Caregivers",
+      "demanda": "Demand",
+      "activos": "Active",
+      "paseos": "Walks",
+      "interesados": "Interested",
+      "tutores_min": "tutors",
+      "cuidadores_min": "caregivers"
+    },
+    "estados": {
+      "sin_actividad": "No activity",
+      "disponible": "Available",
+      "sin_cobertura": "No coverage",
+      "activa": "Active",
+      "en_operacion": "In operation",
+      "interes": "Interest without service",
+      "saturada": "Saturated"
+    },
+    "detalle": {
+      "titulo": "⬡ Zone details",
+      "estado_zona": "📊 Zone status",
+      "cuidadores": "Caregivers",
+      "demanda": "Demand",
+      "activos": "Active",
+      "cuidadores_lista": "🐕 Caregivers ({{count}})",
+      "sin_cuidadores": "No caregivers in this zone",
+      "habilitado": "✓ Approved",
+      "inactivo": "Inactive",
+      "solicitudes": "📋 Pending requests ({{count}})",
+      "sin_solicitudes": "No pending requests",
+      "error_cargar": "Error loading details"
+    }
+  },
+  "habilitaciones": {
+    "titulo": "Approvals",
+    "subtitulo": "Who can offer each service",
+    "vacio": {
+      "EN_REVISION": "There are no approvals waiting for review.",
+      "BORRADOR": "Nobody has an approval in draft.",
+      "APROBADA": "There are no approved approvals yet.",
+      "SUSPENDIDA": "There are no suspended approvals.",
+      "RECHAZADA": "There are no rejected approvals."
+    },
+    "sin_nombre": "No name",
+    "actualizada_el": " · updated on {{fecha}}",
+    "por_revisar_one": "{{count}} requirement to review",
+    "por_revisar_other": "{{count}} requirements to review",
+    "detalle": {
+      "titulo_vacio": "Approval",
+      "no_existe": "The approval does not exist.",
+      "no_se_pudo": "Could not complete",
+      "aprobar_titulo": "Approve {{requisito}}",
+      "evidencia_valida": "Is the evidence valid?",
+      "aprobar": "Approve",
+      "estado": "Status",
+      "usuario": "User: {{id}}",
+      "requisitos": "Requirements",
+      "decision": "Decision on the approval",
+      "motivo_obligatorio": "Reason (required)",
+      "motivo_opcional": "Reason (optional)",
+      "motivo_placeholder": "The person will see it",
+      "confirmar": "Confirm",
+      "historial": "History",
+      "sin_movimientos": "No activity yet."
+    },
+    "decisiones": {
+      "RECHAZAR": "Reject",
+      "SUSPENDER": "Suspend",
+      "REACTIVAR": "Reactivate",
+      "REABRIR": "Reopen",
+      "REABRIR_EN_REVISION": "Send back for corrections"
+    },
+    "tarjeta": {
+      "lo_comprueba_sistema": "The system checks it on submission.",
+      "vence_el": "Expires on {{fecha}}",
+      "vencio_el": "Expired on {{fecha}}",
+      "rechazado": "Rejected: {{motivo}}",
+      "proveedor": "Validated by the provider ({{proveedor}}): its response will arrive.",
+      "aprobar": "Approve",
+      "rechazar": "Reject",
+      "que_corregir": "What needs to be corrected?",
+      "motivo_placeholder": "E.g.: the photo is blurry, retake it in good light",
+      "confirmar_rechazo": "Confirm rejection"
+    },
+    "visor": {
+      "ver_archivos": "View files",
+      "no_subido": "This file was not uploaded",
+      "no_se_puede_mostrar": "File {{tipo}}: cannot be displayed here"
+    },
+    "historial": {
+      "enviada": "Sent for review",
+      "aprobada": "Qualification approved",
+      "reactivada": "Qualification reactivated",
+      "rechazada": "Qualification rejected",
+      "suspendida": "Qualification suspended",
+      "devuelta": "Returned to fix",
+      "renovacion": "Reopened to renew what expired",
+      "reabierta": "Reopened",
+      "creada": "Qualification started",
+      "otro": "Change recorded",
+      "requisito_en_revision": "{{requisito}}: sent for review",
+      "requisito_verificado": "{{requisito}}: verified",
+      "requisito_rechazado": "{{requisito}}: rejected",
+      "requisito_expirado": "{{requisito}}: expired",
+      "requisito_pendiente": "{{requisito}}: back to pending",
+      "requisito_otro": "{{requisito}}: change recorded",
+      "quien": {
+        "persona": "The person",
+        "equipo": "Team",
+        "sistema": "Automatic"
+      },
+      "mas": "And {{cantidad}} earlier changes"
+    }
+  }
+}

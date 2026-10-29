@@ -24,11 +24,12 @@ import {
 import { validarMotivo } from '@/functions/src/compartido/versionables'
 import { NombreUsuario } from './NombreUsuario'
 import { estilosAdmin } from './estilosAdmin'
+import { useTranslation } from 'react-i18next'
 
 const HORA_MS = 60 * 60 * 1000
 const aMs = (v: any): number => v?.toMillis?.() ?? new Date(v).getTime()
-const hace = (v: any) =>
-  `hace ${Math.max(0, Math.floor((Date.now() - aMs(v)) / HORA_MS))} h`
+const horasDesde = (v: any) =>
+  Math.max(0, Math.floor((Date.now() - aMs(v)) / HORA_MS))
 
 /** Motivo obligatorio + acciones de una decisión del equipo. */
 const Decision: React.FC<{
@@ -38,6 +39,7 @@ const Decision: React.FC<{
     onPress: (_motivo: string) => Promise<void>
   }>
 }> = ({ acciones }) => {
+  const { t } = useTranslation('admin')
   const [motivo, setMotivo] = useState('')
   const [enviando, setEnviando] = useState(false)
   const motivoValido = validarMotivo(motivo) === null
@@ -48,7 +50,7 @@ const Decision: React.FC<{
       await accion(motivo.trim())
       setMotivo('')
     } catch (e) {
-      Alert.alert('❌ No se pudo', mensajeErrorCallable(e))
+      Alert.alert(t('entregas.no_se_pudo'), mensajeErrorCallable(e))
     } finally {
       setEnviando(false)
     }
@@ -60,7 +62,7 @@ const Decision: React.FC<{
         style={[estilosAdmin.input, styles.motivo]}
         value={motivo}
         onChangeText={setMotivo}
-        placeholder="Motivo de la decisión (queda registrado)"
+        placeholder={t('entregas.motivo_placeholder')}
         placeholderTextColor={COLOR.SUBTEXTO}
         maxLength={300}
       />
@@ -80,6 +82,8 @@ const Decision: React.FC<{
 }
 
 export const PanelEntregasPorRevisar: React.FC = () => {
+  const { t } = useTranslation('admin')
+  const hace = (v: any) => t('entregas.hace_horas', { horas: horasDesde(v) })
   const porRevisar = useMemo(
     () =>
       query(
@@ -105,30 +109,35 @@ export const PanelEntregasPorRevisar: React.FC = () => {
 
   return (
     <View>
-      <Text style={estilosAdmin.label}>Entregas sin confirmar</Text>
+      <Text style={estilosAdmin.label}>{t('entregas.sin_confirmar')}</Text>
       {paseos.length === 0 ? (
-        <Text style={estilosAdmin.ayuda}>No hay entregas por revisar</Text>
+        <Text style={estilosAdmin.ayuda}>{t('entregas.vacio')}</Text>
       ) : (
         paseos.map(p => (
           <Card key={p.id} style={styles.card}>
             <Text style={styles.titulo}>
-              {p.mascota_nombre_visual || 'Paseo'}
+              {p.mascota_nombre_visual || t('entregas.paseo')}
             </Text>
             <Text style={styles.detalle}>
-              Tutor: <NombreUsuario uid={p.creado_por} style={styles.detalle} />
-              {p.id_cuidador ? ' · Cuidador: ' : ''}
+              {t('entregas.tutor')}
+              <NombreUsuario uid={p.creado_por} style={styles.detalle} />
+              {p.id_cuidador ? t('entregas.cuidador') : ''}
               {p.id_cuidador && (
                 <NombreUsuario uid={p.id_cuidador} style={styles.detalle} />
               )}
             </Text>
             <Text style={styles.detalle}>
-              Finalizado {hace(p.fecha_fin_real ?? p.requiere_revision_desde)}
-              {p.foto_entrega_grupo ? ' · con foto del grupo' : ' · sin foto'}
+              {t('entregas.finalizado', {
+                hace: hace(p.fecha_fin_real ?? p.requiere_revision_desde),
+              })}
+              {p.foto_entrega_grupo
+                ? t('entregas.con_foto')
+                : t('entregas.sin_foto')}
             </Text>
             <Decision
               acciones={[
                 {
-                  titulo: 'Cerrar a favor del cuidador',
+                  titulo: t('entregas.cerrar_a_favor'),
                   onPress: async motivo => {
                     await resolverEntregaPendiente({
                       paseoId: p.id,
@@ -138,7 +147,7 @@ export const PanelEntregasPorRevisar: React.FC = () => {
                   },
                 },
                 {
-                  titulo: 'Abrir disputa',
+                  titulo: t('entregas.abrir_disputa'),
                   variante: 'contorno',
                   onPress: async motivo => {
                     await resolverEntregaPendiente({
@@ -154,22 +163,23 @@ export const PanelEntregasPorRevisar: React.FC = () => {
         ))
       )}
 
-      <Text style={estilosAdmin.label}>Reclamos de cobro</Text>
+      <Text style={estilosAdmin.label}>{t('entregas.reclamos')}</Text>
       {abiertos.length === 0 ? (
-        <Text style={estilosAdmin.ayuda}>No hay reclamos abiertos</Text>
+        <Text style={estilosAdmin.ayuda}>{t('entregas.reclamos_vacio')}</Text>
       ) : (
         abiertos.map(o => (
           <Card key={o.id} style={styles.card}>
             <Text style={styles.titulo}>{formatearCOP(o.valor)}</Text>
             <Text style={styles.detalle}>
-              Tutor: <NombreUsuario uid={o.deudor} style={styles.detalle} /> ·{' '}
+              {t('entregas.tutor')}
+              <NombreUsuario uid={o.deudor} style={styles.detalle} /> ·{' '}
               {hace(o.reclamo?.en)}
             </Text>
             <Text style={styles.detalle}>“{o.reclamo?.motivo}”</Text>
             <Decision
               acciones={[
                 {
-                  titulo: 'Mantener cobro',
+                  titulo: t('entregas.mantener_cobro'),
                   onPress: async motivo => {
                     await resolverReclamoCobro({
                       obligacionId: o.id,
@@ -179,7 +189,7 @@ export const PanelEntregasPorRevisar: React.FC = () => {
                   },
                 },
                 {
-                  titulo: 'Anular cobro',
+                  titulo: t('entregas.anular_cobro'),
                   variante: 'contorno',
                   onPress: async motivo => {
                     await resolverReclamoCobro({

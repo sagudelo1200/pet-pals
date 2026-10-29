@@ -7,7 +7,7 @@ import {
   deleteObject,
   getDownloadURL,
   ref,
-  uploadString,
+  uploadBytes,
 } from 'firebase/storage'
 import { storage } from '@/firebase.config'
 import { CrudResult, mapFirebaseError } from '@/services/firebase/comun'
@@ -18,14 +18,20 @@ const codigoDe = (error: unknown): string | undefined =>
   (error as { code?: string } | null)?.code
 
 export const ServicioArchivos = {
-  /** Sube (o reemplaza) un archivo que llega en base64. */
-  async subirBase64(
+  /**
+   * Sube (o reemplaza) un archivo local. Se lee como Blob desde su dirección:
+   * en React Native, Storage no puede armar un Blob desde bytes en memoria
+   * (uploadString / ArrayBuffer fallan con "Creating blobs from 'ArrayBuffer'
+   * ... are not supported").
+   */
+  async subirArchivo(
     ruta: string,
-    base64: string,
+    uri: string,
     contentType: string
   ): Promise<CrudResult<{ ruta: string }>> {
     try {
-      await uploadString(ref(storage, ruta), base64, 'base64', { contentType })
+      const blob = await (await fetch(uri)).blob()
+      await uploadBytes(ref(storage, ruta), blob, { contentType })
       return { success: true, data: { ruta } }
     } catch (error) {
       return { success: false, error: mapFirebaseError(error) }

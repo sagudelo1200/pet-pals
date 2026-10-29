@@ -1,0 +1,609 @@
+{
+  "tabs": {
+    "ajustes": "Ajustes",
+    "habilitaciones": "Habilitaciones",
+    "economia": "Economía",
+    "territorio": "Territorio",
+    "mi_cuenta": "Mi cuenta"
+  },
+  "ajustes": {
+    "titulo": "Ajustes",
+    "documentos_legales": "Documentos legales"
+  },
+  "economia": {
+    "titulo": "Economía",
+    "solo_lectura": "Solo lectura",
+    "liquidaciones": "Liquidaciones a cuidadores",
+    "entregas": "Entregas por revisar",
+    "cobros": "Cobros pendientes de tutores",
+    "documentos_recientes": "Documentos contables recientes",
+    "documentos_error": "Documentos contables con error",
+    "politica": "Política comercial"
+  },
+  "politica": {
+    "campos": {
+      "base_por_hora": {
+        "etiqueta": "Precio por hora (COP)",
+        "ayuda": "Paseo de 1 mascota, 60 minutos"
+      },
+      "mascota_adicional": {
+        "etiqueta": "Recargo por mascota adicional (COP/hora)"
+      },
+      "porcentaje_plataforma": {
+        "etiqueta": "Comisión Paw-Path (%)",
+        "ayuda": "El resto es para el cuidador"
+      },
+      "porcentaje_iva": {
+        "etiqueta": "IVA sobre la comisión (%)",
+        "ayuda": "Solo grava la comisión, no el dinero del cuidador"
+      },
+      "plazo_pago_horas": {
+        "etiqueta": "Plazo para pagar (horas)",
+        "ayuda": "Desde que finaliza el paseo; luego se envían recordatorios"
+      },
+      "bloqueo_tras_horas": {
+        "etiqueta": "Bloquear tras (horas)",
+        "ayuda": "Sin pagar, el tutor no puede pedir nuevos paseos"
+      },
+      "max_recordatorios": {
+        "etiqueta": "Máximo de recordatorios"
+      },
+      "intervalo_recordatorios_horas": {
+        "etiqueta": "Horas entre recordatorios"
+      },
+      "horario_desde": {
+        "etiqueta": "Recordatorios desde (hora 0-23)",
+        "ayuda": "Hora de Colombia"
+      },
+      "horario_hasta": {
+        "etiqueta": "Recordatorios hasta (hora 1-24)"
+      },
+      "dia_corte": {
+        "etiqueta": "Día de corte (0=domingo … 6=sábado)",
+        "ayuda": "El periodo cierra a las 23:59"
+      },
+      "dia_pago": {
+        "etiqueta": "Día de pago (0=domingo … 6=sábado)",
+        "ayuda": "Informativo para el cuidador"
+      },
+      "monto_minimo": {
+        "etiqueta": "Monto mínimo a liquidar (COP)",
+        "ayuda": "Si no se alcanza, pasa a la semana siguiente"
+      },
+      "ventana_reclamo_horas": {
+        "etiqueta": "Ventana de reclamo (horas)",
+        "ayuda": "Tiempo del tutor para reclamar un cobro cerrado por el equipo"
+      },
+      "cierre_automatico_horas": {
+        "etiqueta": "Cierre automático tras (horas, 0 = apagado)",
+        "ayuda": "Cierra la entrega sin confirmar solo, desde que el cuidador finaliza"
+      }
+    },
+    "opciones": {
+      "iva_aplica": {
+        "label": "Cobrar IVA sobre la comisión",
+        "desc": "Si Paw-Path es responsable de IVA"
+      },
+      "iva_incluido": {
+        "label": "IVA incluido en el precio",
+        "desc": "Si se desactiva, el IVA se suma al precio que paga el tutor"
+      },
+      "solo_recaudadas": {
+        "label": "Liquidar solo paseos ya pagados por el tutor",
+        "desc": "Si se desactiva, Paw-Path paga al cuidador aunque el tutor no haya pagado"
+      },
+      "documento_soporte": {
+        "label": "Documento soporte al pagar a cuidadores",
+        "desc": "Para cuidadores no obligados a facturar (DIAN)"
+      },
+      "cobrar_si_cierra_equipo": {
+        "label": "El equipo puede cerrar una entrega sin confirmar y cobrar",
+        "desc": "Si el tutor no confirma, el equipo cierra a favor del cuidador y se genera el cobro (el tutor puede reclamar)"
+      },
+      "cierre_requiere_evidencia": {
+        "label": "El cierre automático exige evidencia",
+        "desc": "Foto del grupo subida por el cuidador"
+      }
+    },
+    "vista_previa": {
+      "titulo": "Vista previa (paseo de 1 hora)",
+      "linea_one": "{{count}} mascota: tutor paga {{tutor}} · cuidador recibe {{cuidador}} · Paw-Path {{comision}} + IVA {{iva}}",
+      "linea_other": "{{count}} mascotas: tutor paga {{tutor}} · cuidador recibe {{cuidador}} · Paw-Path {{comision}} + IVA {{iva}}"
+    },
+    "publicada": "✅ Publicada",
+    "sin_cambios": "Sin cambios",
+    "publicada_desc": "Política comercial v{{version}} vigente desde ahora.",
+    "sin_cambios_desc": "Los valores son iguales a la versión vigente; no se creó versión.",
+    "no_publico": "❌ No se publicó",
+    "cargando": "Cargando política…",
+    "sin_politica": "No hay política publicada",
+    "crear_v1": " Crea la versión 1 con `npm run seed:base`.",
+    "vigente": "Vigente: versión {{version}}",
+    "publicando": "Publicando…",
+    "publicar": "Publicar nueva versión",
+    "ultimas_versiones": "Últimas versiones",
+    "resumen": {
+      "precio_hora": "Precio por hora",
+      "mascota_adicional": "Mascota adicional (por hora)",
+      "comision": "Comisión Paw-Path",
+      "iva": "IVA sobre la comisión",
+      "iva_valor": "{{porcentaje}} % ({{modo}})",
+      "iva_incluido": "incluido en el precio",
+      "iva_se_suma": "se suma al precio",
+      "iva_no_aplica": "no aplica",
+      "plazo": "Plazo para pagar",
+      "bloqueo": "Bloqueo tras",
+      "bloqueo_valor": "{{horas}} h sin pagar",
+      "corte": "Corte de liquidación",
+      "dia_pago": "Día de pago",
+      "monto_minimo": "Monto mínimo a liquidar",
+      "solo_pagado": "Liquidar solo lo ya pagado",
+      "documento_soporte": "Documento soporte a cuidadores",
+      "cierre_equipo": "Equipo puede cerrar entrega sin confirmar y cobrar",
+      "ventana_reclamo": "Ventana de reclamo del tutor",
+      "cierre_auto": "Cierre automático de entrega",
+      "cierre_auto_valor": "tras {{horas}} h",
+      "cierre_auto_evidencia": "tras {{horas}} h (con evidencia)",
+      "apagado": "apagado"
+    }
+  },
+  "comun": {
+    "si": "sí",
+    "no": "no",
+    "sistema": "Sistema"
+  },
+  "liquidaciones": {
+    "titulo_alerta": "Liquidaciones",
+    "creadas_one": "{{count}} liquidación creada",
+    "creadas_other": "{{count}} liquidaciones creadas",
+    "ninguna": "No hay pagos listos para liquidar (o no alcanzan el monto mínimo)",
+    "error": "❌ Error",
+    "falta_referencia": "Falta la referencia",
+    "escribe_referencia": "Escribe la referencia de la transferencia",
+    "confirmar_pago": "Confirmar pago",
+    "confirmar_pago_msg": "¿Registrar transferencia {{referencia}} por {{monto}}?",
+    "registrar": "Registrar",
+    "generando": "Generando…",
+    "generar": "Generar liquidaciones ahora",
+    "vacio": "No hay liquidaciones por pagar",
+    "detalle_paseos_one": "{{count}} paseo",
+    "detalle_paseos_other": "{{count}} paseos",
+    "hasta": "hasta {{fecha}}",
+    "referencia_placeholder": "Referencia de la transferencia",
+    "registrando": "Registrando…",
+    "registrar_pago": "Registrar pago"
+  },
+  "entregas": {
+    "no_se_pudo": "❌ No se pudo",
+    "motivo_placeholder": "Motivo de la decisión (queda registrado)",
+    "hace_horas": "hace {{horas}} h",
+    "sin_confirmar": "Entregas sin confirmar",
+    "vacio": "No hay entregas por revisar",
+    "paseo": "Paseo",
+    "tutor": "Tutor: ",
+    "cuidador": " · Cuidador: ",
+    "finalizado": "Finalizado {{hace}}",
+    "con_foto": " · con foto del grupo",
+    "sin_foto": " · sin foto",
+    "cerrar_a_favor": "Cerrar a favor del cuidador",
+    "abrir_disputa": "Abrir disputa",
+    "reclamos": "Reclamos de cobro",
+    "reclamos_vacio": "No hay reclamos abiertos",
+    "mantener_cobro": "Mantener cobro",
+    "anular_cobro": "Anular cobro"
+  },
+  "cobros": {
+    "vacio": "No hay cobros pendientes",
+    "detalle_one": " · hace {{horas}} h · {{count}} recordatorio",
+    "detalle_other": " · hace {{horas}} h · {{count}} recordatorios",
+    "vencido": "Vencido: tutor bloqueado"
+  },
+  "documentos": {
+    "tipos": {
+      "FACTURA_VENTA": "Factura de venta",
+      "RECIBO_CAJA": "Recibo de caja",
+      "DOCUMENTO_SOPORTE": "Documento soporte",
+      "RECIBO_PAGO": "Recibo de pago",
+      "NOTA_CREDITO": "Nota crédito",
+      "COMPROBANTE": "Comprobante contable"
+    },
+    "sin_enviar": "Sin enviar",
+    "quedo_en_estado": "El documento quedó en estado {{estado}}",
+    "error": "❌ Error",
+    "vacio_lectura": "Aún no hay documentos contables",
+    "vacio": "Todos los documentos están reflejados en el sistema contable",
+    "envio": " · envío {{estado}}",
+    "intentos_one": "{{id}} · {{count}} intento",
+    "intentos_other": "{{id}} · {{count}} intentos",
+    "reintentando": "Reintentando…",
+    "reintentar": "Reintentar envío"
+  },
+  "configuracion": {
+    "paseos": {
+      "titulo": "Paseos",
+      "max_mascotas": {
+        "titulo": "Máximo de mascotas por paseo",
+        "descripcion": "Límite de mascotas en un mismo paseo (también compartido). Cada cuidador puede elegir trabajar con menos, nunca con más"
+      },
+      "escalada_minutos": {
+        "titulo": "Escalar solicitud dirigida tras",
+        "descripcion": "Si el cuidador elegido no responde, la solicitud se abre a otros cuidadores"
+      },
+      "foto_entrega_obligatoria": {
+        "titulo": "Foto de entrega obligatoria",
+        "descripcion": "Exige al cuidador subir la foto del grupo para finalizar el paseo"
+      },
+      "entrega_aviso_horas": {
+        "titulo": "Avisar al tutor tras",
+        "descripcion": "Horas desde que el cuidador finaliza el paseo hasta que se recuerda al tutor confirmar la entrega (mensaje en el chat)"
+      },
+      "entrega_revision_horas": {
+        "titulo": "Enviar a revisión del equipo tras",
+        "descripcion": "Horas desde que el cuidador finaliza el paseo hasta que, si el tutor no confirmó la entrega, pasa a la cola del equipo"
+      },
+      "servicio_desde_min": {
+        "titulo": "Primera hora de servicio",
+        "descripcion": "Hora más temprana en que puede empezar un paseo y en que un cuidador puede declarar su horario, en minutos desde la medianoche, hora de Colombia (330 = 5:30 a. m.)"
+      },
+      "servicio_hasta_min": {
+        "titulo": "Última hora de servicio",
+        "descripcion": "Hora en que debe terminar el último paseo del día, en minutos desde la medianoche, hora de Colombia (1350 = 10:30 p. m.)"
+      },
+      "margen_horario_min": {
+        "titulo": "Margen sobre el horario del cuidador",
+        "descripcion": "Minutos de cortesía: un paseo que empieza un poco antes o termina un poco después del horario declarado igual se considera dentro de él"
+      },
+      "antelacion_min": {
+        "titulo": "Antelación mínima de un paseo",
+        "descripcion": "Minutos que deben faltar para el inicio de un paseo de hoy para poder pedirlo o aceptarlo"
+      },
+      "descanso_entre_paseos_min": {
+        "titulo": "Descanso entre paseos",
+        "descripcion": "Minutos libres que necesita un cuidador entre el final de un paseo y el inicio del siguiente"
+      }
+    },
+    "zonas": {
+      "titulo": "Zonas de servicio",
+      "exigir_zona": {
+        "titulo": "Atender solo en zonas definidas",
+        "descripcion": "Si está activo, solo se pueden pedir servicios (y los cuidadores solo reciben solicitudes) en zonas activas o piloto. Quien lo intenta fuera queda registrado como interesado. Déjalo apagado hasta tener definida la primera zona"
+      }
+    },
+    "auth": {
+      "titulo": "Verificación de email (OTP)",
+      "otp_minutos_expiracion": {
+        "titulo": "Validez del código",
+        "descripcion": "Minutos durante los que el código enviado es válido"
+      },
+      "otp_segundos_reenvio": {
+        "titulo": "Espera para reenviar",
+        "descripcion": "Segundos entre envíos de código (evita abuso y costos)"
+      },
+      "otp_max_intentos": {
+        "titulo": "Intentos permitidos",
+        "descripcion": "Intentos fallidos antes de bloquear el código"
+      }
+    },
+    "evaluaciones": {
+      "titulo": "Evaluaciones",
+      "dias_revelacion": {
+        "titulo": "Días posibles de revelación",
+        "descripcion": "Una evaluación sin contraparte se revela en uno de estos días, al azar (el evaluado no sabe cuándo)"
+      }
+    },
+    "funcionalidades": {
+      "titulo": "Funcionalidades",
+      "paseo_compartido": {
+        "titulo": "Paseo compartido",
+        "descripcion": "Permite elegir paseos compartidos al reservar"
+      }
+    },
+    "expediente": {
+      "titulo": "Conocer a la mascota",
+      "dias_vigencia_aprendizaje": {
+        "titulo": "Días de vigencia de un aprendizaje",
+        "descripcion": "Un aprendizaje sobre la mascota (\"se pone nervioso con motos\") deja de mostrarse en el resumen si no se vuelve a ver en estos días. No se borra."
+      },
+      "repeticiones_para_firme": {
+        "titulo": "Veces para considerar firme un aprendizaje",
+        "descripcion": "Veces que debe observarse un aprendizaje (o que lo vean 2 cuidadores distintos) para pasar de \"observado\" a \"firme\""
+      },
+      "aprendizajes_en_resumen": {
+        "titulo": "Aprendizajes por sección en el resumen previo",
+        "descripcion": "Máximo de aprendizajes que ve el cuidador antes del paseo en cada sección (qué funciona, qué evitar, ten en cuenta)"
+      },
+      "priorizar_conocidos": {
+        "titulo": "Priorizar cuidadores que ya conocen la mascota",
+        "descripcion": "Al elegir cuidador, los que ya pasearon a la mascota aparecen primero y con su número de paseos"
+      }
+    },
+    "habilitaciones": {
+      "titulo": "Habilitación de cuidadores",
+      "antecedentes_vigencia_meses": {
+        "titulo": "Vigencia de los antecedentes",
+        "descripcion": "Meses que vale el certificado de antecedentes judiciales desde que se aprueba; al vencer, el cuidador debe renovarlo. No cambia los ya aprobados"
+      }
+    },
+    "emparejamiento": {
+      "titulo": "Emparejamiento de cuidadores",
+      "peso_continuidad": {
+        "titulo": "Peso de conocer a la mascota",
+        "descripcion": "Qué tanto sube en la lista un cuidador que ya paseó a las mascotas del pedido (se aplica solo si \"Priorizar cuidadores que ya conocen la mascota\" está activo)"
+      },
+      "peso_calificacion": {
+        "titulo": "Peso de la calificación",
+        "descripcion": "Qué tanto pesa la calificación del cuidador (suavizada: con pocos paseos pesa menos)"
+      },
+      "peso_cercania": {
+        "titulo": "Peso de la cercanía",
+        "descripcion": "Qué tanto pesa que el cuidador viva cerca del tutor"
+      },
+      "paseos_para_confiar": {
+        "titulo": "Paseos para confiar en la calificación",
+        "descripcion": "Con menos paseos que estos, la calificación se mezcla con una inicial y el cuidador figura como \"nuevo\""
+      },
+      "penalizacion_por_aviso": {
+        "titulo": "Descuento por aviso",
+        "descripcion": "Cuánto baja en la lista un cuidador al que el pedido no le encaja del todo (un tamaño que no suele cuidar, más perros de los que prefiere). No lo oculta: se le avisa al tutor y el cuidador decide"
+      },
+      "max_resultados": {
+        "titulo": "Cuidadores que se muestran",
+        "descripcion": "Máximo de cuidadores que se devuelven al tutor al elegir"
+      }
+    },
+    "unidades": {
+      "min": "min",
+      "h": "h",
+      "s": "s",
+      "dias": "días",
+      "meses": "meses",
+      "paseos": "paseos"
+    },
+    "guardado": "✅ Guardado",
+    "actualizado": "Actualizado: {{lista}}. Se aplica en todas partes en menos de un minuto.",
+    "nada": "nada",
+    "no_se_guardo": "❌ No se guardó",
+    "guardando": "Guardando…",
+    "guardar": "Guardar cambios",
+    "descartar": "Descartar",
+    "ultimos_cambios": "Últimos cambios"
+  },
+  "motivo": {
+    "titulo": "Motivo del cambio",
+    "placeholder": "Ej: ajuste de precios de temporada",
+    "ayuda": "Queda registrado en el historial de versiones"
+  },
+  "versiones": {
+    "reactivada": "✅ Reactivada",
+    "reactivada_desc": "El contenido de la v{{version}} rige ahora como v{{nueva}}.",
+    "ya_vigente": "Ese contenido ya es el vigente.",
+    "no_reactivo": "❌ No se reactivó",
+    "vacio": "Aún no hay versiones publicadas.",
+    "vigente": "VIGENTE",
+    "historica": "HISTÓRICA",
+    "desde": "Desde {{desde}}",
+    "desde_hasta": "Desde {{desde}} hasta {{hasta}}",
+    "por": "Por ",
+    "huella": " · huella {{hash}}",
+    "reactivando": "Reactivando…",
+    "volver_a": "Volver a la v{{version}}",
+    "reactivar": "Reactivar"
+  },
+  "historial": {
+    "vacio": "Sin cambios registrados."
+  },
+  "consentimientos": {
+    "tipos": {
+      "TERMINOS_SERVICIO": "Términos de Servicio",
+      "DATOS_PERSONALES": "Tratamiento de Datos Personales",
+      "MARKETING_COMUNICACIONES": "Comunicaciones de Marketing"
+    },
+    "publicada": "✅ Publicada",
+    "sin_cambios": "Sin cambios",
+    "publicada_desc": "{{tipo}} v{{version}} vigente. Quienes aceptaron la anterior deberán reconfirmar.",
+    "sin_cambios_desc": "El contenido es igual al vigente; no se creó versión.",
+    "no_publico": "❌ No se publicó",
+    "error": "❌ Error",
+    "vigente": "Vigente: versión {{version}}",
+    "sin_version": "Sin versión publicada",
+    "titulo": "Título",
+    "texto": "Texto (Markdown)",
+    "roles": "Roles que lo aceptan",
+    "roles_placeholder": "Vacío = todos (ej: tutor, cuidador)",
+    "meses": "Reconfirmar cada (meses)",
+    "meses_placeholder": "Vacío = no requiere reconfirmación",
+    "obligatorio": "Obligatorio",
+    "obligatorio_desc": "Sin aceptarlo no se puede usar la app",
+    "publicando": "Publicando…",
+    "publicar": "Publicar nueva versión",
+    "ultimas_versiones": "Últimas versiones"
+  },
+  "zonas": {
+    "titulo": "Zonas",
+    "subtitulo": "Sectores con nombre sobre el territorio",
+    "nueva": "Nueva zona",
+    "sin_servicio_titulo": "Piden servicio y aún no llegamos",
+    "sin_servicio_detalle": "{{tutores}} pedir un paseo y {{cuidadores}} en {{celdas}} fuera de servicio. Se ven en morado en el mapa de Territorio.",
+    "tutores_one": "{{count}} tutor intentó",
+    "tutores_other": "{{count}} tutores intentaron",
+    "cuidadores_viven_one": "{{count}} cuidador vive",
+    "cuidadores_viven_other": "{{count}} cuidadores viven",
+    "celdas_one": "{{count}} celda",
+    "celdas_other": "{{count}} celdas",
+    "excluidas": " · {{count}} excluidas",
+    "vacio": "Todavía no hay zonas. Crea la primera pintando los barrios que quieres atender.",
+    "resumen": "{{demanda}} pedidos pendientes · {{paseos}} paseos en curso · cobertura media {{cobertura}}",
+    "sin_cobertura_one": "{{count}} celda con pedidos y sin cuidadores",
+    "sin_cobertura_other": "{{count}} celdas con pedidos y sin cuidadores",
+    "estados": {
+      "piloto": "piloto",
+      "activa": "activa",
+      "cerrada": "cerrada"
+    },
+    "editor": {
+      "faltan_datos": "Faltan datos",
+      "faltan_datos_desc": "Escribe el nombre, la ciudad y el motivo del cambio.",
+      "listo": "Listo",
+      "guardada": "La zona quedó guardada.",
+      "no_se_pudo_guardar": "No se pudo guardar",
+      "zona": "Zona",
+      "no_existe": "Esta zona ya no existe.",
+      "subtitulo": "Toca los hexágonos para sumarlos a la zona",
+      "datos": "Datos de la zona",
+      "nombre": "Nombre",
+      "nombre_placeholder": "Ej: Chicó",
+      "ciudad": "Ciudad",
+      "ciudad_placeholder": "Ej: Bogotá",
+      "estado": "Estado",
+      "mapa": {
+        "barrios": "Barrios",
+        "ajuste_fino": "Ajuste fino",
+        "agregar": "Agregar",
+        "excluir": "Excluir",
+        "guardar": "Guardar zona",
+        "guardando": "Guardando…",
+        "celda": "celda",
+        "celdas": "celdas",
+        "excluida": "excluida",
+        "excluidas": "excluidas",
+        "ya_es_de": "Esta celda ya es de la zona \"{nombre}\"",
+        "solo_excluir_dentro": "Solo se puede excluir dentro de lo que la zona ya cubre",
+        "acerca": "Acerca el mapa para ver las celdas de esta escala"
+      }
+    }
+  },
+  "territorio": {
+    "cargando": "Cargando zonas…",
+    "celdas_resolucion": "{{count}} celdas {{resolucion}}",
+    "celdas": "{{count}} celdas",
+    "boton_zonas": "Zonas",
+    "mapa": {
+      "mi_ubicacion": "Mi ubicación",
+      "cambiar_tema": "Cambiar tema",
+      "cambiar_r9": "Clic: cambiar a R9",
+      "cambiar_r8": "Clic: cambiar a R8",
+      "ver_inteligencia": "Cambiar a Inteligencia",
+      "ver_estado": "Cambiar a Estado",
+      "bienestar": "Bienestar",
+      "seguridad": "Seguridad",
+      "actividad": "Actividad",
+      "socializacion": "Socialización",
+      "sin_datos": "Sin datos",
+      "estado": "Estado",
+      "inteligencia": "Inteligencia",
+      "tipo": "Tipo",
+      "eventos": "Eventos",
+      "cuidadores": "Cuidadores",
+      "demanda": "Demanda",
+      "activos": "Activos",
+      "paseos": "Paseos",
+      "interesados": "Interesados",
+      "tutores_min": "tutores",
+      "cuidadores_min": "cuidadores"
+    },
+    "estados": {
+      "sin_actividad": "Sin actividad",
+      "disponible": "Disponible",
+      "sin_cobertura": "Sin cobertura",
+      "activa": "Activa",
+      "en_operacion": "En operación",
+      "interes": "Interés sin servicio",
+      "saturada": "Saturada"
+    },
+    "detalle": {
+      "titulo": "⬡ Detalles de zona",
+      "estado_zona": "📊 Estado de zona",
+      "cuidadores": "Cuidadores",
+      "demanda": "Demanda",
+      "activos": "Activos",
+      "cuidadores_lista": "🐕 Cuidadores ({{count}})",
+      "sin_cuidadores": "Sin cuidadores en esta zona",
+      "habilitado": "✓ Habilitado",
+      "inactivo": "Inactivo",
+      "solicitudes": "📋 Solicitudes pendientes ({{count}})",
+      "sin_solicitudes": "Sin solicitudes pendientes",
+      "error_cargar": "Error cargando detalles"
+    }
+  },
+  "habilitaciones": {
+    "titulo": "Habilitaciones",
+    "subtitulo": "Quién puede ofrecer cada servicio",
+    "vacio": {
+      "EN_REVISION": "No hay habilitaciones esperando revisión.",
+      "BORRADOR": "Nadie tiene una habilitación en borrador.",
+      "APROBADA": "Todavía no hay habilitaciones aprobadas.",
+      "SUSPENDIDA": "No hay habilitaciones suspendidas.",
+      "RECHAZADA": "No hay habilitaciones rechazadas."
+    },
+    "sin_nombre": "Sin nombre",
+    "actualizada_el": " · actualizada el {{fecha}}",
+    "por_revisar_one": "{{count}} requisito por revisar",
+    "por_revisar_other": "{{count}} requisitos por revisar",
+    "detalle": {
+      "titulo_vacio": "Habilitación",
+      "no_existe": "La habilitación no existe.",
+      "no_se_pudo": "No se pudo completar",
+      "aprobar_titulo": "Aprobar {{requisito}}",
+      "evidencia_valida": "¿La evidencia es válida?",
+      "aprobar": "Aprobar",
+      "estado": "Estado",
+      "usuario": "Usuario: {{id}}",
+      "requisitos": "Requisitos",
+      "decision": "Decisión sobre la habilitación",
+      "motivo_obligatorio": "Motivo (obligatorio)",
+      "motivo_opcional": "Motivo (opcional)",
+      "motivo_placeholder": "La persona lo verá",
+      "confirmar": "Confirmar",
+      "historial": "Historial",
+      "sin_movimientos": "Sin movimientos todavía."
+    },
+    "decisiones": {
+      "RECHAZAR": "Rechazar",
+      "SUSPENDER": "Suspender",
+      "REACTIVAR": "Reactivar",
+      "REABRIR": "Reabrir",
+      "REABRIR_EN_REVISION": "Devolver para corregir"
+    },
+    "tarjeta": {
+      "lo_comprueba_sistema": "Lo comprueba el sistema al enviar.",
+      "vence_el": "Vence el {{fecha}}",
+      "vencio_el": "Venció el {{fecha}}",
+      "rechazado": "Rechazado: {{motivo}}",
+      "proveedor": "Lo valida el proveedor ({{proveedor}}): llega su respuesta.",
+      "aprobar": "Aprobar",
+      "rechazar": "Rechazar",
+      "que_corregir": "¿Qué debe corregir?",
+      "motivo_placeholder": "Ej: la foto está borrosa, repítela con buena luz",
+      "confirmar_rechazo": "Confirmar rechazo"
+    },
+    "visor": {
+      "ver_archivos": "Ver archivos",
+      "no_subido": "No se subió este archivo",
+      "no_se_puede_mostrar": "Archivo {{tipo}}: no se puede mostrar aquí"
+    },
+    "historial": {
+      "enviada": "Enviada a revisión",
+      "aprobada": "Habilitación aprobada",
+      "reactivada": "Habilitación reactivada",
+      "rechazada": "Habilitación rechazada",
+      "suspendida": "Habilitación suspendida",
+      "devuelta": "Devuelta para corregir",
+      "renovacion": "Reabierta para renovar lo vencido",
+      "reabierta": "Reabierta",
+      "creada": "Habilitación iniciada",
+      "otro": "Cambio registrado",
+      "requisito_en_revision": "{{requisito}}: enviado a revisión",
+      "requisito_verificado": "{{requisito}}: verificado",
+      "requisito_rechazado": "{{requisito}}: rechazado",
+      "requisito_expirado": "{{requisito}}: venció",
+      "requisito_pendiente": "{{requisito}}: vuelve a pendiente",
+      "requisito_otro": "{{requisito}}: cambio registrado",
+      "quien": {
+        "persona": "La persona",
+        "equipo": "Equipo",
+        "sistema": "Automático"
+      },
+      "mas": "Y {{cantidad}} movimientos anteriores"
+    }
+  }
+}

@@ -26,6 +26,27 @@ service firebase.storage {
         && request.resource.contentType.matches('image/(jpeg|png|webp)|application/pdf');
     }
 
+    // Perfil `foto_entrega`: FOTO DEL GRUPO AL TERMINAR UN PASEO
+    //   paseos/{paseoId}/entrega/{archivo}
+    // La sube el cuidador asignado a ese paseo mientras está en curso o recién
+    // finalizado; la leen el cuidador y quien lo pidió. Consulta el paseo en
+    // Firestore (una lectura por subida) para saber quién es quién.
+    match /paseos/{paseoId}/entrega/{archivo} {
+      function paseo() {
+        return firestore.get(/databases/(default)/documents/operaciones/$(paseoId)).data;
+      }
+      allow read: if request.auth != null
+        && (paseo().id_cuidador == request.auth.uid
+          || paseo().creado_por == request.auth.uid);
+      allow create, update: if request.auth != null
+        && paseo().tipo == 'paseo'
+        && paseo().id_cuidador == request.auth.uid
+        && paseo().estado in ['EN_PROGRESO', 'FINALIZADO']
+        && archivo.matches('[a-z0-9_]{1,30}')
+        && request.resource.size <= 3 * 1024 * 1024
+        && request.resource.contentType.matches('image/(jpeg|png|webp)');
+    }
+
     // Todo lo demás: denegado
     match /{allPaths=**} {
       allow read, write: if false;

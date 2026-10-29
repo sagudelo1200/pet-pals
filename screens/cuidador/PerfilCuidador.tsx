@@ -25,6 +25,11 @@ import { useAuth } from '@/context/AuthContext'
 import type { PerfilPublico, FranjaHoraria } from '@/models/PerfilPublico'
 import { TAMANOS, type Tamano } from '@/functions/src/compartido/emparejamiento'
 import { GestorPerfilPublico } from '@/logic/usuarios/perfilPublico'
+import {
+  obtenerErrorCelularI18n,
+  validarCelularColombia,
+} from '@/logic/usuarios/validador-celular'
+import { ServicioUsuario } from '@/services/firebase'
 import { celdaPrincipalDe } from '@/logic/ubicaciones/celdaPrincipal'
 import { useEstadoDeServicio } from '@/hooks/useEstadoDeServicio'
 import { AvisoSinServicio } from '@/components/comun/AvisoSinServicio'
@@ -54,10 +59,11 @@ const DEFAULT_FIN = '18:00'
 const PerfilCuidador: React.FC = () => {
   const { t } = useTranslation()
   const navigation = useNavigation<Nav>()
-  const { user, profile } = useAuth()
+  const { user, profile, recargarPerfil } = useAuth()
   const { politica } = usePoliticaComercial()
   const tarifaBase = politica?.por_tipo.paseo.precio.base_por_hora
-  const { max_mascotas: topeMascotas } = useConfiguracion('paseos')
+  const configPaseos = useConfiguracion('paseos')
+  const { max_mascotas: topeMascotas } = configPaseos
 
   const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
@@ -66,6 +72,8 @@ const PerfilCuidador: React.FC = () => {
   const [foto, setFoto] = useState('')
   const [biografia, setBiografia] = useState('')
   const [experiencia, setExperiencia] = useState('')
+  // El celular es privado (vive en `usuarios`) y hace parte de la habilitación
+  const [celular, setCelular] = useState(profile?.celular ?? '')
   // tarifa field removed for MVP (global standard price)
   // Qué perros cuida: sin tocar nada acepta cualquier tamaño y hasta el tope
   const [tamanos, setTamanos] = useState<Tamano[]>([...TAMANOS])
@@ -161,6 +169,17 @@ const PerfilCuidador: React.FC = () => {
       Alert.alert(t('comun:error'), t('cuidador:editar.biografia_obligatoria'))
       return
     }
+    const celularValido = validarCelularColombia(celular)
+    if (!celularValido.valido) {
+      const error = obtenerErrorCelularI18n(celular)
+      Alert.alert(
+        t('comun:error'),
+        error
+          ? (t(error.key, { ns: 'usuarios', ...error.params }) as string)
+          : t('cuidador:editar.celular_obligatorio')
+      )
+      return
+    }
     // Nota: la asignación de tarifa por cuidador está desactivada en MVP.
 
     // Validar cada día activo
@@ -175,13 +194,13 @@ const PerfilCuidador: React.FC = () => {
         )
         return
       }
-      if (!LogicMatching.esHorarioLaboralValido(inicio, fin)) {
+      if (!LogicMatching.esHorarioLaboralValido(inicio, fin, configPaseos)) {
         Alert.alert(
           t('comun:error'),
           t('cuidador:editar.horario_fuera_rango', {
             dia: t(DIAS_SEMANA.find(d => d.key === key)?.label ?? ''),
-            min: LogicMatching.HORA_MINIMA_SERVICIO,
-            max: LogicMatching.HORA_MAXIMA_SERVICIO,
+            min: LogicMatching.formatoHora(configPaseos.servicio_desde_min),
+            max: LogicMatching.formatoHora(configPaseos.servicio_hasta_min),
           })
         )
         return
@@ -209,6 +228,15 @@ const PerfilCuidador: React.FC = () => {
       updateData,
       h3Origen
     )
+
+    // El celular se guarda aparte: no es parte del perfil público
+    if (res.success && celularValido.celularSanitizado !== profile?.celular) {
+      const guardado = await ServicioUsuario.actualizar(user.uid, {
+        celular: celularValido.celularSanitizado,
+      })
+      if (guardado.success) await recargarPerfil()
+      else res.success = false
+    }
 
     setSaving(false)
 
@@ -289,6 +317,18 @@ const PerfilCuidador: React.FC = () => {
             multiline
             numberOfLines={4}
           />
+
+          <TextInput
+            label={t('cuidador:editar.celular_label')}
+            placeholder={t('cuidador:editar.celular_placeholder')}
+            value={celular}
+            onChangeText={setCelular}
+            keyboardType="phone-pad"
+            style={styles.input}
+          />
+          <Text style={styles.ayudaCelular}>
+            {t('cuidador:editar.celular_ayuda')}
+          </Text>
 
           <View style={styles.row}>
             <TextInput
@@ -522,6 +562,12 @@ const PerfilCuidador: React.FC = () => {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLOR.BASE },
+  ayudaCelular: {
+    color: COLOR.SUBTEXTO,
+    fontSize: 12,
+    marginTop: -8,
+    marginBottom: 12,
+  },
   tabBar: {
     flexDirection: 'row',
     borderBottomWidth: 1,

@@ -23,8 +23,6 @@ import { GestorMascotas } from '@/logic/mascotas'
 import { useGestorPaseoActivo } from '@/hooks/paseos/useGestorPaseoActivo'
 import { GestorPerfilPublico } from '@/logic/usuarios/perfilPublico'
 import { PerfilPublico } from '@/models/PerfilPublico'
-import { usePedirCelularSiFalta } from '@/hooks/usePedirCelularSiFalta'
-import { ModalCompletarCelular } from '@/components/paseos/ModalCompletarCelular'
 import { ServicioResumenEvaluacion } from '@/services/firebase'
 import { keyI18nChip } from '@/logic/mascotas/comportamiento'
 
@@ -43,7 +41,6 @@ const SolicitudModal: React.FC<Props> = ({ visible, paseo, onClose }) => {
   const [loadingMascotas, setLoadingMascotas] = useState(false)
   const [tutor, setTutor] = useState<PerfilPublico | null>(null)
   const [loadingTutor, setLoadingTutor] = useState(false)
-  const [modalCelularVisible, setModalCelularVisible] = useState(false)
   const [expediente, setExpediente] = useState<string | null>(null)
 
   // Expediente de la primera mascota: "Tranquila · Sociable · Tolerante"
@@ -88,16 +85,6 @@ const SolicitudModal: React.FC<Props> = ({ visible, paseo, onClose }) => {
       mounted = false
     }
   }, [visible, mascotas, t])
-  const {
-    tieneCelular,
-    guardarCelular,
-    cargando: cargandoCelular,
-  } = usePedirCelularSiFalta({
-    onCompletado: () => {
-      setModalCelularVisible(false)
-      handleAceptarInterno()
-    },
-  })
 
   useEffect(() => {
     let mounted = true
@@ -153,12 +140,9 @@ const SolicitudModal: React.FC<Props> = ({ visible, paseo, onClose }) => {
     maximumFractionDigits: 0,
   }).format((paseo as any).precio || 0)
 
+  // El celular del cuidador se pide en su habilitación, no al aceptar
   const handleAceptar = () => {
-    if (!tieneCelular()) {
-      setModalCelularVisible(true)
-      return
-    }
-    handleAceptarInterno()
+    void handleAceptarInterno()
   }
 
   const handleAceptarInterno = async (confirmo = false) => {
@@ -397,16 +381,6 @@ const SolicitudModal: React.FC<Props> = ({ visible, paseo, onClose }) => {
           </View>
         </View>
       </ScrollView>
-      <ModalCompletarCelular
-        visible={modalCelularVisible}
-        onClose={() => setModalCelularVisible(false)}
-        onCelularConfirmado={guardarCelular}
-        cargando={cargandoCelular}
-        titulo={t('perfil.celular.titulo_modal_cuidador', { ns: 'usuarios' })}
-        descripcion={t('perfil.celular.descripcion_modal_cuidador', {
-          ns: 'usuarios',
-        })}
-      />
     </BottomSheet>
   )
 }

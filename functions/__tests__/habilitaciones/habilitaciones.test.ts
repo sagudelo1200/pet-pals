@@ -44,8 +44,15 @@ const TODAS = [
   rutaEvidencia('ana', 'paseo', 'antecedentes', 'certificado'),
 ];
 
-let archivos: Set<string>;
-const deps = () => ({existeArchivo: async (r: string) => archivos.has(r)});
+// Archivos de Storage: ruta → cuándo se subió (ms). Por defecto, antes de que el
+// equipo decida nada; un archivo "nuevo" se sube después de la decisión.
+let archivos: Map<string, number>;
+const subidos = (rutas: string[], ms = AHORA - DIA) =>
+  new Map(rutas.map((ruta) => [ruta, ms] as [string, number]));
+const deps = () => ({
+  archivo: async (r: string) =>
+    archivos.has(r) ? {actualizadoMs: archivos.get(r) as number} : null,
+});
 const ts = (ms: number) => mockFirestore.MOCK_TIMESTAMP.fromMillis(ms);
 const doc = (path: string) => mockDb.__docs.get(path) as Record<string, any>;
 const avisos = () => (notificar as jest.Mock).mock.calls.map(([, s]) => s);
@@ -54,7 +61,8 @@ const historial = () => [...mockDb.__docs.keys()]
 
 const sembrarPersona = (opciones: {perfil?: boolean; email?: boolean} = {}) => {
   const {perfil = true, email = true} = opciones;
-  mockDb.__seed('usuarios/ana', {roles: ['tutor']});
+  // El celular es privado: vive en `usuarios` y el servidor lo suma al evaluar
+  mockDb.__seed('usuarios/ana', {roles: ['tutor'], ...(perfil ? {celular: '3001234567'} : {})});
   mockDb.__seed('perfiles_publicos/ana', perfil ? {
     nombre: 'Ana',
     biografia: 'Amo a los perros',
@@ -75,7 +83,7 @@ const equipo = (requisito: string, decision: 'APROBAR' | 'RECHAZAR', extra = {})
 
 /** Lleva a la persona hasta la revisión, con toda la evidencia subida. */
 const enviada = async () => {
-  archivos = new Set(TODAS);
+  archivos = subidos(TODAS);
   return enviarHabilitacion(mockDb, 'ana', 'paseo', AHORA, deps());
 };
 
@@ -83,7 +91,7 @@ beforeEach(() => {
   mockDb.__reset();
   limpiarCacheConfiguracion();
   jest.clearAllMocks();
-  archivos = new Set();
+  archivos = new Map();
   jest.spyOn(console, 'error').mockImplementation(() => undefined);
   jest.spyOn(console, 'warn').mockImplementation(() => undefined);
 });
@@ -121,18 +129,18 @@ describe('iniciarHabilitacion', () => {
 describe('enviarHabilitacion', () => {
   test('con el perfil incompleto no se envía y dice qué falta', async () => {
     sembrarPersona({perfil: false});
-    archivos = new Set(TODAS);
+    archivos = subidos(TODAS);
     await expect(enviarHabilitacion(mockDb, 'ana', 'paseo', AHORA, deps()))
       .rejects.toMatchObject({
         codigo: 'failed-precondition',
-        message: expect.stringContaining('Perfil completo (biografia, horario_semanal, h3_r8)'),
+        message: expect.stringContaining('Perfil completo (biografia, horario_semanal, h3_r8, celular)'),
       });
     expect(doc(`habilitaciones/${ID}`).estado).toBe('BORRADOR');
   });
 
   test('sin la evidencia subida no se envía y dice qué archivo falta', async () => {
     sembrarPersona();
-    archivos = new Set([TODAS[0], TODAS[2]]);
+    archivos = subidos([TODAS[0], TODAS[2]]);
     await expect(enviarHabilitacion(mockDb, 'ana', 'paseo', AHORA, deps()))
       .rejects.toMatchObject({
         message: expect.stringContaining('Identidad (falta subir: reverso)'),
@@ -142,7 +150,7 @@ describe('enviarHabilitacion', () => {
 
   test('sin el correo verificado no se envía', async () => {
     sembrarPersona({email: false});
-    archivos = new Set(TODAS);
+    archivos = subidos(TODAS);
     await expect(enviarHabilitacion(mockDb, 'ana', 'paseo', AHORA, deps()))
       .rejects.toMatchObject({message: expect.stringContaining('Correo verificado')});
   });
@@ -182,7 +190,7 @@ describe('enviarHabilitacion', () => {
 
   test('un proveedor no configurado frena el envío antes de escribir nada', async () => {
     sembrarPersona();
-    archivos = new Set(TODAS);
+    archivos = subidos(TODAS);
     const identidad = CATALOGO_SERVICIOS.paseo.requisitos
       .find((r) => r.id === 'identidad')!;
     identidad.validador = 'sumsub';
@@ -247,7 +255,7 @@ describe('decisiones del equipo sobre los requisitos', () => {
 
   test('la vigencia configurada por el equipo manda', async () => {
     sembrarPersona();
-    mockDb.__seed('configuracion/servicios', {antecedentes_vigencia_meses: 6});
+    mockDb.__seed('configuracion/habilitaciones', {antecedentes_vigencia_meses: 6});
     await enviada();
     await equipo('identidad', 'APROBAR');
     await equipo('antecedentes', 'APROBAR');
@@ -285,6 +293,15 @@ describe('decisiones del equipo sobre los requisitos', () => {
     await equipo('antecedentes', 'APROBAR');
     await equipo('identidad', 'RECHAZAR', {motivo: 'Borrosa'});
 
+    // Reenviar los mismos archivos que ya se rechazaron no sirve
+    await expect(enviarHabilitacion(mockDb, 'ana', 'paseo', AHORA, deps()))
+      .rejects.toMatchObject({
+        message: expect.stringContaining('Identidad (sube un archivo nuevo)'),
+      });
+    expect(doc(`habilitaciones/${ID}`).estado).toBe('BORRADOR');
+
+    // Con la foto corregida (basta una) sí
+    archivos.set(TODAS[0], AHORA + 1000);
     const reenviada = await enviarHabilitacion(mockDb, 'ana', 'paseo', AHORA, deps());
     expect(reenviada.estado).toBe('EN_REVISION');
     expect(doc(`habilitaciones/${ID}`).requisitos.antecedentes.estado).toBe('VERIFICADO');
@@ -428,8 +445,15 @@ describe('vencimiento y renovación', () => {
     const despues = AHORA + 400 * DIA;
     expect(ofreceServicio(doc('perfiles_publicos/ana'), 'paseo', despues)).toBe(false);
 
-    // Sin subir el nuevo certificado no puede renovar
-    archivos = new Set(TODAS);
+    // Con el mismo certificado de antes no puede renovar
+    archivos = subidos(TODAS);
+    await expect(enviarHabilitacion(mockDb, 'ana', 'paseo', despues, deps()))
+      .rejects.toMatchObject({
+        message: expect.stringContaining('Antecedentes judiciales (sube un archivo nuevo)'),
+      });
+
+    // Con uno nuevo, sí
+    archivos = subidos(TODAS, despues - DIA);
     const renovada = await enviarHabilitacion(mockDb, 'ana', 'paseo', despues, deps());
     expect(renovada.estado).toBe('EN_REVISION');
     const d = doc(`habilitaciones/${ID}`);
@@ -473,7 +497,7 @@ describe('actualizarPerfil', () => {
 
   test('un admin no recibe el rol de cuidador', async () => {
     sembrarPersona();
-    mockDb.__seed('usuarios/ana', {roles: ['admin']});
+    mockDb.__seed('usuarios/ana', {roles: ['admin'], celular: '3001234567'});
     await enviada();
     await equipo('identidad', 'APROBAR');
     await equipo('antecedentes', 'APROBAR');

@@ -21,6 +21,7 @@ const NAMESPACE_LIST = [
   'consentimientos',
   'notificaciones',
   'errores',
+  'admin',
 ] as const
 
 // Fusión profunda: paseos_control comparte la raíz 'control' con paseos.json

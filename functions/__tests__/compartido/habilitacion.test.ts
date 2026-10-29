@@ -30,6 +30,7 @@ const PERFIL = {
   biografia: 'Amo a los perros',
   horario_semanal: {'1': {inicio: '08:00', fin: '18:00'}},
   h3_r8: '88aaaaaaaaaaaaa',
+  celular: '3001234567',
 };
 
 const requisito = (id: string) => {

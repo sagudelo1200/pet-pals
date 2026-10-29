@@ -68,8 +68,13 @@ async function procesarActualizacionInsignias(
 
     // Mapear tipos a insignias
     const insignias: string[] = [];
+    const ahoraMs = Date.now();
     verificacionesSnapshot.forEach((doc) => {
-      const tipo = doc.data().tipo;
+      const {tipo, vence_en: venceEn} = doc.data();
+      // Una verificación vencida ya no da insignia
+      if (typeof venceEn?.toMillis === 'function' && venceEn.toMillis() <= ahoraMs) {
+        return;
+      }
       if (tipo && !insignias.includes(tipo)) {
         insignias.push(tipo);
       }

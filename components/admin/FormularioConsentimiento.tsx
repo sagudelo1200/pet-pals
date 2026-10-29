@@ -25,6 +25,7 @@ import { mensajeErrorCallable } from '@/services/firebase/callable'
 import { CampoMotivo } from './CampoMotivo'
 import { PanelVersiones } from './PanelVersiones'
 import { estilosAdmin } from './estilosAdmin'
+import { useTranslation } from 'react-i18next'
 
 const VACIO: ContenidoConsentimiento = {
   titulo: '',
@@ -63,6 +64,11 @@ const aContenido = (b: Borrador): ContenidoConsentimiento => ({
 })
 
 export const FormularioConsentimiento: React.FC = () => {
+  const { t } = useTranslation('admin')
+  const tituloTipo = (tp: TipoDocumentoConsentimiento) =>
+    t(`consentimientos.tipos.${tp}`, {
+      defaultValue: CONSENTIMIENTOS_METADATOS[tp].titulo,
+    })
   const [tipo, setTipo] = useState<TipoDocumentoConsentimiento>(
     TIPOS_CONSENTIMIENTO[0]
   )
@@ -81,7 +87,7 @@ export const FormularioConsentimiento: React.FC = () => {
           setVigente(v?.version ?? null)
           setBorrador(aBorrador(v?.contenido ?? VACIO))
         },
-        e => Alert.alert('❌ Error', e.message)
+        e => Alert.alert(t('consentimientos.error'), e.message)
       ),
     [serie]
   )
@@ -97,15 +103,19 @@ export const FormularioConsentimiento: React.FC = () => {
         motivo,
       })
       Alert.alert(
-        r.nueva ? '✅ Publicada' : 'Sin cambios',
         r.nueva
-          ? `${CONSENTIMIENTOS_METADATOS[tipo].titulo} v${r.version} vigente. ` +
-            'Quienes aceptaron la anterior deberán reconfirmar.'
-          : 'El contenido es igual al vigente; no se creó versión.'
+          ? t('consentimientos.publicada')
+          : t('consentimientos.sin_cambios'),
+        r.nueva
+          ? t('consentimientos.publicada_desc', {
+              tipo: tituloTipo(tipo),
+              version: r.version,
+            })
+          : t('consentimientos.sin_cambios_desc')
       )
       if (r.nueva) setMotivo('')
     } catch (e) {
-      Alert.alert('❌ No se publicó', mensajeErrorCallable(e))
+      Alert.alert(t('consentimientos.no_publico'), mensajeErrorCallable(e))
     } finally {
       setPublicando(false)
     }
@@ -114,21 +124,23 @@ export const FormularioConsentimiento: React.FC = () => {
   return (
     <View>
       <View style={styles.tipos}>
-        {TIPOS_CONSENTIMIENTO.map(t => (
+        {TIPOS_CONSENTIMIENTO.map(tp => (
           <Chip
-            key={t}
-            label={CONSENTIMIENTOS_METADATOS[t].titulo}
+            key={tp}
+            label={tituloTipo(tp)}
             size="sm"
-            selected={t === tipo}
-            onPress={() => setTipo(t)}
+            selected={tp === tipo}
+            onPress={() => setTipo(tp)}
           />
         ))}
       </View>
       <Text style={estilosAdmin.vigente}>
-        {vigente ? `Vigente: versión ${vigente}` : 'Sin versión publicada'}
+        {vigente
+          ? t('consentimientos.vigente', { version: vigente })
+          : t('consentimientos.sin_version')}
       </Text>
 
-      <Text style={estilosAdmin.label}>Título</Text>
+      <Text style={estilosAdmin.label}>{t('consentimientos.titulo')}</Text>
       <TextInput
         style={estilosAdmin.input}
         value={borrador.titulo}
@@ -136,7 +148,7 @@ export const FormularioConsentimiento: React.FC = () => {
         placeholderTextColor={COLOR.SUBTEXTO}
       />
 
-      <Text style={estilosAdmin.label}>Texto (Markdown)</Text>
+      <Text style={estilosAdmin.label}>{t('consentimientos.texto')}</Text>
       <TextInput
         style={[estilosAdmin.input, estilosAdmin.areaTexto]}
         value={borrador.texto}
@@ -146,31 +158,33 @@ export const FormularioConsentimiento: React.FC = () => {
         placeholderTextColor={COLOR.SUBTEXTO}
       />
 
-      <Text style={estilosAdmin.label}>Roles que lo aceptan</Text>
+      <Text style={estilosAdmin.label}>{t('consentimientos.roles')}</Text>
       <TextInput
         style={estilosAdmin.input}
         value={borrador.roles}
         onChangeText={roles => setBorrador({ ...borrador, roles })}
-        placeholder="Vacío = todos (ej: tutor, cuidador)"
+        placeholder={t('consentimientos.roles_placeholder')}
         placeholderTextColor={COLOR.SUBTEXTO}
         autoCapitalize="none"
       />
 
-      <Text style={estilosAdmin.label}>Reconfirmar cada (meses)</Text>
+      <Text style={estilosAdmin.label}>{t('consentimientos.meses')}</Text>
       <TextInput
         style={estilosAdmin.input}
         value={borrador.meses}
         onChangeText={meses => setBorrador({ ...borrador, meses })}
-        placeholder="Vacío = no requiere reconfirmación"
+        placeholder={t('consentimientos.meses_placeholder')}
         keyboardType="number-pad"
         placeholderTextColor={COLOR.SUBTEXTO}
       />
 
       <Switch
         value={borrador.es_obligatorio}
-        onValueChange={es_obligatorio => setBorrador({ ...borrador, es_obligatorio })}
-        label="Obligatorio"
-        description="Sin aceptarlo no se puede usar la app"
+        onValueChange={es_obligatorio =>
+          setBorrador({ ...borrador, es_obligatorio })
+        }
+        label={t('consentimientos.obligatorio')}
+        description={t('consentimientos.obligatorio_desc')}
         style={styles.switch}
       />
 
@@ -181,7 +195,11 @@ export const FormularioConsentimiento: React.FC = () => {
       )}
       <View style={estilosAdmin.acciones}>
         <Button
-          title={publicando ? 'Publicando…' : 'Publicar nueva versión'}
+          title={
+            publicando
+              ? t('consentimientos.publicando')
+              : t('consentimientos.publicar')
+          }
           onPress={publicar}
           variant="primario"
           disabled={
@@ -190,7 +208,9 @@ export const FormularioConsentimiento: React.FC = () => {
         />
       </View>
 
-      <Text style={[estilosAdmin.label, styles.historial]}>Últimas versiones</Text>
+      <Text style={[estilosAdmin.label, styles.historial]}>
+        {t('consentimientos.ultimas_versiones')}
+      </Text>
       <PanelVersiones tipo={serie} />
     </View>
   )

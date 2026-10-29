@@ -49,7 +49,8 @@ const MiHabilitacion: React.FC = () => {
   const { servicio, abrirPerfil } =
     useRoute<RouteProp<AuthStackParamList, 'MiHabilitacion'>>().params
   const insets = useSafeAreaInsets()
-  const { rolActivo, rolesDisponibles, cambiarRolActivo, activandoRol } = useAuth()
+  const { rolActivo, rolesDisponibles, cambiarRolActivo, activandoRol } =
+    useAuth()
   const {
     habilitacion,
     filas,
@@ -67,7 +68,10 @@ const MiHabilitacion: React.FC = () => {
   useEffect(() => {
     if (!abrirPerfil || cargando || perfilAbierto.current) return
     perfilAbierto.current = true
-    if (!perfilCompleto && (habilitacion?.estado ?? 'BORRADOR') === 'BORRADOR') {
+    if (
+      !perfilCompleto &&
+      (habilitacion?.estado ?? 'BORRADOR') === 'BORRADOR'
+    ) {
       navigation.navigate('PerfilCuidador')
     }
   }, [abrirPerfil, cargando, perfilCompleto, habilitacion?.estado, navigation])
@@ -90,13 +94,17 @@ const MiHabilitacion: React.FC = () => {
     }
   }
 
-  const tituloServicio = CATALOGO_SERVICIOS[servicio].titulo
+  const tituloServicio = t(`comun:servicios.${servicio}.titulo`, {
+    defaultValue: CATALOGO_SERVICIOS[servicio].titulo,
+  })
 
   return (
     <View style={[styles.contenedor, { paddingTop: insets.top }]}>
       <ScreenHeader
         title={t('cuidador:habilitacion.titulo')}
-        subtitle={t('cuidador:habilitacion.subtitulo', { servicio: tituloServicio })}
+        subtitle={t('cuidador:habilitacion.subtitulo', {
+          servicio: tituloServicio,
+        })}
       />
 
       {cargando ? (
@@ -105,7 +113,9 @@ const MiHabilitacion: React.FC = () => {
         </View>
       ) : error && !habilitacion ? (
         <View style={styles.centrado}>
-          <Text style={styles.error}>{t('cuidador:habilitacion.error_cargar')}</Text>
+          <Text style={styles.error}>
+            {t('cuidador:habilitacion.error_cargar')}
+          </Text>
           <Text style={styles.detalle}>{error}</Text>
         </View>
       ) : (
@@ -116,7 +126,10 @@ const MiHabilitacion: React.FC = () => {
           ]}
         >
           <Card
-            style={[styles.banner, { borderColor: COLOR_BANNER[banner.variante] }]}
+            style={[
+              styles.banner,
+              { borderColor: COLOR_BANNER[banner.variante] },
+            ]}
           >
             <Text style={styles.bannerTitulo}>
               {t(`cuidador:habilitacion.estado.${banner.clave}_titulo`)}
@@ -129,7 +142,9 @@ const MiHabilitacion: React.FC = () => {
             </Text>
             {banner.motivo && (
               <Text style={styles.motivo}>
-                {t('cuidador:habilitacion.equipo_dice', { motivo: banner.motivo })}
+                {t('cuidador:habilitacion.equipo_dice', {
+                  motivo: banner.motivo,
+                })}
               </Text>
             )}
           </Card>
@@ -149,23 +164,39 @@ const MiHabilitacion: React.FC = () => {
           {filas.map(f => (
             <Card key={f.definicion.id} style={styles.tarjeta}>
               <View style={styles.encabezado}>
-                <Text style={styles.titulo}>{f.definicion.titulo}</Text>
+                <Text style={styles.titulo}>
+                  {t(
+                    `comun:servicios.${servicio}.requisitos.${f.definicion.id}.titulo`,
+                    { defaultValue: f.definicion.titulo }
+                  )}
+                </Text>
                 <Badge
-                  label={ETIQUETA_REQUISITO[f.estado]}
+                  label={t(`comun:habilitacion.requisito_estados.${f.estado}`, {
+                    defaultValue: ETIQUETA_REQUISITO[f.estado],
+                  })}
                   variant={VARIANTE_REQUISITO[f.estado]}
                   size="sm"
                 />
               </View>
-              <Text style={styles.detalle}>{f.definicion.descripcion}</Text>
+              <Text style={styles.detalle}>
+                {t(
+                  `comun:servicios.${servicio}.requisitos.${f.definicion.id}.descripcion`,
+                  { defaultValue: f.definicion.descripcion }
+                )}
+              </Text>
 
               {f.estado === 'RECHAZADO' && f.motivo && (
                 <Text style={styles.motivo}>
-                  {t('cuidador:habilitacion.rechazado_motivo', { motivo: f.motivo })}
+                  {t('cuidador:habilitacion.rechazado_motivo', {
+                    motivo: f.motivo,
+                  })}
                 </Text>
               )}
               {f.venceEn && f.estado === 'VERIFICADO' && (
                 <Text style={styles.detalle}>
-                  {t('cuidador:habilitacion.vence_el', { fecha: fechaCorta(f.venceEn) })}
+                  {t('cuidador:habilitacion.vence_el', {
+                    fecha: fechaCorta(f.venceEn),
+                  })}
                 </Text>
               )}
               {f.estado === 'EXPIRADO' && (
@@ -202,7 +233,10 @@ const MiHabilitacion: React.FC = () => {
                     servicio={servicio}
                     requisito={f.definicion.id}
                     archivo={archivo}
-                    etiqueta={t(`cuidador:habilitacion.archivos.${archivo}`, archivo)}
+                    etiqueta={t(
+                      `cuidador:habilitacion.archivos.${archivo}`,
+                      archivo
+                    )}
                     disabled={!f.puedeSubir}
                   />
                 ))}
@@ -234,7 +268,13 @@ const MiHabilitacion: React.FC = () => {
 const styles = StyleSheet.create({
   contenedor: { flex: 1, backgroundColor: COLOR.BASE },
   contenido: { padding: 20, gap: 12 },
-  centrado: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24, gap: 8 },
+  centrado: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 24,
+    gap: 8,
+  },
   error: { color: COLOR.ERROR, textAlign: 'center', fontWeight: '600' },
   banner: { padding: 14, borderWidth: 1, gap: 4 },
   bannerTitulo: { color: COLOR.TEXTO, fontSize: 16, fontWeight: '700' },

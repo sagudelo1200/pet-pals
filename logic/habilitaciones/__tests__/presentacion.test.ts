@@ -5,8 +5,10 @@ import {
   VARIANTE_ESTADO,
   VARIANTE_REQUISITO,
   decisionExigeMotivo,
+  describirMovimiento,
   etiquetaDecision,
   fechaCorta,
+  fechaHoraCorta,
   ordenarCola,
   porRevisar,
 } from '../presentacion'
@@ -115,5 +117,53 @@ describe('fechaCorta', () => {
     expect(fechaCorta(new Date(2027, 9, 5))).toBe('05/10/2027')
     expect(fechaCorta(null)).toBe('')
     expect(fechaCorta(undefined)).toBe('')
+  })
+})
+
+describe('historial legible', () => {
+  const entrada = (extra: Record<string, unknown>) => ({
+    id: 'h1',
+    de: 'PENDIENTE',
+    a: 'EN_REVISION',
+    autor: 'ana',
+    ...extra,
+  })
+
+  test('un requisito cuenta lo que le pasó y quién lo hizo', () => {
+    expect(describirMovimiento(entrada({ requisito: 'identidad' }), 'ana')).toEqual({
+      clave: 'requisito_en_revision', conRequisito: true, tono: 'alerta', quien: 'persona',
+    })
+    expect(
+      describirMovimiento(entrada({ requisito: 'identidad', a: 'VERIFICADO', autor: 'admin1' }), 'ana')
+    ).toMatchObject({ clave: 'requisito_verificado', tono: 'exito', quien: 'equipo' })
+    expect(
+      describirMovimiento(entrada({ requisito: 'email', a: 'VERIFICADO', autor: 'sistema' }), 'ana')
+    ).toMatchObject({ quien: 'sistema' })
+    expect(
+      describirMovimiento(entrada({ requisito: 'antecedentes', a: 'RECHAZADO', autor: 'admin1' }), 'ana')
+    ).toMatchObject({ clave: 'requisito_rechazado', tono: 'error' })
+  })
+
+  test('la habilitación distingue enviar, aprobar, devolver, renovar y reactivar', () => {
+    const clave = (de: string, a: string, autor = 'admin1') =>
+      describirMovimiento(entrada({ de, a, autor }), 'ana').clave
+    expect(clave('BORRADOR', 'EN_REVISION', 'ana')).toBe('enviada')
+    expect(clave('EN_REVISION', 'APROBADA')).toBe('aprobada')
+    expect(clave('SUSPENDIDA', 'APROBADA')).toBe('reactivada')
+    expect(clave('EN_REVISION', 'BORRADOR')).toBe('devuelta')
+    expect(clave('APROBADA', 'BORRADOR', 'sistema')).toBe('renovacion')
+    expect(clave('RECHAZADA', 'BORRADOR')).toBe('reabierta')
+    expect(clave('EN_REVISION', 'RECHAZADA')).toBe('rechazada')
+    expect(clave('APROBADA', 'SUSPENDIDA')).toBe('suspendida')
+  })
+
+  test('un estado desconocido no rompe la lista', () => {
+    expect(describirMovimiento(entrada({ a: 'RARO' }), 'ana').clave).toBe('otro')
+    expect(describirMovimiento(entrada({ requisito: 'x', a: 'RARO' }), 'ana').clave).toBe('requisito_otro')
+  })
+
+  test('fechaHoraCorta suma la hora en 24 h', () => {
+    expect(fechaHoraCorta(new Date(2026, 9, 29, 13, 5))).toBe('29/10/2026 · 13:05')
+    expect(fechaHoraCorta(undefined)).toBe('')
   })
 })

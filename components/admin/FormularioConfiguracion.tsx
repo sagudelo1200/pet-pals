@@ -27,6 +27,7 @@ import {
 import { CampoMotivo } from './CampoMotivo'
 import { HistorialConfiguracion } from './HistorialConfiguracion'
 import { estilosAdmin } from './estilosAdmin'
+import { useTranslation } from 'react-i18next'
 
 type Borrador = Record<string, ValorEditable>
 
@@ -36,6 +37,17 @@ const aBorrador = (valores: Record<string, unknown>): Borrador =>
 export const FormularioConfiguracion: React.FC<{ area: AreaConfiguracion }> = ({
   area,
 }) => {
+  const { t } = useTranslation('admin')
+  const tituloDe = (clave: string, def: DefinicionValor<unknown>) =>
+    t(`configuracion.${area}.${clave}.titulo`, { defaultValue: def.titulo })
+  const descripcionDe = (clave: string, def: DefinicionValor<unknown>) =>
+    t(`configuracion.${area}.${clave}.descripcion`, {
+      defaultValue: def.descripcion,
+    })
+  const unidadDe = (unidad: string) =>
+    t(`configuracion.unidades.${unidad === 'días' ? 'dias' : unidad}`, {
+      defaultValue: unidad,
+    })
   const actuales = useConfiguracion(area) as Record<string, unknown>
   const definiciones = CATALOGO_CONFIGURACION[area].valores as Record<
     string,
@@ -75,13 +87,14 @@ export const FormularioConfiguracion: React.FC<{ area: AreaConfiguracion }> = ({
         motivo,
       })
       Alert.alert(
-        '✅ Guardado',
-        `Actualizado: ${cambiadas.join(', ') || 'nada'}. ` +
-          'Se aplica en todas partes en menos de un minuto.'
+        t('configuracion.guardado'),
+        t('configuracion.actualizado', {
+          lista: cambiadas.join(', ') || t('configuracion.nada'),
+        })
       )
       descartar()
     } catch (e) {
-      Alert.alert('❌ No se guardó', mensajeErrorCallable(e))
+      Alert.alert(t('configuracion.no_se_guardo'), mensajeErrorCallable(e))
     } finally {
       setGuardando(false)
     }
@@ -97,14 +110,14 @@ export const FormularioConfiguracion: React.FC<{ area: AreaConfiguracion }> = ({
               key={clave}
               value={valor === true}
               onValueChange={v => editar(clave, v)}
-              label={def.titulo}
-              description={def.descripcion}
+              label={tituloDe(clave, def)}
+              description={descripcionDe(clave, def)}
             />
           )
         }
         return (
           <View key={clave}>
-            <Text style={estilosAdmin.label}>{def.titulo}</Text>
+            <Text style={estilosAdmin.label}>{tituloDe(clave, def)}</Text>
             <TextInput
               style={estilosAdmin.input}
               value={String(valor ?? '')}
@@ -115,8 +128,8 @@ export const FormularioConfiguracion: React.FC<{ area: AreaConfiguracion }> = ({
               placeholderTextColor={COLOR.SUBTEXTO}
             />
             <Text style={estilosAdmin.ayudaCampo}>
-              {def.descripcion}
-              {def.unidad ? ` (${def.unidad})` : ''}
+              {descripcionDe(clave, def)}
+              {def.unidad ? ` (${unidadDe(def.unidad)})` : ''}
             </Text>
           </View>
         )
@@ -130,15 +143,21 @@ export const FormularioConfiguracion: React.FC<{ area: AreaConfiguracion }> = ({
           )}
           <View style={estilosAdmin.acciones}>
             <Button
-              title={guardando ? 'Guardando…' : 'Guardar cambios'}
+              title={
+                guardando
+                  ? t('configuracion.guardando')
+                  : t('configuracion.guardar')
+              }
               onPress={guardar}
               variant="primario"
               disabled={
-                guardando || errores.length > 0 || validarMotivo(motivo) !== null
+                guardando ||
+                errores.length > 0 ||
+                validarMotivo(motivo) !== null
               }
             />
             <Button
-              title="Descartar"
+              title={t('configuracion.descartar')}
               onPress={descartar}
               variant="secundario"
               disabled={guardando}
@@ -147,7 +166,9 @@ export const FormularioConfiguracion: React.FC<{ area: AreaConfiguracion }> = ({
         </>
       )}
 
-      <Text style={[estilosAdmin.label, styles.historial]}>Últimos cambios</Text>
+      <Text style={[estilosAdmin.label, styles.historial]}>
+        {t('configuracion.ultimos_cambios')}
+      </Text>
       <HistorialConfiguracion area={area} />
     </View>
   )

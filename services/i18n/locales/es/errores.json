@@ -7,5 +7,14 @@
   "acceso_denegado": "Acceso denegado",
   "error_conexion": "Error de conexión",
   "error_desconocido": "Error desconocido",
-  "intenta_mas_tarde": "Intenta más tarde"
+  "intenta_mas_tarde": "Intenta más tarde",
+  "callable": {
+    "permission-denied": "No tienes permiso para realizar esta acción.",
+    "unauthenticated": "Debes iniciar sesión para continuar.",
+    "not-found": "No se encontró lo que buscabas.",
+    "unavailable": "El servicio no está disponible por ahora. Intenta de nuevo en un momento.",
+    "deadline-exceeded": "La operación tardó demasiado. Intenta de nuevo.",
+    "resource-exhausted": "Hiciste demasiados intentos. Espera un momento e inténtalo otra vez.",
+    "internal": "Ocurrió un error interno. Intenta de nuevo más tarde."
+  }
 }

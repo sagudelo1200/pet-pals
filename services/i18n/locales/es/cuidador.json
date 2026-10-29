@@ -145,6 +145,10 @@
     "inicio_antes_fin": "En {{dia}}: inicio debe ser anterior al fin",
     "horario_fuera_rango": "El horario de {{dia}} debe estar dentro del rango permitido ({{min}} – {{max}})",
     "experiencia_placeholder": "Ej: 2 años",
+    "celular_label": "Celular de contacto",
+    "celular_placeholder": "300 123 4567",
+    "celular_obligatorio": "El celular es obligatorio para tu habilitación",
+    "celular_ayuda": "No se publica en tu perfil.",
     "direccion_principal": "Dirección principal",
     "cambiar": "Cambiar",
     "agregar": "Agregar",
@@ -194,7 +198,8 @@
     "campos": {
       "biografia": "biografía",
       "horario_semanal": "horario",
-      "h3_r8": "dirección"
+      "h3_r8": "dirección",
+      "celular": "celular"
     },
     "archivos": {
       "frente": "Frente",
@@ -206,6 +211,11 @@
     "enviada_titulo": "Enviada",
     "enviada_detalle": "Recibimos tu información y la estamos revisando.",
     "error_cargar": "No pudimos cargar tu habilitación",
-    "entrar_como_cuidador": "Entrar como cuidador"
+    "entrar_como_cuidador": "Entrar como cuidador",
+    "aviso": {
+      "por_vencer": "Tu habilitación para {{servicio}} vence el {{fecha}}. Renuévala a tiempo para no dejar de recibir solicitudes.",
+      "vencida": "Tu habilitación para {{servicio}} venció el {{fecha}}: no recibirás solicitudes hasta que la renueves.",
+      "renovar": "Renovar"
+    }
   }
 }

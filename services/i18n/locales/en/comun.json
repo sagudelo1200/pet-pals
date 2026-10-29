@@ -275,5 +275,45 @@
   "privacidad": {
     "titulo": "Privacy and authorizations",
     "descripcion": "Manage the authorizations that allow us to provide you with our services."
+  },
+  "habilitacion": {
+    "estados": {
+      "BORRADOR": "Draft",
+      "EN_REVISION": "Under review",
+      "APROBADA": "Approved",
+      "RECHAZADA": "Rejected",
+      "SUSPENDIDA": "Suspended"
+    },
+    "requisito_estados": {
+      "PENDIENTE": "Pending",
+      "EN_REVISION": "To review",
+      "VERIFICADO": "Verified",
+      "RECHAZADO": "Rejected",
+      "EXPIRADO": "Expired"
+    },
+    "opcional": " (optional)"
+  },
+  "servicios": {
+    "paseo": {
+      "titulo": "Walks",
+      "requisitos": {
+        "email": {
+          "titulo": "Verified email",
+          "descripcion": "You confirmed the email is yours with the code we sent you"
+        },
+        "perfil": {
+          "titulo": "Complete profile",
+          "descripcion": "Tell us about yourself, your schedule, where you live and your contact phone, so tutors can find you"
+        },
+        "identidad": {
+          "titulo": "Identity",
+          "descripcion": "Photo of your ID document, both sides"
+        },
+        "antecedentes": {
+          "titulo": "Criminal background check",
+          "descripcion": "Valid criminal background certificate"
+        }
+      }
+    }
   }
 }

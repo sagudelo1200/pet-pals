@@ -65,7 +65,7 @@ export interface DefinicionRequisito {
   evidencia: string[]
   /**
    * Meses de validez desde que se aprueba; null = no vence. Es el valor por
-   * defecto: configuracion/servicios puede cambiarlo con una clave
+   * defecto: configuracion/habilitaciones puede cambiarlo con una clave
    * `{id}_vigencia_meses` (ver vigenciaDe en habilitacion.ts).
    */
   vigencia_meses: number | null
@@ -108,10 +108,12 @@ export const CATALOGO_SERVICIOS = {
       {
         id: 'perfil',
         titulo: 'Perfil completo',
-        descripcion: 'Cuéntanos de ti, tu horario y dónde vives, para que los ' +
-          'tutores te encuentren',
+        descripcion: 'Cuéntanos de ti, tu horario, dónde vives y tu celular de ' +
+          'contacto, para que los tutores te encuentren',
         verificacion: null,
-        perfil: ['biografia', 'horario_semanal', 'h3_r8'],
+        // `celular` vive en `usuarios` (es privado): el servidor lo suma al
+        // perfil al evaluar (ver leerPerfil), sin publicarlo
+        perfil: ['biografia', 'horario_semanal', 'h3_r8', 'celular'],
         validador: 'sistema',
         evidencia: [],
         vigencia_meses: null,
@@ -134,9 +136,9 @@ export const CATALOGO_SERVICIOS = {
         verificacion: 'ANTECEDENTES',
         validador: 'manual',
         evidencia: ['certificado'],
-        // El admin puede cambiarla en configuracion/servicios (ver vigenciaDe)
+        // El admin puede cambiarla en configuracion/habilitaciones (ver vigenciaDe)
         vigencia_meses:
-          CATALOGO_CONFIGURACION.servicios.valores.antecedentes_vigencia_meses
+          CATALOGO_CONFIGURACION.habilitaciones.valores.antecedentes_vigencia_meses
             .porDefecto,
         obligatorio: true,
       },
@@ -154,7 +156,41 @@ export const TIPOS_SERVICIO = Object.keys(CATALOGO_SERVICIOS) as TipoServicio[];
  * @return {boolean} Si es un servicio válido.
  */
 export function esTipoServicio(servicio: unknown): servicio is TipoServicio {
-  return typeof servicio === 'string' && servicio in CATALOGO_SERVICIOS;
+  // hasOwnProperty: `in` aceptaría 'constructor' o 'toString' (heredados)
+  return typeof servicio === 'string' &&
+    Object.prototype.hasOwnProperty.call(CATALOGO_SERVICIOS, servicio);
+}
+
+/**
+ * Valor de `operaciones.tipo` para un paseo. Usa esta constante (o `esPaseo`)
+ * en vez del texto suelto: así cada lugar que asume "paseo" queda a la vista.
+ */
+export const TIPO_PASEO = 'paseo' satisfies TipoServicio;
+
+type ConTipo = {tipo?: unknown} | null | undefined;
+
+/**
+ * ¿La operación es de este servicio?
+ * @param {ConTipo} operacion Documento de `operaciones`.
+ * @param {TipoServicio} servicio Servicio.
+ * @return {boolean} Si el tipo coincide.
+ */
+export function esOperacionDe(
+  operacion: ConTipo,
+  servicio: TipoServicio
+): boolean {
+  return operacion?.tipo === servicio;
+}
+
+/**
+ * ¿Es un paseo? Úsalo donde la lógica ES de paseo (recogida y entrega, GPS,
+ * chat, precio por hora, emparejamiento...). Lo que aplique a cualquier
+ * servicio no debe usarlo.
+ * @param {ConTipo} operacion Documento de `operaciones`.
+ * @return {boolean} Si es un paseo.
+ */
+export function esPaseo(operacion: ConTipo): boolean {
+  return esOperacionDe(operacion, TIPO_PASEO);
 }
 
 /**

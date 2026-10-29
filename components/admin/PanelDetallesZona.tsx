@@ -12,6 +12,8 @@ import type {
   CuidadorEnZona,
   SolicitudEnZona,
 } from '@/hooks/admin/useDetallesZonaH3'
+import { useTranslation } from 'react-i18next'
+import { localeActual } from '@/utils/locale'
 
 interface PanelDetallesZonaProps {
   h3_id: string
@@ -43,6 +45,7 @@ export const PanelDetallesZona: React.FC<PanelDetallesZonaProps> = ({
   cargando,
   error,
 }) => {
+  const { t } = useTranslation('admin')
   const getColorEstado = (estado: string): string => {
     switch (estado) {
       case 'activa':
@@ -59,14 +62,14 @@ export const PanelDetallesZona: React.FC<PanelDetallesZonaProps> = ({
   }
 
   const formatearHora = (fecha: Date): string => {
-    return new Date(fecha).toLocaleTimeString('es-AR', {
+    return new Date(fecha).toLocaleTimeString(localeActual(), {
       hour: '2-digit',
       minute: '2-digit',
     })
   }
 
   const obtenerHorarioHoy = (franja: any): string => {
-    if (!franja) return 'Inactivo'
+    if (!franja) return t('territorio.detalle.inactivo')
     return `${franja.inicio} - ${franja.fin}`
   }
 
@@ -74,14 +77,16 @@ export const PanelDetallesZona: React.FC<PanelDetallesZonaProps> = ({
     <View style={styles.contenedor}>
       {/* Header con zona ID */}
       <View style={styles.header}>
-        <Text style={styles.titulo}>⬡ Detalles de Zona</Text>
+        <Text style={styles.titulo}>{t('territorio.detalle.titulo')}</Text>
         <Text style={styles.zonaId}>{h3_id}</Text>
       </View>
 
       <ScrollView style={styles.scroll} showsVerticalScrollIndicator={false}>
         {/* Resumen de Estadísticas */}
         <View style={styles.seccion}>
-          <Text style={styles.seccionTitulo}>📊 Estado de Zona</Text>
+          <Text style={styles.seccionTitulo}>
+            {t('territorio.detalle.estado_zona')}
+          </Text>
           <View style={styles.grid}>
             <View style={styles.stat}>
               <View
@@ -90,19 +95,29 @@ export const PanelDetallesZona: React.FC<PanelDetallesZonaProps> = ({
                   { backgroundColor: getColorEstado(estado) },
                 ]}
               >
-                <Text style={styles.estadoText}>{estado.toUpperCase()}</Text>
+                <Text style={styles.estadoText}>
+                  {t(`territorio.estados.${estado}`, {
+                    defaultValue: estado,
+                  }).toUpperCase()}
+                </Text>
               </View>
             </View>
             <View style={styles.stat}>
-              <Text style={styles.statLabel}>Cuidadores</Text>
+              <Text style={styles.statLabel}>
+                {t('territorio.detalle.cuidadores')}
+              </Text>
               <Text style={styles.statValor}>{cuidadores}</Text>
             </View>
             <View style={styles.stat}>
-              <Text style={styles.statLabel}>Demanda</Text>
+              <Text style={styles.statLabel}>
+                {t('territorio.detalle.demanda')}
+              </Text>
               <Text style={styles.statValor}>{demanda}</Text>
             </View>
             <View style={styles.stat}>
-              <Text style={styles.statLabel}>Activos</Text>
+              <Text style={styles.statLabel}>
+                {t('territorio.detalle.activos')}
+              </Text>
               <Text style={styles.statValor}>{activos}</Text>
             </View>
           </View>
@@ -111,7 +126,9 @@ export const PanelDetallesZona: React.FC<PanelDetallesZonaProps> = ({
         {/* Cuidadores Disponibles */}
         <View style={styles.seccion}>
           <Text style={styles.seccionTitulo}>
-            🐕 Cuidadores ({cuidadoresLista.length})
+            {t('territorio.detalle.cuidadores_lista', {
+              count: cuidadoresLista.length,
+            })}
           </Text>
 
           {cargando ? (
@@ -119,7 +136,9 @@ export const PanelDetallesZona: React.FC<PanelDetallesZonaProps> = ({
           ) : error ? (
             <Text style={styles.textoError}>{error}</Text>
           ) : cuidadoresLista.length === 0 ? (
-            <Text style={styles.textoVacio}>Sin cuidadores en esta zona</Text>
+            <Text style={styles.textoVacio}>
+              {t('territorio.detalle.sin_cuidadores')}
+            </Text>
           ) : (
             <FlatList
               scrollEnabled={false}
@@ -130,7 +149,9 @@ export const PanelDetallesZona: React.FC<PanelDetallesZonaProps> = ({
                   <View style={styles.cuidadorInfo}>
                     <Text style={styles.cuidadorNombre}>{item.nombre}</Text>
                     {item.habilitado && (
-                      <Text style={styles.badge}>✓ Habilitado</Text>
+                      <Text style={styles.badge}>
+                        {t('territorio.detalle.habilitado')}
+                      </Text>
                     )}
                   </View>
 
@@ -155,7 +176,9 @@ export const PanelDetallesZona: React.FC<PanelDetallesZonaProps> = ({
         {/* Solicitudes Pendientes */}
         <View style={styles.seccion}>
           <Text style={styles.seccionTitulo}>
-            📋 Solicitudes Pendientes ({solicitudesLista.length})
+            {t('territorio.detalle.solicitudes', {
+              count: solicitudesLista.length,
+            })}
           </Text>
 
           {cargando ? (
@@ -163,7 +186,9 @@ export const PanelDetallesZona: React.FC<PanelDetallesZonaProps> = ({
           ) : error ? (
             <Text style={styles.textoError}>{error}</Text>
           ) : solicitudesLista.length === 0 ? (
-            <Text style={styles.textoVacio}>Sin solicitudes pendientes</Text>
+            <Text style={styles.textoVacio}>
+              {t('territorio.detalle.sin_solicitudes')}
+            </Text>
           ) : (
             <FlatList
               scrollEnabled={false}

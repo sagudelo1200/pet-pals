@@ -65,6 +65,23 @@ describe('actualizarInsignias (creación de verificación)', () => {
     expect(db.__docs.get('perfiles_publicos/u1').insignias_verificacion).toEqual(['EMAIL']);
   });
 
+  it('una verificación vencida ya no da insignia; una vigente o sin vencimiento sí', async () => {
+    const ts = mockFirestore.MOCK_TIMESTAMP.fromMillis;
+    db.__seed('perfiles_publicos/u1', {});
+    db.__seed('verificaciones/v1', {usuario_id: 'u1', tipo: 'EMAIL', estado: 'VERIFICADO'});
+    db.__seed('verificaciones/v2', {
+      usuario_id: 'u1', tipo: 'ANTECEDENTES', estado: 'VERIFICADO', vence_en: ts(1_000),
+    });
+    db.__seed('verificaciones/v3', {
+      usuario_id: 'u1', tipo: 'CERTIFICADO', estado: 'VERIFICADO', vence_en: ts(4_102_444_800_000),
+    });
+
+    await alCrear({data: snap({usuario_id: 'u1', tipo: 'EMAIL', estado: 'VERIFICADO'})});
+
+    expect(db.__docs.get('perfiles_publicos/u1').insignias_verificacion)
+      .toEqual(['EMAIL', 'CERTIFICADO']);
+  });
+
   it('solo cuenta verificaciones VERIFICADO y sin duplicar tipos', async () => {
     db.__seed('perfiles_publicos/u1', {});
     db.__seed('verificaciones/v1', {usuario_id: 'u1', tipo: 'EMAIL', estado: 'VERIFICADO'});

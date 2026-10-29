@@ -23,20 +23,14 @@ import {
 import { CATALOGO_SERVICIOS } from '@/functions/src/compartido/servicios'
 import type { EstadoHabilitacion } from '@/functions/src/compartido/habilitacion'
 import type { AuthStackParamList } from '@/navigation/types'
-
-const VACIO: Record<EstadoHabilitacion, string> = {
-  EN_REVISION: 'No hay habilitaciones esperando revisión.',
-  BORRADOR: 'Nadie tiene una habilitación en borrador.',
-  APROBADA: 'Todavía no hay habilitaciones aprobadas.',
-  SUSPENDIDA: 'No hay habilitaciones suspendidas.',
-  RECHAZADA: 'No hay habilitaciones rechazadas.',
-}
+import { useTranslation } from 'react-i18next'
 
 /**
  * Cola de revisión (admin): las habilitaciones por estado. Lo que espera
  * revisión sale primero, de la más antigua a la más reciente.
  */
 const AdminHabilitaciones: React.FC = () => {
+  const { t } = useTranslation(['admin', 'comun'])
   const navigation = useNavigation<StackNavigationProp<AuthStackParamList>>()
   const insets = useSafeAreaInsets()
   const [estado, setEstado] = useState<EstadoHabilitacion>('EN_REVISION')
@@ -45,8 +39,8 @@ const AdminHabilitaciones: React.FC = () => {
   return (
     <View style={[styles.contenedor, { paddingTop: insets.top }]}>
       <ScreenHeader
-        title="Habilitaciones"
-        subtitle="Quién puede ofrecer cada servicio"
+        title={t('admin:habilitaciones.titulo')}
+        subtitle={t('admin:habilitaciones.subtitulo')}
         showBack={false}
       />
 
@@ -59,7 +53,9 @@ const AdminHabilitaciones: React.FC = () => {
           {ESTADOS_COLA.map(e => (
             <Chip
               key={e}
-              label={ETIQUETA_ESTADO[e]}
+              label={t(`comun:habilitacion.estados.${e}`, {
+                defaultValue: ETIQUETA_ESTADO[e],
+              })}
               selected={e === estado}
               onPress={() => setEstado(e)}
             />
@@ -83,7 +79,9 @@ const AdminHabilitaciones: React.FC = () => {
           ]}
         >
           {habilitaciones.length === 0 ? (
-            <Text style={styles.vacio}>{VACIO[estado]}</Text>
+            <Text style={styles.vacio}>
+              {t(`admin:habilitaciones.vacio.${estado}`)}
+            </Text>
           ) : (
             habilitaciones.map(h => {
               const pendientes = porRevisar(h).length
@@ -97,26 +95,31 @@ const AdminHabilitaciones: React.FC = () => {
                 >
                   <View style={styles.encabezado}>
                     <Text style={styles.nombre}>
-                      {h.usuario_nombre || 'Sin nombre'}
+                      {h.usuario_nombre || t('admin:habilitaciones.sin_nombre')}
                     </Text>
                     <Badge
-                      label={ETIQUETA_ESTADO[h.estado]}
+                      label={t(`comun:habilitacion.estados.${h.estado}`, {
+                        defaultValue: ETIQUETA_ESTADO[h.estado],
+                      })}
                       variant={VARIANTE_ESTADO[h.estado]}
                       size="sm"
                     />
                   </View>
                   <Text style={styles.detalle}>
-                    {CATALOGO_SERVICIOS[h.servicio].titulo}
+                    {t(`comun:servicios.${h.servicio}.titulo`, {
+                      defaultValue: CATALOGO_SERVICIOS[h.servicio].titulo,
+                    })}
                     {h.actualizado_en
-                      ? ` · actualizada el ${fechaCorta(h.actualizado_en)}`
+                      ? t('admin:habilitaciones.actualizada_el', {
+                          fecha: fechaCorta(h.actualizado_en),
+                        })
                       : ''}
                   </Text>
                   {pendientes > 0 && (
                     <Text style={styles.alerta}>
-                      {pendientes}{' '}
-                      {pendientes === 1
-                        ? 'requisito por revisar'
-                        : 'requisitos por revisar'}
+                      {t('admin:habilitaciones.por_revisar', {
+                        count: pendientes,
+                      })}
                     </Text>
                   )}
                   {h.motivo && h.estado !== 'EN_REVISION' && (
@@ -138,7 +141,12 @@ const styles = StyleSheet.create({
   contenedor: { flex: 1, backgroundColor: COLOR.BASE },
   filtros: { paddingHorizontal: 20, paddingVertical: 8, gap: 8 },
   contenido: { padding: 20, gap: 8 },
-  centrado: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 },
+  centrado: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 24,
+  },
   error: { color: COLOR.ERROR, textAlign: 'center' },
   vacio: {
     color: COLOR.SUBTEXTO,

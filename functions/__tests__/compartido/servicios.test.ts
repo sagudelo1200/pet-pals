@@ -5,6 +5,10 @@ import {CATALOGO_CONFIGURACION} from '../../src/compartido/configuracion';
 import {
   CATALOGO_SERVICIOS,
   erroresDelCatalogo,
+  TIPO_PASEO,
+  TIPOS_SERVICIO,
+  esOperacionDe,
+  esPaseo,
   esTipoServicio,
   requisitoDe,
   requisitosDe,
@@ -48,6 +52,12 @@ describe('catálogo de servicios', () => {
     expect(requisitoDe('paseo', 'no_existe')).toBeUndefined();
   });
 
+  test('esTipoServicio no acepta nombres heredados de Object', () => {
+    for (const heredado of ['constructor', 'toString', '__proto__', 'hasOwnProperty']) {
+      expect(esTipoServicio(heredado)).toBe(false);
+    }
+  });
+
   test('rutaEvidencia coincide con la ruta que protege storage.rules', () => {
     expect(rutaEvidencia('u1', 'paseo', 'identidad', 'frente'))
       .toBe('solicitudes/u1/paseo/identidad/frente');
@@ -56,7 +66,7 @@ describe('catálogo de servicios', () => {
 
 describe('vigencias configurables', () => {
   test('cada clave {id}_vigencia_meses de la configuración apunta a un requisito que vence', () => {
-    const claves = Object.entries(CATALOGO_CONFIGURACION.servicios.valores)
+    const claves = Object.entries(CATALOGO_CONFIGURACION.habilitaciones.valores)
       .filter(([clave]) => clave.endsWith('_vigencia_meses'));
     expect(claves.length).toBeGreaterThan(0);
     for (const [clave, def] of claves) {
@@ -114,5 +124,23 @@ describe('erroresDelCatalogo detecta catálogos mal armados', () => {
 
   test('un proveedor externo se acepta igual que el manual', () => {
     expect(erroresDelCatalogo(servicio([{...base, validador: 'sumsub'}]))).toEqual([]);
+  });
+});
+
+describe('tipo de operación', () => {
+  test('TIPO_PASEO es un servicio del catálogo (así no se desalinean)', () => {
+    expect(esTipoServicio(TIPO_PASEO)).toBe(true);
+    expect(TIPOS_SERVICIO).toContain(TIPO_PASEO);
+    expect(TIPO_PASEO).toBe('paseo');
+  });
+
+  test('esPaseo y esOperacionDe miran solo el tipo', () => {
+    expect(esPaseo({tipo: 'paseo', estado: 'PENDIENTE'})).toBe(true);
+    expect(esOperacionDe({tipo: 'paseo'}, 'paseo')).toBe(true);
+    expect(esPaseo({tipo: 'guarderia'})).toBe(false);
+    expect(esPaseo({tipo: 'PASEO'})).toBe(false);
+    expect(esPaseo({})).toBe(false);
+    expect(esPaseo(null)).toBe(false);
+    expect(esPaseo(undefined)).toBe(false);
   });
 });

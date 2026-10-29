@@ -7,5 +7,14 @@
   "acceso_denegado": "Access denied",
   "error_conexion": "Connection error",
   "error_desconocido": "Unknown error",
-  "intenta_mas_tarde": "Try again later"
+  "intenta_mas_tarde": "Try again later",
+  "callable": {
+    "permission-denied": "You do not have permission to perform this action.",
+    "unauthenticated": "You must sign in to continue.",
+    "not-found": "What you were looking for was not found.",
+    "unavailable": "The service is unavailable for now. Try again in a moment.",
+    "deadline-exceeded": "The operation took too long. Try again.",
+    "resource-exhausted": "Too many attempts. Wait a moment and try again.",
+    "internal": "An internal error occurred. Please try again later."
+  }
 }

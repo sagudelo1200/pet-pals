@@ -19,9 +19,11 @@ import {
 } from '@/services/firebase/economia'
 import type { Liquidacion } from '@/models/operacionesEconomicas'
 import { NombreUsuario } from './NombreUsuario'
+import { useTranslation } from 'react-i18next'
+import { localeActual } from '@/utils/locale'
 
 const fecha = (v: any) =>
-  (v?.toDate?.() ?? new Date(v)).toLocaleDateString('es-CO', {
+  (v?.toDate?.() ?? new Date(v)).toLocaleDateString(localeActual(), {
     day: 'numeric',
     month: 'short',
   })
@@ -29,6 +31,7 @@ const fecha = (v: any) =>
 export const PanelLiquidaciones: React.FC<{ soloLectura?: boolean }> = ({
   soloLectura = false,
 }) => {
+  const { t } = useTranslation('admin')
   const [generando, setGenerando] = useState(false)
   const [pagando, setPagando] = useState<string | null>(null)
   const [referencias, setReferencias] = useState<Record<string, string>>({})
@@ -46,13 +49,13 @@ export const PanelLiquidaciones: React.FC<{ soloLectura?: boolean }> = ({
     try {
       const { creadas } = await ServicioEconomia.generarLiquidaciones({})
       Alert.alert(
-        'Liquidaciones',
+        t('liquidaciones.titulo_alerta'),
         creadas.length
-          ? `${creadas.length} liquidación(es) creadas`
-          : 'No hay pagos listos para liquidar (o no alcanzan el monto mínimo)'
+          ? t('liquidaciones.creadas', { count: creadas.length })
+          : t('liquidaciones.ninguna')
       )
     } catch (e) {
-      Alert.alert('❌ Error', mensajeErrorEconomia(e))
+      Alert.alert(t('liquidaciones.error'), mensajeErrorEconomia(e))
     } finally {
       setGenerando(false)
     }
@@ -62,18 +65,21 @@ export const PanelLiquidaciones: React.FC<{ soloLectura?: boolean }> = ({
     const referencia = (referencias[liq.id] || '').trim()
     if (!referencia) {
       Alert.alert(
-        'Falta la referencia',
-        'Escribe la referencia de la transferencia'
+        t('liquidaciones.falta_referencia'),
+        t('liquidaciones.escribe_referencia')
       )
       return
     }
     Alert.alert(
-      'Confirmar pago',
-      `¿Registrar transferencia ${referencia} por ${formatearCOP(liq.total)}?`,
+      t('liquidaciones.confirmar_pago'),
+      t('liquidaciones.confirmar_pago_msg', {
+        referencia,
+        monto: formatearCOP(liq.total),
+      }),
       [
-        { text: 'Cancelar', style: 'cancel' },
+        { text: t('comun:cancelar'), style: 'cancel' },
         {
-          text: 'Registrar',
+          text: t('liquidaciones.registrar'),
           onPress: async () => {
             setPagando(liq.id)
             try {
@@ -82,7 +88,7 @@ export const PanelLiquidaciones: React.FC<{ soloLectura?: boolean }> = ({
                 referencia,
               })
             } catch (e) {
-              Alert.alert('❌ Error', mensajeErrorEconomia(e))
+              Alert.alert(t('liquidaciones.error'), mensajeErrorEconomia(e))
             } finally {
               setPagando(null)
             }
@@ -96,33 +102,46 @@ export const PanelLiquidaciones: React.FC<{ soloLectura?: boolean }> = ({
     <View>
       {!soloLectura && (
         <Button
-          title={generando ? 'Generando…' : 'Generar liquidaciones ahora'}
+          title={
+            generando
+              ? t('liquidaciones.generando')
+              : t('liquidaciones.generar')
+          }
           onPress={generar}
           variant="contorno"
           disabled={generando}
         />
       )}
       {liquidaciones.length === 0 && (
-        <Text style={styles.vacio}>No hay liquidaciones por pagar</Text>
+        <Text style={styles.vacio}>{t('liquidaciones.vacio')}</Text>
       )}
       {liquidaciones.map(liq => (
         <Card key={liq.id} style={styles.card}>
           <Text style={styles.total}>{formatearCOP(liq.total)}</Text>
           <Text style={styles.detalle}>
             <NombreUsuario uid={liq.cuidador_id} style={styles.detalle} /> ·{' '}
-            {liq.obligacion_ids.length} paseo(s) · hasta {fecha(liq.periodo_hasta)}
+            {t('liquidaciones.detalle_paseos', {
+              count: liq.obligacion_ids.length,
+            })}{' '}
+            · {t('liquidaciones.hasta', { fecha: fecha(liq.periodo_hasta) })}
           </Text>
           {!soloLectura && (
             <>
               <TextInput
                 style={styles.input}
-                placeholder="Referencia de la transferencia"
+                placeholder={t('liquidaciones.referencia_placeholder')}
                 placeholderTextColor={COLOR.SUBTEXTO}
                 value={referencias[liq.id] || ''}
-                onChangeText={v => setReferencias({ ...referencias, [liq.id]: v })}
+                onChangeText={v =>
+                  setReferencias({ ...referencias, [liq.id]: v })
+                }
               />
               <Button
-                title={pagando === liq.id ? 'Registrando…' : 'Registrar pago'}
+                title={
+                  pagando === liq.id
+                    ? t('liquidaciones.registrando')
+                    : t('liquidaciones.registrar_pago')
+                }
                 onPress={() => registrarPago(liq)}
                 variant="primario"
                 disabled={pagando === liq.id}

@@ -27,7 +27,7 @@ const desdeFunctions = modulo => require(path.join(functionsDir, modulo))
 // functions/lib (los Timestamp deben ser compatibles)
 const paquete = nombre => require(require.resolve(nombre, { paths: [functionsDir] }))
 
-const { initializeApp, cert } = paquete('firebase-admin/app')
+const { initializeApp, applicationDefault } = paquete('firebase-admin/app')
 const { getFirestore, Timestamp } = paquete('firebase-admin/firestore')
 const { publicarVersion } = desdeFunctions('lib/comun/versionado')
 const { sembrarConfiguracion } = desdeFunctions('lib/comun/configuracion')
@@ -41,11 +41,20 @@ const { tipoVersionableConsentimiento } = desdeFunctions('lib/compartido/consent
 // Con FIRESTORE_EMULATOR_HOST el seed va al emulador (sin credenciales ni
 // proyecto real); sin esa variable usa la cuenta de servicio del proyecto real.
 const EMULADOR = !!process.env.FIRESTORE_EMULATOR_HOST
+const RUTA_CREDENCIALES = path.resolve(__dirname, 'firebaseCredentials.json')
 const credentials = EMULADOR
   ? { project_id: 'demo-pawpath (emulador)' }
-  : require('./firebaseCredentials.json')
+  : require(RUTA_CREDENCIALES)
 
-initializeApp(EMULADOR ? { projectId: 'demo-pawpath' } : { credential: cert(credentials) })
+// La cuenta de servicio se entrega como credencial por defecto (en vez de
+// cert(), que hace que google-auth-library avise que `credentials` es obsoleto)
+if (!EMULADOR) process.env.GOOGLE_APPLICATION_CREDENTIALS = RUTA_CREDENCIALES
+
+initializeApp(
+  EMULADOR
+    ? { projectId: 'demo-pawpath' }
+    : { credential: applicationDefault(), projectId: credentials.project_id }
+)
 const db = getFirestore()
 
 const AUTOR = 'sistema-seed'

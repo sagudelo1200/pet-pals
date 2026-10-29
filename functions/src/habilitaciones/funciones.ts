@@ -49,13 +49,18 @@ function exigirServicio(valor: unknown): TipoServicio {
 }
 
 /**
- * ¿Existe el archivo en el bucket de Storage del proyecto?
+ * Archivo en el bucket de Storage del proyecto: cuándo se subió.
  * @param {string} ruta Ruta del archivo.
- * @return {Promise<boolean>} Si existe.
+ * @return {Promise<object | null>} Fecha de actualización, o null si no existe.
  */
-async function existeArchivo(ruta: string): Promise<boolean> {
-  const [existe] = await getStorage().bucket().file(ruta).exists();
-  return existe;
+async function archivo(ruta: string): Promise<{actualizadoMs: number} | null> {
+  const referencia = getStorage().bucket().file(ruta);
+  const [existe] = await referencia.exists();
+  if (!existe) return null;
+  const [metadatos] = await referencia.getMetadata();
+  const subido = Date.parse(String(metadatos.updated ?? metadatos.timeCreated ?? ''));
+  // Sin fecha legible cuenta como viejo: nunca se acepta como "nuevo" a ciegas
+  return {actualizadoMs: Number.isFinite(subido) ? subido : 0};
 }
 
 /**
@@ -91,7 +96,7 @@ export const enviarHabilitacion = onCall(OPCIONES, (request) =>
   conErrores(async () => {
     const uid = requerirUid(request);
     const h = await enviar(db, uid, exigirServicio(request.data?.servicio),
-      Date.now(), {existeArchivo});
+      Date.now(), {archivo});
     return {id: h.id, estado: h.estado};
   })
 );

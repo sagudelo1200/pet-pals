@@ -38,6 +38,21 @@ export function progresoDe(
   return progreso
 }
 
+/**
+ * Perfil con el que se comprueban los requisitos: el público más el celular,
+ * que es privado (vive en `usuarios`). Igual que lo arma el servidor.
+ * @param publico Perfil público de la persona.
+ * @param usuario Su documento de usuario (donde está el celular).
+ * @return Perfil para evaluar, o null si no hay ninguno de los dos.
+ */
+export function perfilParaRequisitos(
+  publico: Perfil,
+  usuario: { celular?: string } | null | undefined
+): Record<string, unknown> | null {
+  if (!publico && !usuario) return null
+  return { ...(publico ?? {}), celular: usuario?.celular }
+}
+
 export interface FilaRequisito {
   definicion: DefinicionRequisito
   /** Estado real ahora (lo aprobado y vencido cuenta como vencido). */

@@ -13,9 +13,12 @@ import { MAX_MOTIVO } from '@/functions/src/compartido/versionables'
 import type { EstadoRequisito } from '@/functions/src/compartido/habilitacion'
 import type { DefinicionRequisito } from '@/functions/src/compartido/servicios'
 import type { RequisitoHabilitacion } from '@/models/Habilitacion'
+import { useTranslation } from 'react-i18next'
 
 interface Props {
   habilitacionId: string
+  /** Servicio al que pertenece (para traducir el título del requisito) */
+  servicio: string
   definicion: DefinicionRequisito
   progreso?: RequisitoHabilitacion
   /** Estado real ahora (un aprobado vencido cuenta como vencido). */
@@ -32,6 +35,7 @@ interface Props {
 /** Un requisito de la habilitación, con su evidencia y las decisiones del equipo. */
 export const TarjetaRequisito: React.FC<Props> = ({
   habilitacionId,
+  servicio,
   definicion,
   progreso,
   estado,
@@ -40,6 +44,7 @@ export const TarjetaRequisito: React.FC<Props> = ({
   onAprobar,
   onRechazar,
 }) => {
+  const { t } = useTranslation(['admin', 'comun'])
   const [rechazando, setRechazando] = useState(false)
   const [motivo, setMotivo] = useState('')
   const delSistema = definicion.verificacion === null
@@ -48,36 +53,53 @@ export const TarjetaRequisito: React.FC<Props> = ({
     <Card style={styles.tarjeta}>
       <View style={styles.encabezado}>
         <Text style={styles.titulo}>
-          {definicion.titulo}
-          {definicion.obligatorio ? '' : ' (opcional)'}
+          {t(`comun:servicios.${servicio}.requisitos.${definicion.id}.titulo`, {
+            defaultValue: definicion.titulo,
+          })}
+          {definicion.obligatorio ? '' : t('comun:habilitacion.opcional')}
         </Text>
-        {!delSistema && (
-          <Badge
-            label={ETIQUETA_REQUISITO[estado]}
-            variant={VARIANTE_REQUISITO[estado]}
-            size="sm"
-          />
-        )}
+        <Badge
+          label={t(`comun:habilitacion.requisito_estados.${estado}`, {
+            defaultValue: ETIQUETA_REQUISITO[estado],
+          })}
+          variant={VARIANTE_REQUISITO[estado]}
+          size="sm"
+        />
       </View>
 
       {delSistema ? (
-        <Text style={styles.detalle}>Lo comprueba el sistema al enviar.</Text>
+        <Text style={styles.detalle}>
+          {t('admin:habilitaciones.tarjeta.lo_comprueba_sistema')}
+        </Text>
       ) : (
-        <Text style={styles.detalle}>{definicion.descripcion}</Text>
+        <Text style={styles.detalle}>
+          {t(
+            `comun:servicios.${servicio}.requisitos.${definicion.id}.descripcion`,
+            { defaultValue: definicion.descripcion }
+          )}
+        </Text>
       )}
 
       {progreso?.vence_en && estado !== 'EXPIRADO' && (
         <Text style={styles.detalle}>
-          Vence el {fechaCorta(progreso.vence_en)}
+          {t('admin:habilitaciones.tarjeta.vence_el', {
+            fecha: fechaCorta(progreso.vence_en),
+          })}
         </Text>
       )}
       {estado === 'EXPIRADO' && progreso?.vence_en && (
         <Text style={styles.alerta}>
-          Venció el {fechaCorta(progreso.vence_en)}
+          {t('admin:habilitaciones.tarjeta.vencio_el', {
+            fecha: fechaCorta(progreso.vence_en),
+          })}
         </Text>
       )}
       {estado === 'RECHAZADO' && progreso?.motivo && (
-        <Text style={styles.alerta}>Rechazado: {progreso.motivo}</Text>
+        <Text style={styles.alerta}>
+          {t('admin:habilitaciones.tarjeta.rechazado', {
+            motivo: progreso.motivo,
+          })}
+        </Text>
       )}
 
       {estado === 'EN_REVISION' && definicion.evidencia.length > 0 && (
@@ -89,14 +111,16 @@ export const TarjetaRequisito: React.FC<Props> = ({
 
       {estado === 'EN_REVISION' && !puedeDecidir && (
         <Text style={styles.detalle}>
-          Lo valida el proveedor ({definicion.validador}): llega su respuesta.
+          {t('admin:habilitaciones.tarjeta.proveedor', {
+            proveedor: definicion.validador,
+          })}
         </Text>
       )}
 
       {puedeDecidir && !rechazando && (
         <View style={styles.acciones}>
           <Button
-            title="Aprobar"
+            title={t('admin:habilitaciones.tarjeta.aprobar')}
             icon="check"
             variant="exito"
             size="sm"
@@ -104,7 +128,7 @@ export const TarjetaRequisito: React.FC<Props> = ({
             onPress={() => onAprobar(definicion.id)}
           />
           <Button
-            title="Rechazar"
+            title={t('admin:habilitaciones.tarjeta.rechazar')}
             icon="times"
             variant="error"
             size="sm"
@@ -116,19 +140,21 @@ export const TarjetaRequisito: React.FC<Props> = ({
 
       {puedeDecidir && rechazando && (
         <View>
-          <Text style={estilosAdmin.label}>¿Qué debe corregir?</Text>
+          <Text style={estilosAdmin.label}>
+            {t('admin:habilitaciones.tarjeta.que_corregir')}
+          </Text>
           <TextInput
             style={estilosAdmin.input}
             value={motivo}
             onChangeText={setMotivo}
-            placeholder="Ej: la foto está borrosa, repítela con buena luz"
+            placeholder={t('admin:habilitaciones.tarjeta.motivo_placeholder')}
             placeholderTextColor={COLOR.SUBTEXTO}
             maxLength={MAX_MOTIVO}
             multiline
           />
           <View style={styles.acciones}>
             <Button
-              title="Confirmar rechazo"
+              title={t('admin:habilitaciones.tarjeta.confirmar_rechazo')}
               variant="error"
               size="sm"
               disabled={trabajando || !motivo.trim()}
@@ -139,7 +165,7 @@ export const TarjetaRequisito: React.FC<Props> = ({
               }}
             />
             <Button
-              title="Cancelar"
+              title={t('comun:cancelar')}
               variant="ghost"
               size="sm"
               onPress={() => setRechazando(false)}

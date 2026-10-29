@@ -40,12 +40,13 @@ export function reduccionNecesaria(
  * Reduce (si hace falta) y recomprime la foto.
  * @param uri Archivo local de la foto.
  * @param opciones Límites de la reducción y la compresión.
- * @return La foto lista, en base64 y JPEG.
+ * @return La foto lista en JPEG: su archivo local y su contenido en base64
+ *   (para medirla).
  */
 export async function prepararImagen(
   uri: string,
   opciones: OpcionesImagen
-): Promise<{ base64: string; contentType: 'image/jpeg' }> {
+): Promise<{ uri: string; base64: string; contentType: 'image/jpeg' }> {
   const { ladoMaximo, calidad, dimensiones } = opciones
   const reduccion = reduccionNecesaria(
     dimensiones?.ancho,
@@ -58,5 +59,9 @@ export async function prepararImagen(
     { compress: calidad, format: SaveFormat.JPEG, base64: true }
   )
   if (!resultado.base64) throw new Error('No se pudo leer la imagen')
-  return { base64: resultado.base64, contentType: 'image/jpeg' }
+  return {
+    uri: resultado.uri,
+    base64: resultado.base64,
+    contentType: 'image/jpeg',
+  }
 }

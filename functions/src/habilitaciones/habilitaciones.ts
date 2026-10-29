@@ -107,6 +107,8 @@ function leerHabilitacion(id: string, data: Dato | undefined): Habilitacion {
       ...(typeof r.verificacion_id === 'string' ?
         {verificacionId: r.verificacion_id} : {}),
       ...(typeof r.motivo === 'string' ? {motivo: r.motivo} : {}),
+      ...(aMs(r.decidido_en) === null ?
+        {} : {decididoEnMs: aMs(r.decidido_en) as number}),
     };
   }
   return {
@@ -133,6 +135,8 @@ function escribirProgreso(progreso: ProgresoHabilitacion): Dato {
       vence_en: r.venceEnMs == null ? null : Timestamp.fromMillis(r.venceEnMs),
       ...(r.verificacionId ? {verificacion_id: r.verificacionId} : {}),
       ...(r.motivo ? {motivo: r.motivo} : {}),
+      ...(r.decididoEnMs === undefined ? {} :
+        {decidido_en: Timestamp.fromMillis(r.decididoEnMs)}),
     };
   }
   return salida;
@@ -267,8 +271,24 @@ async function cargarVerificaciones(
   }));
 }
 
-const leerPerfil = async (db: Firestore, uid: string) =>
-  (await db.doc(`perfiles_publicos/${uid}`).get()).data();
+/**
+ * Perfil con el que se evalúan los requisitos: el público más el celular, que
+ * es privado (vive en `usuarios`) y solo se usa para comprobar que existe.
+ * @param {Firestore} db Firestore.
+ * @param {string} uid Persona.
+ * @return {Promise<Record<string, unknown> | undefined>} Perfil para evaluar.
+ */
+const leerPerfil = async (
+  db: Firestore,
+  uid: string
+): Promise<Record<string, unknown> | undefined> => {
+  const [publico, usuario] = await Promise.all([
+    db.doc(`perfiles_publicos/${uid}`).get(),
+    db.doc(`usuarios/${uid}`).get(),
+  ]);
+  const perfil = publico.data();
+  return perfil ? {...perfil, celular: usuario.data()?.celular} : perfil;
+};
 
 // ---------- Efectos sobre el perfil, el rol y los avisos ----------
 
@@ -433,8 +453,8 @@ export async function iniciarHabilitacion(
 }
 
 export interface DependenciasEnvio {
-  /** ¿Existe el archivo en Storage? */
-  existeArchivo(ruta: string): Promise<boolean>
+  /** El archivo en Storage (cuándo se subió), o null si no existe. */
+  archivo(ruta: string): Promise<{actualizadoMs: number} | null>
 }
 
 /**
@@ -498,12 +518,21 @@ export async function enviarHabilitacion(
       continue;
     }
     const rutas = def.evidencia.map((a) => rutaEvidencia(uid, servicio, def.id, a));
-    const hay = await Promise.all(rutas.map((r) => deps.existeArchivo(r)));
-    const subidas = hay.filter(Boolean).length;
+    const info = await Promise.all(rutas.map((r) => deps.archivo(r)));
+    const subidas = info.filter(Boolean).length;
     if (!def.obligatorio && subidas === 0) continue;
     if (subidas < rutas.length) {
-      const sin = def.evidencia.filter((_, i) => !hay[i]);
+      const sin = def.evidencia.filter((_, i) => !info[i]);
       faltan.push(`${def.titulo} (falta subir: ${sin.join(', ')})`);
+      continue;
+    }
+    // Corregir lo rechazado o vencido exige un archivo nuevo: reenviar el mismo
+    // que ya se revisó solo haría perder tiempo a la persona y al equipo
+    const decididoEn = progresoBase[def.id]?.decididoEnMs;
+    if ((efectivo === 'RECHAZADO' || efectivo === 'EXPIRADO') &&
+      decididoEn !== undefined &&
+      !info.some((i) => (i?.actualizadoMs ?? 0) > decididoEn)) {
+      faltan.push(`${def.titulo} (sube un archivo nuevo)`);
       continue;
     }
     if (!transicionRequisitoValida(efectivo, 'EN_REVISION')) continue;
@@ -622,7 +651,7 @@ export async function aplicarDecisionRequisito(
 
   const aprobar = decision === 'APROBAR';
   const ajustes = aprobar ?
-    await leerConfiguracion(db, 'servicios') as unknown as Dato : {};
+    await leerConfiguracion(db, 'habilitaciones') as unknown as Dato : {};
   const previas = aprobar ? (await db.collection('verificaciones')
     .where('usuario_id', '==', h.uid)
     .where('tipo', '==', def.verificacion).get()).docs.length : 0;
@@ -637,7 +666,9 @@ export async function aplicarDecisionRequisito(
       return {
         progreso: {
           ...x.progreso,
-          [requisito]: {estado: 'RECHAZADO', motivo: motivo ?? ''},
+          [requisito]: {
+            estado: 'RECHAZADO', motivo: motivo ?? '', decididoEnMs: ahoraMs,
+          },
         },
         requisito,
         motivo,
@@ -649,7 +680,12 @@ export async function aplicarDecisionRequisito(
     return {
       progreso: {
         ...x.progreso,
-        [requisito]: {estado: 'VERIFICADO', venceEnMs, verificacionId: verificacion.id},
+        [requisito]: {
+          estado: 'VERIFICADO',
+          venceEnMs,
+          verificacionId: verificacion.id,
+          decididoEnMs: ahoraMs,
+        },
       },
       requisito,
       escrituras: [{

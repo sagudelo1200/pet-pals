@@ -185,6 +185,8 @@ export interface ProgresoRequisito {
   verificacionId?: string
   /** Por qué se rechazó (lo ve la persona para corregirlo). */
   motivo?: string
+  /** Cuándo se aprobó o rechazó (ms): al corregir, el archivo debe ser posterior. */
+  decididoEnMs?: number
 }
 
 /** Avance por id de requisito; lo que falta cuenta como PENDIENTE. */
@@ -195,11 +197,11 @@ export type PerfilParaRequisitos = Record<string, unknown>;
 
 /**
  * Meses de vigencia de un requisito: el que configuró el equipo en
- * configuracion/servicios (clave `{id}_vigencia_meses`) o, si no hay uno
+ * configuracion/habilitaciones (clave `{id}_vigencia_meses`) o, si no hay uno
  * válido, el del catálogo. Agregar una vigencia configurable para otro
  * requisito es agregar esa clave al catálogo de configuración.
  * @param {DefinicionRequisito} requisito Requisito.
- * @param {Record<string, unknown>} ajustes Valores de configuracion/servicios.
+ * @param {Record<string, unknown>} ajustes Valores de configuracion/habilitaciones.
  * @return {number | null} Meses, o null si no vence.
  */
 export function vigenciaDe(
@@ -216,7 +218,7 @@ export function vigenciaDe(
  * Cuándo vence un requisito aprobado.
  * @param {DefinicionRequisito} requisito Requisito.
  * @param {number} verificadoEnMs Instante de la aprobación.
- * @param {Record<string, unknown>} ajustes Valores de configuracion/servicios.
+ * @param {Record<string, unknown>} ajustes Valores de configuracion/habilitaciones.
  * @return {number | null} Instante de vencimiento, o null si no vence.
  */
 export function venceEnDe(

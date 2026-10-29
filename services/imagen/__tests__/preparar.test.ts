@@ -36,7 +36,11 @@ describe('prepararImagen', () => {
       ...LIMITES,
       dimensiones: { ancho: 4000, alto: 3000 },
     })
-    expect(r).toEqual({ base64: 'QUJD', contentType: 'image/jpeg' })
+    expect(r).toEqual({
+      uri: 'file:///x.jpg',
+      base64: 'QUJD',
+      contentType: 'image/jpeg',
+    })
     expect(manipular).toHaveBeenCalledWith(
       'file:///foto.jpg',
       [{ resize: { width: 1600 } }],

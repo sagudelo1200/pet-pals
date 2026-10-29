@@ -10,6 +10,7 @@ import { mensajeErrorCallable } from '@/services/firebase/callable'
 import {
   bannerDe,
   filasDe,
+  perfilParaRequisitos,
   puedeEnviar,
 } from '@/logic/habilitaciones/miHabilitacion'
 import { idDeHabilitacion } from '@/functions/src/compartido/habilitacion'
@@ -22,7 +23,7 @@ import type { Habilitacion } from '@/models/Habilitacion'
  * su perfil, y la envía a revisión.
  */
 export function useMiHabilitacion(servicio: TipoServicio) {
-  const { user } = useAuth()
+  const { user, profile } = useAuth()
   const uid = user?.uid ?? ''
   const [habilitacion, setHabilitacion] = useState<Habilitacion | null>(null)
   const [preparando, setPreparando] = useState(true)
@@ -38,25 +39,31 @@ export function useMiHabilitacion(servicio: TipoServicio) {
   useEffect(() => {
     if (!uid) return undefined
     let activo = true
+    let cancelar = () => {}
     setPreparando(true)
     setError(null)
-    // Idempotente: crea la habilitación si no existe y toma lo ya verificado
+    // Idempotente: crea la habilitación si no existe y toma lo ya verificado.
+    // Se escucha DESPUÉS: las reglas solo dejan leer una habilitación que ya
+    // existe, y un listener rechazado no se recupera solo
     iniciarHabilitacion({ servicio })
+      .then(() => {
+        if (!activo) return
+        cancelar = ServicioHabilitaciones.suscribirADetalle(
+          idDeHabilitacion(uid, servicio),
+          h => {
+            if (activo) setHabilitacion(h)
+          },
+          err => {
+            if (activo) setError(err.message)
+          }
+        )
+      })
       .catch(e => {
         if (activo) setError(mensajeErrorCallable(e))
       })
       .finally(() => {
         if (activo) setPreparando(false)
       })
-    const cancelar = ServicioHabilitaciones.suscribirADetalle(
-      idDeHabilitacion(uid, servicio),
-      h => {
-        if (activo) setHabilitacion(h)
-      },
-      err => {
-        if (activo) setError(err.message)
-      }
-    )
     return () => {
       activo = false
       cancelar()
@@ -64,8 +71,14 @@ export function useMiHabilitacion(servicio: TipoServicio) {
   }, [uid, servicio])
 
   const filas = useMemo(
-    () => filasDe(servicio, habilitacion, perfil ?? null, Date.now()),
-    [servicio, habilitacion, perfil]
+    () =>
+      filasDe(
+        servicio,
+        habilitacion,
+        perfilParaRequisitos(perfil, profile),
+        Date.now()
+      ),
+    [servicio, habilitacion, perfil, profile]
   )
   const banner = useMemo(() => bannerDe(habilitacion, filas), [habilitacion, filas])
 

@@ -21,14 +21,17 @@ import { validarMotivo } from '@/functions/src/compartido/versionables'
 import { CampoMotivo } from './CampoMotivo'
 import { NombreUsuario } from './NombreUsuario'
 import { estilosAdmin } from './estilosAdmin'
+import { useTranslation } from 'react-i18next'
+import { localeActual } from '@/utils/locale'
 
 const fecha = (v?: VersionApp<unknown>['vigente_desde']) =>
-  v ? v.toDate().toLocaleString('es-CO') : '—'
+  v ? v.toDate().toLocaleString(localeActual()) : '—'
 
-export const PanelVersiones: React.FC<{ tipo: string; soloLectura?: boolean }> = ({
-  tipo,
-  soloLectura = false,
-}) => {
+export const PanelVersiones: React.FC<{
+  tipo: string
+  soloLectura?: boolean
+}> = ({ tipo, soloLectura = false }) => {
+  const { t } = useTranslation('admin')
   const [versiones, setVersiones] = useState<VersionApp<unknown>[]>([])
   const [error, setError] = useState<string | null>(null)
   const [reactivando, setReactivando] = useState<number | null>(null)
@@ -58,15 +61,15 @@ export const PanelVersiones: React.FC<{ tipo: string; soloLectura?: boolean }> =
     try {
       const r = await ServicioVersionado.reactivar({ tipo, version, motivo })
       Alert.alert(
-        '✅ Reactivada',
+        t('versiones.reactivada'),
         r.nueva
-          ? `El contenido de la v${version} rige ahora como v${r.version}.`
-          : 'Ese contenido ya es el vigente.'
+          ? t('versiones.reactivada_desc', { version, nueva: r.version })
+          : t('versiones.ya_vigente')
       )
       setReactivando(null)
       setMotivo('')
     } catch (e) {
-      Alert.alert('❌ No se reactivó', mensajeErrorCallable(e))
+      Alert.alert(t('versiones.no_reactivo'), mensajeErrorCallable(e))
     } finally {
       setEnviando(false)
     }
@@ -74,7 +77,7 @@ export const PanelVersiones: React.FC<{ tipo: string; soloLectura?: boolean }> =
 
   if (error) return <Text style={estilosAdmin.errores}>{error}</Text>
   if (!versiones.length) {
-    return <Text style={estilosAdmin.ayuda}>Aún no hay versiones publicadas.</Text>
+    return <Text style={estilosAdmin.ayuda}>{t('versiones.vacio')}</Text>
   }
 
   return (
@@ -83,19 +86,28 @@ export const PanelVersiones: React.FC<{ tipo: string; soloLectura?: boolean }> =
         <View key={v.version} style={styles.fila}>
           <Text style={styles.titulo}>
             v{v.version}
-            <Text style={v.estado === 'ACTIVA' ? styles.activa : styles.historica}>
+            <Text
+              style={v.estado === 'ACTIVA' ? styles.activa : styles.historica}
+            >
               {'  '}
-              {v.estado === 'ACTIVA' ? 'VIGENTE' : 'HISTÓRICA'}
+              {v.estado === 'ACTIVA'
+                ? t('versiones.vigente')
+                : t('versiones.historica')}
             </Text>
           </Text>
           <Text style={styles.detalle}>{v.motivo}</Text>
           <Text style={styles.detalle}>
-            Desde {fecha(v.vigente_desde)}
-            {v.vigente_hasta ? ` hasta ${fecha(v.vigente_hasta)}` : ''}
+            {v.vigente_hasta
+              ? t('versiones.desde_hasta', {
+                  desde: fecha(v.vigente_desde),
+                  hasta: fecha(v.vigente_hasta),
+                })
+              : t('versiones.desde', { desde: fecha(v.vigente_desde) })}
           </Text>
           <Text style={styles.detalle}>
-            Por <NombreUsuario uid={v.publicado_por} style={styles.detalle} /> ·
-            huella {v.hash.slice(7, 15)}
+            {t('versiones.por')}
+            <NombreUsuario uid={v.publicado_por} style={styles.detalle} />
+            {t('versiones.huella', { hash: v.hash.slice(7, 15) })}
           </Text>
           {v.estado === 'HISTORICA' &&
             !soloLectura &&
@@ -104,13 +116,17 @@ export const PanelVersiones: React.FC<{ tipo: string; soloLectura?: boolean }> =
                 <CampoMotivo value={motivo} onChange={setMotivo} />
                 <View style={estilosAdmin.acciones}>
                   <Button
-                    title={enviando ? 'Reactivando…' : `Volver a la v${v.version}`}
+                    title={
+                      enviando
+                        ? t('versiones.reactivando')
+                        : t('versiones.volver_a', { version: v.version })
+                    }
                     onPress={() => reactivar(v.version)}
                     variant="primario"
                     disabled={enviando || validarMotivo(motivo) !== null}
                   />
                   <Button
-                    title="Cancelar"
+                    title={t('comun:cancelar')}
                     onPress={() => setReactivando(null)}
                     variant="secundario"
                     disabled={enviando}
@@ -119,7 +135,7 @@ export const PanelVersiones: React.FC<{ tipo: string; soloLectura?: boolean }> =
               </View>
             ) : (
               <Button
-                title="Reactivar"
+                title={t('versiones.reactivar')}
                 onPress={() => {
                   setReactivando(v.version)
                   setMotivo('')

@@ -123,6 +123,8 @@ export function procesarCelular(celular: string): string | null {
 export function obtenerErrorCelularI18n(
   celular: string
 ): { key: string; params?: Record<string, any> } | null {
+  // Sin nada escrito todavía no hay error que mostrar
+  if (!celular || celular.trim() === '') return null
   const resultado = validarCelularColombia(celular)
   if (resultado.valido) return null
   // Remover el prefijo 'usuarios.' si existe para usar con namespace

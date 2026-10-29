@@ -17,26 +17,16 @@ import {
   ServicioEconomia,
   mensajeErrorEconomia,
 } from '@/services/firebase/economia'
-import type {
-  DocumentoContable,
-  TipoDocumentoContable,
-} from '@/models/operacionesEconomicas'
+import type { DocumentoContable } from '@/models/operacionesEconomicas'
 import { NombreUsuario } from './NombreUsuario'
-
-const NOMBRE: Record<TipoDocumentoContable, string> = {
-  FACTURA_VENTA: 'Factura de venta',
-  RECIBO_CAJA: 'Recibo de caja',
-  DOCUMENTO_SOPORTE: 'Documento soporte',
-  RECIBO_PAGO: 'Recibo de pago',
-  NOTA_CREDITO: 'Nota crédito',
-  COMPROBANTE: 'Comprobante contable',
-}
+import { useTranslation } from 'react-i18next'
 
 const RECIENTES = 20
 
 export const PanelDocumentosContables: React.FC<{ soloLectura?: boolean }> = ({
   soloLectura = false,
 }) => {
+  const { t } = useTranslation('admin')
   const [reenviando, setReenviando] = useState<string | null>(null)
   const consulta = useMemo(
     () =>
@@ -62,10 +52,13 @@ export const PanelDocumentosContables: React.FC<{ soloLectura?: boolean }> = ({
         documentoId: id,
       })
       if (estado !== 'ENVIADO') {
-        Alert.alert('Sin enviar', `El documento quedó en estado ${estado}`)
+        Alert.alert(
+          t('documentos.sin_enviar'),
+          t('documentos.quedo_en_estado', { estado })
+        )
       }
     } catch (e) {
-      Alert.alert('❌ Error', mensajeErrorEconomia(e))
+      Alert.alert(t('documentos.error'), mensajeErrorEconomia(e))
     } finally {
       setReenviando(null)
     }
@@ -74,9 +67,7 @@ export const PanelDocumentosContables: React.FC<{ soloLectura?: boolean }> = ({
   if (documentos.length === 0) {
     return (
       <Text style={styles.vacio}>
-        {soloLectura
-          ? 'Aún no hay documentos contables'
-          : 'Todos los documentos están reflejados en el sistema contable'}
+        {soloLectura ? t('documentos.vacio_lectura') : t('documentos.vacio')}
       </Text>
     )
   }
@@ -86,23 +77,30 @@ export const PanelDocumentosContables: React.FC<{ soloLectura?: boolean }> = ({
       {documentos.map(d => (
         <Card key={d.id} style={styles.card}>
           <Text style={styles.titulo}>
-            {NOMBRE[d.tipo]} · {formatearCOP(d.total)}
+            {t(`documentos.tipos.${d.tipo}`)} · {formatearCOP(d.total)}
           </Text>
           <Text style={styles.detalle}>
             {soloLectura ? (
               <>
                 {`${d.id} · `}
                 <NombreUsuario uid={d.tercero.uid} style={styles.detalle} />
-                {` · envío ${d.envio.estado}`}
+                {t('documentos.envio', { estado: d.envio.estado })}
               </>
             ) : (
-              `${d.id} · ${d.envio.intentos} intento(s)`
+              t('documentos.intentos', {
+                id: d.id,
+                count: d.envio.intentos,
+              })
             )}
           </Text>
           {d.envio.error && <Text style={styles.error}>{d.envio.error}</Text>}
           {!soloLectura && (
             <Button
-              title={reenviando === d.id ? 'Reintentando…' : 'Reintentar envío'}
+              title={
+                reenviando === d.id
+                  ? t('documentos.reintentando')
+                  : t('documentos.reintentar')
+              }
               onPress={() => reenviar(d.id)}
               variant="contorno"
               disabled={reenviando === d.id}

@@ -11,11 +11,13 @@ import MiCuenta from '@/screens/comun/MiCuenta'
 import { Icon } from '@/components/ui'
 import { COLOR } from '@/constants'
 import type { AdminTabParamList } from './types'
+import { useTranslation } from 'react-i18next'
 
 const Tab = createBottomTabNavigator<AdminTabParamList>()
 
 const AdminTabNavigator: React.FC = () => {
   const insets = useSafeAreaInsets()
+  const { t } = useTranslation('admin')
   // Lo que espera revisión se ve como contador en la pestaña
   const { habilitaciones: porRevisar } = useHabilitaciones('EN_REVISION')
 
@@ -53,7 +55,7 @@ const AdminTabNavigator: React.FC = () => {
         name="AdminAjustes"
         component={AdminAjustes}
         options={{
-          tabBarLabel: 'Ajustes',
+          tabBarLabel: t('tabs.ajustes'),
           tabBarIcon: ({ color, size }) => (
             <Icon name="cog" color={color} size={size} />
           ),
@@ -63,7 +65,7 @@ const AdminTabNavigator: React.FC = () => {
         name="AdminHabilitaciones"
         component={AdminHabilitaciones}
         options={{
-          tabBarLabel: 'Habilitaciones',
+          tabBarLabel: t('tabs.habilitaciones'),
           tabBarBadge: porRevisar.length > 0 ? porRevisar.length : undefined,
           tabBarIcon: ({ color, size }) => (
             <Icon name="clipboard-check" color={color} size={size} />
@@ -74,7 +76,7 @@ const AdminTabNavigator: React.FC = () => {
         name="AdminEconomia"
         component={AdminEconomia}
         options={{
-          tabBarLabel: 'Economía',
+          tabBarLabel: t('tabs.economia'),
           tabBarIcon: ({ color, size }) => (
             <Icon name="dollar-sign" color={color} size={size} />
           ),
@@ -84,7 +86,7 @@ const AdminTabNavigator: React.FC = () => {
         name="TerritorioVivo"
         component={TerritorioVivo}
         options={{
-          tabBarLabel: 'Territorio',
+          tabBarLabel: t('tabs.territorio'),
           tabBarIcon: ({ color, size }) => (
             <Icon name="map" color={color} size={size} />
           ),
@@ -94,7 +96,7 @@ const AdminTabNavigator: React.FC = () => {
         name="MiCuenta"
         component={MiCuenta}
         options={{
-          tabBarLabel: 'Mi Cuenta',
+          tabBarLabel: t('tabs.mi_cuenta'),
           tabBarIcon: ({ color, size }) => (
             <Icon name="user" color={color} size={size} />
           ),

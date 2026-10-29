@@ -31,7 +31,7 @@ import Card from '@/components/ui/Card'
 import Icon from '@/components/ui/Icon'
 import { ServicioPaseo } from '@/services/firebase'
 import { useConfiguracion } from '@/hooks/configuracion/useConfiguracion'
-import { subirFotoEntrega } from '@/services/firebase/evidencias/fotoEntrega'
+import { subirFotoEntrega } from '@/logic/paseos/fotoEntrega'
 import { useTranslation } from 'react-i18next'
 
 interface FinalizarPaseoModalProps {
@@ -57,6 +57,10 @@ export const FinalizarPaseoModal: React.FC<FinalizarPaseoModalProps> = ({
   const { t } = useTranslation(['paseos', 'comun'])
   const { foto_entrega_obligatoria: requiereFoto } = useConfiguracion('paseos')
   const [fotoUri, setFotoUri] = useState<string | null>(null)
+  // Medidas de la foto elegida: sirven para reducirla antes de subirla
+  const [fotoMedidas, setFotoMedidas] = useState<
+    { ancho: number; alto: number } | undefined
+  >(undefined)
   const [observaciones, setObservaciones] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -79,6 +83,10 @@ export const FinalizarPaseoModal: React.FC<FinalizarPaseoModalProps> = ({
 
       if (!result.canceled && result.assets && result.assets.length > 0) {
         setFotoUri(result.assets[0].uri)
+        setFotoMedidas({
+          ancho: result.assets[0].width,
+          alto: result.assets[0].height,
+        })
         setError(null)
       }
     } catch (err) {
@@ -105,6 +113,10 @@ export const FinalizarPaseoModal: React.FC<FinalizarPaseoModalProps> = ({
 
       if (!result.canceled && result.assets && result.assets.length > 0) {
         setFotoUri(result.assets[0].uri)
+        setFotoMedidas({
+          ancho: result.assets[0].width,
+          alto: result.assets[0].height,
+        })
         setError(null)
       }
     } catch (err) {
@@ -124,7 +136,7 @@ export const FinalizarPaseoModal: React.FC<FinalizarPaseoModalProps> = ({
     try {
       // Foto del grupo: si es obligatoria, debe quedar guardada antes de cerrar
       if (requiereFoto && fotoUri) {
-        const foto = await subirFotoEntrega(paseoId, fotoUri)
+        const foto = await subirFotoEntrega(paseoId, fotoUri, fotoMedidas)
         if (!foto.success) {
           setError(t('paseos:finalizar.error_guardar_foto'))
           return
@@ -161,6 +173,7 @@ export const FinalizarPaseoModal: React.FC<FinalizarPaseoModalProps> = ({
             text: t('comun:ok'),
             onPress: () => {
               setFotoUri(null)
+              setFotoMedidas(undefined)
               setObservaciones('')
               setError(null)
               onSuccess()
@@ -375,6 +388,8 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: 'flex-end',
+    // Atenúa la pantalla de atrás: sin esto sus botones se ven sobre el modal
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
   },
   background: {
     flex: 1,

@@ -3,6 +3,7 @@ import { Text, TextInput } from 'react-native'
 import { COLOR } from '@/constants'
 import { MAX_MOTIVO } from '@/functions/src/compartido/versionables'
 import { estilosAdmin } from './estilosAdmin'
+import { useTranslation } from 'react-i18next'
 
 interface Props {
   value: string
@@ -10,19 +11,20 @@ interface Props {
 }
 
 /** Motivo obligatorio de una publicación (queda en el historial). */
-export const CampoMotivo: React.FC<Props> = ({ value, onChange }) => (
-  <>
-    <Text style={estilosAdmin.label}>Motivo del cambio</Text>
-    <TextInput
-      style={estilosAdmin.input}
-      value={value}
-      onChangeText={onChange}
-      placeholder="Ej: ajuste de precios de temporada"
-      placeholderTextColor={COLOR.SUBTEXTO}
-      maxLength={MAX_MOTIVO}
-    />
-    <Text style={estilosAdmin.ayudaCampo}>
-      Queda registrado en el historial de versiones
-    </Text>
-  </>
-)
+export const CampoMotivo: React.FC<Props> = ({ value, onChange }) => {
+  const { t } = useTranslation('admin')
+  return (
+    <>
+      <Text style={estilosAdmin.label}>{t('motivo.titulo')}</Text>
+      <TextInput
+        style={estilosAdmin.input}
+        value={value}
+        onChangeText={onChange}
+        placeholder={t('motivo.placeholder')}
+        placeholderTextColor={COLOR.SUBTEXTO}
+        maxLength={MAX_MOTIVO}
+      />
+      <Text style={estilosAdmin.ayudaCampo}>{t('motivo.ayuda')}</Text>
+    </>
+  )
+}

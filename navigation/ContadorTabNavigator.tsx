@@ -1,6 +1,7 @@
 import React from 'react'
 import { Platform } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import { useTranslation } from 'react-i18next'
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
 import ContadorEconomia from '@/screens/contador/ContadorEconomia'
 import MiCuenta from '@/screens/comun/MiCuenta'
@@ -13,6 +14,7 @@ const Tab = createBottomTabNavigator<ContadorTabParamList>()
 /** Contador: consulta la economía en solo lectura y su cuenta. */
 const ContadorTabNavigator: React.FC = () => {
   const insets = useSafeAreaInsets()
+  const { t } = useTranslation('admin')
 
   return (
     <Tab.Navigator
@@ -48,7 +50,7 @@ const ContadorTabNavigator: React.FC = () => {
         name="ContadorEconomia"
         component={ContadorEconomia}
         options={{
-          tabBarLabel: 'Economía',
+          tabBarLabel: t('tabs.economia'),
           tabBarIcon: ({ color, size }) => (
             <Icon name="dollar-sign" color={color} size={size} />
           ),
@@ -58,7 +60,7 @@ const ContadorTabNavigator: React.FC = () => {
         name="MiCuenta"
         component={MiCuenta}
         options={{
-          tabBarLabel: 'Mi Cuenta',
+          tabBarLabel: t('tabs.mi_cuenta'),
           tabBarIcon: ({ color, size }) => (
             <Icon name="user" color={color} size={size} />
           ),

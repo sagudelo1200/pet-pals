@@ -145,6 +145,10 @@
     "inicio_antes_fin": "On {{dia}}: start must be before end",
     "horario_fuera_rango": "The schedule for {{dia}} must be within the allowed range ({{min}} – {{max}})",
     "experiencia_placeholder": "E.g.: 2 years",
+    "celular_label": "Contact phone",
+    "celular_placeholder": "300 123 4567",
+    "celular_obligatorio": "A phone number is required for your qualification",
+    "celular_ayuda": "It is not shown on your profile.",
     "direccion_principal": "Main address",
     "cambiar": "Change",
     "agregar": "Add",
@@ -194,7 +198,8 @@
     "campos": {
       "biografia": "biography",
       "horario_semanal": "schedule",
-      "h3_r8": "address"
+      "h3_r8": "address",
+      "celular": "phone"
     },
     "archivos": {
       "frente": "Front",
@@ -206,6 +211,11 @@
     "enviada_titulo": "Sent",
     "enviada_detalle": "We received your information and are reviewing it.",
     "error_cargar": "We could not load your approval",
-    "entrar_como_cuidador": "Enter as caregiver"
+    "entrar_como_cuidador": "Enter as caregiver",
+    "aviso": {
+      "por_vencer": "Your approval for {{servicio}} expires on {{fecha}}. Renew it in time to keep receiving requests.",
+      "vencida": "Your approval for {{servicio}} expired on {{fecha}}: you will not receive requests until you renew it.",
+      "renovar": "Renew"
+    }
   }
 }

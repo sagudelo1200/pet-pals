@@ -43,9 +43,9 @@ export const GestorArchivos = {
       return { success: false, error: ERRORES_ARCHIVO.MUY_GRANDE }
     }
 
-    const subida = await ServicioArchivos.subirBase64(
+    const subida = await ServicioArchivos.subirArchivo(
       ruta,
-      foto.base64,
+      foto.uri,
       foto.contentType
     )
     return subida.success

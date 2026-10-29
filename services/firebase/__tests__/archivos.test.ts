@@ -1,36 +1,41 @@
 jest.mock('firebase/storage', () => ({
   ref: jest.fn((_storage: unknown, ruta: string) => ({ ruta })),
-  uploadString: jest.fn(),
+  uploadBytes: jest.fn(),
   deleteObject: jest.fn(),
   getDownloadURL: jest.fn(),
 }))
 
-import { deleteObject, getDownloadURL, uploadString } from 'firebase/storage'
+import { deleteObject, getDownloadURL, uploadBytes } from 'firebase/storage'
 import { ServicioArchivos } from '../storage/archivos'
 
-const subir = uploadString as jest.Mock
+const subir = uploadBytes as jest.Mock
+const blobDeFoto = { size: 3 }
+
 const eliminar = deleteObject as jest.Mock
 const direccion = getDownloadURL as jest.Mock
 
 beforeEach(() => {
+  const simulado: any = globalThis
+  simulado.fetch = jest.fn().mockResolvedValue({ blob: async () => blobDeFoto })
   subir.mockReset()
   eliminar.mockReset()
   direccion.mockReset()
 })
 
 describe('ServicioArchivos', () => {
-  test('sube en base64 con su tipo de contenido', async () => {
+  test('lee el archivo como Blob y lo sube con su tipo de contenido', async () => {
     subir.mockResolvedValue({})
-    const r = await ServicioArchivos.subirBase64('a/b', 'QUJD', 'image/jpeg')
+    const r = await ServicioArchivos.subirArchivo('a/b', 'file:///x.jpg', 'image/jpeg')
     expect(r).toEqual({ success: true, data: { ruta: 'a/b' } })
-    expect(subir).toHaveBeenCalledWith({ ruta: 'a/b' }, 'QUJD', 'base64', {
+    expect((globalThis as any).fetch).toHaveBeenCalledWith('file:///x.jpg')
+    expect(subir).toHaveBeenCalledWith({ ruta: 'a/b' }, blobDeFoto, {
       contentType: 'image/jpeg',
     })
   })
 
   test('un fallo al subir no lanza: responde success false', async () => {
     subir.mockRejectedValue({ code: 'storage/unauthorized', message: 'no' })
-    const r = await ServicioArchivos.subirBase64('a/b', 'QUJD', 'image/jpeg')
+    const r = await ServicioArchivos.subirArchivo('a/b', 'file:///x.jpg', 'image/jpeg')
     expect(r.success).toBe(false)
     expect(r.error).toBeTruthy()
   })

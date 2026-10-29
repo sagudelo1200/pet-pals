@@ -1,18 +1,11 @@
 import React, { useState } from 'react'
-import {
-  ActivityIndicator,
-  Image,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native'
+import { ActivityIndicator, Image, StyleSheet, Text, View } from 'react-native'
 import { COLOR } from '@/constants'
 import { Button } from '@/components/ui'
-import {
-  evidenciaHabilitacion,
-} from '@/services/firebase/habilitaciones'
+import { evidenciaHabilitacion } from '@/services/firebase/habilitaciones'
 import { mensajeErrorCallable } from '@/services/firebase/callable'
 import type { ArchivoEvidencia } from '@/functions/src/compartido/habilitacion'
+import { useTranslation } from 'react-i18next'
 
 interface Props {
   habilitacionId: string
@@ -27,6 +20,7 @@ export const VisorEvidencia: React.FC<Props> = ({
   habilitacionId,
   requisito,
 }) => {
+  const { t } = useTranslation(['admin', 'cuidador'])
   const [archivos, setArchivos] = useState<ArchivoEvidencia[] | null>(null)
   const [cargando, setCargando] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -48,7 +42,7 @@ export const VisorEvidencia: React.FC<Props> = ({
     return (
       <View style={styles.contenedor}>
         <Button
-          title="Ver archivos"
+          title={t('admin:habilitaciones.visor.ver_archivos')}
           icon="image"
           variant="contorno"
           size="sm"
@@ -65,9 +59,15 @@ export const VisorEvidencia: React.FC<Props> = ({
       {cargando && <ActivityIndicator color={COLOR.PRIMARIO} />}
       {archivos.map(a => (
         <View key={a.archivo} style={styles.archivo}>
-          <Text style={styles.nombre}>{a.archivo}</Text>
+          <Text style={styles.nombre}>
+            {t(`cuidador:habilitacion.archivos.${a.archivo}`, {
+              defaultValue: a.archivo,
+            })}
+          </Text>
           {!a.existe || !a.base64 ? (
-            <Text style={styles.error}>No se subió este archivo</Text>
+            <Text style={styles.error}>
+              {t('admin:habilitaciones.visor.no_subido')}
+            </Text>
           ) : a.contentType?.startsWith('image/') ? (
             <Image
               source={{ uri: `data:${a.contentType};base64,${a.base64}` }}
@@ -76,7 +76,9 @@ export const VisorEvidencia: React.FC<Props> = ({
             />
           ) : (
             <Text style={styles.detalle}>
-              Archivo {a.contentType}: no se puede mostrar aquí
+              {t('admin:habilitaciones.visor.no_se_puede_mostrar', {
+                tipo: a.contentType,
+              })}
             </Text>
           )}
         </View>

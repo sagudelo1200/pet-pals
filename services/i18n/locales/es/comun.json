@@ -275,5 +275,45 @@
   "privacidad": {
     "titulo": "Privacidad y autorizaciones",
     "descripcion": "Gestiona las autorizaciones que nos permiten prestarte nuestros servicios."
+  },
+  "habilitacion": {
+    "estados": {
+      "BORRADOR": "En borrador",
+      "EN_REVISION": "En revisión",
+      "APROBADA": "Aprobada",
+      "RECHAZADA": "Rechazada",
+      "SUSPENDIDA": "Suspendida"
+    },
+    "requisito_estados": {
+      "PENDIENTE": "Pendiente",
+      "EN_REVISION": "Por revisar",
+      "VERIFICADO": "Verificado",
+      "RECHAZADO": "Rechazado",
+      "EXPIRADO": "Vencido"
+    },
+    "opcional": " (opcional)"
+  },
+  "servicios": {
+    "paseo": {
+      "titulo": "Paseos",
+      "requisitos": {
+        "email": {
+          "titulo": "Correo verificado",
+          "descripcion": "Confirmaste que el correo es tuyo con el código que te enviamos"
+        },
+        "perfil": {
+          "titulo": "Perfil completo",
+          "descripcion": "Cuéntanos de ti, tu horario, dónde vives y tu celular de contacto, para que los tutores te encuentren"
+        },
+        "identidad": {
+          "titulo": "Identidad",
+          "descripcion": "Foto de tu documento de identidad por ambos lados"
+        },
+        "antecedentes": {
+          "titulo": "Antecedentes judiciales",
+          "descripcion": "Certificado de antecedentes judiciales vigente"
+        }
+      }
+    }
   }
 }

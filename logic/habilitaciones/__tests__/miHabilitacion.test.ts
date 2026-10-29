@@ -2,6 +2,7 @@ import {
   bannerDe,
   filasDe,
   progresoDe,
+  perfilParaRequisitos,
   puedeEnviar,
 } from '../miHabilitacion'
 import type { Habilitacion } from '@/models/Habilitacion'
@@ -12,6 +13,7 @@ const PERFIL = {
   biografia: 'Amo a los perros',
   horario_semanal: { '1': { inicio: '08:00', fin: '18:00' } },
   h3_r8: '88aaaaaaaaaaaaa',
+  celular: '3001234567',
 }
 
 const hab = (extra: Partial<Habilitacion> = {}): Habilitacion => ({
@@ -62,7 +64,15 @@ describe('filasDe', () => {
 
     const incompleto = fila(filasDe('paseo', hab(), { biografia: 'x' }, AHORA), 'perfil')
     expect(incompleto.estado).toBe('PENDIENTE')
-    expect(incompleto.camposFaltantes).toEqual(['horario_semanal', 'h3_r8'])
+    expect(incompleto.camposFaltantes).toEqual(['horario_semanal', 'h3_r8', 'celular'])
+  })
+
+  test('el celular privado se suma al perfil público al evaluar', () => {
+    const { celular, ...publico } = PERFIL
+    expect(perfilParaRequisitos(publico, { celular })).toEqual(PERFIL)
+    expect(perfilParaRequisitos(null, null)).toBeNull()
+    const sin = fila(filasDe('paseo', hab(), perfilParaRequisitos(publico, {}), AHORA), 'perfil')
+    expect(sin.camposFaltantes).toEqual(['celular'])
   })
 
   test('en borrador se sube la evidencia de lo pendiente, no del correo ni del perfil', () => {
