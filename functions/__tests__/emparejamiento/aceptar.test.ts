@@ -189,10 +189,16 @@ describe('aceptarPaseo', () => {
     });
   });
 
-  test('sin avisos no hace falta confirmar ni se avisa al tutor', async () => {
+  test('sin advertencias no hace falta confirmar: acepta y avisa al tutor que aceptaron', async () => {
     await expect(aceptarPaseo(mockDb, 'c1', 'p1', AHORA)).resolves
       .toMatchObject({aceptado: true});
-    expect(notificar).not.toHaveBeenCalled();
+    expect(notificar).toHaveBeenCalledTimes(1);
+    expect(notificar).toHaveBeenCalledWith(mockDb, expect.objectContaining({
+      tipo: 'PASEO_ACEPTADO',
+      uid: 't1',
+      dedup_key: 'paseo_p1_CONFIRMADO_t1',
+      datos: expect.objectContaining({cuidador: 'Ana Pérez'}),
+    }));
   });
 
   test('con más perros de los que prefiere: avisa; al confirmar, acepta', async () => {

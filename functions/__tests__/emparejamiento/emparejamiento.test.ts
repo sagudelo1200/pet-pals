@@ -292,7 +292,7 @@ describe('buscarCuidadores', () => {
 
 describe('buscarCuidadores: servicio por zonas', () => {
   const R7 = latLngToCell(4.6486, -74.0628, 7);
-  const exigirZona = () => mockDb.__seed('configuracion/paseos', {exigir_zona: true});
+  const exigirZona = () => mockDb.__seed('configuracion/zonas', {exigir_zona: true});
   const crearZona = (estado: string) => guardarZona(mockDb, {
     nombre: 'Chicó', ciudad: 'Bogotá', estado, celdas: [R7],
   }, {motivo: 'Prueba', autor: 'a1', ahora: mockFirestore.MOCK_TIMESTAMP.now()});

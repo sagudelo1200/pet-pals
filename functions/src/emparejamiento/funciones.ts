@@ -23,6 +23,7 @@ import {
   buscarCuidadores as buscar,
   validarAsignacionAlCrear,
 } from './emparejamiento';
+import {esPaseo} from '../compartido/servicios';
 
 if (!admin.apps || admin.apps.length === 0) admin.initializeApp();
 const db = admin.firestore();
@@ -40,7 +41,7 @@ export const aceptarPaseo = onCall(OPCIONES, (request) =>
 export const alCrearPaseoValidarCuidador = onDocumentCreated(
   'operaciones/{operacionId}',
   async (event) => {
-    if (event.data?.data()?.tipo !== 'paseo') return;
+    if (!esPaseo(event.data?.data())) return;
     try {
       await validarAsignacionAlCrear(db, event.params.operacionId, Date.now());
     } catch (error) {

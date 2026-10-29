@@ -13,6 +13,7 @@ import { useNavigation } from '@react-navigation/native'
 import type { StackNavigationProp } from '@react-navigation/stack'
 import type { AuthStackParamList } from '@/navigation/types'
 import { useZonasH3Filtrado } from '@/hooks/admin/useZonasH3Filtrado'
+import { useTranslation } from 'react-i18next'
 import { useDetallesZonaH3 } from '@/hooks/admin/useDetallesZonaH3'
 import { PanelDetallesZona } from '@/components/admin/PanelDetallesZona'
 import { Icon } from '@/components/ui'
@@ -42,6 +43,7 @@ const TerritorioVivo: React.FC = () => {
     error,
     totalZonas,
   } = useZonasH3Filtrado()
+  const { t, i18n } = useTranslation('admin')
   const insets = useSafeAreaInsets()
   const navigation = useNavigation<StackNavigationProp<AuthStackParamList>>()
   const [zonaSeleccionada, setZonaSeleccionada] =
@@ -70,8 +72,49 @@ const TerritorioVivo: React.FC = () => {
       construirHTML(zonas, insets.top, tabBarHeight, {
         ciudad: ciudadSeleccionada,
         totalZonas,
+        textos: {
+          lang: i18n.language?.startsWith('en') ? 'en' : 'es',
+          miUbicacion: t('territorio.mapa.mi_ubicacion'),
+          cambiarTema: t('territorio.mapa.cambiar_tema'),
+          cambiarR9: t('territorio.mapa.cambiar_r9'),
+          cambiarR8: t('territorio.mapa.cambiar_r8'),
+          verInteligencia: t('territorio.mapa.ver_inteligencia'),
+          verEstado: t('territorio.mapa.ver_estado'),
+          bienestar: t('territorio.mapa.bienestar'),
+          seguridad: t('territorio.mapa.seguridad'),
+          actividad: t('territorio.mapa.actividad'),
+          socializacion: t('territorio.mapa.socializacion'),
+          sinDatos: t('territorio.mapa.sin_datos'),
+          estado: t('territorio.mapa.estado'),
+          inteligencia: t('territorio.mapa.inteligencia'),
+          tipo: t('territorio.mapa.tipo'),
+          eventos: t('territorio.mapa.eventos'),
+          cuidadores: t('territorio.mapa.cuidadores'),
+          demanda: t('territorio.mapa.demanda'),
+          activos: t('territorio.mapa.activos'),
+          paseos: t('territorio.mapa.paseos'),
+          interesados: t('territorio.mapa.interesados'),
+          tutoresMin: t('territorio.mapa.tutores_min'),
+          cuidadoresMin: t('territorio.mapa.cuidadores_min'),
+          estados: {
+            sin_actividad: t('territorio.estados.sin_actividad'),
+            disponible: t('territorio.estados.disponible'),
+            sin_cobertura: t('territorio.estados.sin_cobertura'),
+            activa: t('territorio.estados.activa'),
+            en_operacion: t('territorio.estados.en_operacion'),
+            interes: t('territorio.estados.interes'),
+          },
+        },
       }),
-    [zonas, insets.top, tabBarHeight, ciudadSeleccionada, totalZonas]
+    // eslint-disable-next-line
+    [
+      zonas,
+      insets.top,
+      tabBarHeight,
+      ciudadSeleccionada,
+      totalZonas,
+      i18n.language,
+    ]
   )
 
   const handleWebViewMessage = (event: any) => {
@@ -95,7 +138,7 @@ const TerritorioVivo: React.FC = () => {
     return (
       <View style={styles.centrado}>
         <ActivityIndicator size="large" color={COLOR.PRIMARIO} />
-        <Text style={styles.textoEstado}>Cargando zonas…</Text>
+        <Text style={styles.textoEstado}>{t('territorio.cargando')}</Text>
       </View>
     )
   }
@@ -161,8 +204,11 @@ const TerritorioVivo: React.FC = () => {
         <View style={[styles.badge, { top: insets.top + 12 }]}>
           <Text style={styles.badgeTexto}>
             {conteoZonas > 0
-              ? `${conteoZonas} celdas ${resolucionActual.toUpperCase()}`
-              : `${zonas.length} celdas`}
+              ? t('territorio.celdas_resolucion', {
+                  count: conteoZonas,
+                  resolucion: resolucionActual.toUpperCase(),
+                })
+              : t('territorio.celdas', { count: zonas.length })}
           </Text>
         </View>
       )}
@@ -178,7 +224,7 @@ const TerritorioVivo: React.FC = () => {
           activeOpacity={0.7}
         >
           <Icon name="map" size={14} color={COLOR.PRIMARIO} />
-          <Text style={styles.textoZonas}>Zonas</Text>
+          <Text style={styles.textoZonas}>{t('territorio.boton_zonas')}</Text>
         </TouchableOpacity>
       </View>
 
@@ -306,7 +352,9 @@ const styles = StyleSheet.create({
   accesoZonas: {
     position: 'absolute',
     left: 0,
-    right: 0,
+    // Deja libre el espacio del selector de ciudad (a la derecha) para que no
+    // se toquen ni se monten
+    right: 164,
     zIndex: 14,
     alignItems: 'center',
   },

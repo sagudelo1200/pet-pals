@@ -21,6 +21,13 @@ export interface ConfiguracionAreas {
     foto_entrega_obligatoria: boolean
     entrega_aviso_horas: number
     entrega_revision_horas: number
+    servicio_desde_min: number
+    servicio_hasta_min: number
+    margen_horario_min: number
+    antelacion_min: number
+    descanso_entre_paseos_min: number
+  }
+  zonas: {
     exigir_zona: boolean
   }
   auth: {
@@ -40,7 +47,7 @@ export interface ConfiguracionAreas {
     aprendizajes_en_resumen: number
     priorizar_conocidos: boolean
   }
-  servicios: {
+  habilitaciones: {
     antecedentes_vigencia_meses: number
   }
   emparejamiento: {
@@ -102,7 +109,7 @@ export const CATALOGO_CONFIGURACION: {
       foto_entrega_obligatoria: {
         tipo: 'booleano', titulo: 'Foto de entrega obligatoria',
         descripcion: 'Exige al cuidador subir la foto del grupo para finalizar ' +
-          'el paseo (activar cuando Firebase Storage esté habilitado)',
+          'el paseo',
         porDefecto: false,
       },
       entrega_aviso_horas: {
@@ -117,9 +124,47 @@ export const CATALOGO_CONFIGURACION: {
           'si el tutor no confirmó la entrega, pasa a la cola del equipo',
         porDefecto: 12, min: 1, max: 168, unidad: 'h',
       },
+      servicio_desde_min: {
+        tipo: 'entero', titulo: 'Primera hora de servicio',
+        descripcion: 'Hora más temprana en que puede empezar un paseo y en que ' +
+          'un cuidador puede declarar su horario, en minutos desde la ' +
+          'medianoche, hora de Colombia (330 = 5:30 a. m.)',
+        porDefecto: 330, min: 0, max: 720, unidad: 'min',
+      },
+      servicio_hasta_min: {
+        tipo: 'entero', titulo: 'Última hora de servicio',
+        descripcion: 'Hora en que debe terminar el último paseo del día, en ' +
+          'minutos desde la medianoche, hora de Colombia (1350 = 10:30 p. m.)',
+        porDefecto: 1350, min: 721, max: 1439, unidad: 'min',
+      },
+      margen_horario_min: {
+        tipo: 'entero', titulo: 'Margen sobre el horario del cuidador',
+        descripcion: 'Minutos de cortesía: un paseo que empieza un poco antes o ' +
+          'termina un poco después del horario declarado igual se considera ' +
+          'dentro de él',
+        porDefecto: 12, min: 0, max: 60, unidad: 'min',
+      },
+      antelacion_min: {
+        tipo: 'entero', titulo: 'Antelación mínima de un paseo',
+        descripcion: 'Minutos que deben faltar para el inicio de un paseo de ' +
+          'hoy para poder pedirlo o aceptarlo',
+        porDefecto: 15, min: 0, max: 240, unidad: 'min',
+      },
+      descanso_entre_paseos_min: {
+        tipo: 'entero', titulo: 'Descanso entre paseos',
+        descripcion: 'Minutos libres que necesita un cuidador entre el final de ' +
+          'un paseo y el inicio del siguiente',
+        porDefecto: 5, min: 0, max: 60, unidad: 'min',
+      },
+    },
+  },
+  zonas: {
+    titulo: 'Zonas de servicio',
+    lectura: 'servidor',
+    valores: {
       exigir_zona: {
         tipo: 'booleano', titulo: 'Atender solo en zonas definidas',
-        descripcion: 'Si está activo, solo se pueden pedir paseos (y los ' +
+        descripcion: 'Si está activo, solo se pueden pedir servicios (y los ' +
           'cuidadores solo reciben solicitudes) en zonas activas o piloto. ' +
           'Quien lo intenta fuera queda registrado como interesado. Déjalo ' +
           'apagado hasta tener definida la primera zona',
@@ -202,8 +247,8 @@ export const CATALOGO_CONFIGURACION: {
       },
     },
   },
-  servicios: {
-    titulo: 'Registro de cuidadores',
+  habilitaciones: {
+    titulo: 'Habilitación de cuidadores',
     lectura: 'servidor',
     valores: {
       antecedentes_vigencia_meses: {

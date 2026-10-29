@@ -1,5 +1,18 @@
 import { PerfilPublico } from '@/models/PerfilPublico'
 import type { ExcepcionDisponibilidad } from '@/models/ExcepcionDisponibilidad'
+import type { ConfiguracionAreas } from '@/functions/src/compartido/configuracion'
+
+/**
+ * Horario de la plataforma y márgenes de tiempo: vienen de la configuración
+ * (`configuracion/paseos`, ver `useConfiguracion('paseos')`).
+ */
+export type HorarioServicio = Pick<
+  ConfiguracionAreas['paseos'],
+  | 'servicio_desde_min'
+  | 'servicio_hasta_min'
+  | 'margen_horario_min'
+  | 'antelacion_min'
+>
 
 /**
  * Parámetros para realizar el matching de cuidadores
@@ -15,12 +28,7 @@ export interface ParametrosMatching {
  * Extraída para facilitar pruebas y mantenimiento.
  */
 export class LogicMatching {
-  /** Límites globales de operación del servicio */
-  static readonly HORA_MINIMA_SERVICIO = '05:30' // 5:30 AM
-  static readonly HORA_MAXIMA_SERVICIO = '22:30' // 10:30 PM
   static readonly MAX_DIAS_ANTICIPACION = 60 // Máximo 2 meses de anticipación
-  /** Buffer mínimo (en minutos) entre el "ahora" y el inicio de una solicitud para hoy */
-  static readonly SOLICITUD_BUFFER_MINUTOS = 15
 
   /**
    * Determina si un cuidador está disponible para una solicitud específica.
@@ -29,6 +37,7 @@ export class LogicMatching {
   static esCuidadorDisponible(
     perfil: PerfilPublico,
     params: ParametrosMatching,
+    horario: HorarioServicio,
     excepcion?: ExcepcionDisponibilidad
   ): boolean {
     const { fecha, hora, duracion } = params
@@ -42,19 +51,17 @@ export class LogicMatching {
 
     const solicitudInicio = this.timeToMinutes(hora)
     const solicitudFin = solicitudInicio + duracion
-    const MARGEN = 12 // minutos de flexibilidad para matching con el cuidador
-    const BUFFER = this.SOLICITUD_BUFFER_MINUTOS
+    const MARGEN = horario.margen_horario_min
+    const BUFFER = horario.antelacion_min
 
     if (esHoy) {
       const minutosAhora = ahora.getHours() * 60 + ahora.getMinutes()
       if (solicitudInicio < minutosAhora + BUFFER) return false
     }
 
-    // 1. Validar límites de servicio sistémicos (05:30 - 22:30)
-    if (solicitudInicio < this.timeToMinutes(this.HORA_MINIMA_SERVICIO))
-      return false
-    if (solicitudFin > this.timeToMinutes(this.HORA_MAXIMA_SERVICIO))
-      return false
+    // 1. Validar límites de servicio sistémicos
+    if (solicitudInicio < horario.servicio_desde_min) return false
+    if (solicitudFin > horario.servicio_hasta_min) return false
 
     const diaKey = fecha.getDay().toString()
 
@@ -94,12 +101,16 @@ export class LogicMatching {
   /**
    * Valida si un horario propuesto por un cuidador cumple con los límites de la plataforma.
    */
-  static esHorarioLaboralValido(inicioStr: string, finStr: string): boolean {
+  static esHorarioLaboralValido(
+    inicioStr: string,
+    finStr: string,
+    horario: HorarioServicio
+  ): boolean {
     try {
       const inicio = this.timeToMinutes(inicioStr)
       const fin = this.timeToMinutes(finStr)
-      const plataformaMin = this.timeToMinutes(this.HORA_MINIMA_SERVICIO)
-      const plataformaMax = this.timeToMinutes(this.HORA_MAXIMA_SERVICIO)
+      const plataformaMin = horario.servicio_desde_min
+      const plataformaMax = horario.servicio_hasta_min
 
       // El horario del cuidador debe estar contenido en el horario de la plataforma
       return inicio >= plataformaMin && fin <= plataformaMax && inicio < fin
@@ -107,6 +118,12 @@ export class LogicMatching {
       console.warn('[matching.esHorarioLaboralValido] Error manejado:', _e)
       return false
     }
+  }
+
+  /** Minutos desde la medianoche como "HH:mm" (330 → "05:30"). */
+  static formatoHora(minutos: number): string {
+    const dos = (n: number) => String(n).padStart(2, '0')
+    return `${dos(Math.floor(minutos / 60))}:${dos(minutos % 60)}`
   }
 
   /**
@@ -179,8 +196,11 @@ export class LogicMatching {
    */
   static filtrarDisponibles(
     perfiles: PerfilPublico[],
-    params: ParametrosMatching
+    params: ParametrosMatching,
+    horario: HorarioServicio
   ): PerfilPublico[] {
-    return perfiles.filter(p => this.esCuidadorDisponible(p, params))
+    return perfiles.filter(p =>
+      this.esCuidadorDisponible(p, params, horario)
+    )
   }
 }

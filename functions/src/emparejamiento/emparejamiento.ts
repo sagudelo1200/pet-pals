@@ -48,10 +48,12 @@ import {ofreceServicio} from '../compartido/habilitacion';
 import {leerConfiguracion} from '../comun/configuracion';
 import {ErrorNegocio} from '../comun/errores';
 import {notificar} from '../comun/notificar';
+import {destinatariosDelPaseo} from '../paseos/avisosAlTutor';
 import {
   consultarServicio,
   registrarInteres,
 } from '../zonas/servicio';
+import {TIPO_PASEO, esPaseo} from '../compartido/servicios';
 
 type Dato = Record<string, unknown>;
 
@@ -192,7 +194,7 @@ async function armarCandidato(
     db.doc(`perfiles_publicos/${id}`).get(),
     db.doc(`excepciones_disponibilidad/${id}/semanas/${semanaIso(p.fecha)}`).get(),
     db.collection('operaciones')
-      .where('tipo', '==', 'paseo')
+      .where('tipo', '==', TIPO_PASEO)
       .where('id_cuidador', '==', id)
       .where('estado', 'in', ESTADOS_EN_AGENDA)
       .get(),
@@ -216,7 +218,7 @@ async function armarCandidato(
     foto: esTexto(perfil.foto) ? perfil.foto : undefined,
     insignias: Array.isArray(perfil.insignias_verificacion) ?
       perfil.insignias_verificacion.filter(esTexto) : [],
-    habilitado: ofreceServicio(perfil, 'paseo', ahoraMs),
+    habilitado: ofreceServicio(perfil, TIPO_PASEO, ahoraMs),
     horarioSemanal: (perfil.horario_semanal ?? {}) as Candidato['horarioSemanal'],
     overrides: excepcionDoc.data()?.overrides as
       Record<string, OverrideDia> | undefined,
@@ -285,7 +287,7 @@ export async function buscarCuidadores(
   }, {
     ...ajustes,
     priorizar_conocidos: expediente.priorizar_conocidos,
-    max_mascotas: paseos.max_mascotas,
+    ...paseos,
   });
 
   const cuidadores = evaluados.slice(0, ajustes.max_resultados)
@@ -380,7 +382,7 @@ export async function evaluarCuidadorParaPaseo(
   const reglas: AjustesEmparejamiento = {
     ...ajustes,
     priorizar_conocidos: expediente.priorizar_conocidos,
-    max_mascotas: paseos.max_mascotas,
+    ...paseos,
   };
   return evaluarCandidato(candidato, solicitud, reglas);
 }
@@ -449,7 +451,7 @@ export async function aceptarPaseo(
   }
   const ref = db.doc(`operaciones/${paseoId}`);
   const paseo = (await ref.get()).data();
-  if (!paseo || paseo.tipo !== 'paseo') {
+  if (!paseo || !esPaseo(paseo)) {
     throw new ErrorNegocio('not-found', 'El paseo no existe');
   }
   if (paseo.estado !== 'PENDIENTE') {
@@ -466,7 +468,7 @@ export async function aceptarPaseo(
   }
 
   // Una hora que ya empezó no sirve; los últimos minutos antes de empezar sí
-  const margen = REGLAS_EMPAREJAMIENTO.ANTELACION_MIN * 60000;
+  const margen = (await leerConfiguracion(db, 'paseos')).antelacion_min * 60000;
   const resultado = await evaluarCuidadorParaPaseo(db, uid, paseo,
     ahoraMs - margen);
   if (esBloqueante(resultado)) {
@@ -496,17 +498,35 @@ export async function aceptarPaseo(
     });
   });
 
-  // El tutor se entera si el cuidador aceptó algo que normalmente no hace
-  if (advertencias.length > 0 && esTexto(paseo.creado_por)) {
-    await notificar(db, {
-      tipo: 'PASEO_CON_AVISOS',
-      uid: paseo.creado_por,
-      datos: {
-        paseo_id: paseoId,
-        cuidador: esTexto(perfil?.nombre) ? perfil.nombre : 'El cuidador',
-        detalle: textoDeAdvertencias(advertencias),
-      },
-    }).catch((e) => console.warn('[emparejamiento] aviso no enviado:', e));
+  // El tutor se entera de que aceptaron; y si el cuidador aceptó algo que
+  // normalmente no hace, se le dice
+  if (esTexto(paseo.creado_por)) {
+    const cuidador = esTexto(perfil?.nombre) ? perfil.nombre : 'El cuidador';
+    try {
+      if (advertencias.length > 0) {
+        await notificar(db, {
+          tipo: 'PASEO_CON_AVISOS',
+          uid: paseo.creado_por,
+          datos: {
+            paseo_id: paseoId,
+            cuidador,
+            detalle: textoDeAdvertencias(advertencias),
+          },
+        });
+      } else {
+        for (const {uid, mascotas} of
+          await destinatariosDelPaseo(db, paseoId, paseo)) {
+          await notificar(db, {
+            tipo: 'PASEO_ACEPTADO',
+            uid,
+            dedup_key: `paseo_${paseoId}_CONFIRMADO_${uid}`,
+            datos: {paseo_id: paseoId, cuidador, mascotas},
+          });
+        }
+      }
+    } catch (e) {
+      console.warn('[emparejamiento] aviso no enviado:', e);
+    }
   }
   return {aceptado: true, id_cuidador: uid};
 }
@@ -528,7 +548,7 @@ export async function validarAsignacionAlCrear(
 ): Promise<boolean> {
   const ref = db.doc(`operaciones/${paseoId}`);
   const paseo = (await ref.get()).data();
-  if (!paseo || paseo.tipo !== 'paseo' || paseo.estado !== 'PENDIENTE' ||
+  if (!paseo || !esPaseo(paseo) || paseo.estado !== 'PENDIENTE' ||
     !esTexto(paseo.id_cuidador) || paseo.id_cuidador === '') {
     return false;
   }

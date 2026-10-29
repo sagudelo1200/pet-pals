@@ -3,6 +3,7 @@ import { useAuth } from '@/context/AuthContext'
 import { GestorPerfilPublico } from '@/logic/usuarios/perfilPublico'
 import type { PerfilPublico } from '@/models/PerfilPublico'
 import { LogicMatching } from '@/logic/paseos/matching'
+import { useConfiguracion } from '@/hooks/configuracion/useConfiguracion'
 
 interface DisponibilidadItem {
   fecha: Date
@@ -20,6 +21,7 @@ export const useDisponibilidadCercana = (opts?: {
   const [error, setError] = useState<string | null>(null)
   const [fechas, setFechas] = useState<DisponibilidadItem[]>([])
   const { user } = useAuth()
+  const horario = useConfiguracion('paseos')
 
   const calcularDisponibilidad = useCallback(
     (perfiles: PerfilPublico[]) => {
@@ -35,11 +37,11 @@ export const useDisponibilidadCercana = (opts?: {
         const candidatos = perfiles.filter(p => {
           const franja = p.horario_semanal?.[diaKey]
           if (!franja) return false
-          return LogicMatching.esCuidadorDisponible(p, {
-            fecha,
-            hora: franja.inicio,
-            duracion: 0,
-          })
+          return LogicMatching.esCuidadorDisponible(
+            p,
+            { fecha, hora: franja.inicio, duracion: 0 },
+            horario
+          )
         })
 
         if (candidatos.length > 0) {
@@ -56,7 +58,7 @@ export const useDisponibilidadCercana = (opts?: {
 
       setFechas(resultados)
     },
-    [maxWindowDays, resultsCount]
+    [maxWindowDays, resultsCount, horario]
   )
 
   const load = useCallback(async () => {

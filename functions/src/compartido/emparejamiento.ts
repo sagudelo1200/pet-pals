@@ -28,14 +28,6 @@ export const TAMANOS: readonly Tamano[] =
 export const REGLAS_EMPAREJAMIENTO = {
   /** Horas de diferencia entre Colombia y UTC (UTC = hora local + 5). */
   HORAS_UTC_COLOMBIA: 5,
-  HORA_MINIMA_SERVICIO: '05:30',
-  HORA_MAXIMA_SERVICIO: '22:30',
-  /** Margen de cortesía sobre el horario del cuidador. */
-  MARGEN_HORARIO_MIN: 12,
-  /** Antelación mínima para un paseo de hoy. */
-  ANTELACION_MIN: 15,
-  /** Descanso entre dos paseos del mismo cuidador. */
-  DESCANSO_ENTRE_PASEOS_MIN: 5,
   /** A esta distancia (km) o más, la cercanía vale 0. */
   RADIO_CERCANIA_KM: 3,
   /** Calificación que se supone a quien aún no tiene evaluaciones. */
@@ -164,7 +156,12 @@ export type AjustesEmparejamiento =
     priorizar_conocidos: boolean
     /** `paseos.max_mascotas`: tope global de mascotas por paseo. */
     max_mascotas: number
-  };
+  } & HorarioDeServicio;
+
+/** Reglas de tiempo de `configuracion/paseos` que usa el emparejamiento. */
+export type HorarioDeServicio = Pick<ConfiguracionAreas['paseos'],
+  'servicio_desde_min' | 'servicio_hasta_min' | 'margen_horario_min' |
+  'antelacion_min' | 'descanso_entre_paseos_min'>;
 
 // ---------- Tiempo ----------
 
@@ -242,14 +239,16 @@ export function franjaDelDia(c: Candidato, dia: string): FranjaDia | undefined {
  * @param {Candidato} c Cuidador.
  * @param {number} inicioMs Inicio del pedido.
  * @param {number} finMs Fin del pedido.
+ * @param {number} descansoMin Descanso entre paseos (minutos).
  * @return {boolean} Si hay choque.
  */
 export function hayChoqueDeAgenda(
   c: Candidato,
   inicioMs: number,
-  finMs: number
+  finMs: number,
+  descansoMin: number
 ): boolean {
-  const colchon = REGLAS_EMPAREJAMIENTO.DESCANSO_ENTRE_PASEOS_MIN * 60000;
+  const colchon = descansoMin * 60000;
   return c.agenda.some(
     (p) => inicioMs < p.finMs + colchon && finMs > p.inicioMs - colchon
   );
@@ -309,33 +308,35 @@ export function advertenciasDe(
  * Por qué el cuidador no está a esa hora (reloj, horario o agenda).
  * @param {Candidato} c Cuidador.
  * @param {Solicitud} s Pedido.
+ * @param {HorarioDeServicio} h Horario y márgenes de la plataforma.
  * @return {object | null} Motivo (y su franja del día), o null si está libre.
  */
 function motivoDeHorario(
   c: Candidato,
-  s: Solicitud
+  s: Solicitud,
+  h: HorarioDeServicio
 ): {motivo: MotivoAlternativo; franja?: FranjaDia} | null {
-  const R = REGLAS_EMPAREJAMIENTO;
   const inicioMs = instanteDe(s.fecha, s.hora);
   const inicio = minutosDe(s.hora);
   const fin = inicio + s.duracion;
   const finMs = inicioMs + s.duracion * 60000;
 
-  if (inicioMs < s.ahoraMs + R.ANTELACION_MIN * 60000) {
+  if (inicioMs < s.ahoraMs + h.antelacion_min * 60000) {
     return {motivo: 'hora_pasada'};
   }
-  if (inicio < minutosDe(R.HORA_MINIMA_SERVICIO) ||
-    fin > minutosDe(R.HORA_MAXIMA_SERVICIO)) {
+  if (inicio < h.servicio_desde_min || fin > h.servicio_hasta_min) {
     return {motivo: 'fuera_de_servicio'};
   }
 
   const franja = franjaDelDia(c, diaDeSemana(s.fecha));
   if (!franja) return {motivo: 'no_trabaja'};
-  const dentro = inicio >= minutosDe(franja.inicio) - R.MARGEN_HORARIO_MIN &&
-    fin <= minutosDe(franja.fin) + R.MARGEN_HORARIO_MIN;
+  const dentro = inicio >= minutosDe(franja.inicio) - h.margen_horario_min &&
+    fin <= minutosDe(franja.fin) + h.margen_horario_min;
   if (!dentro) return {motivo: 'horario', franja};
 
-  if (hayChoqueDeAgenda(c, inicioMs, finMs)) return {motivo: 'ocupado', franja};
+  if (hayChoqueDeAgenda(c, inicioMs, finMs, h.descanso_entre_paseos_min)) {
+    return {motivo: 'ocupado', franja};
+  }
   return null;
 }
 
@@ -444,7 +445,7 @@ export function evaluarCandidato(
   if (exclusion) return {estado: 'excluido', motivo: exclusion};
 
   const advertencias = advertenciasDe(c, s, a);
-  const horario = motivoDeHorario(c, s);
+  const horario = motivoDeHorario(c, s, a);
   if (horario) return {estado: 'otro_horario', ...horario, advertencias};
 
   return {estado: 'disponible', ...puntuar(c, s, a, advertencias), advertencias};

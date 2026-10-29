@@ -26,7 +26,13 @@ import {
   jsonEstable,
   TIPOS_VERSIONABLES,
 } from '../../src/compartido/versionables'
-import { validarCambios } from '../../src/compartido/configuracion'
+import {
+  AREAS_CONFIGURACION,
+  CATALOGO_CONFIGURACION,
+  validarCambios,
+  validarValor,
+  valoresPorDefecto,
+} from '../../src/compartido/configuracion'
 
 const db = mockFirestore.crearMockDb()
 const AHORA = mockFirestore.MOCK_TIMESTAMP.fromMillis(Date.UTC(2026, 9, 21, 15)) as any
@@ -116,12 +122,12 @@ describe('motor de versionado', () => {
 
 describe('configuración operativa', () => {
   test('sin documento usa los valores del catálogo', async () => {
-    expect(await leerConfiguracion(db, 'paseos')).toEqual({ max_mascotas: 4, escalada_minutos: 30, foto_entrega_obligatoria: false, entrega_aviso_horas: 3, entrega_revision_horas: 12, exigir_zona: false })
+    expect(await leerConfiguracion(db, 'paseos')).toEqual(valoresPorDefecto('paseos'))
   })
 
   test('valor guardado inválido: usa el del catálogo', async () => {
     db.__seed('configuracion/paseos', { max_mascotas: 999, escalada_minutos: 45 })
-    expect(await leerConfiguracion(db, 'paseos')).toEqual({ max_mascotas: 4, escalada_minutos: 45, foto_entrega_obligatoria: false, entrega_aviso_horas: 3, entrega_revision_horas: 12, exigir_zona: false })
+    expect(await leerConfiguracion(db, 'paseos')).toEqual({ ...valoresPorDefecto('paseos'), escalada_minutos: 45 })
   })
 
   test('actualizar valida, guarda solo lo que cambia y deja historial', async () => {
@@ -159,12 +165,47 @@ describe('configuración operativa', () => {
   test('sembrar crea lo que falta sin pisar lo existente', async () => {
     db.__seed('configuracion/paseos', { max_mascotas: 6 })
     const sembrado = await sembrarConfiguracion(db, AHORA)
-    expect(sembrado.paseos).toEqual([
-      'escalada_minutos', 'foto_entrega_obligatoria', 'entrega_aviso_horas', 'entrega_revision_horas',
-      'exigir_zona',
-    ])
+    expect(sembrado.paseos).toEqual(
+      Object.keys(valoresPorDefecto('paseos')).filter(c => c !== 'max_mascotas')
+    )
     expect(doc('configuracion/paseos').max_mascotas).toBe(6)
     expect(doc('configuracion/auth')).toMatchObject({ otp_minutos_expiracion: 10, otp_max_intentos: 3 })
     expect(await sembrarConfiguracion(db, AHORA)).toEqual({})
+  })
+})
+
+describe('cada ajuste vive en el área de su tema', () => {
+  test('exigir_zona es de las zonas, no de los paseos', () => {
+    expect(CATALOGO_CONFIGURACION.paseos.valores).not.toHaveProperty('exigir_zona')
+    expect(valoresPorDefecto('zonas')).toEqual({ exigir_zona: false })
+    expect(validarCambios('zonas', { exigir_zona: true })).toEqual([])
+    expect(validarCambios('paseos', { exigir_zona: true })).toEqual(['exigir_zona: no existe en paseos'])
+  })
+
+  test('la foto de entrega obligatoria está apagada por defecto y es un booleano válido', () => {
+    const def = CATALOGO_CONFIGURACION.paseos.valores.foto_entrega_obligatoria
+    expect(def.porDefecto).toBe(false)
+    expect(validarValor(def, true)).toBeNull()
+    expect(validarValor(def, 'si')).not.toBeNull()
+    expect(def.descripcion).not.toMatch(/Storage/)
+  })
+
+  test('los ajustes de la habilitación tienen su propia área', () => {
+    expect(AREAS_CONFIGURACION).toContain('habilitaciones')
+    expect(AREAS_CONFIGURACION).not.toContain('servicios')
+    expect(valoresPorDefecto('habilitaciones')).toEqual({ antecedentes_vigencia_meses: 12 })
+  })
+
+  test('las áreas que solo usa el servidor no se exponen a la app', () => {
+    const soloServidor = AREAS_CONFIGURACION.filter(a => CATALOGO_CONFIGURACION[a].lectura === 'servidor')
+    expect(soloServidor).toEqual(expect.arrayContaining(['zonas', 'habilitaciones', 'emparejamiento', 'evaluaciones']))
+  })
+
+  test('el ajuste de zonas se lee de su área y no de la de paseos', async () => {
+    db.__seed('configuracion/paseos', { exigir_zona: true })
+    expect((await leerConfiguracion(db, 'zonas')).exigir_zona).toBe(false)
+    db.__seed('configuracion/zonas', { exigir_zona: true })
+    limpiarCacheConfiguracion()
+    expect((await leerConfiguracion(db, 'zonas')).exigir_zona).toBe(true)
   })
 })

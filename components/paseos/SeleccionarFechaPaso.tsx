@@ -5,6 +5,7 @@ import { COLOR } from '@/constants'
 import { Button, DurationPicker, TimePicker } from '@/components/ui'
 import DatePicker from '@/components/ui/DatePicker'
 import { LogicMatching } from '@/logic/paseos/matching'
+import { useConfiguracion } from '@/hooks/configuracion/useConfiguracion'
 
 interface Props {
   fechaInicial?: Date | null
@@ -22,6 +23,7 @@ export const SeleccionarFechaPaso = ({
   onBack,
 }: Props) => {
   const { t } = useTranslation()
+  const horario = useConfiguracion('paseos')
   const [fecha, setFecha] = React.useState<Date | undefined>(
     fechaInicial || undefined
   )
@@ -41,19 +43,17 @@ export const SeleccionarFechaPaso = ({
     const max = new Date()
     max.setDate(max.getDate() + LogicMatching.MAX_DIAS_ANTICIPACION)
 
-    // Si ya pasó la hora máxima de servicio (22:30), hoy ya no es válido.
+    // Si ya pasó la hora máxima de servicio, hoy ya no es válido.
     // Usamos un margen pequeño para que no se vea "disponible" algo que no se puede agendar.
-    const [hMax, mMax] =
-      LogicMatching.HORA_MAXIMA_SERVICIO.split(':').map(Number)
     const limiteHoy = new Date()
-    limiteHoy.setHours(hMax, mMax, 0, 0)
+    limiteHoy.setHours(0, horario.servicio_hasta_min, 0, 0)
 
     if (new Date() > limiteHoy) {
       min.setDate(min.getDate() + 1)
     }
 
     return { minDate: min, maxDate: max }
-  }, [])
+  }, [horario.servicio_hasta_min])
 
   return (
     <View style={styles.container}>

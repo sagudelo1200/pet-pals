@@ -27,6 +27,7 @@ const AHORA = instanteDe('2030-03-01', '08:00');
 
 const AJUSTES: AjustesEmparejamiento = {
   ...valoresPorDefecto('emparejamiento'),
+  ...valoresPorDefecto('paseos'),
   priorizar_conocidos: true,
   max_mascotas: 4,
 };
@@ -250,7 +251,7 @@ describe('horario', () => {
       .toBeUndefined();
   });
 
-  test('límites del servicio: 05:30 a 22:30', () => {
+  test('límites del servicio por defecto: 05:30 a 22:30', () => {
     const todoElDia = cuidador({
       horarioSemanal: {'2': {inicio: '00:00', fin: '23:59'}},
     });
@@ -259,6 +260,43 @@ describe('horario', () => {
     expect(alternativo(todoElDia, solicitud({hora: '22:00'}))?.motivo)
       .toBe('fuera_de_servicio');
     expect(alternativo(todoElDia, solicitud({hora: '05:30'}))).toBeUndefined();
+  });
+
+  test('el horario del servicio sale de la configuración', () => {
+    const todoElDia = cuidador({
+      horarioSemanal: {'2': {inicio: '00:00', fin: '23:59'}},
+    });
+    const motivo = (a: AjustesEmparejamiento, hora: string) =>
+      evaluarCandidato(todoElDia, solicitud({hora}), a).estado === 'disponible' ?
+        'disponible' : 'fuera';
+    expect(motivo(AJUSTES, '05:00')).toBe('fuera');
+    expect(motivo({...AJUSTES, servicio_desde_min: 300}, '05:00'))
+      .toBe('disponible');
+    expect(motivo({...AJUSTES, servicio_hasta_min: 600}, '10:00')).toBe('fuera');
+  });
+
+  test('antelación, margen y descanso salen de la configuración', () => {
+    const horaPasada = (a: AjustesEmparejamiento) => {
+      const r = evaluarCandidato(cuidador(),
+        solicitud({ahoraMs: instanteDe(FECHA, '09:30')}), a);
+      return r.estado === 'otro_horario' && r.motivo === 'hora_pasada';
+    };
+    expect(horaPasada(AJUSTES)).toBe(false);
+    expect(horaPasada({...AJUSTES, antelacion_min: 45})).toBe(true);
+
+    const margen = (a: AjustesEmparejamiento) => evaluarCandidato(
+      cuidador({horarioSemanal: {'2': {inicio: '10:20', fin: '18:00'}}}),
+      solicitud(), a).estado;
+    expect(margen(AJUSTES)).toBe('otro_horario');
+    expect(margen({...AJUSTES, margen_horario_min: 20})).toBe('disponible');
+
+    const agenda = [{inicioMs: instanteDe(FECHA, '11:08'),
+      finMs: instanteDe(FECHA, '12:00')}];
+    const choque = (a: AjustesEmparejamiento) =>
+      evaluarCandidato(cuidador({agenda}), solicitud(), a).estado;
+    expect(choque(AJUSTES)).toBe('disponible');
+    expect(choque({...AJUSTES, descanso_entre_paseos_min: 10}))
+      .toBe('otro_horario');
   });
 
   test('una hora que ya pasó, o con menos de 15 minutos, no sirve', () => {

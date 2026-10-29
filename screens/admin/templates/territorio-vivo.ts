@@ -4,7 +4,7 @@
  */
 
 export default `<!DOCTYPE html>
-<html lang="es">
+<html lang="{{LANG}}">
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
@@ -54,10 +54,12 @@ export default `<!DOCTYPE html>
 </head>
 <body>
   <div id="map"></div>
-  <div id="debug-toggle" style="position:absolute;top:52px;right:12px;background:#0A3F37;color:#2DB391;border:2px solid #2DB391;border-radius:4px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;font-weight:700;z-index:9998;user-select:none;">▼</div>
-  <div id="debug" style="position:absolute;top:96px;right:0;width:280px;height:300px;background:rgba(10,15,14,0.95);color:#2DB391;border-left:2px solid #2DB391;border:2px solid #2DB391;border-radius:0;padding:12px;font-family:monospace;font-size:10px;overflow-y:auto;z-index:9999;display:flex;flex-direction:column;box-sizing:border-box;"></div>
+  <div id="debug-toggle" style="position:absolute;top:calc({{TOP_INSET}}px + 64px);right:12px;background:#0A3F37;color:#2DB391;border:2px solid #2DB391;border-radius:4px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;font-weight:700;z-index:9998;user-select:none;">◀</div>
+  <div id="debug" style="position:absolute;top:calc({{TOP_INSET}}px + 108px);right:0;width:280px;height:300px;background:rgba(10,15,14,0.95);color:#2DB391;border-left:2px solid #2DB391;border:2px solid #2DB391;border-radius:0;padding:12px;font-family:monospace;font-size:10px;overflow-y:auto;z-index:9999;display:none;flex-direction:column;box-sizing:border-box;"></div>
   <script>
-    var debugVisible = true;
+    // El registro de eventos empieza oculto: no tapa el mapa ni los controles de
+    // arriba (selector de ciudad y Zonas); se abre con el botón de la derecha
+    var debugVisible = false;
     var debugEl = document.getElementById('debug');
     var debugToggle = document.getElementById('debug-toggle');
     
@@ -87,6 +89,7 @@ export default `<!DOCTYPE html>
     
     var ZONAS   = {{ZONAS_JSON}};
     var COLORES = {{COLORES_JSON}};
+    var T       = {{TEXTOS_JSON}};
 
     debug('📍 Ciudad: {{CIUDAD}}');
     debug('📊 Total zonas (carga): ' + ZONAS.length);
@@ -118,7 +121,7 @@ export default `<!DOCTYPE html>
       onAdd: function(map) {
         var btn = L.DomUtil.create('div', 'leaflet-bar leaflet-control');
         btn.innerHTML = '&#x2316;';
-        btn.title = 'Mi ubicación';
+        btn.title = T.miUbicacion;
         btn.style.cssText = 'background:#121918;color:#2DB391;cursor:pointer;width:36px;height:36px;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;border:2px solid #1F2D2A;border-radius:4px;user-select:none;';
         var marker = null;
         L.DomEvent.on(btn, 'click', function() {
@@ -130,7 +133,7 @@ export default `<!DOCTYPE html>
             var lng = pos.coords.longitude;
             map.setView([lat, lng], 14);
             if (marker) map.removeLayer(marker);
-            marker = L.circleMarker([lat, lng], {radius: 8, fillColor: '#1D8F73', color: '#2DB391', weight: 2, fillOpacity: 0.9}).addTo(map).bindPopup('Mi ubicación').openPopup();
+            marker = L.circleMarker([lat, lng], {radius: 8, fillColor: '#1D8F73', color: '#2DB391', weight: 2, fillOpacity: 0.9}).addTo(map).bindPopup(T.miUbicacion).openPopup();
           }, function() { btn.style.color = '#C96B67'; });
         });
         L.DomEvent.disableClickPropagation(btn);
@@ -148,7 +151,7 @@ export default `<!DOCTYPE html>
       onAdd: function () {
         var btn = L.DomUtil.create('div', 'leaflet-bar leaflet-control');
         btn.innerHTML = '&#x2600;&#xFE0F;';
-        btn.title = 'Cambiar tema';
+        btn.title = T.cambiarTema;
         btn.style.cssText = 'background:#121918;color:#EBF4F2;cursor:pointer;width:36px;height:36px;display:flex;align-items:center;justify-content:center;font-size:16px;line-height:1;border:2px solid #1F2D2A;border-radius:4px;user-select:none;';
         L.DomEvent.on(btn, 'click', function () {
           isDark = !isDark;
@@ -171,7 +174,7 @@ export default `<!DOCTYPE html>
       onAdd: function () {
         var btn = L.DomUtil.create('div', 'leaflet-bar leaflet-control');
         btn.innerHTML = '⬡ R8';
-        btn.title = 'Click: cambiar a R9';
+        btn.title = T.cambiarR9;
         btn.style.cssText = 'background:#0A3F37;color:#2DB391;cursor:pointer;width:36px;height:36px;display:flex;align-items:center;justify-content:center;font-size:12px;line-height:1;font-weight:700;border:2px solid #2DB391;border-radius:4px;user-select:none;transition:all 0.2s ease;box-shadow:0 0 8px rgba(45,179,145,0.4);';
         L.DomEvent.on(btn, 'click', function () {
           resolucion = resolucion === 'r8' ? 'r9' : 'r8';
@@ -181,14 +184,14 @@ export default `<!DOCTYPE html>
             btn.style.color = '#2DB391';
             btn.style.boxShadow = '0 0 8px rgba(45,179,145,0.4)';
             btn.innerHTML = '⬡ R8';
-            btn.title = 'Click: cambiar a R9';
+            btn.title = T.cambiarR9;
           } else {
             btn.style.backgroundColor = '#3F2C0A';
             btn.style.borderColor = '#F59E0B';
             btn.style.color = '#F59E0B';
             btn.style.boxShadow = '0 0 8px rgba(245,158,11,0.4)';
             btn.innerHTML = '⬡ R9';
-            btn.title = 'Click: cambiar a R8';
+            btn.title = T.cambiarR8;
           }
           renderizarZonas();
         });
@@ -204,13 +207,13 @@ export default `<!DOCTYPE html>
       onAdd: function () {
         var btn = L.DomUtil.create('div', 'leaflet-bar leaflet-control');
         btn.innerHTML = '🧠';
-        btn.title = 'Cambiar a Inteligencia';
+        btn.title = T.verInteligencia;
         btn.style.cssText = 'background:#121918;color:#EBF4F2;cursor:pointer;width:36px;height:36px;display:flex;align-items:center;justify-content:center;font-size:16px;line-height:1;border:2px solid #1F2D2A;border-radius:4px;user-select:none;';
         L.DomEvent.on(btn, 'click', function () {
           vistaInteligencia = !vistaInteligencia;
           btn.style.borderColor = vistaInteligencia ? '#2DB391' : '#1F2D2A';
           btn.style.backgroundColor = vistaInteligencia ? '#1D8F73' : '#121918';
-          btn.title = vistaInteligencia ? 'Cambiar a Estado' : 'Cambiar a Inteligencia';
+          btn.title = vistaInteligencia ? T.verEstado : T.verInteligencia;
           renderizarZonas();
         });
         L.DomEvent.disableClickPropagation(btn);
@@ -224,9 +227,9 @@ export default `<!DOCTYPE html>
       var div = L.DomUtil.create('div', 'leyenda');
       var html = '';
       if (vistaInteligencia) {
-        html = '<strong>Bienestar</strong><div class="leyenda-item"><div class="leyenda-dot" style="background:#10B981;opacity:0.8"></div>70-100</div><div class="leyenda-item"><div class="leyenda-dot" style="background:#F59E0B;opacity:0.8"></div>50-69</div><div class="leyenda-item"><div class="leyenda-dot" style="background:#F97316;opacity:0.8"></div>30-49</div><div class="leyenda-item"><div class="leyenda-dot" style="background:#EF4444;opacity:0.8"></div>0-29</div><div class="leyenda-item"><div class="leyenda-dot" style="background:#6B7280;opacity:0.5"></div>Sin datos</div>';
+        html = '<strong>' + T.bienestar + '</strong><div class="leyenda-item"><div class="leyenda-dot" style="background:#10B981;opacity:0.8"></div>70-100</div><div class="leyenda-item"><div class="leyenda-dot" style="background:#F59E0B;opacity:0.8"></div>50-69</div><div class="leyenda-item"><div class="leyenda-dot" style="background:#F97316;opacity:0.8"></div>30-49</div><div class="leyenda-item"><div class="leyenda-dot" style="background:#EF4444;opacity:0.8"></div>0-29</div><div class="leyenda-item"><div class="leyenda-dot" style="background:#6B7280;opacity:0.5"></div>' + T.sinDatos + '</div>';
       } else {
-        html = '<strong>Estado</strong>';
+        html = '<strong>' + T.estado + '</strong>';
         Object.keys(COLORES).forEach(function(k) {
           var c = COLORES[k];
           html += '<div class="leyenda-item"><div class="leyenda-dot" style="background:' + c.fill + ';opacity:' + (c.opacity + 0.3) + '"></div>' + c.label + '</div>';
@@ -297,12 +300,12 @@ export default `<!DOCTYPE html>
 
           var popupHTML = '';
           if (vistaInteligencia) {
-            popupHTML = '<div class="popup-titulo">Inteligencia</div><div class="popup-fila">Tipo: <b>' + (zona.tipo || '—') + '</b></div><div class="popup-fila">Bienestar: <b>' + (zona.bienestar ?? '—') + '</b></div><div class="popup-fila">Seguridad: <b>' + (zona.seguridad ?? '—') + '</b></div><div class="popup-fila">Actividad: <b>' + (zona.actividad ?? '—') + '</b></div><div class="popup-fila">Socialización: <b>' + (zona.socializacion ?? '—') + '</b></div><div class="popup-fila">Eventos: <b>' + zona.eventos + '</b></div>';
+            popupHTML = '<div class="popup-titulo">' + T.inteligencia + '</div><div class="popup-fila">' + T.tipo + ': <b>' + (zona.tipo || '—') + '</b></div><div class="popup-fila">' + T.bienestar + ': <b>' + (zona.bienestar ?? '—') + '</b></div><div class="popup-fila">' + T.seguridad + ': <b>' + (zona.seguridad ?? '—') + '</b></div><div class="popup-fila">' + T.actividad + ': <b>' + (zona.actividad ?? '—') + '</b></div><div class="popup-fila">' + T.socializacion + ': <b>' + (zona.socializacion ?? '—') + '</b></div><div class="popup-fila">' + T.eventos + ': <b>' + zona.eventos + '</b></div>';
           } else {
             var estadoLabel = (COLORES[zona.estado] || {}).label || zona.estado;
-            popupHTML = '<div class="popup-titulo">' + estadoLabel.toUpperCase() + '</div><div class="popup-fila">Cuidadores: <b>' + zona.cuidadores + '</b></div><div class="popup-fila">Demanda: <b>' + zona.demanda + '</b></div><div class="popup-fila">Activos: <b>' + zona.activos + '</b></div><div class="popup-fila">Paseos: <b>' + zona.total + '</b></div>';
+            popupHTML = '<div class="popup-titulo">' + estadoLabel.toUpperCase() + '</div><div class="popup-fila">' + T.cuidadores + ': <b>' + zona.cuidadores + '</b></div><div class="popup-fila">' + T.demanda + ': <b>' + zona.demanda + '</b></div><div class="popup-fila">' + T.activos + ': <b>' + zona.activos + '</b></div><div class="popup-fila">' + T.paseos + ': <b>' + zona.total + '</b></div>';
             if (zona.interesTutores || zona.interesCuidadores) {
-              popupHTML += '<div class="popup-fila">Interesados: <b>' + zona.interesTutores + '</b> tutores · <b>' + zona.interesCuidadores + '</b> cuidadores</div>';
+              popupHTML += '<div class="popup-fila">' + T.interesados + ': <b>' + zona.interesTutores + '</b> ' + T.tutoresMin + ' · <b>' + zona.interesCuidadores + '</b> ' + T.cuidadoresMin + '</div>';
             }
           }
           popupHTML += '<div class="popup-fila" style="margin-top:4px;font-size:10px;color:#98A7A4">' + h3_id + '</div>';

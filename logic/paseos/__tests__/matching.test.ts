@@ -1,6 +1,9 @@
 /* eslint-env jest */
 import { LogicMatching } from '@/logic/paseos/matching'
 import type { PerfilPublico } from '@/models/PerfilPublico'
+import { valoresPorDefecto } from '@/functions/src/compartido/configuracion'
+
+const HORARIO = valoresPorDefecto('paseos')
 
 // Lunes 14 de enero de 2030 (getDay() === 1): fecha futura, nunca "hoy"
 const LUNES = new Date(2030, 0, 14)
@@ -14,39 +17,39 @@ describe('LogicMatching.esCuidadorDisponible', () => {
 
   it('disponible si la solicitud cabe en su franja del día', () => {
     expect(
-      LogicMatching.esCuidadorDisponible(cuidador, { fecha: LUNES, hora: '09:00', duracion: 60 })
+      LogicMatching.esCuidadorDisponible(cuidador, { fecha: LUNES, hora: '09:00', duracion: 60 }, HORARIO)
     ).toBe(true)
   })
 
   it('no disponible si no trabaja ese día', () => {
     const martes = new Date(2030, 0, 15)
     expect(
-      LogicMatching.esCuidadorDisponible(cuidador, { fecha: martes, hora: '09:00', duracion: 60 })
+      LogicMatching.esCuidadorDisponible(cuidador, { fecha: martes, hora: '09:00', duracion: 60 }, HORARIO)
     ).toBe(false)
   })
 
   it('tolera un margen de 12 minutos en los bordes de la franja', () => {
     expect(
-      LogicMatching.esCuidadorDisponible(cuidador, { fecha: LUNES, hora: '07:50', duracion: 60 })
+      LogicMatching.esCuidadorDisponible(cuidador, { fecha: LUNES, hora: '07:50', duracion: 60 }, HORARIO)
     ).toBe(true)
     expect(
-      LogicMatching.esCuidadorDisponible(cuidador, { fecha: LUNES, hora: '07:45', duracion: 60 })
+      LogicMatching.esCuidadorDisponible(cuidador, { fecha: LUNES, hora: '07:45', duracion: 60 }, HORARIO)
     ).toBe(false)
   })
 
   it('no disponible si la solicitud termina después de la franja (más margen)', () => {
     expect(
-      LogicMatching.esCuidadorDisponible(cuidador, { fecha: LUNES, hora: '11:30', duracion: 60 })
+      LogicMatching.esCuidadorDisponible(cuidador, { fecha: LUNES, hora: '11:30', duracion: 60 }, HORARIO)
     ).toBe(false)
   })
 
   it('respeta el horario de servicio de la plataforma (05:30 - 22:30)', () => {
     const nocturno = perfil({ '1': { inicio: '04:00', fin: '23:59' } })
     expect(
-      LogicMatching.esCuidadorDisponible(nocturno, { fecha: LUNES, hora: '05:00', duracion: 30 })
+      LogicMatching.esCuidadorDisponible(nocturno, { fecha: LUNES, hora: '05:00', duracion: 30 }, HORARIO)
     ).toBe(false)
     expect(
-      LogicMatching.esCuidadorDisponible(nocturno, { fecha: LUNES, hora: '22:15', duracion: 30 })
+      LogicMatching.esCuidadorDisponible(nocturno, { fecha: LUNES, hora: '22:15', duracion: 30 }, HORARIO)
     ).toBe(false)
   })
 
@@ -55,6 +58,7 @@ describe('LogicMatching.esCuidadorDisponible', () => {
       LogicMatching.esCuidadorDisponible(
         cuidador,
         { fecha: LUNES, hora: '09:00', duracion: 60 },
+        HORARIO,
         { overrides: { '1': { activo: false } } } as any
       )
     ).toBe(false)
@@ -63,10 +67,10 @@ describe('LogicMatching.esCuidadorDisponible', () => {
   it('una excepción puede cambiar el horario del día', () => {
     const excepcion = { overrides: { '1': { activo: true, inicio: '14:00', fin: '18:00' } } } as any
     expect(
-      LogicMatching.esCuidadorDisponible(cuidador, { fecha: LUNES, hora: '09:00', duracion: 60 }, excepcion)
+      LogicMatching.esCuidadorDisponible(cuidador, { fecha: LUNES, hora: '09:00', duracion: 60 }, HORARIO, excepcion)
     ).toBe(false)
     expect(
-      LogicMatching.esCuidadorDisponible(cuidador, { fecha: LUNES, hora: '15:00', duracion: 60 }, excepcion)
+      LogicMatching.esCuidadorDisponible(cuidador, { fecha: LUNES, hora: '15:00', duracion: 60 }, HORARIO, excepcion)
     ).toBe(true)
   })
 
@@ -75,8 +79,40 @@ describe('LogicMatching.esCuidadorDisponible', () => {
     const hoy = new Date(ahora.getFullYear(), ahora.getMonth(), ahora.getDate())
     const todoElDia = perfil({ [hoy.getDay().toString()]: { inicio: '00:00', fin: '23:59' } })
     expect(
-      LogicMatching.esCuidadorDisponible(todoElDia, { fecha: hoy, hora: '00:00', duracion: 30 })
+      LogicMatching.esCuidadorDisponible(todoElDia, { fecha: hoy, hora: '00:00', duracion: 30 }, HORARIO)
     ).toBe(false)
+  })
+})
+
+describe('LogicMatching con otro horario de plataforma', () => {
+  const nocturno = perfil({ '1': { inicio: '00:00', fin: '23:59' } })
+  const params = { fecha: LUNES, hora: '23:00', duracion: 30 }
+
+  it('un paseo fuera del servicio por defecto entra si la plataforma lo amplía', () => {
+    expect(LogicMatching.esCuidadorDisponible(nocturno, params, HORARIO)).toBe(false)
+    const ampliado = { ...HORARIO, servicio_hasta_min: 1439 }
+    expect(LogicMatching.esCuidadorDisponible(nocturno, params, ampliado)).toBe(true)
+  })
+
+  it('el margen configurado se aplica al horario del cuidador', () => {
+    const c = perfil({ '1': { inicio: '09:00', fin: '12:00' } })
+    const p = { fecha: LUNES, hora: '08:40', duracion: 60 }
+    expect(LogicMatching.esCuidadorDisponible(c, p, HORARIO)).toBe(false)
+    expect(
+      LogicMatching.esCuidadorDisponible(c, p, { ...HORARIO, margen_horario_min: 20 })
+    ).toBe(true)
+  })
+
+  it('el horario laboral del cuidador se valida contra el de la plataforma', () => {
+    expect(LogicMatching.esHorarioLaboralValido('05:00', '12:00', HORARIO)).toBe(false)
+    expect(
+      LogicMatching.esHorarioLaboralValido('05:00', '12:00', { ...HORARIO, servicio_desde_min: 300 })
+    ).toBe(true)
+  })
+
+  it('formatoHora muestra los minutos como HH:mm', () => {
+    expect(LogicMatching.formatoHora(330)).toBe('05:30')
+    expect(LogicMatching.formatoHora(1350)).toBe('22:30')
   })
 })
 
@@ -84,7 +120,7 @@ describe('LogicMatching.filtrarDisponibles', () => {
   it('devuelve solo los cuidadores disponibles', () => {
     const a = perfil({ '1': { inicio: '08:00', fin: '12:00' } })
     const b = perfil({ '1': { inicio: '14:00', fin: '18:00' } })
-    const res = LogicMatching.filtrarDisponibles([a, b], { fecha: LUNES, hora: '09:00', duracion: 60 })
+    const res = LogicMatching.filtrarDisponibles([a, b], { fecha: LUNES, hora: '09:00', duracion: 60 }, HORARIO)
     expect(res).toEqual([a])
   })
 })
@@ -98,7 +134,7 @@ describe('LogicMatching.esHorarioLaboralValido', () => {
     ['12:00', '08:00', false],
     ['xx', '12:00', false],
   ])('%s - %s → %s', (inicio, fin, esperado) => {
-    expect(LogicMatching.esHorarioLaboralValido(inicio, fin)).toBe(esperado)
+    expect(LogicMatching.esHorarioLaboralValido(inicio, fin, HORARIO)).toBe(esperado)
   })
 })
 
