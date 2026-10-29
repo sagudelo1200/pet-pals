@@ -13,6 +13,7 @@ import { LinearGradient } from 'expo-linear-gradient'
 import { PanelPrivacidadConsentimientos } from '@/components/consentimientos/PanelPrivacidadConsentimientos'
 import { ICONO_POR_ROL } from '@/navigation/roles'
 import type { RolUsuario } from '@/models/Usuario'
+import { TIPO_PASEO } from '@/functions/src/compartido/servicios'
 
 const MiCuenta = () => {
   const navigation = useNavigation<any>()
@@ -29,6 +30,7 @@ const MiCuenta = () => {
     rolesDisponibles,
   } = useAuth()
   const { cambiarRol, cargando: cargandoRol } = useCambiarRol()
+  const esAdmin = rolesDisponibles.includes('admin')
   const { t } = useTranslation()
   const correo = user?.email ?? (profile as any)?.correo ?? '—'
   const nombre = user?.displayName ?? (profile as any)?.nombre ?? '—'
@@ -58,7 +60,7 @@ const MiCuenta = () => {
   // Ser cuidador no se activa con un botón: pasa por la habilitación (perfil y
   // documentos revisados). Al empezar se abre de una vez la edición del perfil
   const abrirHabilitacion = (abrirPerfil: boolean) =>
-    navigation.navigate('MiHabilitacion', { servicio: 'paseo', abrirPerfil })
+    navigation.navigate('MiHabilitacion', { servicio: TIPO_PASEO, abrirPerfil })
 
   const handleActivarRol = async (rol: RolUsuario) => {
     const resultado = await cambiarRol(rol)
@@ -205,9 +207,10 @@ const MiCuenta = () => {
             </View>
           )}
 
-          {/* Opciones para activar roles nuevos */}
+          {/* Opciones para activar roles nuevos. Un admin no combina roles
+              operativos (tutor/cuidador): el servidor no se los concedería */}
           <View style={styles.rolesPromoContainer}>
-            {!rolesDisponibles.includes('tutor') && (
+            {!esAdmin && !rolesDisponibles.includes('tutor') && (
               <Button
                 title={t('perfil:activar_modo_tutor')}
                 icon="paw"
@@ -218,7 +221,7 @@ const MiCuenta = () => {
               />
             )}
 
-            {!rolesDisponibles.includes('cuidador') && (
+            {!esAdmin && !rolesDisponibles.includes('cuidador') && (
               <Button
                 title={t('perfil:convertirme_cuidador')}
                 icon="walking"

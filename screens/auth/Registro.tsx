@@ -450,6 +450,13 @@ const Registro: React.FC = () => {
         visible={modalVisible}
         tipoConsentimiento="DATOS_PERSONALES"
         onClose={cerrarModal}
+        aceptado={consentimientoAceptado}
+        // Aceptar al terminar de leer marca la casilla; el registro del
+        // consentimiento ocurre al crear la cuenta
+        onAceptar={() => {
+          toggleConsentimiento(true)
+          cerrarModal()
+        }}
       />
     </Screen>
   )

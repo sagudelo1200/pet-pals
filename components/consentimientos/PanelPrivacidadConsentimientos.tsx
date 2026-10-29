@@ -1,9 +1,9 @@
 import React, { useState, useCallback } from 'react'
-import { View, Text, StyleSheet, Alert } from 'react-native'
+import { View, Text, StyleSheet, Alert, Pressable } from 'react-native'
 import { useConsentimientos } from '@/hooks'
 import { ConsentimientoUI } from '@/context/ConsentimientosContext'
 import { ModalLeerConsentimiento } from './ModalLeerConsentimiento'
-import { Card, Button, Icon } from '@/components/ui'
+import { Icon } from '@/components/ui'
 import { COLOR } from '@/constants/Theme'
 import { useTranslation } from 'react-i18next'
 import { localeActual } from '@/utils/locale'
@@ -26,7 +26,7 @@ interface EstadoVisual {
   iconoColor: string
   estado: string
   descripcion: string
-  accionPrimaria: { texto: string; tipo: 'aceptar' | 'revocar' } | null
+  accionPrimaria: { texto: string; tipo: 'aceptar' | 'revocar' | 'ver' } | null
   accionSecundaria: { texto: string; tipo: 'aceptar' | 'revocar' } | null
 }
 
@@ -37,7 +37,9 @@ export const PanelPrivacidadConsentimientos: React.FC = () => {
 
   const [modalVisible, setModalVisible] = useState(false)
   const [selectedType, setSelectedType] = useState<string | null>(null)
-  const [actionType, setActionType] = useState<'aceptar' | 'revocar'>('aceptar')
+  const [actionType, setActionType] = useState<'aceptar' | 'revocar' | 'ver'>(
+    'aceptar'
+  )
   const [cargandoAccion, setCargandoAccion] = useState(false)
 
   /**
@@ -125,7 +127,8 @@ export const PanelPrivacidadConsentimientos: React.FC = () => {
         iconoColor: COLOR.EXITO,
         estado: t('panel.autorizado'),
         descripcion,
-        accionPrimaria: { texto: t('panel.ver_documento'), tipo: 'aceptar' as const },
+        // Ya está aceptado: solo se lee, no se vuelve a pedir aceptarlo
+        accionPrimaria: { texto: t('panel.ver_documento'), tipo: 'ver' as const },
         accionSecundaria: {
           texto: t('panel.retirar_autorizacion'),
           tipo: 'revocar' as const,
@@ -191,10 +194,10 @@ export const PanelPrivacidadConsentimientos: React.FC = () => {
   }
 
   const handleAccion = useCallback(
-    async (tipo: string, accion: 'aceptar' | 'revocar') => {
-      if (accion === 'aceptar') {
+    async (tipo: string, accion: 'aceptar' | 'revocar' | 'ver') => {
+      if (accion === 'aceptar' || accion === 'ver') {
         setSelectedType(tipo)
-        setActionType('aceptar')
+        setActionType(accion)
         setModalVisible(true)
       } else {
         // Revocar
@@ -256,98 +259,91 @@ export const PanelPrivacidadConsentimientos: React.FC = () => {
   )
 
   return (
-    <View>
-      {/* Estado General */}
+    <View style={styles.contenedor}>
       <View style={styles.estadoGeneral}>
-        {tieneAccionesRequeridas ? (
-          <>
-            <Icon name="exclamation-circle" size={20} color={COLOR.ALERTA} />
-            <Text style={styles.estadoTexto}>
-              {t('panel.pendientes')}
-            </Text>
-          </>
-        ) : (
-          <>
-            <Icon name="check-circle" size={20} color={COLOR.EXITO} />
-            <Text style={styles.estadoTexto}>
-              {t('panel.al_dia')}
-            </Text>
-          </>
-        )}
+        <Icon
+          name={tieneAccionesRequeridas ? 'exclamation-circle' : 'check-circle'}
+          size={14}
+          color={tieneAccionesRequeridas ? COLOR.ALERTA : COLOR.EXITO}
+        />
+        <Text style={styles.estadoTexto}>
+          {tieneAccionesRequeridas ? t('panel.pendientes') : t('panel.al_dia')}
+        </Text>
       </View>
 
-      {/* Cards de Consentimientos */}
-      <View style={styles.cardsContainer}>
-        {consentimientosVisibles.map(({ tipo, consent }) => {
+      <View style={styles.lista}>
+        {consentimientosVisibles.map(({ tipo, consent }, indice) => {
           const visual = getEstadoVisual(consent)
           const titulo = consent?.titulo || tipo
+          const ocupado = cargandoAccion && selectedType === tipo
 
           return (
-            <Card key={tipo} style={styles.consentimientoCard}>
-              <View style={styles.cardContent}>
-                {/* Tipo/Título del documento */}
-                <Text style={styles.documentoTitulo}>{titulo}</Text>
-
-                <View style={styles.headerConsentimiento}>
-                  <Icon
-                    name={visual.icono}
-                    size={24}
-                    color={visual.iconoColor}
-                  />
-                  <View style={styles.textoConsentimiento}>
-                    <Text style={styles.estadoLabel}>{visual.estado}</Text>
-                    <Text style={styles.descripcionLabel}>
-                      {visual.descripcion}
+            <View
+              key={tipo}
+              style={[styles.fila, indice > 0 && styles.filaSeparada]}
+            >
+              <View style={styles.filaCabecera}>
+                <Icon name={visual.icono} size={18} color={visual.iconoColor} />
+                <View style={styles.filaTexto}>
+                  <Text style={styles.documentoTitulo}>{titulo}</Text>
+                  <Text style={styles.descripcionLabel}>
+                    <Text style={{ color: visual.iconoColor }}>
+                      {visual.estado}
                     </Text>
-                  </View>
-                </View>
-
-                {/* Acciones */}
-                <View style={styles.actionsContainer}>
-                  {visual.accionPrimaria && (
-                    <Button
-                      title={visual.accionPrimaria.texto}
-                      size="sm"
-                      variant="primario"
-                      style={styles.actionBtn}
-                      loading={cargandoAccion && selectedType === tipo}
-                      onPress={() =>
-                        handleAccion(tipo, visual.accionPrimaria!.tipo)
-                      }
-                    />
-                  )}
-
-                  {visual.accionSecundaria && (
-                    <Button
-                      title={visual.accionSecundaria.texto}
-                      size="sm"
-                      variant="contorno"
-                      textStyle={{ color: COLOR.ERROR }}
-                      style={[styles.actionBtn, { borderColor: COLOR.ERROR }]}
-                      loading={
-                        cargandoAccion &&
-                        selectedType === tipo &&
-                        actionType === 'revocar'
-                      }
-                      onPress={() =>
-                        handleAccion(tipo, visual.accionSecundaria!.tipo)
-                      }
-                    />
-                  )}
+                    {/* "Autorizado" + "Autorizado el 28 oct" no se repite */}
+                    {visual.descripcion.startsWith(visual.estado)
+                      ? visual.descripcion.slice(visual.estado.length)
+                      : visual.descripcion
+                        ? ` · ${visual.descripcion}`
+                        : ''}
+                  </Text>
                 </View>
               </View>
-            </Card>
+
+              <View style={styles.acciones}>
+                {visual.accionPrimaria && (
+                  <Pressable
+                    disabled={ocupado}
+                    onPress={() =>
+                      handleAccion(tipo, visual.accionPrimaria!.tipo)
+                    }
+                    hitSlop={8}
+                  >
+                    <Text style={styles.accionPrimaria}>
+                      {ocupado ? '…' : visual.accionPrimaria.texto}
+                    </Text>
+                  </Pressable>
+                )}
+                {visual.accionSecundaria && (
+                  <Pressable
+                    disabled={ocupado}
+                    onPress={() =>
+                      handleAccion(tipo, visual.accionSecundaria!.tipo)
+                    }
+                    hitSlop={8}
+                  >
+                    <Text style={styles.accionSecundaria}>
+                      {visual.accionSecundaria.texto}
+                    </Text>
+                  </Pressable>
+                )}
+              </View>
+            </View>
           )
         })}
       </View>
 
-      {/* Modal para leer y aceptar */}
+      {/* Lectura del documento: aceptar solo se ofrece si falta aceptar */}
       {selectedType && (
         <ModalLeerConsentimiento
           visible={modalVisible}
           tipoConsentimiento={selectedType}
           onClose={() => setModalVisible(false)}
-          onAceptar={() => handleAceptarDesdeModal(selectedType)}
+          onAceptar={
+            actionType === 'aceptar'
+              ? () => handleAceptarDesdeModal(selectedType)
+              : undefined
+          }
           cargando={cargandoAccion}
         />
       )}
@@ -356,63 +352,66 @@ export const PanelPrivacidadConsentimientos: React.FC = () => {
 }
 
 const styles = StyleSheet.create({
+  contenedor: {
+    gap: 10,
+  },
   estadoGeneral: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(0,0,0,0.02)',
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 8,
-    marginHorizontal: 16,
-    marginBottom: 12,
-    gap: 8,
+    gap: 6,
+    paddingHorizontal: 4,
   },
   estadoTexto: {
-    fontSize: 13,
-    color: COLOR.TEXTO,
+    fontSize: 12,
+    color: COLOR.SUBTEXTO,
     flex: 1,
-    fontWeight: '500',
   },
-  cardsContainer: {
-    gap: 10,
+  lista: {
+    backgroundColor: COLOR.BLOQUE,
+    borderWidth: 1,
+    borderColor: COLOR.BORDE,
+    borderRadius: 16,
     paddingHorizontal: 16,
   },
-  consentimientoCard: {
-    paddingHorizontal: 12,
-    paddingVertical: 12,
+  fila: {
+    paddingVertical: 14,
+    gap: 10,
   },
-  cardContent: {
+  filaSeparada: {
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: COLOR.BORDE,
+  },
+  filaCabecera: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
     gap: 12,
+  },
+  filaTexto: {
+    flex: 1,
+    gap: 2,
   },
   documentoTitulo: {
     fontSize: 15,
-    fontWeight: '700',
-    color: COLOR.PRIMARIO,
-    marginBottom: 4,
-  },
-  headerConsentimiento: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: 10,
-  },
-  textoConsentimiento: {
-    flex: 1,
-  },
-  estadoLabel: {
-    fontSize: 14,
-    fontWeight: '700',
+    fontWeight: '600',
     color: COLOR.TEXTO,
   },
   descripcionLabel: {
     fontSize: 12,
     color: COLOR.SUBTEXTO,
-    marginTop: 2,
   },
-  actionsContainer: {
-    flexDirection: 'column',
-    gap: 8,
+  acciones: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 20,
+    paddingLeft: 36,
   },
-  actionBtn: {
-    width: '100%',
+  accionPrimaria: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: COLOR.PRIMARIO,
+  },
+  accionSecundaria: {
+    fontSize: 13,
+    color: COLOR.SUBTEXTO,
   },
 })

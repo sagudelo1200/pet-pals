@@ -308,26 +308,39 @@ export async function fetchDireccion(
   }
 }
 
+/** Lo máximo que se espera a las APIs públicas (si tardan, se guarda sin ellas). */
+export const LIMITE_ENRIQUECIMIENTO_MS = 2500
+
 /**
- * Enriquecimiento completo: llama todas las APIs con caché
- * Ejecuta en paralelo para minimizar latencia
+ * Enriquecimiento completo: llama todas las APIs con caché, en paralelo.
+ * Quien registra un momento no debe esperar a servicios públicos lentos o con
+ * límite de uso: lo que no llegue a tiempo se omite. La consulta sigue en
+ * segundo plano y deja su resultado en el caché para el siguiente evento.
  */
 export async function enriquecerContextoConAPIs(
   lat: number,
-  lng: number
+  lng: number,
+  limiteMs: number = LIMITE_ENRIQUECIMIENTO_MS
 ): Promise<Partial<CapaContextoTerritorial>> {
   const resultado: Partial<CapaContextoTerritorial> = {}
+  let temporizador: ReturnType<typeof setTimeout> | undefined
 
   try {
+    const agotado = new Promise<null>(resolver => {
+      temporizador = setTimeout(() => resolver(null), limiteMs)
+    })
+    const conLimite = <T>(promesa: Promise<T | null>): Promise<T | null> =>
+      Promise.race([promesa, agotado])
+
     // Paralelo: ejecutar todas las promesas
     const elevacionProm = fetchElevacion(lat, lng).catch((err: unknown): any => { console.warn('[enriquecimientoTerritorial.elevacionProm] Error manejado:', err); return null })
     const climaProm = fetchClima(lat, lng).catch((err: unknown): any => { console.warn('[enriquecimientoTerritorial.climaProm] Error manejado:', err); return null })
     const direccionProm = fetchDireccion(lat, lng).catch((err: unknown): any => { console.warn('[enriquecimientoTerritorial.direccionProm] Error manejado:', err); return null })
 
     const [elevacionRes, climaRes, direccionRes] = await Promise.all([
-      elevacionProm,
-      climaProm,
-      direccionProm,
+      conLimite(elevacionProm),
+      conLimite(climaProm),
+      conLimite(direccionProm),
     ])
 
     // Procesar resultados (cada uno puede ser null si falló)
@@ -348,6 +361,8 @@ export async function enriquecerContextoConAPIs(
     }
   } catch (error) {
     console.warn('[enriquecerContextoConAPIs] Error general:', error)
+  } finally {
+    if (temporizador) clearTimeout(temporizador)
   }
 
   return resultado

@@ -117,7 +117,7 @@ const Agenda: React.FC = () => {
                 !paseosEvaluados.has(item.id)
                   ? () => {
                       // @ts-ignore
-                      navigation.navigate('ObservacionMascota', {
+                      navigation.navigate('CierrePaseo', {
                         paseoId: item.id,
                       })
                     }

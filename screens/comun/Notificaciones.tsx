@@ -30,9 +30,9 @@ const Notificaciones: React.FC = () => {
         console.warn('[Notificaciones] No se pudo marcar como leída:', error)
       }
     }
-    const destino = destinoDeAccion(aviso.datos?.accion)
+    const destino = destinoDeAccion(aviso.datos?.accion, aviso.datos)
     if (destino) {
-      navigation.navigate(destino.app, { screen: destino.pestana })
+      navigation.navigate(destino.pantalla, destino.params)
     }
   }
 

@@ -21,8 +21,7 @@ import MiHabilitacion from '@/screens/comun/MiHabilitacion'
 import ExcepcionSemanal from '@/screens/cuidador/ExcepcionSemanal'
 import CoberturaCuidador from '@/screens/cuidador/CoberturaCuidador'
 import { ChatScreen } from '@/screens/paseos/ChatScreen'
-import CuidadorEvaluaTutor from '@/screens/cuidador/CuidadorEvaluaTutor'
-import ObservacionMascota from '@/screens/cuidador/ObservacionMascota'
+import CierrePaseo from '@/screens/cuidador/CierrePaseo'
 import Notificaciones from '@/screens/comun/Notificaciones'
 import PreferenciasNotificaciones from '@/screens/comun/PreferenciasNotificaciones'
 import { NotificacionesPush } from '@/components/notificaciones/NotificacionesPush'
@@ -152,19 +151,12 @@ export default function RootNavigator(): React.ReactElement {
               }}
             />
             <Stack.Screen
-              name="ObservacionMascota"
-              component={ObservacionMascota}
+              name="CierrePaseo"
+              component={CierrePaseo}
               options={{
                 headerShown: false,
                 presentation: 'card',
-              }}
-            />
-            <Stack.Screen
-              name="CuidadorEvaluaTutor"
-              component={CuidadorEvaluaTutor}
-              options={{
-                headerShown: false,
-                presentation: 'card',
+                gestureEnabled: false,
               }}
             />
           </Stack.Group>

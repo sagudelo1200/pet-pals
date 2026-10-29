@@ -29,8 +29,7 @@ export type AuthStackParamList = {
   CoberturaCuidador: undefined
   PaseoActivo: { paseoId: string }
   PaseoFinalizado: { paseoId: string }
-  CuidadorEvaluaTutor: { paseoId: string }
-  ObservacionMascota: { paseoId: string }
+  CierrePaseo: { paseoId: string; tiempo?: string; mascota?: string }
   ControlPaseo: { paseoId: string }
   Chat: { paseoId: string }
   Notificaciones: undefined

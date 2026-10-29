@@ -312,6 +312,17 @@ const ControlPaseo: React.FC = () => {
 
   // Temporizador
   const [tiempoTranscurrido, setTiempoTranscurrido] = useState('00:00:00')
+
+  // Al terminar el paseo se pasa directo al cierre (una sola pantalla):
+  // observación de la mascota y calificación del tutor, todo opcional
+  useEffect(() => {
+    if (!showSuccess) return
+    navigation.replace('CierrePaseo', {
+      paseoId,
+      tiempo: tiempoTranscurrido,
+      mascota: nombresMascotas,
+    })
+  }, [showSuccess])
   const [bottomPanelHeight, setBottomPanelHeight] = useState(340)
 
   // Configuraciones de pantalla y animación de entrada
@@ -582,20 +593,6 @@ const ControlPaseo: React.FC = () => {
     } finally {
       setValidandoCodigo(false)
     }
-  }
-
-  // Si estamos en la pantalla de éxito, mostramos el overlay
-  if (showSuccess) {
-    return (
-      <SuccessOverlay
-        // Post-paseo: continuar al registro de la mascota (observación) y
-        // luego a la evaluación del tutor. Si el cuidador omite, vuelve al
-        // Dashboard desde esas pantallas.
-        onClose={() => navigation.navigate('ObservacionMascota', { paseoId })}
-        tiempo={tiempoTranscurrido}
-        mascota={nombresMascotas}
-      />
-    )
   }
 
   const estadoCompletado = (estado: ESTADOS_PASEO) => {
@@ -1143,90 +1140,6 @@ const HeaderContent: React.FC<{
     </TouchableOpacity>
   </View>
 )
-
-// Componente de Pantalla de Éxito Premium
-const SuccessOverlay: React.FC<{
-  onClose: () => void
-  tiempo: string
-  mascota: string
-}> = ({ onClose, tiempo, mascota }) => {
-  const { t } = useTranslation()
-  const fadeAnim = useRef(new Animated.Value(0)).current
-  const scaleAnim = useRef(new Animated.Value(0.8)).current
-
-  useEffect(() => {
-    Animated.parallel([
-      Animated.timing(fadeAnim, {
-        toValue: 1,
-        duration: 600,
-        useNativeDriver: true,
-      }),
-      Animated.spring(scaleAnim, {
-        toValue: 1,
-        tension: 40,
-        friction: 7,
-        useNativeDriver: true,
-      }),
-    ]).start()
-  }, [])
-
-  return (
-    <View style={styles.successContainer}>
-      <Animated.View
-        style={[
-          styles.successCard,
-          { opacity: fadeAnim, transform: [{ scale: scaleAnim }] },
-        ]}
-      >
-        <View style={styles.successIconCircle}>
-          <FontAwesome5
-            solid
-            name="check-double"
-            size={60}
-            color={COLOR.EXITO}
-          />
-        </View>
-        <Text style={styles.successTitle}>
-          {t('paseos:control.gran_trabajo')}
-        </Text>
-        <Text style={styles.successSubtitle}>
-          {t('paseos:control.exito_mensaje', { mascota })}
-        </Text>
-
-        <View style={styles.statsRow}>
-          <View style={styles.statItem}>
-            <Text style={styles.statLabel}>
-              {t('paseos:control.tiempo_total')}
-            </Text>
-            <Text style={styles.statValue}>{tiempo}</Text>
-          </View>
-        </View>
-
-        <TouchableOpacity style={styles.successButton} onPress={onClose}>
-          <Text style={styles.successButtonText}>
-            {t('paseos:control.registrar_paseo')}
-          </Text>
-        </TouchableOpacity>
-      </Animated.View>
-
-      {/* Mini "Confetti" simple */}
-      {[1, 2, 3, 4, 5, 6, 7, 8].map(i => (
-        <Animated.View
-          key={i}
-          style={[
-            styles.confetti,
-            {
-              left: `${i * 12}%`,
-              top: `${(i % 3) * 20}%`,
-              opacity: fadeAnim,
-              backgroundColor: i % 2 === 0 ? COLOR.PRIMARIO : COLOR.EXITO,
-            },
-          ]}
-        />
-      ))}
-    </View>
-  )
-}
 
 const styles = StyleSheet.create({
   container: {

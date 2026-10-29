@@ -21,10 +21,10 @@ export function NotificacionesPush(): null {
 
   useEffect(() => {
     if (!respuesta) return
-    const accion = respuesta.notification.request.content.data?.accion
-    const destino = destinoDeAccion(accion)
+    const datos = respuesta.notification.request.content.data
+    const destino = destinoDeAccion(datos?.accion, datos)
     if (destino) {
-      navigation.navigate(destino.app, { screen: destino.pestana })
+      navigation.navigate(destino.pantalla, destino.params)
     } else {
       navigation.navigate('Notificaciones')
     }

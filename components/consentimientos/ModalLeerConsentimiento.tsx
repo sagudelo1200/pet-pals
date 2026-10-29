@@ -17,13 +17,26 @@ interface ModalLeerConsentimientoProps {
   visible: boolean
   tipoConsentimiento: string
   onClose: () => void
+  /** Acepta el documento. Sin esto el modal es solo de lectura. */
   onAceptar?: () => void | Promise<void>
+  /** Ya está aceptado: se lee, pero no se ofrece aceptar otra vez. */
+  aceptado?: boolean
   cargando?: boolean
 }
 
 export const ModalLeerConsentimiento: React.FC<
   ModalLeerConsentimientoProps
-> = ({ visible, tipoConsentimiento, onClose, onAceptar, cargando = false }) => {
+> = ({
+  visible,
+  tipoConsentimiento,
+  onClose,
+  onAceptar,
+  aceptado = false,
+  cargando = false,
+}) => {
+  // Aceptar se ofrece solo cuando falta aceptar: leer un documento ya
+  // aceptado no debe pedir aceptarlo de nuevo
+  const puedeAceptar = !!onAceptar && !aceptado
   const { t } = useTranslation()
   const [documento, setDocumento] = useState<DocumentoConsentimiento | null>(
     null
@@ -129,29 +142,34 @@ export const ModalLeerConsentimiento: React.FC<
         {/* Footer */}
         {!cargandoDoc && !error && (
           <View style={styles.footer}>
-            <Pressable
-              onPress={onClose}
-              style={[styles.button, styles.buttonPrimary]}
-            >
-              <Text style={styles.buttonText}>
-                {t('consentimientos:acciones.cerrar')}
-              </Text>
-            </Pressable>
-
-            {onAceptar && (
+            {puedeAceptar ? (
+              <>
+                <Pressable
+                  onPress={onAceptar}
+                  disabled={cargando}
+                  style={[
+                    styles.button,
+                    styles.buttonAceptar,
+                    cargando && styles.buttonDisabled,
+                  ]}
+                >
+                  <Text style={styles.buttonAceptarText}>
+                    {cargando ? '...' : t('consentimientos:acciones.aceptar')}
+                  </Text>
+                </Pressable>
+                <Pressable onPress={onClose} style={styles.buttonCerrar}>
+                  <Text style={styles.buttonCerrarTexto}>
+                    {t('consentimientos:acciones.cerrar')}
+                  </Text>
+                </Pressable>
+              </>
+            ) : (
               <Pressable
-                onPress={onAceptar}
-                disabled={cargando}
-                style={[
-                  styles.button,
-                  styles.buttonAceptar,
-                  cargando && styles.buttonDisabled,
-                ]}
+                onPress={onClose}
+                style={[styles.button, styles.buttonPrimary]}
               >
-                <Text style={styles.buttonAceptarText}>
-                  {cargando
-                    ? '...'
-                    : t('consentimientos:acciones.aceptar') || 'Aceptar'}
+                <Text style={styles.buttonText}>
+                  {t('consentimientos:acciones.cerrar')}
                 </Text>
               </Pressable>
             )}
@@ -243,7 +261,15 @@ const styles = StyleSheet.create({
   },
   buttonAceptar: {
     backgroundColor: COLOR.EXITO,
-    marginTop: 8,
+  },
+  buttonCerrar: {
+    paddingVertical: 12,
+    alignItems: 'center',
+  },
+  buttonCerrarTexto: {
+    color: COLOR.SUBTEXTO,
+    fontSize: 14,
+    fontWeight: '600',
   },
   buttonAceptarText: {
     color: COLOR.BASE,

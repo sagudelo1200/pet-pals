@@ -9,6 +9,9 @@ import React, {
 } from 'react'
 import { User } from 'firebase/auth'
 import AsyncStorage from '@react-native-async-storage/async-storage'
+import { doc, onSnapshot } from 'firebase/firestore'
+import { db } from '@/firebase.config'
+import { toDomain } from '@/services/firebase/comun'
 import {
   ServicioAuth,
   ServicioUsuario,
@@ -233,6 +236,31 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
     return unsubscribe
   }, [])
+
+  // El servidor cambia los roles por su cuenta (al aprobar una habilitación,
+  // al suspenderla): la sesión abierta los sigue en vivo, sin reiniciar la app
+  const uidSesion = user?.uid
+  useEffect(() => {
+    if (!uidSesion) return undefined
+    return onSnapshot(
+      doc(db, 'usuarios', uidSesion),
+      snap => {
+        const datos = snap.data()
+        if (!isMountedRef.current || !datos || !Array.isArray(datos.roles)) {
+          return
+        }
+        const nuevos = datos.roles as RolUsuario[]
+        if (nuevos.length === 0) return
+        setProfile({ ...toDomain<object>(datos), id: snap.id } as Usuario)
+        setRoles(prev =>
+          prev.length === nuevos.length && prev.every(r => nuevos.includes(r))
+            ? prev
+            : nuevos
+        )
+      },
+      error => console.warn('[AuthContext] No se pudo seguir al usuario:', error)
+    )
+  }, [uidSesion])
 
   /** Función para iniciar sesión con email y contraseña */
   const ingresar = useCallback(
