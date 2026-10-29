@@ -120,6 +120,103 @@ export const CATALOGO_NOTIFICACIONES = {
       cuerpo: 'Cancelamos tu solicitud porque todavía no atendemos esa zona.',
     }),
   },
+  // ---- Seguimiento del paseo (para el tutor) ----
+  PASEO_ACEPTADO: {
+    categoria: 'operativa',
+    canales: ['app', 'push'],
+    obligatoria: false,
+    accion: 'abrir_paseo',
+    plantilla: (datos) => ({
+      titulo: `✅ ${datos.cuidador} aceptó tu paseo`,
+      cuerpo: `Cuidará a ${datos.mascotas}. Te avisamos cuando salga hacia ` +
+        'donde estás.',
+    }),
+  },
+  PASEO_EN_CAMINO: {
+    categoria: 'operativa',
+    canales: ['app', 'push'],
+    obligatoria: false,
+    accion: 'abrir_paseo',
+    plantilla: (datos) => ({
+      titulo: `🚶 ${datos.cuidador} va en camino`,
+      cuerpo: `Va a recoger a ${datos.mascotas}. Puedes seguirlo en el mapa.`,
+    }),
+  },
+  PASEO_EN_PUNTO: {
+    categoria: 'operativa',
+    canales: ['app', 'push'],
+    obligatoria: false,
+    accion: 'abrir_paseo',
+    plantilla: (datos) => ({
+      titulo: `📍 ${datos.cuidador} ya llegó`,
+      cuerpo: 'Dale tu código de recogida para que empiece el paseo de ' +
+        `${datos.mascotas}.`,
+    }),
+  },
+  PASEO_INICIADO: {
+    categoria: 'operativa',
+    canales: ['app', 'push'],
+    obligatoria: false,
+    accion: 'abrir_paseo',
+    plantilla: (datos) => ({
+      titulo: `🐾 Empezó el paseo de ${datos.mascotas}`,
+      cuerpo: 'Síguelo en vivo desde la app.',
+    }),
+  },
+  PASEO_FINALIZADO: {
+    categoria: 'operativa',
+    canales: ['app', 'push'],
+    obligatoria: false,
+    accion: 'abrir_paseo',
+    plantilla: (datos) => ({
+      titulo: `🏁 Terminó el paseo de ${datos.mascotas}`,
+      cuerpo: 'Valida la entrega con el código que te muestra ' +
+        `${datos.cuidador} para completar el paseo.`,
+    }),
+  },
+  ENTREGA_PENDIENTE: {
+    categoria: 'pagos',
+    canales: ['app', 'push'],
+    obligatoria: true,
+    accion: 'abrir_paseo',
+    plantilla: (datos) => ({
+      titulo: 'Falta confirmar la entrega',
+      cuerpo: `${datos.cuidador} ya terminó el paseo de ${datos.mascotas}. ` +
+        'Confirma la entrega con tu código para cerrarlo.',
+    }),
+  },
+  PASEO_CANCELADO: {
+    categoria: 'operativa',
+    canales: ['app', 'push'],
+    obligatoria: false,
+    accion: 'abrir_solicitud',
+    plantilla: (datos) => ({
+      titulo: 'Tu paseo fue cancelado',
+      cuerpo: `${datos.cuidador} canceló el paseo de ${datos.mascotas}. ` +
+        'Puedes pedir otro cuando quieras.',
+    }),
+  },
+  INCIDENTE_PASEO: {
+    categoria: 'seguridad',
+    canales: ['app', 'push'],
+    obligatoria: true,
+    accion: 'abrir_paseo',
+    plantilla: (datos) => ({
+      titulo: '⚠️ Incidente durante el paseo',
+      cuerpo: `${datos.cuidador} reportó un incidente con ${datos.mascotas}. ` +
+        'Revisa los detalles.',
+    }),
+  },
+  MENSAJE_PASEO: {
+    categoria: 'operativa',
+    canales: ['app', 'push'],
+    obligatoria: false,
+    accion: 'abrir_chat',
+    plantilla: (datos) => ({
+      titulo: `💬 ${datos.de}`,
+      cuerpo: String(datos.texto),
+    }),
+  },
   HABILITACION_APROBADA: {
     categoria: 'operativa',
     canales: ['app', 'push'],

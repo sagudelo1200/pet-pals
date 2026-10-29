@@ -22,6 +22,11 @@ export {
 } from './paseos/escalarSolicitudes';
 export {onPaseoConfirmado} from './paseos/chat';
 export {
+  alCambiarEstadoPaseoAvisar,
+  alRegistrarIncidenteAvisar,
+  alCrearMensajeAvisar,
+} from './paseos/avisosFunciones';
+export {
   alFinalizarPaseoEntrega,
   avisarEntregaPendiente,
   revisarEntregaPendiente,

@@ -17,8 +17,11 @@
 import type {Firestore, Timestamp} from 'firebase-admin/firestore';
 import {ErrorNegocio} from '../comun/errores';
 import {leerConfiguracion} from '../comun/configuracion';
+import {notificar} from '../comun/notificar';
+import {destinatariosDelPaseo} from './avisosAlTutor';
 import {obtenerPolitica, obtenerPoliticaVigente} from '../economia/politica';
 import {programarTarea} from '../economia/tareas';
+import {esPaseo} from '../compartido/servicios';
 
 const HORA_MS = 60 * 60 * 1000;
 export const SISTEMA_ENTREGA = 'sistema-cf-entrega';
@@ -45,7 +48,7 @@ export function tutoresPendientesDeEntrega(paseo: Paseo): string[] {
  * @return {boolean} Si está pendiente.
  */
 export function entregaPendiente(paseo: Paseo | undefined): paseo is Paseo {
-  return !!paseo && paseo.tipo === 'paseo' && paseo.estado === 'FINALIZADO' &&
+  return !!paseo && esPaseo(paseo) && paseo.estado === 'FINALIZADO' &&
     tutoresPendientesDeEntrega(paseo).length > 0;
 }
 
@@ -106,14 +109,30 @@ export async function avisarEntregaPendiente(
   ahora: Timestamp
 ): Promise<boolean> {
   const paseo = (await db.collection('operaciones').doc(paseoId).get()).data();
-  if (!entregaPendiente(paseo)) return false;
+  if (!paseo || !entregaPendiente(paseo)) return false;
 
+  // Aviso al teléfono del tutor: no depende de que exista el chat
+  const cuidador = typeof paseo.cuidador_nombre_visual === 'string' &&
+    paseo.cuidador_nombre_visual !== '' ? paseo.cuidador_nombre_visual :
+    'Tu cuidador';
+  let avisado = false;
+  for (const {uid, mascotas} of await destinatariosDelPaseo(db, paseoId, paseo)) {
+    avisado = await notificar(db, {
+      tipo: 'ENTREGA_PENDIENTE',
+      uid,
+      dedup_key: `entrega_aviso_${paseoId}_${uid}`,
+      datos: {paseo_id: paseoId, cuidador, mascotas},
+      ahora,
+    }) || avisado;
+  }
+
+  // Recordatorio dentro del chat del paseo (si existe)
   const conversacion = await db.collection('conversaciones').doc(paseoId).get();
-  if (!conversacion.exists) return false;
+  if (!conversacion.exists) return avisado;
 
   const mensaje = db.collection('conversaciones').doc(paseoId)
     .collection('mensajes').doc('entrega-aviso');
-  if ((await mensaje.get()).exists) return false;
+  if ((await mensaje.get()).exists) return avisado;
 
   await mensaje.set({
     contenido: CLAVE_CHAT_ENTREGA_PENDIENTE,
@@ -176,7 +195,7 @@ export async function cerrarEntregaPorEquipo(
 ): Promise<ResultadoCierre> {
   const ref = db.collection('operaciones').doc(paseoId);
   const inicial = (await ref.get()).data();
-  if (!inicial || inicial.tipo !== 'paseo') {
+  if (!inicial || !esPaseo(inicial)) {
     throw new ErrorNegocio('not-found', 'El paseo no existe');
   }
   const politica = await politicaDelPaseo(db, inicial);

@@ -153,6 +153,17 @@ describe('avisarEntregaPendiente', () => {
     expect(await avisarEntregaPendiente(mockDb, 'p1', AHORA)).toBe(false)
   })
 
+  test('avisa al tutor en su teléfono aunque no exista el chat, y una sola vez', async () => {
+    mockDb.__seed('operaciones/p1', {
+      ...PASEO, creado_por: 't1', cuidador_nombre_visual: 'Ana',
+    })
+    expect(await avisarEntregaPendiente(mockDb, 'p1', AHORA)).toBe(true)
+    expect(mockDb.__docs.get('usuarios/t1/notificaciones/entrega_aviso_p1_t1'))
+      .toMatchObject({tipo: 'ENTREGA_PENDIENTE', datos: {paseo_id: 'p1', cuidador: 'Ana'}})
+    // Repetir no duplica el aviso ni crea nada nuevo
+    expect(await avisarEntregaPendiente(mockDb, 'p1', AHORA)).toBe(false)
+  })
+
   test('no avisa si ya se confirmó o si no hay chat', async () => {
     expect(await avisarEntregaPendiente(mockDb, 'p1', AHORA)).toBe(false) // sin chat
 
