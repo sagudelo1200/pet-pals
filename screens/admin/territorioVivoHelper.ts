@@ -16,7 +16,9 @@ export function injectTerritorioData(
   ciudad: string,
   totalZonas: number,
   zonasJson: string,
-  coloresJson: string
+  coloresJson: string,
+  textosJson: string = '{}',
+  lang: string = 'es'
 ): string {
   // Placeholders seguros (no permiten JavaScript)
   const replacements: Record<string, string> = {
@@ -26,6 +28,8 @@ export function injectTerritorioData(
     '{{TOTAL_ZONAS}}': String(totalZonas),
     '{{ZONAS_JSON}}': zonasJson,
     '{{COLORES_JSON}}': coloresJson,
+    '{{TEXTOS_JSON}}': textosJson,
+    '{{LANG}}': lang,
   }
 
   let html = inyectarCarto(territorioHTML)

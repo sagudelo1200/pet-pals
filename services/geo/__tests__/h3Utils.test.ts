@@ -2,10 +2,7 @@
 import {
   coordsAH3,
   celdasDeCobertura,
-  distanciaKmEntreH3,
-  haversineMetros,
   densificarRuta,
-  calcularEstadoZona,
   RESOLUCION_H3_DEFAULT,
   RADIO_COBERTURA_DEFAULT,
 } from '../h3Utils'
@@ -87,58 +84,6 @@ describe('celdasDeCobertura', () => {
   })
 })
 
-describe('haversineMetros', () => {
-  it('devuelve 0 para el mismo punto', () => {
-    const punto = { latitude: BOGOTA_LAT, longitude: BOGOTA_LNG }
-    expect(haversineMetros(punto, punto)).toBeCloseTo(0, 1)
-  })
-
-  it('calcula ~111 km por grado de latitud en el ecuador', () => {
-    const a = { latitude: 0, longitude: 0 }
-    const b = { latitude: 1, longitude: 0 }
-    const metros = haversineMetros(a, b)
-    // Un grado de latitud ≈ 111,000 m
-    expect(metros).toBeGreaterThan(110_000)
-    expect(metros).toBeLessThan(112_000)
-  })
-
-  it('es simétrica: d(A,B) = d(B,A)', () => {
-    const a = { latitude: 4.666, longitude: -74.052 }
-    const b = { latitude: 4.75, longitude: -74.1 }
-    expect(haversineMetros(a, b)).toBeCloseTo(haversineMetros(b, a), 3)
-  })
-
-  it('devuelve metros (no kilómetros) para puntos cercanos', () => {
-    // ~460 m entre dos puntos separados ~0.004 grados lat
-    const a = { latitude: 4.666, longitude: -74.052 }
-    const b = { latitude: 4.67, longitude: -74.052 }
-    const metros = haversineMetros(a, b)
-    expect(metros).toBeGreaterThan(100)
-    expect(metros).toBeLessThan(1000)
-  })
-})
-
-describe('distanciaKmEntreH3', () => {
-  it('devuelve 0 para la misma celda', () => {
-    const celda = coordsAH3(BOGOTA_LAT, BOGOTA_LNG)
-    expect(distanciaKmEntreH3(celda, celda)).toBeCloseTo(0, 5)
-  })
-
-  it('devuelve valor en kilómetros (< 10) para celdas vecinas', () => {
-    const a = coordsAH3(4.666, -74.052)
-    const b = coordsAH3(4.7, -74.08)
-    const km = distanciaKmEntreH3(a, b)
-    expect(km).toBeGreaterThan(0)
-    expect(km).toBeLessThan(10)
-  })
-
-  it('es simétrica', () => {
-    const a = coordsAH3(4.666, -74.052)
-    const b = coordsAH3(4.75, -74.1)
-    expect(distanciaKmEntreH3(a, b)).toBeCloseTo(distanciaKmEntreH3(b, a), 5)
-  })
-})
-
 describe('densificarRuta', () => {
   it('devuelve la ruta original si tiene menos de 2 puntos', () => {
     const single = [{ latitude: 4.666, longitude: -74.052 }]
@@ -184,68 +129,5 @@ describe('densificarRuta', () => {
     expect(densa.length).toBeGreaterThan(ruta.length)
     expect(densa[0]).toEqual(ruta[0])
     expect(densa[densa.length - 1]).toEqual(ruta[2])
-  })
-})
-
-describe('calcularEstadoZona', () => {
-  it('sin_actividad cuando no hay cuidadores ni demanda', () => {
-    expect(
-      calcularEstadoZona({
-        cuidadores_count: 0,
-        demanda_total: 0,
-        paseos_activos: 0,
-      })
-    ).toBe('sin_actividad')
-  })
-
-  it('disponible cuando hay cuidadores pero sin demanda', () => {
-    expect(
-      calcularEstadoZona({
-        cuidadores_count: 3,
-        demanda_total: 0,
-        paseos_activos: 0,
-      })
-    ).toBe('disponible')
-  })
-
-  it('sin_cobertura cuando hay demanda pero ningún cuidador', () => {
-    expect(
-      calcularEstadoZona({
-        cuidadores_count: 0,
-        demanda_total: 5,
-        paseos_activos: 0,
-      })
-    ).toBe('sin_cobertura')
-  })
-
-  it('activa cuando hay cuidadores y demanda, sin paseos en curso', () => {
-    expect(
-      calcularEstadoZona({
-        cuidadores_count: 2,
-        demanda_total: 3,
-        paseos_activos: 0,
-      })
-    ).toBe('activa')
-  })
-
-  it('en_operacion cuando hay al menos un paseo activo', () => {
-    expect(
-      calcularEstadoZona({
-        cuidadores_count: 1,
-        demanda_total: 1,
-        paseos_activos: 1,
-      })
-    ).toBe('en_operacion')
-  })
-
-  it('en_operacion tiene prioridad máxima sobre otros estados', () => {
-    // paseos_activos > 0 → siempre en_operacion aunque no haya demanda
-    expect(
-      calcularEstadoZona({
-        cuidadores_count: 0,
-        demanda_total: 0,
-        paseos_activos: 2,
-      })
-    ).toBe('en_operacion')
   })
 })

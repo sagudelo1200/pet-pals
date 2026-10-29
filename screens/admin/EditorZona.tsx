@@ -29,6 +29,7 @@ import { mensajeErrorCallable } from '@/services/firebase/callable'
 import { ESTADOS_ZONA, type EstadoZona } from '@/models/Zona'
 import type { AuthStackParamList } from '@/navigation/types'
 import { construirHTMLEditorZona, type CeldaAjena } from './editorZonaHtml'
+import { useTranslation } from 'react-i18next'
 
 // Bogotá, para centrar el mapa cuando la zona aún no tiene celdas
 const CENTRO_POR_DEFECTO: [number, number] = [4.6486, -74.0628]
@@ -45,13 +46,16 @@ const COLOR_ESTADO: Record<EstadoZona, string> = {
  * de la misma celda y deja el historial.
  */
 const EditorZona: React.FC = () => {
+  const { t, i18n } = useTranslation(['admin', 'comun'])
   const navigation = useNavigation()
   const { params } = useRoute<RouteProp<AuthStackParamList, 'EditorZona'>>()
   const insets = useSafeAreaInsets()
   const webViewRef = useRef<WebView>(null)
   const { zonas, mapa, cargando } = useZonasNegocio()
 
-  const zona = params?.zonaId ? zonas.find(z => z.id === params.zonaId) : undefined
+  const zona = params?.zonaId
+    ? zonas.find(z => z.id === params.zonaId)
+    : undefined
 
   const [nombre, setNombre] = useState<string | null>(null)
   const [ciudad, setCiudad] = useState<string | null>(null)
@@ -85,14 +89,30 @@ const EditorZona: React.FC = () => {
       ajenas,
       topInset: 0,
       bottomInset: insets.bottom,
+      textos: {
+        lang: i18n.language?.startsWith('en') ? 'en' : 'es',
+        barrios: t('admin:zonas.editor.mapa.barrios'),
+        ajusteFino: t('admin:zonas.editor.mapa.ajuste_fino'),
+        agregar: t('admin:zonas.editor.mapa.agregar'),
+        excluir: t('admin:zonas.editor.mapa.excluir'),
+        guardar: t('admin:zonas.editor.mapa.guardar'),
+        guardando: t('admin:zonas.editor.mapa.guardando'),
+        celda: t('admin:zonas.editor.mapa.celda'),
+        celdas: t('admin:zonas.editor.mapa.celdas'),
+        excluida: t('admin:zonas.editor.mapa.excluida'),
+        excluidas: t('admin:zonas.editor.mapa.excluidas'),
+        yaEsDe: t('admin:zonas.editor.mapa.ya_es_de'),
+        soloExcluirDentro: t('admin:zonas.editor.mapa.solo_excluir_dentro'),
+        acerca: t('admin:zonas.editor.mapa.acerca'),
+      },
     })
     // eslint-disable-next-line
-  }, [cargando, zona?.id, insets.bottom])
+  }, [cargando, zona?.id, insets.bottom, i18n.language])
 
   const reactivarBoton = () =>
     webViewRef.current?.injectJavaScript(`
       var b = document.getElementById('guardar');
-      if (b) { b.disabled = false; b.textContent = 'Guardar zona'; }
+      if (b) { b.disabled = false; b.textContent = ${JSON.stringify(t('admin:zonas.editor.mapa.guardar'))}; }
       true;
     `)
 
@@ -109,8 +129,8 @@ const EditorZona: React.FC = () => {
       if (!nombreActual.trim() || !ciudadActual.trim() || !motivo.trim()) {
         setDatosVisibles(true)
         Alert.alert(
-          'Faltan datos',
-          'Escribe el nombre, la ciudad y el motivo del cambio.'
+          t('admin:zonas.editor.faltan_datos'),
+          t('admin:zonas.editor.faltan_datos_desc')
         )
         reactivarBoton()
         return
@@ -127,11 +147,16 @@ const EditorZona: React.FC = () => {
           excluidas: data.excluidas,
           motivo,
         })
-        Alert.alert('Listo', 'La zona quedó guardada.', [
-          { text: 'OK', onPress: () => navigation.goBack() },
-        ])
+        Alert.alert(
+          t('admin:zonas.editor.listo'),
+          t('admin:zonas.editor.guardada'),
+          [{ text: t('comun:ok'), onPress: () => navigation.goBack() }]
+        )
       } catch (error) {
-        Alert.alert('No se pudo guardar', mensajeErrorCallable(error))
+        Alert.alert(
+          t('admin:zonas.editor.no_se_pudo_guardar'),
+          mensajeErrorCallable(error)
+        )
         reactivarBoton()
       } finally {
         setGuardando(false)
@@ -142,14 +167,14 @@ const EditorZona: React.FC = () => {
     }
   }
 
-  const titulo = zona ? zona.nombre : 'Nueva zona'
+  const titulo = zona ? zona.nombre : t('admin:zonas.nueva')
 
   if (params?.zonaId && !cargando && !zona) {
     return (
       <View style={[styles.contenedor, { paddingTop: insets.top }]}>
-        <ScreenHeader title="Zona" />
+        <ScreenHeader title={t('admin:zonas.editor.zona')} />
         <View style={styles.centrado}>
-          <Text style={styles.texto}>Esta zona ya no existe.</Text>
+          <Text style={styles.texto}>{t('admin:zonas.editor.no_existe')}</Text>
         </View>
       </View>
     )
@@ -159,7 +184,7 @@ const EditorZona: React.FC = () => {
     <View style={[styles.contenedor, { paddingTop: insets.top }]}>
       <ScreenHeader
         title={titulo}
-        subtitle="Toca los hexágonos para sumarlos a la zona"
+        subtitle={t('admin:zonas.editor.subtitulo')}
       />
 
       <Pressable
@@ -167,34 +192,40 @@ const EditorZona: React.FC = () => {
         onPress={() => setDatosVisibles(v => !v)}
       >
         <Text style={styles.textoCabecera}>
-          {datosVisibles ? '▾' : '▸'} Datos de la zona
+          {datosVisibles ? '▾' : '▸'} {t('admin:zonas.editor.datos')}
         </Text>
         <Text style={[styles.estado, { color: COLOR_ESTADO[estadoActual] }]}>
-          {estadoActual}
+          {t(`admin:zonas.estados.${estadoActual}`)}
         </Text>
       </Pressable>
 
       {datosVisibles && (
         <View style={styles.datos}>
-          <Text style={estilosAdmin.label}>Nombre</Text>
+          <Text style={estilosAdmin.label}>
+            {t('admin:zonas.editor.nombre')}
+          </Text>
           <TextInput
             style={estilosAdmin.input}
             value={nombreActual}
             onChangeText={setNombre}
-            placeholder="Ej: Chicó"
+            placeholder={t('admin:zonas.editor.nombre_placeholder')}
             placeholderTextColor={COLOR.SUBTEXTO}
             maxLength={60}
           />
-          <Text style={estilosAdmin.label}>Ciudad</Text>
+          <Text style={estilosAdmin.label}>
+            {t('admin:zonas.editor.ciudad')}
+          </Text>
           <TextInput
             style={estilosAdmin.input}
             value={ciudadActual}
             onChangeText={setCiudad}
-            placeholder="Ej: Bogotá"
+            placeholder={t('admin:zonas.editor.ciudad_placeholder')}
             placeholderTextColor={COLOR.SUBTEXTO}
             maxLength={60}
           />
-          <Text style={estilosAdmin.label}>Estado</Text>
+          <Text style={estilosAdmin.label}>
+            {t('admin:zonas.editor.estado')}
+          </Text>
           <View style={styles.estados}>
             {ESTADOS_ZONA.map(e => (
               <Pressable
@@ -211,7 +242,7 @@ const EditorZona: React.FC = () => {
                     estadoActual === e && { color: COLOR_ESTADO[e] },
                   ]}
                 >
-                  {e}
+                  {t(`admin:zonas.estados.${e}`)}
                 </Text>
               </Pressable>
             ))}

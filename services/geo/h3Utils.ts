@@ -10,12 +10,10 @@ import {
   RESOLUCIONES,
   celdaDe,
   celdasAlrededor,
-  distanciaKmEntreCeldas,
   distanciaMetros,
   type Coordenada,
   type RolResolucion,
 } from '@/functions/src/compartido/geografia'
-import { estadoDeCelda } from '@/functions/src/compartido/territorio'
 
 export {
   RESOLUCIONES,
@@ -25,7 +23,6 @@ export {
   esCeldaValida,
   type RolResolucion,
 } from '@/functions/src/compartido/geografia'
-export type { EstadoCelda as EstadoZona } from '@/functions/src/compartido/territorio'
 
 /** Resolución estándar de la app: la de cobertura (R8, ~460 m). */
 export const RESOLUCION_H3_DEFAULT = RESOLUCIONES.cobertura
@@ -56,23 +53,12 @@ export function celdasDeCobertura(
   return celdasAlrededor(indiceCelda, radio)
 }
 
-/** Distancia en km entre los centros de dos celdas H3. */
-export function distanciaKmEntreH3(celdaA: string, celdaB: string): number {
-  return distanciaKmEntreCeldas(celdaA, celdaB)
-}
-
-/** Distancia en metros entre dos coordenadas (Haversine). */
-export const haversineMetros = distanciaMetros
-
-/** Estado de una celda según su oferta y demanda. */
-export const calcularEstadoZona = estadoDeCelda
-
 function interpolarSegmento(
   a: CoordenadaGeo,
   b: CoordenadaGeo,
   separacionMetros = 8
 ): CoordenadaGeo[] {
-  const d = haversineMetros(a, b)
+  const d = distanciaMetros(a, b)
   const pasos = Math.min(Math.ceil(d / separacionMetros), 20)
   const puntos: CoordenadaGeo[] = []
   for (let i = 1; i <= pasos; i++) {

@@ -34,6 +34,7 @@ import {
   registrarLlegada as registrar,
   sincronizarFicha,
 } from './expediente';
+import {esPaseo} from '../compartido/servicios';
 
 if (!admin.apps || admin.apps.length === 0) admin.initializeApp();
 const db = admin.firestore();
@@ -65,7 +66,7 @@ export const alCambiarEstadoPaseoExpediente = onDocumentUpdated(
   async (event) => {
     const antes = event.data?.before.data();
     const despues = event.data?.after.data();
-    if (!despues || despues.tipo !== 'paseo') return;
+    if (!despues || !esPaseo(despues)) return;
     const nuevo = despues.estado;
     if (nuevo === antes?.estado) return;
     if (nuevo !== 'CONFIRMADO' && nuevo !== 'FINALIZADO') return;

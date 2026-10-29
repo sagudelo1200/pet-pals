@@ -133,7 +133,7 @@ describe('consultarServicio (callable)', () => {
   test('dice si se atiende esa celda', async () => {
     expect(await llamar(fn.consultarServicio)(autenticado('c1', {celda: R8})))
       .toEqual({abierto: true});
-    mockDb.__seed('configuracion/paseos', {exigir_zona: true});
+    mockDb.__seed('configuracion/zonas', {exigir_zona: true});
     limpiarCacheConfiguracion();
     expect(await llamar(fn.consultarServicio)(autenticado('c1', {celda: R8})))
       .toEqual({abierto: false, motivo: 'sin_zona'});
@@ -199,14 +199,14 @@ describe('alCrearPaseoAsignarZona: sin servicio', () => {
   const evento = {params: {operacionId: 'p1'}, data: {data: () => paseo}};
 
   test('un pedido en un sector sin servicio se cancela', async () => {
-    mockDb.__seed('configuracion/paseos', {exigir_zona: true});
+    mockDb.__seed('configuracion/zonas', {exigir_zona: true});
     mockDb.__seed('operaciones/p1', paseo);
     await disparar(fn.alCrearPaseoAsignarZona)(evento);
     expect(mockDb.__docs.get('operaciones/p1').estado).toBe('CANCELADO');
   });
 
   test('en una zona abierta, queda con su zona y sigue pendiente', async () => {
-    mockDb.__seed('configuracion/paseos', {exigir_zona: true});
+    mockDb.__seed('configuracion/zonas', {exigir_zona: true});
     await llamar(fn.guardarZona)(admin(cuerpo));
     mockDb.__seed('operaciones/p1', paseo);
     await disparar(fn.alCrearPaseoAsignarZona)(evento);

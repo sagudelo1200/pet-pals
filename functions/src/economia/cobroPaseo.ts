@@ -12,6 +12,7 @@ import {calcularPrecioPaseo, desglosarCobro} from './calculo';
 import {generarCobroServicio} from './motor';
 import {obtenerPolitica, obtenerPoliticaVigente} from './politica';
 import type {PoliticaComercial} from './tipos';
+import {TIPO_PASEO} from '../compartido/servicios';
 
 const DURACION_POR_DEFECTO_MIN = 60;
 
@@ -99,7 +100,7 @@ export async function generarCobrosDePaseo(
     const desglose = desglosarCobro(tarifas, politica.impuestos, precio);
     const creado = await generarCobroServicio(db, {
       servicioId: paseoId,
-      tipoServicio: 'paseo',
+      tipoServicio: TIPO_PASEO,
       tutorId,
       cuidadorId,
       desglose,

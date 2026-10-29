@@ -45,7 +45,7 @@ const interes = (uid: string, rol: string, celda = R8) =>
   mockDb.__docs.get(`interes_zona/${uid}_${rol}_${celda}`);
 const territorio = (celda: string) => mockDb.__docs.get(`territorio/${celda}`);
 const exigirZona = (valor: boolean) =>
-  mockDb.__seed('configuracion/paseos', {exigir_zona: valor});
+  mockDb.__seed('configuracion/zonas', {exigir_zona: valor});
 const crearZona = (estado: string, celdas = [R7], nombre = 'Chicó') =>
   guardarZona(mockDb, {nombre, ciudad: 'Bogotá', estado, celdas},
     {motivo: 'Prueba', autor: 'a1', ahora: AHORA});

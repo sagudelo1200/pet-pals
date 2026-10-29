@@ -11,7 +11,44 @@ export interface CeldaAjena {
   nombre: string
 }
 
+/** Textos visibles dentro del WebView (se pasan ya traducidos) */
+export interface TextosEditorZona {
+  lang: string
+  barrios: string
+  ajusteFino: string
+  agregar: string
+  excluir: string
+  guardar: string
+  guardando: string
+  celda: string
+  celdas: string
+  excluida: string
+  excluidas: string
+  /** Con el marcador `{nombre}` */
+  yaEsDe: string
+  soloExcluirDentro: string
+  acerca: string
+}
+
+const TEXTOS_ES: TextosEditorZona = {
+  lang: 'es',
+  barrios: 'Barrios',
+  ajusteFino: 'Ajuste fino',
+  agregar: 'Agregar',
+  excluir: 'Excluir',
+  guardar: 'Guardar zona',
+  guardando: 'Guardando…',
+  celda: 'celda',
+  celdas: 'celdas',
+  excluida: 'excluida',
+  excluidas: 'excluidas',
+  yaEsDe: 'Esta celda ya es de la zona "{nombre}"',
+  soloExcluirDentro: 'Solo se puede excluir dentro de lo que la zona ya cubre',
+  acerca: 'Acerca el mapa para ver las celdas de esta escala',
+}
+
 interface Opciones {
+  textos?: TextosEditorZona
   /** Dónde centrar el mapa. */
   centro: [number, number]
   celdas: string[]
@@ -39,7 +76,9 @@ export function construirHTMLEditorZona({
   ajenas,
   topInset = 0,
   bottomInset = 0,
+  textos = TEXTOS_ES,
 }: Opciones): string {
+  const textosJSON = JSON.stringify(textos).replace(/</g, '\\u003c')
   // Los nombres vienen de la base: se evita que un "</script>" rompa la página
   const datos = JSON.stringify({ centro, celdas, excluidas, ajenas }).replace(
     /</g,
@@ -48,7 +87,7 @@ export function construirHTMLEditorZona({
   const pie = 12 + bottomInset
 
   return `<!DOCTYPE html>
-<html lang="es">
+<html lang="${textos.lang}">
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport"
@@ -97,22 +136,23 @@ export function construirHTMLEditorZona({
   <div id="pie">
     <div class="fila">
       <div class="grupo" id="escala">
-        <button data-escala="7" class="activo">Barrios</button>
-        <button data-escala="8">Ajuste fino</button>
+        <button data-escala="7" class="activo">${textos.barrios}</button>
+        <button data-escala="8">${textos.ajusteFino}</button>
       </div>
       <div class="grupo" id="accion">
-        <button data-accion="agregar" class="activo">Agregar</button>
-        <button data-accion="excluir" class="excluir">Excluir</button>
+        <button data-accion="agregar" class="activo">${textos.agregar}</button>
+        <button data-accion="excluir" class="excluir">${textos.excluir}</button>
       </div>
     </div>
     <div class="fila">
       <span id="conteo"></span>
-      <button id="guardar">Guardar zona</button>
+      <button id="guardar">${textos.guardar}</button>
     </div>
   </div>
 
   <script>
     var DATOS = ${datos};
+    var T = ${textosJSON};
     var celdas = new Set(DATOS.celdas);
     var excluidas = new Set(DATOS.excluidas);
     var ajenas = {};
@@ -182,14 +222,14 @@ ${JS_ATRIBUCION}
     function alternar(celda) {
       var e = estadoDe(celda);
       if (accion === 'agregar') {
-        if (ajenas[celda]) { avisar('Esta celda ya es de la zona "' + ajenas[celda] + '"'); return; }
+        if (ajenas[celda]) { avisar(T.yaEsDe.replace('{nombre}', ajenas[celda])); return; }
         if (celdas.has(celda)) { celdas.delete(celda); }
         else { excluidas.delete(celda); celdas.add(celda); }
       } else {
         if (excluidas.has(celda)) { excluidas.delete(celda); }
         else {
           var cubierta = cadena(celda).slice(1).some(function (c) { return celdas.has(c); });
-          if (!cubierta) { avisar('Solo se puede excluir dentro de lo que la zona ya cubre'); return; }
+          if (!cubierta) { avisar(T.soloExcluirDentro); return; }
           celdas.delete(celda);
           excluidas.add(celda);
         }
@@ -205,14 +245,14 @@ ${JS_ATRIBUCION}
     function actualizarConteo() {
       var n = celdas.size, m = excluidas.size;
       document.getElementById('conteo').textContent =
-        n + (n === 1 ? ' celda' : ' celdas') + (m ? ' · ' + m + (m === 1 ? ' excluida' : ' excluidas') : '');
+        n + ' ' + (n === 1 ? T.celda : T.celdas) + (m ? ' · ' + m + ' ' + (m === 1 ? T.excluida : T.excluidas) : '');
     }
 
     function dibujar() {
       capa.clearLayers();
       poligonos = {};
       if (map.getZoom() < ZOOM_MINIMO[escala]) {
-        avisar('Acerca el mapa para ver las celdas de esta escala');
+        avisar(T.acerca);
         return;
       }
       var b = map.getBounds();
@@ -222,7 +262,7 @@ ${JS_ATRIBUCION}
       ];
       var visibles = h3.polygonToCells(contorno, escala);
       if (visibles.length > MAX_HEXAGONOS) {
-        avisar('Acerca el mapa para ver las celdas de esta escala');
+        avisar(T.acerca);
         return;
       }
       visibles.forEach(function (celda) {
@@ -258,7 +298,7 @@ ${JS_ATRIBUCION}
     document.getElementById('guardar').addEventListener('click', function () {
       var boton = document.getElementById('guardar');
       boton.disabled = true;
-      boton.textContent = 'Guardando\\u2026';
+      boton.textContent = T.guardando;
       window.ReactNativeWebView.postMessage(JSON.stringify({
         type: 'save',
         celdas: Array.from(celdas),

@@ -4,7 +4,7 @@
  * pide o ofrece servicio donde todavía no se atiende.
  *
  * - `consultarServicio`: ¿se atiende en esta celda? (zona activa o piloto,
- *   cuando `paseos.exigir_zona` está encendido).
+ *   cuando `zonas.exigir_zona` está encendido).
  * - Interesados (`interes_zona`): quien intenta pedir un paseo (tutor) o vive
  *   donde no se atiende (cuidador) queda registrado una vez por celda y rol; sus
  *   conteos viajan en `territorio/{celda}.interes` para verlos en el mapa. Quien
@@ -34,6 +34,7 @@ import {
   type RolInteres,
 } from '../compartido/zonas';
 import {zonaDeCelda} from './zonas';
+import {esPaseo} from '../compartido/servicios';
 
 type Dato = Record<string, unknown>;
 
@@ -67,11 +68,11 @@ export async function consultarServicio(
   db: Firestore,
   celda: string
 ): Promise<EstadoServicio> {
-  const [paseos, zonaId] = await Promise.all([
-    leerConfiguracion(db, 'paseos'),
+  const [ajustes, zonaId] = await Promise.all([
+    leerConfiguracion(db, 'zonas'),
     zonaDeCelda(db, celda),
   ]);
-  return estadoDeServicio(await leerZona(db, zonaId), paseos.exigir_zona);
+  return estadoDeServicio(await leerZona(db, zonaId), ajustes.exigir_zona);
 }
 
 /**
@@ -233,7 +234,7 @@ export async function cancelarSiFueraDeServicio(
   paseo: Dato | undefined,
   ahora: Timestamp
 ): Promise<boolean> {
-  if (!paseo || paseo.tipo !== 'paseo' || paseo.estado !== 'PENDIENTE') {
+  if (!paseo || !esPaseo(paseo) || paseo.estado !== 'PENDIENTE') {
     return false;
   }
   const c = (paseo.ubicacion_inicio as

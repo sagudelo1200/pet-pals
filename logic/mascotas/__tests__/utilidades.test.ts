@@ -2,7 +2,18 @@
 import { calcularEdadMascota, formatearEdadMascota } from '../utilidades'
 
 describe('Mascotas Utils - Edad', () => {
-  const hoy = new Date()
+  // Reloj fijo: la edad depende de "hoy", y con la fecha real las pruebas de
+  // meses fallaban según el día (29, 30 o 31) en que se corrieran
+  const hoy = new Date(2026, 9, 15, 12)
+
+  beforeAll(() => {
+    jest.useFakeTimers()
+    jest.setSystemTime(hoy)
+  })
+
+  afterAll(() => {
+    jest.useRealTimers()
+  })
 
   test('calcularEdadMascota devuelve null si no hay fecha', () => {
     expect(calcularEdadMascota(null)).toBeNull()
@@ -23,6 +34,13 @@ describe('Mascotas Utils - Edad', () => {
     const edad = calcularEdadMascota(fecha)
     expect(edad?.años).toBe(3)
     expect(edad?.meses).toBe(0)
+  })
+
+  test('el día del cumpleaños ya cuenta el año; un día antes, todavía no', () => {
+    const cumple = calcularEdadMascota(new Date(2025, 9, 15))
+    expect(cumple).toMatchObject({ años: 1, meses: 0 })
+    const antes = calcularEdadMascota(new Date(2025, 9, 16))
+    expect(antes).toMatchObject({ años: 0, meses: 11 })
   })
 
   test('formatearEdadMascota devuelve string vacío si no hay fecha', () => {

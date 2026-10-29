@@ -40,21 +40,6 @@ export function validarFormatoCodigo(codigo: string): boolean {
 }
 
 /**
- * Normaliza un código ingresado por el usuario (remueve espacios, convierte a mayúsculas si aplica).
- * Para códigos numéricos, simplemente remueve espacios.
- *
- * @param codigo {string} Código ingresado por usuario
- * @returns {string} Código normalizado
- *
- * @example
- * normalizarCodigo("7 4 2 8 5 1") // "742851"
- * normalizarCodigo("742851")      // "742851"
- */
-export function normalizarCodigo(codigo: string): string {
-  return codigo.replace(/\s/g, '').trim()
-}
-
-/**
  * Genera códigos de recogida por tutor.
  * Cada tutor en el paseo recibe un código único de 6 dígitos.
  * Útil para paseos compartidos donde múltiples tutores tienen mascotas.

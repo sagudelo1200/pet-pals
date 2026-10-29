@@ -24,6 +24,7 @@ import { registrarAuditoria } from '@/logic/operaciones/auditoria'
 import { coordsAH3 } from '@/services/geo/h3Utils'
 import { collection, query, where, getDocs } from 'firebase/firestore'
 import { db } from '@/firebase.config'
+import { TIPO_PASEO } from '@/functions/src/compartido/servicios'
 
 // ---------- Helpers de denormalización ----------
 const MAX_DENORMALIZED_PHOTO_SIZE = 120 * 1024 // 120KB (suficiente para URLs y mini-thumbnails)
@@ -105,7 +106,7 @@ async function validarNoSolapamientoPorMascota(
     // el filtro por mascota se hace en memoria para no requerir otro índice
     const q = query(
       collection(db, 'operaciones'),
-      where('tipo', '==', 'paseo'),
+      where('tipo', '==', TIPO_PASEO),
       where('creado_por', '==', uid),
       where('estado', 'in', estadosActivos)
     )

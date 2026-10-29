@@ -1,6 +1,35 @@
 import type { ZonaH3 } from '@/models/ZonaH3'
 import { injectTerritorioData } from './territorioVivoHelper'
 
+/** Textos visibles dentro del WebView (se pasan ya traducidos) */
+export interface TextosTerritorio {
+  lang: string
+  miUbicacion: string
+  cambiarTema: string
+  cambiarR9: string
+  cambiarR8: string
+  verInteligencia: string
+  verEstado: string
+  bienestar: string
+  seguridad: string
+  actividad: string
+  socializacion: string
+  sinDatos: string
+  estado: string
+  inteligencia: string
+  tipo: string
+  eventos: string
+  cuidadores: string
+  demanda: string
+  activos: string
+  paseos: string
+  interesados: string
+  tutoresMin: string
+  cuidadoresMin: string
+  /** Etiqueta de cada estado (clave de COLORES_ESTADO) */
+  estados: Record<string, string>
+}
+
 // ─── Paleta de colores por estado ────────────────────────────────────────────
 export const COLORES_ESTADO: Record<
   string,
@@ -35,7 +64,11 @@ export function construirHTML(
   zonas: ZonaH3[],
   topInset: number = 0,
   bottomInset: number = 0,
-  opciones?: { ciudad?: string; totalZonas?: number }
+  opciones?: {
+    ciudad?: string
+    totalZonas?: number
+    textos?: TextosTerritorio
+  }
 ): string {
   const ciudad = opciones?.ciudad || 'desconocida'
   const totalZonas = opciones?.totalZonas || zonas.length
@@ -63,7 +96,17 @@ export function construirHTML(
     }))
   )
 
-  const coloresJSON = JSON.stringify(COLORES_ESTADO)
+  const textos = opciones?.textos
+  const colores = textos
+    ? Object.fromEntries(
+        Object.entries(COLORES_ESTADO).map(([clave, c]) => [
+          clave,
+          { ...c, label: textos.estados[clave] ?? c.label },
+        ])
+      )
+    : COLORES_ESTADO
+  const coloresJSON = JSON.stringify(colores)
+  const textosJSON = JSON.stringify(textos ?? {}).replace(/</g, '\\u003c')
 
   // Debug logs
   console.log('[construirHTML] Zonas:', zonas.length)
@@ -77,6 +120,8 @@ export function construirHTML(
     ciudad,
     totalZonas,
     zonasJSON,
-    coloresJSON
+    coloresJSON,
+    textosJSON,
+    textos?.lang ?? 'es'
   )
 }

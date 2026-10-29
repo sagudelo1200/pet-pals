@@ -1,12 +1,7 @@
 /* eslint-env jest */
-import {
-  registrarAuditoria,
-  obtenerHistorialOperacion,
-  obtenerCambiosEntidad,
-} from '@/logic/operaciones/auditoria'
+import { registrarAuditoria } from '@/logic/operaciones/auditoria'
 import { ServicioAuditoria } from '@/services/firebase/firestore/colecciones/auditoria'
-import type { EventoAuditoria, CambioAuditoria } from '@/models/Operacion'
-import { Timestamp } from 'firebase/firestore'
+import type { CambioAuditoria } from '@/models/Operacion'
 
 // Mock de Firebase
 jest.mock('@/firebase.config', () => ({
@@ -16,8 +11,6 @@ jest.mock('@/firebase.config', () => ({
 jest.mock('@/services/firebase/firestore/colecciones/auditoria', () => ({
   ServicioAuditoria: {
     registrar: jest.fn(),
-    obtenerPorOperacion: jest.fn(),
-    obtenerPorEntidad: jest.fn(),
   },
 }))
 
@@ -158,116 +151,6 @@ describe('FASE 0: Auditoría', () => {
           user_agent: 'Mozilla/5.0',
         })
       )
-    })
-  })
-
-  describe('obtenerHistorialOperacion()', () => {
-    it('debería retornar eventos ordenados cronológicamente', async () => {
-      const now = Timestamp.now()
-      const later = Timestamp.fromMillis(now.toMillis() + 60000)
-
-      const eventos: EventoAuditoria[] = [
-        {
-          id: 'EV-001',
-          entidad_tipo: 'operacion',
-          entidad_id: 'OP-001',
-          tipo_evento: 'ENTIDAD_CREADA',
-          actor: 'USER-123',
-          timestamp: now,
-          id_operacion: 'OP-001',
-        },
-        {
-          id: 'EV-002',
-          entidad_tipo: 'operacion',
-          entidad_id: 'OP-001',
-          tipo_evento: 'CAMBIO_ESTADO',
-          cambios: {
-            estado: { antes: 'PENDIENTE', despues: 'CONFIRMADO' },
-          },
-          actor: 'USER-456',
-          timestamp: later,
-          id_operacion: 'OP-001',
-        },
-      ]
-
-      ;(ServicioAuditoria.obtenerPorOperacion as jest.Mock).mockResolvedValue(
-        eventos
-      )
-
-      const historial = await obtenerHistorialOperacion('OP-001')
-
-      expect(historial).toHaveLength(2)
-      expect(historial[0].tipo_evento).toBe('ENTIDAD_CREADA')
-      expect(historial[1].tipo_evento).toBe('CAMBIO_ESTADO')
-      // Verificar que están ordenados (el primero debe tener timestamp más antiguo)
-      expect(historial[0].timestamp.toMillis()).toBeLessThanOrEqual(
-        historial[1].timestamp.toMillis()
-      )
-    })
-
-    it('debería retornar lista vacía si no hay eventos', async () => {
-      (ServicioAuditoria.obtenerPorOperacion as jest.Mock).mockResolvedValue(
-        []
-      )
-
-      const historial = await obtenerHistorialOperacion('OP-SIN-EVENTOS')
-
-      expect(historial).toEqual([])
-    })
-  })
-
-  describe('obtenerCambiosEntidad()', () => {
-    it('debería filtrar eventos por tipo de entidad', async () => {
-      const eventos: EventoAuditoria[] = [
-        {
-          id: 'EV-001',
-          entidad_tipo: 'operacion',
-          entidad_id: 'OP-001',
-          tipo_evento: 'ENTIDAD_MODIFICADA',
-          cambios: {
-            estado: { antes: 'PENDIENTE', despues: 'CONFIRMADO' },
-          },
-          actor: 'USER-123',
-          timestamp: expect.any(Object),
-        },
-      ]
-
-      ;(ServicioAuditoria.obtenerPorEntidad as jest.Mock).mockResolvedValue(
-        eventos
-      )
-
-      const cambios = await obtenerCambiosEntidad('operacion', 'OP-001')
-
-      expect(cambios).toHaveLength(1)
-      expect(cambios[0].entidad_tipo).toBe('operacion')
-    })
-
-    it('debería incluir antes/despues de cada cambio', async () => {
-      const eventos: EventoAuditoria[] = [
-        {
-          id: 'EV-001',
-          entidad_tipo: 'cargo',
-          entidad_id: 'CARGO-001',
-          tipo_evento: 'ENTIDAD_MODIFICADA',
-          cambios: {
-            monto: { antes: 100, despues: 150 },
-            estado: { antes: 'PENDIENTE', despues: 'PAGADO' },
-          },
-          actor: 'USER-123',
-          timestamp: expect.any(Object),
-        },
-      ]
-
-      ;(ServicioAuditoria.obtenerPorEntidad as jest.Mock).mockResolvedValue(
-        eventos
-      )
-
-      const cambios = await obtenerCambiosEntidad('cargo', 'CARGO-001')
-
-      expect(cambios[0].cambios).toEqual({
-        monto: { antes: 100, despues: 150 },
-        estado: { antes: 'PENDIENTE', despues: 'PAGADO' },
-      })
     })
   })
 
@@ -465,17 +348,6 @@ describe('FASE 0: Auditoría', () => {
           actor: 'USER-123',
         })
       ).rejects.toThrow('Firebase error')
-    })
-
-    it('debería retornar lista vacía si obtenerPorOperacion falla', async () => {
-      const error = new Error('Query error')
-      ;(ServicioAuditoria.obtenerPorOperacion as jest.Mock).mockRejectedValue(
-        error
-      )
-
-      await expect(obtenerHistorialOperacion('OP-001')).rejects.toThrow(
-        'Query error'
-      )
     })
   })
 })

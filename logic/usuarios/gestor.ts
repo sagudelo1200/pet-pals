@@ -54,15 +54,9 @@ export const GestorUsuarios = {
         return { success: true }
       }
 
-      // Exclusividad: admin no puede combinarse con roles operativos (tutor/cuidador)
-      // pero SÍ puede combinarse con explorador (rol de observación territorial)
-      const rolesOperativos: RolUsuario[] = ['tutor', 'cuidador']
-      const esRolOperativo = (rol: RolUsuario) => rolesOperativos.includes(rol)
-
-      if (nuevoRol === 'admin' && rolesActuales.some(esRolOperativo)) {
-        return { success: false, error: 'ADMIN_EXCLUSIVO' }
-      }
-      if (rolesActuales.includes('admin') && esRolOperativo(nuevoRol)) {
+      // Exclusividad: un admin no ofrece servicios (cuidador), pero SÍ puede
+      // ser tutor y explorador
+      if (nuevoRol === 'admin' && rolesActuales.includes('cuidador')) {
         return { success: false, error: 'ADMIN_EXCLUSIVO' }
       }
 

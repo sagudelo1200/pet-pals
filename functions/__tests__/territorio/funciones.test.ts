@@ -76,7 +76,7 @@ describe('alCambiarCoberturaTerritorio', () => {
   });
 
   test('un cuidador que vive donde no se atiende queda como interesado', async () => {
-    mockDb.__seed('configuracion/paseos', {exigir_zona: true});
+    mockDb.__seed('configuracion/zonas', {exigir_zona: true});
 
     await disparar(fn.alCambiarCoberturaTerritorio)({
       params: {uid: 'c1'},

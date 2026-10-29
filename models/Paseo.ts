@@ -1,5 +1,6 @@
 import { BaseModel } from './BaseModel'
 import type { UbicacionSnapshot } from '@/models/Ubicacion'
+import type { TipoServicio } from '@/functions/src/compartido/servicios'
 import { ESTADOS_OPERACION, type Operacion } from './Operacion'
 
 /**
@@ -233,7 +234,8 @@ export interface PayloadIncidente {
  */
 export interface Paseo extends Operacion, BaseModel {
   // Reafirmar tipo específico
-  tipo: 'paseo'
+  /** Discriminador: debe seguir siendo un servicio del catálogo. */
+  tipo: Extract<TipoServicio, 'paseo'>
   estado: ESTADOS_PASEO
 
   // Campos específicos de Paseo (heredan de Operacion pero especializados)

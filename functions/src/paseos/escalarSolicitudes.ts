@@ -22,6 +22,7 @@ import {cuentaServicioTasks} from '../evaluaciones/cloudTasks';
 import {esTareaDuplicada, nombreTarea} from '../economia/tareas';
 import {leerConfiguracion} from '../comun/configuracion';
 import {notificar} from '../comun/notificar';
+import {esPaseo} from '../compartido/servicios';
 
 if (!admin.apps || admin.apps.length === 0) {
   admin.initializeApp();
@@ -56,7 +57,7 @@ export const onCrearPaseoDirecto = onDocumentCreated(
     if (
       !paseoId ||
       !paseo ||
-      paseo.tipo !== 'paseo' ||
+      !esPaseo(paseo) ||
       !paseo.id_cuidador ||
       paseo.estado !== 'PENDIENTE'
     ) {
@@ -174,8 +175,8 @@ export const escalarPaseoIndividual = onRequest(
 
         const docData = docSnap.data() as Record<string, unknown>;
 
-        // Validación 0: Debe ser tipo='paseo'
-        if (docData.tipo !== 'paseo') {
+        // Validación 0: Debe ser un paseo
+        if (!esPaseo(docData)) {
           return {success: false, razon: 'No es una operación de tipo paseo'};
         }
 

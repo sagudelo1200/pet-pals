@@ -20,6 +20,7 @@ import {
   type TipoEventoEconomico,
 } from './tipos';
 import type {DesgloseCobro} from './calculo';
+import type {TipoServicio} from '../compartido/servicios';
 
 /**
  * Una operación económica por tutor y servicio (paseos compartidos incluidos).
@@ -155,7 +156,7 @@ export async function registrarMovimiento(
 
 export interface CobroServicio {
   servicioId: string
-  tipoServicio: 'paseo'
+  tipoServicio: TipoServicio
   tutorId: string
   cuidadorId: string
   desglose: DesgloseCobro

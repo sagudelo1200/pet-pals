@@ -36,6 +36,7 @@ import {
   sumarEvento,
   type Narrativa,
 } from '../compartido/territorio';
+import {TIPO_PASEO, esPaseo} from '../compartido/servicios';
 
 type Dato = Record<string, unknown>;
 
@@ -58,6 +59,20 @@ interface Cobertura {
   h3_origen: string
   /** Habilitado para pasear cuando se escribió (ver ofreceServicio). */
   habilitado: boolean
+  /** Hasta cuándo (ms) vale esa habilitación; null si no vence. */
+  habilitadoHasta: number | null
+}
+
+/**
+ * Instante (ms) en que vence la habilitación del servicio, según el perfil.
+ * @param {Dato} perfil Perfil público.
+ * @param {string} servicio Servicio.
+ * @return {number | null} Vencimiento, o null si no vence (o no hay dato).
+ */
+function vencimientoDe(perfil: Dato, servicio: string): number | null {
+  const vencen = perfil.servicios_vencen as Record<string, unknown> | undefined;
+  const vence = vencen?.[servicio];
+  return typeof vence === 'number' ? vence : null;
 }
 
 /**
@@ -79,13 +94,15 @@ export function coberturaDe(
     celdas,
     uid,
     h3_origen: esCeldaValida(perfil.h3_r8) ? perfil.h3_r8 : celdas[0],
-    habilitado: ofreceServicio(perfil, 'paseo', ahoraMs),
+    habilitado: ofreceServicio(perfil, TIPO_PASEO, ahoraMs),
+    habilitadoHasta: vencimientoDe(perfil, TIPO_PASEO),
   };
 }
 
 const mismaCobertura = (a: Cobertura | null, b: Cobertura | null): boolean =>
   a === b || (a !== null && b !== null &&
     a.habilitado === b.habilitado &&
+    a.habilitadoHasta === b.habilitadoHasta &&
     a.h3_origen === b.h3_origen &&
     a.celdas.length === b.celdas.length &&
     a.celdas.every((c) => b.celdas.includes(c)));
@@ -93,9 +110,9 @@ const mismaCobertura = (a: Cobertura | null, b: Cobertura | null): boolean =>
 /**
  * Pone el índice al día cuando cambia el perfil de un cuidador: borra las
  * celdas que dejó de cubrir y escribe las que cubre. No hace nada si lo que
- * importa (celdas, origen, habilitación) no cambió. El valor guardado no se
- * actualiza solo al vencer una habilitación: se corrige en el siguiente cambio
- * del perfil (el emparejamiento sí lo comprueba con la hora, al buscar).
+ * importa (celdas, origen, habilitación y su vencimiento) no cambió. Se guarda
+ * hasta cuándo vale la habilitación para que el conteo de oferta descarte lo
+ * vencido sin esperar a que el perfil cambie.
  * @param {Firestore} db Firestore.
  * @param {string} uid Cuidador.
  * @param {Dato | undefined} antes Perfil antes del cambio.
@@ -126,6 +143,7 @@ export async function sincronizarCobertura(
       uid,
       h3_origen: d!.h3_origen,
       habilitado: d!.habilitado,
+      habilitado_hasta: d!.habilitadoHasta,
       actualizado_en: ahora,
     });
   }
@@ -156,6 +174,30 @@ async function contar(
 }
 
 /**
+ * Cuidadores de la celda con la habilitación vigente a esa hora. Lee los
+ * documentos (pocas decenas por celda) en vez de contar: así descarta los
+ * vencidos sin pedir un índice compuesto.
+ * @param {Firestore} db Firestore.
+ * @param {string} celda Celda de cobertura.
+ * @param {number} ahoraMs Momento de referencia.
+ * @return {Promise<number>} Cantidad.
+ */
+async function contarHabilitados(
+  db: Firestore,
+  celda: string,
+  ahoraMs: number
+): Promise<number> {
+  const docs = await db
+    .collection(`${COLECCION_INDICE}/${celda}/${SUBCOLECCION_INDICE}`)
+    .where('habilitado', '==', true)
+    .get();
+  return docs.docs.filter((d) => {
+    const hasta = d.data().habilitado_hasta;
+    return typeof hasta !== 'number' || hasta > ahoraMs;
+  }).length;
+}
+
+/**
  * Recalcula la oferta y la demanda de una celda de cobertura contando.
  * @param {Firestore} db Firestore.
  * @param {string} celda Celda de cobertura (R8).
@@ -171,12 +213,11 @@ export async function recalcularOperativa(
     return;
   }
   const paseos = (estado: string) => contar(db, 'operaciones', [
-    ['tipo', 'paseo'], ['h3_r8', celda], ['estado', estado],
+    ['tipo', TIPO_PASEO], ['h3_r8', celda], ['estado', estado],
   ]);
 
   const [cuidadores, pendientes, enCurso, hechos] = await Promise.all([
-    contar(db, `${COLECCION_INDICE}/${celda}/${SUBCOLECCION_INDICE}`,
-      [['habilitado', true]]),
+    contarHabilitados(db, celda, ahora.toMillis()),
     paseos('PENDIENTE'),
     Promise.all(ESTADOS_EN_CURSO.map(paseos)),
     Promise.all(ESTADOS_HECHOS.map(paseos)),
@@ -221,7 +262,7 @@ export async function recalcularOperativas(
  * @return {string | undefined} Celda R8, o undefined si no se puede saber.
  */
 export function celdaDePaseo(paseo: Dato | undefined): string | undefined {
-  if (!paseo || paseo.tipo !== 'paseo') return undefined;
+  if (!paseo || !esPaseo(paseo)) return undefined;
   if (esCeldaValida(paseo.h3_r8)) return paseo.h3_r8;
   const c = (paseo.ubicacion_inicio as
     {coordenadas?: {latitude?: unknown; longitude?: unknown}} | undefined)
@@ -327,7 +368,7 @@ export async function reconstruirTerritorio(
     afectadas.forEach((c) => celdas.add(c));
   }
   const pendientes = await db.collection('operaciones')
-    .where('tipo', '==', 'paseo').where('estado', '==', 'PENDIENTE').get();
+    .where('tipo', '==', TIPO_PASEO).where('estado', '==', 'PENDIENTE').get();
   for (const doc of pendientes.docs) {
     const celda = celdaDePaseo(doc.data());
     if (celda) celdas.add(celda);

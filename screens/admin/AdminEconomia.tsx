@@ -1,6 +1,7 @@
 import React from 'react'
 import { Text, StyleSheet } from 'react-native'
 import { COLOR } from '@/constants'
+import { useTranslation } from 'react-i18next'
 import { Card, Screen } from '@/components/ui'
 import { FormularioPoliticaComercial } from '@/components/admin/FormularioPoliticaComercial'
 import { ResumenPoliticaComercial } from '@/components/admin/ResumenPoliticaComercial'
@@ -16,49 +17,54 @@ import { PanelDocumentosContables } from '@/components/admin/PanelDocumentosCont
  */
 export const PantallaEconomia: React.FC<{ soloLectura?: boolean }> = ({
   soloLectura = false,
-}) => (
-  <Screen scroll teclado contentContainerStyle={styles.contenido}>
-    <Text style={styles.titulo}>Economía</Text>
-    {soloLectura && <Text style={styles.subtitulo}>Solo lectura</Text>}
-
-    <Text style={styles.seccion}>Liquidaciones a cuidadores</Text>
-    <Card style={styles.card}>
-      <PanelLiquidaciones soloLectura={soloLectura} />
-    </Card>
-
-    {!soloLectura && (
-      <>
-        <Text style={styles.seccion}>Entregas por revisar</Text>
-        <Card style={styles.card}>
-          <PanelEntregasPorRevisar />
-        </Card>
-      </>
-    )}
-
-    <Text style={styles.seccion}>Cobros pendientes de tutores</Text>
-    <Card style={styles.card}>
-      <PanelCobrosPendientes />
-    </Card>
-
-    <Text style={styles.seccion}>
-      {soloLectura
-        ? 'Documentos contables recientes'
-        : 'Documentos contables con error'}
-    </Text>
-    <Card style={styles.card}>
-      <PanelDocumentosContables soloLectura={soloLectura} />
-    </Card>
-
-    <Text style={styles.seccion}>Política comercial</Text>
-    <Card style={styles.card}>
-      {soloLectura ? (
-        <ResumenPoliticaComercial />
-      ) : (
-        <FormularioPoliticaComercial />
+}) => {
+  const { t } = useTranslation('admin')
+  return (
+    <Screen scroll teclado contentContainerStyle={styles.contenido}>
+      <Text style={styles.titulo}>{t('economia.titulo')}</Text>
+      {soloLectura && (
+        <Text style={styles.subtitulo}>{t('economia.solo_lectura')}</Text>
       )}
-    </Card>
-  </Screen>
-)
+
+      <Text style={styles.seccion}>{t('economia.liquidaciones')}</Text>
+      <Card style={styles.card}>
+        <PanelLiquidaciones soloLectura={soloLectura} />
+      </Card>
+
+      {!soloLectura && (
+        <>
+          <Text style={styles.seccion}>{t('economia.entregas')}</Text>
+          <Card style={styles.card}>
+            <PanelEntregasPorRevisar />
+          </Card>
+        </>
+      )}
+
+      <Text style={styles.seccion}>{t('economia.cobros')}</Text>
+      <Card style={styles.card}>
+        <PanelCobrosPendientes />
+      </Card>
+
+      <Text style={styles.seccion}>
+        {soloLectura
+          ? t('economia.documentos_recientes')
+          : t('economia.documentos_error')}
+      </Text>
+      <Card style={styles.card}>
+        <PanelDocumentosContables soloLectura={soloLectura} />
+      </Card>
+
+      <Text style={styles.seccion}>{t('economia.politica')}</Text>
+      <Card style={styles.card}>
+        {soloLectura ? (
+          <ResumenPoliticaComercial />
+        ) : (
+          <FormularioPoliticaComercial />
+        )}
+      </Card>
+    </Screen>
+  )
+}
 
 const AdminEconomia: React.FC = () => <PantallaEconomia />
 

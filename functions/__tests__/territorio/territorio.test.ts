@@ -83,6 +83,15 @@ describe('coberturaDe', () => {
     expect(coberturaDe('c1', vence, AHORA_MS)!.habilitado).toBe(false);
   });
 
+  test('guarda hasta cuándo vale la habilitación (null si no vence)', () => {
+    expect(coberturaDe('c1', perfil(), AHORA_MS)!.habilitadoHasta).toBeNull();
+    expect(coberturaDe('c1', perfil({servicios_vencen: {paseo: AHORA_MS + 5}}), AHORA_MS)!
+      .habilitadoHasta).toBe(AHORA_MS + 5);
+    // el vencimiento de otro servicio no es el de paseo
+    expect(coberturaDe('c1', perfil({servicios_vencen: {guarderia: 5}}), AHORA_MS)!
+      .habilitadoHasta).toBeNull();
+  });
+
   test('sin ubicación (o sin perfil) no hay cobertura', () => {
     expect(coberturaDe('c1', {nombre: 'Ana'}, AHORA_MS)).toBeNull();
     expect(coberturaDe('c1', undefined, AHORA_MS)).toBeNull();
@@ -103,7 +112,7 @@ describe('sincronizarCobertura (índice)', () => {
     expect(afectadas).toHaveLength(19);
     expect(entradasDe('c1')).toHaveLength(19);
     expect(indice(R8, 'c1')).toEqual({
-      uid: 'c1', h3_origen: R8, habilitado: true, actualizado_en: AHORA,
+      uid: 'c1', h3_origen: R8, habilitado: true, habilitado_hasta: null, actualizado_en: AHORA,
     });
   });
 
@@ -150,6 +159,18 @@ describe('sincronizarCobertura (índice)', () => {
     expect(indice(R8, 'c1')!.habilitado).toBe(false);
   });
 
+  test('renovar la habilitación (otro vencimiento) actualiza el índice; sin cambios no escribe', async () => {
+    const antes = perfil({servicios_vencen: {paseo: AHORA_MS + 10}});
+    const despues = perfil({servicios_vencen: {paseo: AHORA_MS + 999}});
+    await sincronizarCobertura(mockDb, 'c1', undefined, antes, AHORA);
+    expect(indice(R8, 'c1')!.habilitado_hasta).toBe(AHORA_MS + 10);
+
+    const afectadas = await sincronizarCobertura(mockDb, 'c1', antes, despues, AHORA);
+    expect(indice(R8, 'c1')!.habilitado_hasta).toBe(AHORA_MS + 999);
+    expect(afectadas.length).toBeGreaterThan(0);
+    expect(await sincronizarCobertura(mockDb, 'c1', despues, despues, AHORA)).toEqual([]);
+  });
+
   test('si se borra el perfil, sale de todas las celdas', async () => {
     await sincronizarCobertura(mockDb, 'c1', undefined, perfil(), AHORA);
     const afectadas = await sincronizarCobertura(
@@ -176,6 +197,19 @@ describe('recalcularOperativa (oferta y demanda)', () => {
       mockDb.__seed(`indice_cobertura/${R8}/cuidadores/s${i}`, {uid: `s${i}`, habilitado: false});
     }
   };
+
+  test('la oferta no cuenta a quien ya tiene la habilitación vencida', async () => {
+    mockDb.__seed(`indice_cobertura/${R8}/cuidadores/vigente`, {uid: 'vigente', habilitado: true, habilitado_hasta: AHORA_MS + 1});
+    mockDb.__seed(`indice_cobertura/${R8}/cuidadores/sin_vencer`, {uid: 'sin_vencer', habilitado: true, habilitado_hasta: null});
+    mockDb.__seed(`indice_cobertura/${R8}/cuidadores/vencido`, {uid: 'vencido', habilitado: true, habilitado_hasta: AHORA_MS});
+    mockDb.__seed(`indice_cobertura/${R8}/cuidadores/sin_dato`, {uid: 'sin_dato', habilitado: true});
+    mockDb.__seed(`indice_cobertura/${R8}/cuidadores/no_habilitado`, {uid: 'no_habilitado', habilitado: false});
+
+    await recalcularOperativa(mockDb, R8, AHORA);
+
+    // vigente, sin_vencer y sin_dato (documento anterior al campo) cuentan
+    expect(territorio(R8)!.operativa.cuidadores_count).toBe(3);
+  });
 
   test('cuenta cuidadores habilitados, pedidos pendientes, paseos en curso y hechos', async () => {
     sembrarCuidadores(3, 2);

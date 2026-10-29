@@ -21,6 +21,8 @@ import {
 } from '@/logic/territorio/zonasDeNegocio'
 import type { AuthStackParamList } from '@/navigation/types'
 import type { EstadoZona } from '@/models/Zona'
+import { useTranslation } from 'react-i18next'
+import { localeActual } from '@/utils/locale'
 
 const COLOR_ESTADO: Record<EstadoZona, string> = {
   piloto: COLOR.ALERTA,
@@ -33,6 +35,8 @@ const COLOR_ESTADO: Record<EstadoZona, string> = {
  * ciudad, con cómo va cada uno. Desde aquí se crean y se editan.
  */
 const AdminZonas: React.FC = () => {
+  const { t } = useTranslation('admin')
+  const idioma = localeActual()
   const navigation = useNavigation<StackNavigationProp<AuthStackParamList>>()
   const insets = useSafeAreaInsets()
   const negocio = useZonasNegocio()
@@ -54,19 +58,18 @@ const AdminZonas: React.FC = () => {
       grupos.set(r.zona.ciudad, [...(grupos.get(r.zona.ciudad) ?? []), r])
     }
     return [...grupos.entries()]
-      .sort(([a], [b]) => a.localeCompare(b, 'es'))
+      .sort(([a], [b]) => a.localeCompare(b, idioma))
       .map(([ciudad, zonas]) => ({
         ciudad,
-        zonas: zonas.sort((a, b) => a.zona.nombre.localeCompare(b.zona.nombre, 'es')),
+        zonas: zonas.sort((a, b) =>
+          a.zona.nombre.localeCompare(b.zona.nombre, idioma)
+        ),
       }))
-  }, [negocio.zonas, negocio.mapa, territorio.celdas])
+  }, [negocio.zonas, negocio.mapa, territorio.celdas, idioma])
 
   return (
     <View style={[styles.contenedor, { paddingTop: insets.top }]}>
-      <ScreenHeader
-        title="Zonas"
-        subtitle="Sectores con nombre sobre el territorio"
-      />
+      <ScreenHeader title={t('zonas.titulo')} subtitle={t('zonas.subtitulo')} />
 
       {negocio.cargando ? (
         <View style={styles.centrado}>
@@ -84,31 +87,30 @@ const AdminZonas: React.FC = () => {
           ]}
         >
           <Button
-            title="Nueva zona"
+            title={t('zonas.nueva')}
             icon="plus"
             onPress={() => navigation.navigate('EditorZona', {})}
           />
 
           {sinServicio.celdas > 0 && (
             <Card style={styles.sinServicio}>
-              <Text style={styles.sinServicioTitulo}>Piden servicio y aún no llegamos</Text>
+              <Text style={styles.sinServicioTitulo}>
+                {t('zonas.sin_servicio_titulo')}
+              </Text>
               <Text style={styles.detalle}>
-                {sinServicio.tutores}{' '}
-                {sinServicio.tutores === 1 ? 'tutor' : 'tutores'} intentaron pedir
-                un paseo y {sinServicio.cuidadores}{' '}
-                {sinServicio.cuidadores === 1 ? 'cuidador vive' : 'cuidadores viven'}{' '}
-                en {sinServicio.celdas}{' '}
-                {sinServicio.celdas === 1 ? 'celda' : 'celdas'} fuera de servicio.
-                Se ven en morado en el mapa de Territorio.
+                {t('zonas.sin_servicio_detalle', {
+                  tutores: t('zonas.tutores', { count: sinServicio.tutores }),
+                  cuidadores: t('zonas.cuidadores_viven', {
+                    count: sinServicio.cuidadores,
+                  }),
+                  celdas: t('zonas.celdas', { count: sinServicio.celdas }),
+                })}
               </Text>
             </Card>
           )}
 
           {porCiudad.length === 0 ? (
-            <Text style={styles.vacio}>
-              Todavía no hay zonas. Crea la primera pintando los barrios que
-              quieres atender.
-            </Text>
+            <Text style={styles.vacio}>{t('zonas.vacio')}</Text>
           ) : (
             porCiudad.map(({ ciudad, zonas }) => (
               <View key={ciudad}>
@@ -129,26 +131,29 @@ const AdminZonas: React.FC = () => {
                           { color: COLOR_ESTADO[r.zona.estado] },
                         ]}
                       >
-                        {r.zona.estado}
+                        {t(`zonas.estados.${r.zona.estado}`)}
                       </Text>
                     </View>
                     <Text style={styles.detalle}>
-                      {r.zona.celdas.length}{' '}
-                      {r.zona.celdas.length === 1 ? 'celda' : 'celdas'}
+                      {t('zonas.celdas', { count: r.zona.celdas.length })}
                       {r.zona.excluidas.length > 0
-                        ? ` · ${r.zona.excluidas.length} excluidas`
+                        ? t('zonas.excluidas', {
+                            count: r.zona.excluidas.length,
+                          })
                         : ''}
                     </Text>
                     <Text style={styles.detalle}>
-                      {r.demanda} pedidos pendientes · {r.paseosActivos} paseos en
-                      curso · cobertura media {r.coberturaMedia.toFixed(1)}
+                      {t('zonas.resumen', {
+                        demanda: r.demanda,
+                        paseos: r.paseosActivos,
+                        cobertura: r.coberturaMedia.toFixed(1),
+                      })}
                     </Text>
                     {r.celdasSinCobertura > 0 && (
                       <Text style={styles.alerta}>
-                        {r.celdasSinCobertura}{' '}
-                        {r.celdasSinCobertura === 1
-                          ? 'celda con pedidos y sin cuidadores'
-                          : 'celdas con pedidos y sin cuidadores'}
+                        {t('zonas.sin_cobertura', {
+                          count: r.celdasSinCobertura,
+                        })}
                       </Text>
                     )}
                   </Card>
@@ -165,7 +170,12 @@ const AdminZonas: React.FC = () => {
 const styles = StyleSheet.create({
   contenedor: { flex: 1, backgroundColor: COLOR.BASE },
   contenido: { padding: 20, gap: 8 },
-  centrado: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 },
+  centrado: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 24,
+  },
   error: { color: COLOR.ERROR, textAlign: 'center' },
   vacio: {
     color: COLOR.SUBTEXTO,

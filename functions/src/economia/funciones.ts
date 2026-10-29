@@ -43,6 +43,7 @@ import {
   type PoliticaCobro,
   type PoliticaLiquidacion,
 } from './tipos';
+import {esPaseo} from '../compartido/servicios';
 
 if (!admin.apps || admin.apps.length === 0) admin.initializeApp();
 const db = admin.firestore();
@@ -132,7 +133,7 @@ export const alCrearPaseoEconomia = onDocumentCreated(
   'operaciones/{operacionId}',
   async (event) => {
     const paseo = event.data?.data();
-    if (!paseo || paseo.tipo !== 'paseo') return;
+    if (!paseo || !esPaseo(paseo)) return;
     const version = await fijarPoliticaDePaseo(db, event.params.operacionId, paseo);
     console.log(`[economia] Paseo ${event.params.operacionId}: política v${version}`);
   }
@@ -164,7 +165,7 @@ export const alValidarEntregaEconomia = onDocumentUpdated(
   async (event) => {
     const antes = event.data?.before.data();
     const despues = event.data?.after.data();
-    if (!despues || despues.tipo !== 'paseo') return;
+    if (!despues || !esPaseo(despues)) return;
     const validaron = tutoresQueValidaronEntrega(antes, despues);
     if (validaron.length === 0) return;
 

@@ -1,6 +1,7 @@
 import {onDocumentUpdated} from 'firebase-functions/v2/firestore';
 import admin from '../comun/firebaseAdminCompat';
 import {Timestamp} from 'firebase-admin/firestore';
+import {esPaseo} from '../compartido/servicios';
 
 if (!admin.apps || admin.apps.length === 0) {
   admin.initializeApp();
@@ -15,8 +16,8 @@ export const onPaseoConfirmado = onDocumentUpdated(
   'operaciones/{operacionId}',
   async (event) => {
     const afterData = event.data?.after.data() as Record<string, unknown>;
-    // Solo procesar si es tipo='paseo'
-    if (afterData?.tipo !== 'paseo') {
+    // Solo procesar paseos
+    if (!esPaseo(afterData)) {
       return;
     }
     const operacionId = event.params.operacionId;

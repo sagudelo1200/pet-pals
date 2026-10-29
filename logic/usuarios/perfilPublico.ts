@@ -4,6 +4,7 @@ import { PerfilPublico } from '@/models/PerfilPublico'
 import { CrudResult } from '@/services/firebase/comun'
 import { ERR } from '@/constants'
 import { ofreceServicio } from '@/functions/src/compartido/habilitacion'
+import { TIPO_PASEO } from '@/functions/src/compartido/servicios'
 
 /**
  * Gestor de Perfiles Públicos (Cuidadores).
@@ -25,7 +26,7 @@ export class GestorPerfilPublico {
         {
           campo: 'servicios_habilitados',
           op: 'array-contains',
-          valor: 'paseo',
+          valor: TIPO_PASEO,
         },
       ],
       undefined,
@@ -35,7 +36,7 @@ export class GestorPerfilPublico {
     return {
       success: true,
       data: res.data
-        .filter(p => ofreceServicio(p, 'paseo', ahoraMs))
+        .filter(p => ofreceServicio(p, TIPO_PASEO, ahoraMs))
         .sort((a, b) => (b.rating_promedio ?? 0) - (a.rating_promedio ?? 0)),
     }
   }

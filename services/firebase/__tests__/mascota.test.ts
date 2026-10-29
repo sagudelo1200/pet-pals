@@ -69,15 +69,6 @@ describe('ServicioMascota - unitario', () => {
     expect(res).toEqual(out)
   })
 
-  // obtenerPorUsuario usa multi-query (creado_por + ids_tutores) para MULTI-TUTOR
-  test('obtenerPorUsuario soporta multi-tutor', async () => {
-    const ures = { success: true, data: [{ id: 'm1', nombre: 'Fido' }] }
-    ServicioCrudBase.buscar.mockResolvedValue(ures)
-    // Nota: La nueva implementación usa getDocs + query de Firebase directamente
-    // Este test verificaría el contrato; la implementación real usa multi-query
-    expect(typeof ServicioMascota.obtenerPorUsuario).toBe('function')
-  })
-
   // actualizar delega a ServicioCrudBase.actualizar
   test('actualizar delega a ServicioCrudBase.actualizar', async () => {
     const updated = {

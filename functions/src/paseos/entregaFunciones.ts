@@ -37,6 +37,7 @@ import {
   marcarParaRevision,
   programarSeguimientoEntrega,
 } from './entrega';
+import {esPaseo} from '../compartido/servicios';
 
 if (!admin.apps || admin.apps.length === 0) admin.initializeApp();
 const db = admin.firestore();
@@ -93,7 +94,7 @@ export const alFinalizarPaseoEntrega = onDocumentUpdated(
   async (event) => {
     const antes = event.data?.before.data();
     const despues = event.data?.after.data();
-    if (!despues || despues.tipo !== 'paseo') return;
+    if (!despues || !esPaseo(despues)) return;
     if (despues.estado !== 'FINALIZADO' || antes?.estado === 'FINALIZADO') return;
 
     const paseoId = event.params.operacionId;

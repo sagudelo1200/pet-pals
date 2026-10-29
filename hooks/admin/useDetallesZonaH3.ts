@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { db } from '@/firebase.config'
+import { i18n } from '@/services/i18n'
 import {
   collection,
   query,
@@ -11,6 +12,7 @@ import {
 import type { PerfilPublico } from '@/models/PerfilPublico'
 import { ofreceServicio } from '@/functions/src/compartido/habilitacion'
 import { ESTADOS_PASEO, type Paseo } from '@/models/Paseo'
+import { TIPO_PASEO } from '@/functions/src/compartido/servicios'
 
 export interface CuidadorEnZona {
   uid: string
@@ -81,7 +83,7 @@ export function useDetallesZonaH3(h3_r8: string | null): DetallesZonaH3 {
               rating_promedio: perfil.rating_promedio,
               cantidad_paseos: perfil.cantidad_paseos_realizados,
               horario_hoy: perfil.horario_semanal?.[hoy],
-              habilitado: ofreceServicio(perfil, 'paseo', Date.now()),
+              habilitado: ofreceServicio(perfil, TIPO_PASEO, Date.now()),
             },
           ]
         })
@@ -91,7 +93,7 @@ export function useDetallesZonaH3(h3_r8: string | null): DetallesZonaH3 {
         const paseosSnap = await getDocs(
           query(
             collection(db, 'operaciones'),
-            where('tipo', '==', 'paseo'),
+            where('tipo', '==', TIPO_PASEO),
             where('estado', '==', ESTADOS_PASEO.PENDIENTE),
             where('h3_r8', '==', h3_r8)
           )
@@ -142,7 +144,7 @@ export function useDetallesZonaH3(h3_r8: string | null): DetallesZonaH3 {
         setSolicitudes(solicitudesCargadas)
       } catch (err: any) {
         console.error('[useDetallesZonaH3] Error:', err)
-        setError(err?.message || 'Error cargando detalles')
+        setError(err?.message || i18n.t('admin:territorio.detalle.error_cargar'))
       } finally {
         setCargando(false)
       }

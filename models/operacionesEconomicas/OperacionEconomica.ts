@@ -8,6 +8,7 @@
  */
 
 import type { Timestamp } from 'firebase/firestore'
+import type { TipoServicio } from '@/functions/src/compartido/servicios'
 
 /**
  * Estados posibles. No hay orden obligatorio entre RECAUDADA y EJECUTADA.
@@ -40,8 +41,8 @@ export interface OperacionEconomica {
   tutor_id: string
   cuidador_id?: string
 
-  // Servicio que originó la operación (el paseo es un tipo de servicio)
-  tipo_servicio: 'paseo'
+  // Servicio que originó la operación (una clave del catálogo de servicios)
+  tipo_servicio: TipoServicio
   operacion_servicio_id: string
 
   // Composición económica (INVARIANTE I1)

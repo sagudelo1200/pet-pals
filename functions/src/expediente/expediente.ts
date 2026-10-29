@@ -33,6 +33,7 @@ import {
   type OpcionesResumen,
   type ResumenDeMascota,
 } from '../compartido/expediente';
+import {esPaseo} from '../compartido/servicios';
 
 export const COLECCION_EXPEDIENTES = 'expedientes';
 const MAX_ALERTAS = 20;
@@ -288,7 +289,7 @@ export async function procesarMomentoDeEvento(
   const e = evento.data();
   const p = paseo.data();
   const payload = (e?.payload ?? {}) as Dato;
-  if (!e || !p || p.tipo !== 'paseo') return [];
+  if (!e || !p || !esPaseo(p)) return [];
   if (e.evento !== 'bitacora' && e.evento !== 'incidente') return [];
   if (e.expediente_procesado_en) return [];
   if (typeof payload.clave !== 'string' || !momentoPorClave(payload.clave)) return [];
@@ -355,7 +356,7 @@ export async function actualizarPorEstadoDePaseo(
   ahora: Timestamp
 ): Promise<string[]> {
   const paseo = (await db.collection('operaciones').doc(paseoId).get()).data();
-  if (!paseo || paseo.tipo !== 'paseo') return [];
+  if (!paseo || !esPaseo(paseo)) return [];
   const cuidador = paseo.id_cuidador;
   if (typeof cuidador !== 'string' || cuidador === '') return [];
   const mascotas = textos(paseo.mascota_ids);
@@ -414,7 +415,7 @@ export async function registrarLlegada(
   }
   const paseoRef = db.collection('operaciones').doc(datos.paseoId);
   const paseo = (await paseoRef.get()).data();
-  if (!paseo || paseo.tipo !== 'paseo' || paseo.creado_por !== uid) {
+  if (!paseo || !esPaseo(paseo) || paseo.creado_por !== uid) {
     throw new ErrorNegocio('not-found', 'No encontramos ese paseo');
   }
   if (paseo.estado !== 'FINALIZADO' && paseo.estado !== 'COMPLETADO') {

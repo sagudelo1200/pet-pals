@@ -3,7 +3,6 @@ import { obtenerExperienciaPaseo } from '@/logic/paseos/routerPaseos'
 import {
   generarCodigoRecogida,
   generarCodigosRecogidaPorTutor,
-  normalizarCodigo,
   validarFormatoCodigo,
 } from '@/logic/paseos/generador'
 import { ESTADOS_PASEO, type Paseo } from '@/models/Paseo'
@@ -80,9 +79,5 @@ describe('generador de códigos (recogida y entrega)', () => {
     ['', false],
   ])('validarFormatoCodigo(%p) → %s', (codigo, esperado) => {
     expect(validarFormatoCodigo(codigo)).toBe(esperado)
-  })
-
-  it('normalizarCodigo elimina espacios internos y externos', () => {
-    expect(normalizarCodigo(' 12 34 56 ')).toBe('123456')
   })
 })

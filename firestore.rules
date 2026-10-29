@@ -166,8 +166,15 @@ service cloud.firestore {
       return p != null && (!('id_cuidador' in p.data) || p.data.id_cuidador == null || p.data.id_cuidador == '');
     }
 
+    // El documento de `operaciones` es un paseo. Toda regla que es DE paseo
+    // pregunta aquí (con get, así un documento sin tipo simplemente no lo es):
+    // un servicio nuevo tendrá su propia función y se agrega en un solo lugar
+    function es_paseo(datos) {
+      return datos.get('tipo', '') == 'paseo';
+    }
+
     function es_actor_paseo_doc(p) {
-      return autenticado() && p != null && p.data.tipo == 'paseo' && (
+      return autenticado() && p != null && es_paseo(p.data) && (
       p.data.creado_por == request.auth.uid ||
       p.data.id_cuidador == request.auth.uid ||
       es_admin()
@@ -176,7 +183,7 @@ service cloud.firestore {
 
     function puede_unirse_a_paseo_doc(p) {
       // Solo paseos con modalidad 'compartido' permiten que OTROS tutores se unan
-      return p != null && p.data.tipo == 'paseo' && p.data.modalidad == 'compartido' && estado_permite_unirse(p.data.estado);
+      return p != null && es_paseo(p.data) && p.data.modalidad == 'compartido' && estado_permite_unirse(p.data.estado);
     }
 
     // Mascota creada en el mismo batch que su paseo: el paseo nace ahora, lo
@@ -184,7 +191,7 @@ service cloud.firestore {
     function mascota_de_paseo_nuevo(operacionId, mascotaId) {
       let paseoRuta = /databases/$(database)/documents/operaciones/$(operacionId);
       return !exists(paseoRuta) && existsAfter(paseoRuta) &&
-      getAfter(paseoRuta).data.tipo == 'paseo' &&
+      es_paseo(getAfter(paseoRuta).data) &&
       getAfter(paseoRuta).data.creado_por == request.auth.uid &&
       request.resource.data.id_usuario == request.auth.uid &&
       request.resource.data.id_mascota == mascotaId &&
@@ -432,8 +439,8 @@ service cloud.firestore {
       allow get: if autenticado() && (
       resource == null || 
       resource.data.creado_por == request.auth.uid ||
-      (resource.data.tipo == 'paseo' && resource.data.id_cuidador == request.auth.uid) ||
-      (resource.data.tipo == 'paseo' && resource.data.estado == 'PENDIENTE' && sin_cuidador_asignado(resource))
+      (es_paseo(resource.data) && resource.data.id_cuidador == request.auth.uid) ||
+      (es_paseo(resource.data) && resource.data.estado == 'PENDIENTE' && sin_cuidador_asignado(resource))
       );
 
       // MULTI-TUTOR: Permitir queries para detectar solapamiento de mascotas
@@ -450,12 +457,13 @@ service cloud.firestore {
       allow create: if puede_crear_valido()
         && (!('id_cuidador' in request.resource.data) || 
       request.resource.data.id_cuidador != request.auth.uid)
-        // Un paseo nace con la política de precios vigente que vio el tutor
-        // y dentro del máximo de mascotas configurado
-        && (request.resource.data.get('tipo', '') != 'paseo' || (
-          request.resource.data.get('politica_version', null) ==
-            version_vigente('politica_comercial') &&
-          mascotas_dentro_del_limite(request.resource.data)))
+        // Desde la app solo se crean paseos (otro tipo, o ninguno, no pasa por
+        // aquí: lo crea el servidor). Un paseo nace con la política de precios
+        // vigente que vio el tutor y dentro del máximo de mascotas configurado
+        && es_paseo(request.resource.data)
+        && request.resource.data.get('politica_version', null) ==
+          version_vigente('politica_comercial')
+        && mascotas_dentro_del_limite(request.resource.data)
         && !request.resource.data.keys().hasAny(campos_entrega_del_servidor())
         && !request.resource.data.keys().hasAny(campos_de_zona_del_servidor())
         && sin_bloqueo_financiero();
@@ -475,7 +483,7 @@ service cloud.firestore {
 
       // Caso 2: El Cuidador asignado actualiza estado (con validación de transición) - solo para tipo='paseo'
       (
-      resource.data.tipo == 'paseo' &&
+      es_paseo(resource.data) &&
       resource.data.id_cuidador == request.auth.uid &&
       request.resource.data.id_cuidador == request.auth.uid &&
       (

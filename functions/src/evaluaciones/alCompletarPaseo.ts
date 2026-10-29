@@ -1,6 +1,7 @@
 import {onDocumentUpdated} from 'firebase-functions/v2/firestore';
 import admin from '../comun/firebaseAdminCompat';
 import {Timestamp} from 'firebase-admin/firestore';
+import {TIPO_PASEO, esPaseo} from '../compartido/servicios';
 
 if (!admin.apps || admin.apps.length === 0) {
   admin.initializeApp();
@@ -44,8 +45,8 @@ export const alCompletarPaseo = onDocumentUpdated(
 
     if (!despues) return;
 
-    // Solo procesar si es tipo='paseo'
-    if (despues.tipo !== 'paseo') return;
+    // Solo procesar paseos
+    if (!esPaseo(despues)) return;
 
     const estadoAnterior = antes?.estado;
     const estadoNuevo = despues.estado;
@@ -62,7 +63,7 @@ export const alCompletarPaseo = onDocumentUpdated(
       // Contar paseos finalizados/completados del cuidador en operaciones tipo='paseo'
       const countSnap = await db
         .collection('operaciones')
-        .where('tipo', '==', 'paseo')
+        .where('tipo', '==', TIPO_PASEO)
         .where('id_cuidador', '==', cuidadorId)
         .where('estado', 'in', ESTADOS_FINALES)
         .count()

@@ -31,6 +31,7 @@ import {
   validarZona,
   type EntradaCeldaZona,
 } from '../compartido/zonas';
+import {esPaseo} from '../compartido/servicios';
 
 type Dato = Record<string, unknown>;
 
@@ -240,7 +241,7 @@ export async function asignarZonaAPaseo(
   paseoId: string,
   paseo: Dato | undefined
 ): Promise<string | null> {
-  if (!paseo || paseo.tipo !== 'paseo' || typeof paseo.zona_id === 'string') {
+  if (!paseo || !esPaseo(paseo) || typeof paseo.zona_id === 'string') {
     return null;
   }
   const c = (paseo.ubicacion_inicio as

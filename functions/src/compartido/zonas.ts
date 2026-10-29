@@ -14,7 +14,7 @@
  *   "Chicó" tiene el barrio R7 completo; "Chicó Norte" tiene dos R8 dentro de
  *   él. Un punto en esos R8 es de "Chicó Norte"; el resto del barrio, de "Chicó".
  *
- * SERVICIO: con `paseos.exigir_zona` activo, solo se atiende (se pueden pedir
+ * SERVICIO: con `zonas.exigir_zona` activo, solo se atiende (se pueden pedir
  * paseos) en zonas `activa` o `piloto`. Quien intenta pedir o ofrecer cobertura
  * fuera de servicio queda registrado como interesado: es la señal de dónde
  * abrir después.
@@ -226,7 +226,7 @@ export interface EstadoServicio {
  * (así no se bloquea a nadie mientras no haya zonas definidas); con él
  * encendido, solo en zonas activas o piloto.
  * @param {object | null} zona Zona de la celda (null si no está en ninguna).
- * @param {boolean} exigirZona Valor de `paseos.exigir_zona`.
+ * @param {boolean} exigirZona Valor de `zonas.exigir_zona`.
  * @return {EstadoServicio} Estado del servicio en esa celda.
  */
 export function estadoDeServicio(

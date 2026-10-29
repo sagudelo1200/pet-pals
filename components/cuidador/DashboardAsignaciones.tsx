@@ -29,6 +29,7 @@ import type { Paseo } from '@/models/Paseo'
 import { ServicioAuth } from '@/services/firebase'
 import { useTranslation } from 'react-i18next'
 import { localeActual } from '@/utils/locale'
+import { TIPO_PASEO } from '@/functions/src/compartido/servicios'
 
 interface DashboardAsignacionesCuidadorProps {
   onAceptarPaseo?: (_paseoId: string) => void
@@ -56,7 +57,7 @@ export const DashboardAsignaciones: React.FC<
     if (!cuidadorId) return null
     return query(
       collection(db, 'operaciones'),
-      where('tipo', '==', 'paseo'),
+      where('tipo', '==', TIPO_PASEO),
       where('id_cuidador', '==', cuidadorId)
     )
   }, [cuidadorId])

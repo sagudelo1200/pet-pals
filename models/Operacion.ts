@@ -1,26 +1,26 @@
 /**
  * MODELO OPERACIÓN - ABSTRACCIÓN GENÉRICA
  *
- * Operación representa cualquier servicio de cuidado animal:
- * - Paseo (tipo='paseo')
- * - Guardería (tipo='guarderia')
- * - Veterinaria (tipo='vet')
- * - Transporte (tipo='transporte')
+ * Operación representa cualquier servicio que se presta por la plataforma. Hoy
+ * existe el paseo (tipo='paseo'); un servicio nuevo se agrega al catálogo de
+ * servicios (functions/src/compartido/servicios.ts) y su `tipo` es su clave.
  *
  * La máquina de estados es unificada. Campos específicos van en datos_especificos.
  */
 
 import type { UbicacionSnapshot } from '@/models/Ubicacion'
+import type { TipoServicio } from '@/functions/src/compartido/servicios'
 import type { Timestamp } from 'firebase/firestore'
 
 /**
- * Tipo de operación: qué servicio se brinda
+ * Tipo de operación: qué servicio se brinda. Es exactamente un servicio del
+ * catálogo: no se define aparte para que las dos listas no se desalineen.
  */
-export type TipoOperacion = 'paseo' | 'guarderia' | 'vet' | 'transporte'
+export type TipoOperacion = TipoServicio
 
 /**
  * Estados operacionales unificados
- * Válidos para CUALQUIER tipo de operación (Paseo, Guardería, Vet, Transporte).
+ * Válidos para CUALQUIER tipo de operación.
  * Estados específicos de un tipo van en la extensión del modelo (ej: Paseo).
  */
 export const ESTADOS_OPERACION = {

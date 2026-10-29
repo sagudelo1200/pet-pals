@@ -1,4 +1,5 @@
 import { BaseModel } from './BaseModel'
+import type { TipoServicio } from '@/functions/src/compartido/servicios'
 
 /**
  * Tipos de evaluación soportados en Paw Path
@@ -13,20 +14,13 @@ export type TipoEvaluacion =
   | 'evaluacion_mascota'
   | 'evaluacion_sistema'
 
-/** Tipos que puede crear un usuario en MVP1 (evaluacion_sistema es reservada) */
-export const TIPOS_EVALUACION_USUARIO: TipoEvaluacion[] = [
-  'evaluacion_cuidador',
-  'evaluacion_tutor',
-  'evaluacion_mascota',
-]
-
 /**
  * Referencia genérica a entidad del dominio Paw Path
  * Usada para identificar actores, objetivos y contextos de evaluación
  */
 export interface ReferenciaSistema {
-  /** Tipo de entidad: usuario, mascota o paseo */
-  tipo: 'usuario' | 'mascota' | 'paseo'
+  /** Tipo de entidad: usuario, mascota o un servicio del catálogo (paseo...) */
+  tipo: 'usuario' | 'mascota' | TipoServicio
   /** Identificador único: UID para usuario/mascota, ID de documento para paseo */
   id: string
 }

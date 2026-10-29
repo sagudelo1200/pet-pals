@@ -10,6 +10,7 @@ import {
 import { db } from '@/firebase.config'
 import { ESTADOS_PASEO } from '@/models/Paseo'
 import { ServicioPaseo } from '@/services/firebase'
+import { TIPO_PASEO } from '@/functions/src/compartido/servicios'
 
 /**
  * Obtiene la query para los paseos de un tutor.
@@ -17,7 +18,7 @@ import { ServicioPaseo } from '@/services/firebase'
 export function obtenerQueryPaseosTutor(uid: string): Query {
   return query(
     collection(db, 'operaciones'),
-    where('tipo', '==', 'paseo'),
+    where('tipo', '==', TIPO_PASEO),
     where('creado_por', '==', uid),
     orderBy('fecha_hora_inicio', 'desc'),
     limit(30)
@@ -47,7 +48,7 @@ export function obtenerQuerySolicitudesDirigidas(uid: string): Query {
 export function obtenerQueryAgendaCuidador(uid: string): Query {
   return query(
     collection(db, 'operaciones'),
-    where('tipo', '==', 'paseo'),
+    where('tipo', '==', TIPO_PASEO),
     where('id_cuidador', '==', uid),
     where('estado', 'in', [
       ESTADOS_PASEO.CONFIRMADO,
@@ -65,7 +66,7 @@ export function obtenerQueryAgendaCuidador(uid: string): Query {
 export function obtenerQueryHistorialCuidador(uid: string): Query {
   return query(
     collection(db, 'operaciones'),
-    where('tipo', '==', 'paseo'),
+    where('tipo', '==', TIPO_PASEO),
     where('id_cuidador', '==', uid),
     where('estado', 'in', [
       ESTADOS_PASEO.COMPLETADO,
@@ -83,7 +84,7 @@ export function obtenerQueryHistorialCuidador(uid: string): Query {
 export function obtenerQueryMonitorPaseoGlobal(uid: string): Query {
   return query(
     collection(db, 'operaciones'),
-    where('tipo', '==', 'paseo'),
+    where('tipo', '==', TIPO_PASEO),
     where('creado_por', '==', uid),
     where('estado', 'in', [
       ESTADOS_PASEO.CONFIRMADO,

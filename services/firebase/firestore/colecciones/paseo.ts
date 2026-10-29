@@ -57,6 +57,7 @@ import {
   writeBatch,
 } from 'firebase/firestore'
 import { db } from '@/firebase.config'
+import { TIPO_PASEO, esPaseo } from '@/functions/src/compartido/servicios'
 
 const COLLECTION_NAME = 'operaciones'
 
@@ -105,7 +106,7 @@ export class ServicioPaseo {
   static getQuerySolicitudesEnZona(celdas: string[]): Query {
     return query(
       collection(db, COLLECTION_NAME),
-      where('tipo', '==', 'paseo'),
+      where('tipo', '==', TIPO_PASEO),
       where('estado', '==', ESTADOS_PASEO.PENDIENTE),
       where('h3_r8', 'in', celdas.slice(0, 30))
     )
@@ -115,7 +116,7 @@ export class ServicioPaseo {
   static getQuerySolicitudesDirigidas(uid: string): Query {
     return query(
       collection(db, COLLECTION_NAME),
-      where('tipo', '==', 'paseo'),
+      where('tipo', '==', TIPO_PASEO),
       where('estado', '==', ESTADOS_PASEO.PENDIENTE),
       where('id_cuidador', '==', uid)
     )
@@ -127,7 +128,7 @@ export class ServicioPaseo {
   static getQuerySolicitudesPendientes(): Query {
     return query(
       collection(db, COLLECTION_NAME),
-      where('tipo', '==', 'paseo'),
+      where('tipo', '==', TIPO_PASEO),
       where('estado', '==', ESTADOS_PASEO.PENDIENTE),
       orderBy('creado_en', 'desc')
     )
@@ -152,14 +153,14 @@ export class ServicioPaseo {
       const id = await ServicioOperacion.crear(
         {
           ...data,
-          tipo: 'paseo',
+          tipo: TIPO_PASEO,
         } as any,
         currentUser.uid
       )
 
       return {
         success: true,
-        data: { id, ...data, tipo: 'paseo' } as Paseo,
+        data: { id, ...data, tipo: TIPO_PASEO } as Paseo,
       }
     } catch (error) {
       return {
@@ -190,7 +191,7 @@ export class ServicioPaseo {
       const uid = currentUser.uid
 
       const { id, ref, datos } = ServicioOperacion.prepararCreacion(
-        { ...data, tipo: 'paseo' } as any,
+        { ...data, tipo: TIPO_PASEO } as any,
         uid
       )
       const mascotas = construirMascotas(id)
@@ -208,7 +209,7 @@ export class ServicioPaseo {
 
       return {
         success: true,
-        data: { id, ...data, tipo: 'paseo' } as Paseo,
+        data: { id, ...data, tipo: TIPO_PASEO } as Paseo,
       }
     } catch (error) {
       return { success: false, error: mapFirebaseError(error) }
@@ -227,7 +228,7 @@ export class ServicioPaseo {
         return { success: false, error: ERR.COMUN.DOCUMENTO_NO_ENCONTRADO }
       }
 
-      if (operacion.tipo !== 'paseo') {
+      if (!esPaseo(operacion)) {
         return { success: false, error: 'La operación no es un paseo' }
       }
 
@@ -282,7 +283,7 @@ export class ServicioPaseo {
   static async obtenerPorTutor(id_tutor: string): Promise<CrudResult<Paseo[]>> {
     try {
       const operaciones = await ServicioOperacion.obtenerPorTutor(id_tutor)
-      const paseos = operaciones.filter(op => op.tipo === 'paseo') as Paseo[]
+      const paseos = operaciones.filter(esPaseo) as Paseo[]
 
       return { success: true, data: paseos }
     } catch (error) {
@@ -302,7 +303,7 @@ export class ServicioPaseo {
     try {
       const operaciones =
         await ServicioOperacion.obtenerPorCuidador(id_cuidador)
-      const paseos = operaciones.filter(op => op.tipo === 'paseo') as Paseo[]
+      const paseos = operaciones.filter(esPaseo) as Paseo[]
 
       return { success: true, data: paseos }
     } catch (error) {
@@ -319,7 +320,7 @@ export class ServicioPaseo {
   static async obtenerPorEstado(estado: string): Promise<CrudResult<Paseo[]>> {
     try {
       const operaciones = await ServicioOperacion.obtenerPorEstado(estado)
-      const paseos = operaciones.filter(op => op.tipo === 'paseo') as Paseo[]
+      const paseos = operaciones.filter(esPaseo) as Paseo[]
 
       return { success: true, data: paseos }
     } catch (error) {
@@ -820,7 +821,7 @@ export class ServicioPaseo {
     try {
       let q = query(
         collection(db, COLLECTION_NAME),
-        where('tipo', '==', 'paseo')
+        where('tipo', '==', TIPO_PASEO)
       )
 
       for (const f of filtros) {

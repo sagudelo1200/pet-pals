@@ -1,5 +1,6 @@
 import {onCall, HttpsError} from 'firebase-functions/v2/https';
 import admin from '../comun/firebaseAdminCompat';
+import {TIPO_PASEO, esPaseo} from '../compartido/servicios';
 
 if (!admin.apps || admin.apps.length === 0) {
   admin.initializeApp();
@@ -190,11 +191,11 @@ export const crearEvaluacion = onCall(
     }
 
     const paseo = paseoSnap.data() as Record<string, unknown>;
-    // Validar que sea de tipo 'paseo'
-    if (paseo.tipo !== 'paseo') {
+    // Hoy solo se evalúan paseos (los participantes salen de campos de paseo)
+    if (!esPaseo(paseo)) {
       throw new HttpsError(
         'failed-precondition',
-        `Operación ${contextoId} no es de tipo 'paseo'`
+        `Operación ${contextoId} no es un paseo`
       );
     }
     const estado = paseo.estado;
@@ -301,7 +302,7 @@ export const crearEvaluacion = onCall(
           tipo: esEvaluacionHumana ? 'usuario' : 'mascota',
           id: objetivo,
         },
-        contexto: {tipo: 'paseo', id: contextoId},
+        contexto: {tipo: TIPO_PASEO, id: contextoId},
         datos,
         creado_por: actorId,
         actualizado_por: actorId,

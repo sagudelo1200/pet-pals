@@ -46,8 +46,21 @@ describe('GestorUsuarios.agregarRol', () => {
     expect(ServicioUsuario.actualizar).not.toHaveBeenCalled()
   })
 
-  it('admin no se combina con tutor', async () => {
+  it('un admin puede ser tutor: admin se suma al tutor', async () => {
+    const res = await GestorUsuarios.agregarRol('u1', 'admin')
+    expect(res.success).toBe(true)
+    expect(ServicioUsuario.actualizar).toHaveBeenCalledWith('u1', {
+      roles: ['tutor', 'admin'],
+    })
+  })
+
+  it('un admin no es cuidador: no se le suma admin a quien ya ofrece servicios', async () => {
+    mock(ServicioUsuario.obtenerPorId).mockResolvedValue({
+      success: true,
+      data: { id: 'u1', nombre: 'Ana', roles: ['cuidador'] },
+    })
     const res = await GestorUsuarios.agregarRol('u1', 'admin')
     expect(res).toEqual({ success: false, error: 'ADMIN_EXCLUSIVO' })
+    expect(ServicioUsuario.actualizar).not.toHaveBeenCalled()
   })
 })

@@ -3,6 +3,7 @@ import { query, where, onSnapshot, collection } from 'firebase/firestore'
 import { useAuth } from '@/context/AuthContext'
 import { ESTADOS_PASEO, type Paseo } from '@/models/Paseo'
 import { db } from '@/firebase.config'
+import { TIPO_PASEO } from '@/functions/src/compartido/servicios'
 
 /**
  * Hook que valida en realtime qué mascotas del usuario actual tienen
@@ -41,7 +42,7 @@ export const useMascotasConPaseoEnCurso = () => {
 
     const q = query(
       collection(db, 'operaciones'),
-      where('tipo', '==', 'paseo'),
+      where('tipo', '==', TIPO_PASEO),
       where('creado_por', '==', user.uid),
       where('estado', 'in', estadosActivos)
     )
