@@ -9,9 +9,9 @@ const destino = {
 
 describe('rutaDeDestino', () => {
   test('arma la ruta que protege storage.rules', () => {
-    expect(rutaDeDestino(destino)).toBe('solicitudes/u1/paseo/identidad/frente')
+    expect(rutaDeDestino(destino)).toBe('habilitaciones/u1/paseo/identidad/frente')
     expect(rutaDeDestino({ ...destino, requisito: 'antecedentes', archivo: 'certificado' }))
-      .toBe('solicitudes/u1/paseo/antecedentes/certificado')
+      .toBe('habilitaciones/u1/paseo/antecedentes/certificado')
   })
 
   test('nada se sube a ciegas: lo que el catálogo no pide no tiene ruta', () => {

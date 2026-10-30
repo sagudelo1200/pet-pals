@@ -60,7 +60,7 @@ describe('catálogo de servicios', () => {
 
   test('rutaEvidencia coincide con la ruta que protege storage.rules', () => {
     expect(rutaEvidencia('u1', 'paseo', 'identidad', 'frente'))
-      .toBe('solicitudes/u1/paseo/identidad/frente');
+      .toBe('habilitaciones/u1/paseo/identidad/frente');
   });
 });
 

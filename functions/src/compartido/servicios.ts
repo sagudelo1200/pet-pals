@@ -15,7 +15,7 @@
  * - con datos del perfil (`perfil`): se calcula, nadie lo revisa.
  *
  * Evidencia (fotos o PDF) en Firebase Storage:
- *   solicitudes/{uid}/{servicio}/{requisito}/{archivo}   (ver storage.rules)
+ *   habilitaciones/{uid}/{servicio}/{requisito}/{archivo}   (ver storage.rules)
  * Sus límites son el perfil `evidencia` de archivos.ts.
  */
 
@@ -229,7 +229,7 @@ export function rutaEvidencia(
   requisito: string,
   archivo: string
 ): string {
-  return `solicitudes/${uid}/${servicio}/${requisito}/${archivo}`;
+  return `habilitaciones/${uid}/${servicio}/${requisito}/${archivo}`;
 }
 
 /**

@@ -13,11 +13,11 @@ rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
 
-    // Perfil `evidencia`: DOCUMENTOS DE SOLICITUDES DE SERVICIO (identidad, ...)
-    //   solicitudes/{uid}/{servicio}/{requisito}/{archivo}
+    // Perfil `evidencia`: DOCUMENTOS DE LA HABILITACIÓN DEL CUIDADOR (identidad, ...)
+    //   habilitaciones/{uid}/{servicio}/{requisito}/{archivo}
     // El dueño sube, reemplaza, lee y borra lo suyo. Un nombre fijo por
     // archivo (frente, reverso...) hace que reemplazar no acumule copias.
-    match /solicitudes/{uid}/{servicio}/{requisito}/{archivo} {
+    match /habilitaciones/{uid}/{servicio}/{requisito}/{archivo} {
       allow read, delete: if request.auth != null && request.auth.uid == uid;
       allow create, update: if request.auth != null
         && request.auth.uid == uid

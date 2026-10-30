@@ -22,7 +22,7 @@ export interface PerfilArchivo {
 }
 
 export const PERFILES_ARCHIVO = {
-  /** Fotos de documentos de las solicitudes de servicio (identidad, ...). */
+  /** Fotos de documentos de la habilitación del cuidador (identidad, ...). */
   evidencia: {
     max_mb: 5,
     tipos: ['image/jpeg', 'image/png', 'image/webp', 'application/pdf'],

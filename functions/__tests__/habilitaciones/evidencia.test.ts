@@ -47,8 +47,8 @@ describe('evidenciaDeRequisito', () => {
       {archivo: 'reverso', existe: false},
     ]);
     expect(leidas).toEqual([
-      'solicitudes/ana/paseo/identidad/frente',
-      'solicitudes/ana/paseo/identidad/reverso',
+      'habilitaciones/ana/paseo/identidad/frente',
+      'habilitaciones/ana/paseo/identidad/reverso',
     ]);
   });
 
