@@ -3,26 +3,37 @@
  * dirigidas a él siempre), las suyas primero y luego las más cercanas.
  */
 import {
+  MAX_CELDAS_COBERTURA,
   celdasDeCoberturaDe,
   distanciaKmEntreCeldas,
+  esCeldaValida,
 } from '@/functions/src/compartido/geografia'
 
-/** Límite de valores de un filtro `in` en Firestore. */
-export const MAX_CELDAS_CONSULTA = 30
+/** Límite de valores de un filtro `in` en Firestore (= máximo de cobertura). */
+export const MAX_CELDAS_CONSULTA = MAX_CELDAS_COBERTURA
 
 /**
- * Celdas H3 donde el cuidador atiende, la de su casa primero y luego por
- * cercanía, recortadas al máximo que admite una consulta.
- * @param perfil Celda de origen y celdas de cobertura manuales (si las hay).
+ * Celdas H3 donde el cuidador atiende, ordenadas de la más cercana a su casa a
+ * la más lejana. Son exactamente las que cubre según el servidor
+ * (`celdasDeCoberturaDe`): si no la eligió, su casa tampoco está, y así no ve
+ * solicitudes que luego no podría aceptar.
+ * @param perfil Casa, radio y celdas de cobertura manuales (si las hay).
+ * @param manual Si el modo manual está permitido (config del admin).
  */
-export function celdasDeSolicitudes(perfil: {
-  h3_r8?: string
-  celdas_cobertura?: string[]
-}): string[] {
+export function celdasDeSolicitudes(
+  perfil: {
+    h3_r8?: string
+    radio_cobertura?: number
+    celdas_cobertura?: string[]
+  },
+  manual = false
+): string[] {
   const origen = perfil.h3_r8
-  const celdas = celdasDeCoberturaDe(perfil)
-  if (!origen) return celdas.slice(0, MAX_CELDAS_CONSULTA)
-  return [...new Set([origen, ...celdas])]
+  const celdas = celdasDeCoberturaDe(perfil, manual)
+  if (!origen || !esCeldaValida(origen)) {
+    return celdas.slice(0, MAX_CELDAS_CONSULTA)
+  }
+  return celdas
     .map(celda => ({ celda, km: distanciaKmEntreCeldas(celda, origen) }))
     .sort((a, b) => a.km - b.km)
     .slice(0, MAX_CELDAS_CONSULTA)

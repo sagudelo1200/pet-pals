@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { ServicioTerritorio } from '@/services/firebase/firestore/colecciones/territorio'
 import { combinarZonas } from '@/logic/territorio/zonas'
+import { useConfiguracion } from '@/hooks/configuracion/useConfiguracion'
 import type { CeldaTerritorial, ZonaH3 } from '@/models/ZonaH3'
 
 /**
@@ -11,6 +12,7 @@ export function useZonasH3() {
   const [celdas, setCeldas] = useState<CeldaTerritorial[]>([])
   const [cargando, setCargando] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const { min_datos_indices: minimo } = useConfiguracion('territorio')
 
   useEffect(() => {
     return ServicioTerritorio.suscribirATodas(
@@ -26,7 +28,10 @@ export function useZonasH3() {
     )
   }, [])
 
-  const zonas: ZonaH3[] = useMemo(() => combinarZonas(celdas), [celdas])
+  const zonas: ZonaH3[] = useMemo(
+    () => combinarZonas(celdas, minimo),
+    [celdas, minimo]
+  )
 
   return { zonas, celdas, cargando, error }
 }

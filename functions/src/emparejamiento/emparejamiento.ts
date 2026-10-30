@@ -188,7 +188,8 @@ async function armarCandidato(
   id: string,
   p: Pick<PeticionBusqueda, 'fecha' | 'celda'>,
   vinculos: Record<string, number>,
-  ahoraMs: number
+  ahoraMs: number,
+  manual: boolean
 ): Promise<Candidato | null> {
   const [perfilDoc, excepcionDoc, agendaSnap] = await Promise.all([
     db.doc(`perfiles_publicos/${id}`).get(),
@@ -203,7 +204,7 @@ async function armarCandidato(
   if (!perfilDoc.exists || !perfil) return null;
 
   const origen = esCeldaValida(perfil.h3_r8) ? perfil.h3_r8 : undefined;
-  const celdas = celdasDeCoberturaDe(perfil);
+  const celdas = celdasDeCoberturaDe(perfil, manual);
 
   const agenda = agendaSnap.docs.flatMap((doc) => {
     const inicioMs = aMs(doc.data().fecha_hora_inicio);
@@ -263,18 +264,21 @@ export async function buscarCuidadores(
     return {servicio, cuidadores: []};
   }
 
-  const [ajustes, expediente, paseos, indice] = await Promise.all([
-    leerConfiguracion(db, 'emparejamiento'),
-    leerConfiguracion(db, 'expediente'),
-    leerConfiguracion(db, 'paseos'),
-    db.collection(`indice_cobertura/${p.celda}/cuidadores`).get(),
-  ]);
+  const [ajustes, expediente, paseos, funcionalidades, indice] =
+    await Promise.all([
+      leerConfiguracion(db, 'emparejamiento'),
+      leerConfiguracion(db, 'expediente'),
+      leerConfiguracion(db, 'paseos'),
+      leerConfiguracion(db, 'funcionalidades'),
+      db.collection(`indice_cobertura/${p.celda}/cuidadores`).get(),
+    ]);
 
   const ids = indice.docs.map((d) => d.id)
     .filter((id) => id !== uid).slice(0, MAX_CANDIDATOS);
   const vinculos = await leerVinculos(db, p.mascotaIds);
   const candidatos = (await Promise.all(
-    ids.map((id) => armarCandidato(db, id, p, vinculos.get(id) ?? {}, ahoraMs))
+    ids.map((id) => armarCandidato(db, id, p, vinculos.get(id) ?? {}, ahoraMs,
+      funcionalidades.cobertura_manual))
   )).filter((c): c is Candidato => c !== null);
 
   const evaluados = emparejar(candidatos, {
@@ -368,15 +372,17 @@ export async function evaluarCuidadorParaPaseo(
   ahoraMs: number
 ): Promise<Resultado> {
   const solicitud = await solicitudDePaseo(db, paseo, ahoraMs);
-  const [ajustes, expediente, paseos, vinculos] = await Promise.all([
-    leerConfiguracion(db, 'emparejamiento'),
-    leerConfiguracion(db, 'expediente'),
-    leerConfiguracion(db, 'paseos'),
-    leerVinculos(db, solicitud.mascotas.map((m) => m.id)),
-  ]);
+  const [ajustes, expediente, paseos, funcionalidades, vinculos] =
+    await Promise.all([
+      leerConfiguracion(db, 'emparejamiento'),
+      leerConfiguracion(db, 'expediente'),
+      leerConfiguracion(db, 'paseos'),
+      leerConfiguracion(db, 'funcionalidades'),
+      leerVinculos(db, solicitud.mascotas.map((m) => m.id)),
+    ]);
   const candidato = await armarCandidato(db, cuidadorId,
     {fecha: solicitud.fecha, celda: solicitud.celdaTutor},
-    vinculos.get(cuidadorId) ?? {}, ahoraMs);
+    vinculos.get(cuidadorId) ?? {}, ahoraMs, funcionalidades.cobertura_manual);
   // Sin perfil público no es un cuidador: nunca puede tomar un paseo
   if (!candidato) return {estado: 'excluido', motivo: 'no_habilitado'};
   const reglas: AjustesEmparejamiento = {

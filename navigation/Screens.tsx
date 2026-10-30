@@ -20,6 +20,7 @@ import PerfilCuidador from '@/screens/cuidador/PerfilCuidador'
 import MiHabilitacion from '@/screens/comun/MiHabilitacion'
 import ExcepcionSemanal from '@/screens/cuidador/ExcepcionSemanal'
 import CoberturaCuidador from '@/screens/cuidador/CoberturaCuidador'
+import CoberturaManualCuidador from '@/screens/cuidador/CoberturaManualCuidador'
 import { ChatScreen } from '@/screens/paseos/ChatScreen'
 import CierrePaseo from '@/screens/cuidador/CierrePaseo'
 import Notificaciones from '@/screens/comun/Notificaciones'
@@ -85,6 +86,11 @@ export default function RootNavigator(): React.ReactElement {
       <Stack.Screen
         name="CoberturaCuidador"
         component={CoberturaCuidador}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="CoberturaManualCuidador"
+        component={CoberturaManualCuidador}
         options={{ headerShown: false }}
       />
     </>

@@ -984,7 +984,7 @@ service cloud.firestore {
     // Se escribe con el callable actualizarConfiguracion (deja historial).
     match /configuracion/{area} {
       allow read: if es_admin() || (autenticado() &&
-      area in ['paseos', 'auth', 'funcionalidades', 'expediente']);
+      area in ['paseos', 'auth', 'funcionalidades', 'expediente', 'territorio']);
       allow write: if false;
 
       match /historial/{cambio} {

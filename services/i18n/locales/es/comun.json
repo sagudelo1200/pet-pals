@@ -201,8 +201,10 @@
   },
   "territorial": {
     "cargando": "Conociendo este lugar...",
+    "pocos_datos": "Aún hay pocos datos para decir cómo es este lugar.",
     "confianza": "Confianza de la comunidad",
-    "paseos_meses": "{{paseos}} paseos • {{meses}}m",
+    "momentos_registrados_one": "{{count}} momento registrado",
+    "momentos_registrados_other": "{{count}} momentos registrados",
     "observa": "Lo que la comunidad observa",
     "ideal_para": "Ideal para",
     "mejor_horario": "Mejor horario",

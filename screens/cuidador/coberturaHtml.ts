@@ -4,6 +4,7 @@ import {
   CSS_ATRIBUCION,
   JS_ATRIBUCION,
 } from '@/services/maps/carto'
+import { MAX_CELDAS_COBERTURA } from '@/functions/src/compartido/geografia'
 
 /**
  * Genera el HTML completo para el mapa interactivo de cobertura del cuidador.
@@ -22,6 +23,10 @@ export interface TextosCobertura {
   zonasSeleccionadas: string
   miUbicacion: string
   cambiarTema: string
+  /** Aviso al intentar pasar del máximo de zonas */
+  maximoZonas: string
+  /** Aviso al intentar guardar sin ninguna zona */
+  minimoZonas: string
 }
 
 const TEXTOS_COBERTURA_ES: TextosCobertura = {
@@ -33,6 +38,8 @@ const TEXTOS_COBERTURA_ES: TextosCobertura = {
   zonasSeleccionadas: 'zonas seleccionadas',
   miUbicacion: 'Mi ubicación',
   cambiarTema: 'Cambiar tema',
+  maximoZonas: `Puedes elegir hasta ${MAX_CELDAS_COBERTURA} zonas`,
+  minimoZonas: 'Elige al menos una zona',
 }
 
 export function construirHTMLCobertura(
@@ -129,6 +136,7 @@ export function construirHTMLCobertura(
     var H3_R8      = ${h3HomeJSON};
     var INIT_CELLS = ${selectedJSON};
     var T = ${textosJSON};
+    var MAX_CELDAS = ${MAX_CELDAS_COBERTURA};
     var RADIO_MAPA = 3;   // gridDisk k=3 → 37 celdas visibles alrededor del centro
 
     var SEL_FILL    = '#1D8F73';
@@ -257,6 +265,9 @@ ${JS_ATRIBUCION}
           poly.on('click', function () {
             if (selectedCells.has(cellId)) {
               selectedCells.delete(cellId);
+            } else if (selectedCells.size >= MAX_CELDAS) {
+              avisar(T.maximoZonas);
+              return;
             } else {
               selectedCells.add(cellId);
             }
@@ -281,6 +292,14 @@ ${JS_ATRIBUCION}
       Object.keys(polyMap).forEach(function (id) {
         polyMap[id].setStyle(styleFor(id));
       });
+    }
+
+    // Aviso breve en el contador; a los 2 s vuelve a mostrar la cuenta
+    var avisoTimer = null;
+    function avisar(texto) {
+      document.getElementById('count-text').textContent = texto;
+      clearTimeout(avisoTimer);
+      avisoTimer = setTimeout(updateCount, 2000);
     }
 
     function updateCount() {
@@ -309,6 +328,8 @@ ${JS_ATRIBUCION}
 
     // ── Guardar ──────────────────────────────────────────────────────────────
     document.getElementById('save-btn').addEventListener('click', function () {
+      // Sin zonas el sistema asumiría las de alrededor de casa: que sea explícito
+      if (selectedCells.size === 0) { avisar(T.minimoZonas); return; }
       var btn = document.getElementById('save-btn');
       btn.disabled = true;
       btn.textContent = T.guardando;

@@ -27,6 +27,7 @@ export type AuthStackParamList = {
   PerfilCuidador: undefined
   ExcepcionSemanal: { isoSemana: string }
   CoberturaCuidador: undefined
+  CoberturaManualCuidador: undefined
   PaseoActivo: { paseoId: string }
   PaseoFinalizado: { paseoId: string }
   CierrePaseo: { paseoId: string; tiempo?: string; mascota?: string }

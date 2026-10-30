@@ -188,15 +188,28 @@ export const GestorUsuarios = {
         return { success: false, error: CODIGOS_ERROR_USUARIO.NO_ENCONTRADO }
 
       const usuario = userRes.data
+      const eraPrincipal = (usuario.ubicaciones || []).some(
+        u => u.ubicacion_id === ubicacionId && u.es_principal
+      )
       const { lista, idPrincipal } = eliminarUbicacionRef(
         usuario.ubicaciones || [],
         ubicacionId
       )
 
-      return ServicioUsuario.actualizar(userId, {
+      const resUsuario = await ServicioUsuario.actualizar(userId, {
         ubicaciones: lista,
         id_ubicacion_principal: idPrincipal ?? undefined,
       })
+      if (!resUsuario.success) return resUsuario
+
+      // Si se borró la principal y otra la reemplaza, el perfil público sigue a
+      // la nueva (si no, el cuidador seguiría cubriendo la zona de la borrada)
+      const nueva = lista.find(u => u.ubicacion_id === idPrincipal)
+      if (eraPrincipal && nueva?.h3_r8) {
+        await GestorPerfilPublico.actualizar(userId, { h3_r8: nueva.h3_r8 })
+      }
+
+      return resUsuario
     } catch (e: any) {
       return { success: false, error: String(e) }
     }

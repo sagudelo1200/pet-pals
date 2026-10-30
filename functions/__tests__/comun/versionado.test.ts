@@ -160,6 +160,11 @@ describe('configuración operativa', () => {
     expect(validarCambios('paseos', { max_mascotas: 0 })[0]).toMatch(/entre 1 y 10/)
     expect(validarCambios('evaluaciones', { dias_revelacion: [] })[0]).toMatch(/lista/)
     expect(validarCambios('funcionalidades', { paseo_compartido: 'si' })[0]).toMatch(/sí o no/)
+    expect(valoresPorDefecto('funcionalidades').cobertura_manual).toBe(false)
+    expect(valoresPorDefecto('territorio')).toEqual({ min_datos_indices: 5 })
+    expect(validarCambios('territorio', { min_datos_indices: 0 })[0]).toMatch(/entre 1 y 100/)
+    expect(validarCambios('territorio', { min_datos_indices: 8 })).toEqual([])
+    expect(validarCambios('funcionalidades', { cobertura_manual: true })).toEqual([])
   })
 
   test('sembrar crea lo que falta sin pisar lo existente', async () => {

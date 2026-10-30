@@ -38,8 +38,12 @@ export interface ConfiguracionAreas {
   evaluaciones: {
     dias_revelacion: number[]
   }
+  territorio: {
+    min_datos_indices: number
+  }
   funcionalidades: {
     paseo_compartido: boolean
+    cobertura_manual: boolean
   }
   expediente: {
     dias_vigencia_aprendizaje: number
@@ -205,6 +209,20 @@ export const CATALOGO_CONFIGURACION: {
       },
     },
   },
+  territorio: {
+    titulo: 'Inteligencia territorial',
+    lectura: 'publica',
+    valores: {
+      min_datos_indices: {
+        tipo: 'entero', titulo: 'Datos mínimos para mostrar los índices',
+        descripcion: 'Momentos e incidentes que debe tener una zona antes de ' +
+          'mostrar su bienestar, seguridad, actividad y socialización. Con ' +
+          'menos, se muestra "pocos datos": uno o dos registros no ' +
+          'representan al lugar',
+        porDefecto: 5, min: 1, max: 100, unidad: 'datos',
+      },
+    },
+  },
   funcionalidades: {
     titulo: 'Funcionalidades',
     lectura: 'publica',
@@ -212,6 +230,14 @@ export const CATALOGO_CONFIGURACION: {
       paseo_compartido: {
         tipo: 'booleano', titulo: 'Paseo compartido',
         descripcion: 'Permite elegir paseos compartidos al reservar',
+        porDefecto: false,
+      },
+      cobertura_manual: {
+        tipo: 'booleano', titulo: 'Cobertura manual por celdas',
+        descripcion: 'Permite al cuidador elegir a mano en el mapa las celdas ' +
+          'donde atiende, en vez de solo un radio alrededor de su casa. Al ' +
+          'apagarlo, todos vuelven a su radio (lo elegido a mano se conserva ' +
+          'y vuelve a valer si se enciende otra vez)',
         porDefecto: false,
       },
     },

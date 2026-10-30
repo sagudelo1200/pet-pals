@@ -9,6 +9,7 @@ import { GestorPerfilPublico } from '@/logic/usuarios/perfilPublico'
 import { Paseo } from '@/models/Paseo'
 import type { PerfilPublico } from '@/models/PerfilPublico'
 import { GestorAuth } from '@/logic/auth'
+import { useConfiguracion } from '@/hooks/configuracion/useConfiguracion'
 
 /**
  * Solicitudes que puede tomar el cuidador: las de su zona de cobertura (las
@@ -18,6 +19,7 @@ export function useSolicitudesCuidador() {
   const uid = GestorAuth.obtenerUsuarioActual()?.uid
   const [perfil, setPerfil] = useState<PerfilPublico | null>(null)
   const [cargandoPerfil, setCargandoPerfil] = useState(true)
+  const { cobertura_manual: manual } = useConfiguracion('funcionalidades')
 
   useEffect(() => {
     let vigente = true
@@ -36,8 +38,8 @@ export function useSolicitudesCuidador() {
   }, [uid])
 
   const celdas = useMemo(
-    () => (perfil ? celdasDeSolicitudes(perfil) : []),
-    [perfil]
+    () => (perfil ? celdasDeSolicitudes(perfil, manual) : []),
+    [perfil, manual]
   )
 
   // Memoizamos las queries para evitar recrearlas en cada render

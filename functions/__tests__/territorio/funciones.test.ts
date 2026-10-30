@@ -69,10 +69,23 @@ describe('alCambiarCoberturaTerritorio', () => {
     });
 
     expect(mockDb.__docs.get(`indice_cobertura/${R8}/cuidadores/c1`))
-      .toMatchObject({uid: 'c1', habilitado: true});
+      .toMatchObject({uid: 'c1'});
     expect(territorio(R8)!.operativa).toMatchObject({
       cuidadores_count: 1, estado: 'disponible',
     });
+  });
+
+  test('un tutor con dirección no entra al índice ni se anota como cuidador interesado', async () => {
+    mockDb.__seed('configuracion/zonas', {exigir_zona: true});
+    const tutor = {nombre: 'Santiago', h3_r8: R8};
+
+    await disparar(fn.alCambiarCoberturaTerritorio)({
+      params: {uid: 't1'},
+      data: {before: instantanea(undefined), after: instantanea(tutor)},
+    });
+
+    expect(mockDb.__docs.get(`indice_cobertura/${R8}/cuidadores/t1`)).toBeUndefined();
+    expect(mockDb.__docs.get(`interes_zona/t1_cuidador_${R8}`)).toBeUndefined();
   });
 
   test('un cuidador que vive donde no se atiende queda como interesado', async () => {
@@ -160,8 +173,23 @@ describe('alRegistrarEventoTerritorio', () => {
     expect(territorio(R9)!.narrativa.total_eventos).toBe(1);
   });
 
-  test('los demás eventos se ignoran', async () => {
+  test('un incidente baja la seguridad de su microzona', async () => {
+    mockDb.__seed('operaciones/p1/eventos/e1', {
+      evento: 'incidente',
+      payload: {tipo: 'lesion', severidad: 'media'},
+      hechoTerritorial: {h3_r8: R8, h3_r9: R9},
+    });
+
     await disparar(fn.alRegistrarEventoTerritorio)(evento('incidente'));
+
+    expect(territorio(R9)!.narrativa).toMatchObject({incidentes: {media: 1}});
+  });
+
+  test('los demás eventos se ignoran', async () => {
+    mockDb.__seed('operaciones/p1/eventos/e1', {
+      evento: 'INICIAR_PASEO', hechoTerritorial: {h3_r8: R8, h3_r9: R9},
+    });
+    await disparar(fn.alRegistrarEventoTerritorio)(evento('INICIAR_PASEO'));
     expect(territorio(R9)).toBeUndefined();
   });
 });
@@ -188,5 +216,41 @@ describe('reconstruirTerritorio', () => {
 
     expect(resultado).toEqual({perfiles: 1, celdas: 19});
     expect(territorio(R8)!.operativa.cuidadores_count).toBe(1);
+  });
+});
+
+describe('alCambiarCoberturaManual', () => {
+  const celdasManual = (extra: Record<string, unknown>) => ({...perfil, ...extra});
+  const cambiar = (antes: unknown, despues: unknown) =>
+    disparar(fn.alCambiarCoberturaManual)({
+      data: {
+        before: instantanea(antes as Record<string, unknown>),
+        after: instantanea(despues as Record<string, unknown>),
+      },
+    });
+
+  test('al encender el modo, quien eligió a mano pasa a cubrir solo esas', async () => {
+    mockDb.__seed('perfiles_publicos/c1', celdasManual({celdas_cobertura: [R8]}));
+    await disparar(fn.alCambiarCoberturaTerritorio)({
+      params: {uid: 'c1'},
+      data: {
+        before: instantanea(undefined),
+        after: instantanea(celdasManual({celdas_cobertura: [R8]})),
+      },
+    });
+    const entradas = () => [...mockDb.__docs.keys()]
+      .filter((k) => k.endsWith('/cuidadores/c1'));
+    expect(entradas()).toHaveLength(19);
+
+    await cambiar({cobertura_manual: false}, {cobertura_manual: true});
+    expect(entradas()).toEqual([`indice_cobertura/${R8}/cuidadores/c1`]);
+  });
+
+  test('si el modo no cambió, no toca nada', async () => {
+    mockDb.__seed('perfiles_publicos/c1', celdasManual({celdas_cobertura: [R8]}));
+    await cambiar({cobertura_manual: true, paseo_compartido: false},
+      {cobertura_manual: true, paseo_compartido: true});
+    expect([...mockDb.__docs.keys()].filter((k) => k.includes('indice_cobertura')))
+      .toHaveLength(0);
   });
 });

@@ -2,6 +2,8 @@
  * Geografía: roles de resolución y utilidades de celdas.
  */
 import {
+  MAX_CELDAS_COBERTURA,
+  RADIOS_COBERTURA,
   RADIO_COBERTURA,
   RESOLUCIONES,
   celdaDe,
@@ -9,8 +11,10 @@ import {
   celdasDeCoberturaDe,
   distanciaKmEntreCeldas,
   distanciaMetros,
+  errorDeCobertura,
   esCeldaValida,
   padreDe,
+  radioDeCobertura,
   resolucionDe,
 } from '../../src/compartido/geografia';
 
@@ -67,8 +71,67 @@ describe('cobertura de un cuidador', () => {
   });
 
   test('las celdas elegidas a mano reemplazan al vecindario', () => {
-    expect(celdasDeCoberturaDe({h3_r8: origen, celdas_cobertura: ['a', 'b']}))
-      .toEqual(['a', 'b']);
+    const [a, b] = celdasAlrededor(origen, 1).filter((c) => c !== origen);
+    expect(celdasDeCoberturaDe({h3_r8: origen, celdas_cobertura: [a, b]}, true))
+      .toEqual([a, b]);
+  });
+
+  test('con el modo manual apagado (por defecto) las celdas a mano no cuentan', () => {
+    const [a] = celdasAlrededor(origen, 1).filter((c) => c !== origen);
+    const perfil = {h3_r8: origen, celdas_cobertura: [a]};
+    expect(celdasDeCoberturaDe(perfil)).toHaveLength(19);
+    expect(celdasDeCoberturaDe(perfil, false)).toHaveLength(19);
+  });
+
+  test('el radio elegido define el vecindario: 1 → 7 celdas, 2 → 19', () => {
+    expect(celdasDeCoberturaDe({h3_r8: origen, radio_cobertura: 1})).toHaveLength(7);
+    expect(celdasDeCoberturaDe({h3_r8: origen, radio_cobertura: 2})).toHaveLength(19);
+    expect(new Set(celdasDeCoberturaDe({h3_r8: origen, radio_cobertura: 1})))
+      .toEqual(new Set(celdasAlrededor(origen, 1)));
+  });
+
+  test('un radio que no existe vale como el normal', () => {
+    for (const radio of [0, 3, 1.5, '2', null, undefined]) {
+      expect(celdasDeCoberturaDe({h3_r8: origen, radio_cobertura: radio}))
+        .toHaveLength(19);
+    }
+    expect(radioDeCobertura(1)).toBe(1);
+    expect(radioDeCobertura(7)).toBe(RADIO_COBERTURA);
+  });
+
+  test('ningún radio ofrecido pasa del máximo de una consulta', () => {
+    for (const r of RADIOS_COBERTURA) {
+      expect(celdasAlrededor(origen, r).length).toBeLessThanOrEqual(MAX_CELDAS_COBERTURA);
+    }
+  });
+
+  test('de las manuales solo sirven las válidas de escala cobertura, sin repetir', () => {
+    const vecina = celdasAlrededor(origen, 1).find((c) => c !== origen) as string;
+    const micro = celdaDe(LAT, LNG, 'micro');
+    expect(celdasDeCoberturaDe({
+      h3_r8: origen, celdas_cobertura: [vecina, vecina, 'a', micro, 7],
+    }, true)).toEqual([vecina]);
+    // si ninguna sirve, vuelve al vecindario
+    expect(celdasDeCoberturaDe({h3_r8: origen, celdas_cobertura: ['a', 'b']}, true))
+      .toHaveLength(19);
+  });
+
+  test('nunca pasa del máximo de celdas manuales', () => {
+    const muchas = celdasAlrededor(origen, 4);
+    expect(muchas.length).toBeGreaterThan(MAX_CELDAS_COBERTURA);
+    expect(celdasDeCoberturaDe({h3_r8: origen, celdas_cobertura: muchas}, true))
+      .toHaveLength(MAX_CELDAS_COBERTURA);
+  });
+
+  test('errorDeCobertura: vacía, demasiadas o inválida', () => {
+    const vecinas = celdasAlrededor(origen, 1);
+    expect(errorDeCobertura(vecinas)).toBeNull();
+    expect(errorDeCobertura([])).toBe('vacia');
+    expect(errorDeCobertura('x')).toBe('vacia');
+    expect(errorDeCobertura(celdasAlrededor(origen, 4))).toBe('demasiadas');
+    expect(errorDeCobertura([origen, 'a'])).toBe('invalida');
+    expect(errorDeCobertura([origen, origen])).toBe('invalida');
+    expect(errorDeCobertura([celdaDe(LAT, LNG, 'micro')])).toBe('invalida');
   });
 
   test('lista manual vacía o con basura: vuelve al vecindario', () => {

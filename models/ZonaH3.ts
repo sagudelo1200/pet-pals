@@ -11,6 +11,7 @@
  * logic/territorio/zonas.ts).
  */
 import type {
+  Indices,
   Narrativa,
   Operativa,
   ResumenInteres,
@@ -26,6 +27,16 @@ export type {
   ResumenInteres,
 } from '@/functions/src/compartido/territorio'
 
+/**
+ * Lo observado en una zona tal como lo ven las pantallas. Los índices faltan
+ * mientras la zona no tenga los datos mínimos que fija el admin
+ * (`territorio.min_datos_indices`): con uno o dos registros no representan al
+ * lugar.
+ */
+export type NarrativaVista = Omit<Narrativa, 'indices'> & {
+  indices?: Indices
+}
+
 export interface ZonaH3 {
   /** Id de la celda que representa esta vista. */
   id: string
@@ -36,7 +47,7 @@ export interface ZonaH3 {
   /** Microzona (solo en el nivel 9). */
   h3_r9?: string
   /** Lo observado en la celda (en el nivel 8, la suma de sus microzonas). */
-  narrativa?: Narrativa
+  narrativa?: NarrativaVista
   /** Oferta y demanda de la celda de cobertura. */
   operativa?: Operativa
   /** Quiénes piden o ofrecen servicio donde aún no se atiende (nivel 8). */

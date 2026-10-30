@@ -88,6 +88,7 @@ export {
 
 // Territorio (índice de cobertura, oferta y demanda, narrativa por celda)
 export {
+  alCambiarCoberturaManual,
   alCambiarCoberturaTerritorio,
   alCambiarPaseoTerritorio,
   alRegistrarEventoTerritorio,

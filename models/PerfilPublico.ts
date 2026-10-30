@@ -32,10 +32,14 @@ export interface PerfilPublico extends BaseModel {
   horario_semanal?: Record<string, FranjaHoraria>
 
   /**
-   * Celdas H3 de cobertura definidas manualmente por el cuidador (resolución 8).
-   * Si está presente, reemplaza el gridDisk(h3_r8, 2) automático en el índice.
+   * Celdas H3 de cobertura elegidas a mano (resolución 8). Solo valen si el
+   * admin tiene encendida `funcionalidades.cobertura_manual`; si no, atiende
+   * el radio alrededor de su casa.
    */
   celdas_cobertura?: string[]
+
+  /** Radio de atención alrededor de su casa, en anillos de celdas (1 o 2). */
+  radio_cobertura?: number
 
   /** Tipos de mascotas aceptadas */
   mascotas_aceptadas?: string[]

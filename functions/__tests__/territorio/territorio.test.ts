@@ -19,6 +19,7 @@ jest.mock('firebase-admin/firestore', () => ({
 
 import {
   actualizarPorPaseo,
+  aplicarCoberturaManual,
   celdaDePaseo,
   coberturaDe,
   recalcularOperativa,
@@ -62,25 +63,28 @@ beforeEach(() => {
 });
 
 describe('coberturaDe', () => {
-  test('celdas, origen y habilitación salen del perfil', () => {
+  test('celdas y origen salen del perfil', () => {
     const c = coberturaDe('c1', perfil(), AHORA_MS)!;
     expect(c.celdas).toHaveLength(19);
     expect(c.h3_origen).toBe(R8);
-    expect(c.habilitado).toBe(true);
   });
 
-  test('solo cuenta quien está habilitado para pasear, no quien tiene la insignia de identidad', () => {
+  test('solo atiende quien está habilitado para pasear, no quien tiene la insignia de identidad', () => {
     const sinHabilitar = perfil({servicios_habilitados: []});
     expect(sinHabilitar.insignias_verificacion).toContain('IDENTIDAD');
-    expect(coberturaDe('c1', sinHabilitar, AHORA_MS)!.habilitado).toBe(false);
-    expect(coberturaDe('c1', perfil({servicios_habilitados: undefined}), AHORA_MS)!.habilitado)
-      .toBe(false);
+    expect(coberturaDe('c1', sinHabilitar, AHORA_MS)).toBeNull();
+    expect(coberturaDe('c1', perfil({servicios_habilitados: undefined}), AHORA_MS)).toBeNull();
+  });
+
+  test('un tutor o un admin con dirección (sin servicio habilitado) no tiene cobertura', () => {
+    const tutor = {nombre: 'Santiago', h3_r8: R8};
+    expect(coberturaDe('t1', tutor, AHORA_MS)).toBeNull();
   });
 
   test('una habilitación vencida no cuenta', () => {
     const vence = perfil({servicios_vencen: {paseo: AHORA_MS}});
-    expect(coberturaDe('c1', vence, AHORA_MS - 1)!.habilitado).toBe(true);
-    expect(coberturaDe('c1', vence, AHORA_MS)!.habilitado).toBe(false);
+    expect(coberturaDe('c1', vence, AHORA_MS - 1)).not.toBeNull();
+    expect(coberturaDe('c1', vence, AHORA_MS)).toBeNull();
   });
 
   test('guarda hasta cuándo vale la habilitación (null si no vence)', () => {
@@ -98,9 +102,15 @@ describe('coberturaDe', () => {
   });
 
   test('con celdas manuales, el origen puede no ser una de ellas', () => {
-    const c = coberturaDe('c1', perfil({celdas_cobertura: [VECINA]}), AHORA_MS)!;
+    const c = coberturaDe('c1', perfil({celdas_cobertura: [VECINA]}), AHORA_MS, true)!;
     expect(c.celdas).toEqual([VECINA]);
     expect(c.h3_origen).toBe(R8);
+  });
+
+  test('con el modo manual apagado, las celdas a mano no cuentan: vale el radio', () => {
+    const c = coberturaDe(
+      'c1', perfil({celdas_cobertura: [VECINA], radio_cobertura: 1}), AHORA_MS)!;
+    expect(c.celdas).toHaveLength(7);
   });
 });
 
@@ -112,7 +122,7 @@ describe('sincronizarCobertura (índice)', () => {
     expect(afectadas).toHaveLength(19);
     expect(entradasDe('c1')).toHaveLength(19);
     expect(indice(R8, 'c1')).toEqual({
-      uid: 'c1', h3_origen: R8, habilitado: true, habilitado_hasta: null, actualizado_en: AHORA,
+      uid: 'c1', h3_origen: R8, habilitado_hasta: null, actualizado_en: AHORA,
     });
   });
 
@@ -139,7 +149,7 @@ describe('sincronizarCobertura (índice)', () => {
   test('al elegir celdas a mano, solo queda en esas', async () => {
     await sincronizarCobertura(mockDb, 'c1', undefined, perfil(), AHORA);
     await sincronizarCobertura(
-      mockDb, 'c1', perfil(), perfil({celdas_cobertura: [R8, VECINA]}), AHORA);
+      mockDb, 'c1', perfil(), perfil({celdas_cobertura: [R8, VECINA]}), AHORA, true);
 
     expect(entradasDe('c1').sort()).toEqual([
       `indice_cobertura/${R8}/cuidadores/c1`,
@@ -147,16 +157,64 @@ describe('sincronizarCobertura (índice)', () => {
     ].sort());
   });
 
-  test('una verificación nueva (o revocada) se refleja sin que el cuidador haga nada', async () => {
+  test('al cambiar el radio, el índice se ajusta', async () => {
+    await sincronizarCobertura(mockDb, 'c1', undefined, perfil(), AHORA);
+    await sincronizarCobertura(
+      mockDb, 'c1', perfil(), perfil({radio_cobertura: 1}), AHORA);
+    expect(entradasDe('c1')).toHaveLength(7);
+  });
+});
+
+describe('aplicarCoberturaManual (el admin enciende o apaga el modo)', () => {
+  const conManual = () => perfil({celdas_cobertura: [R8, VECINA]});
+
+  test('al encender, quien eligió a mano pasa a cubrir solo esas', async () => {
+    mockDb.__seed('perfiles_publicos/c1', conManual());
+    await reconstruirTerritorio(mockDb, AHORA, false);
+    expect(entradasDe('c1')).toHaveLength(19);
+
+    await aplicarCoberturaManual(mockDb, true, AHORA);
+    expect(entradasDe('c1')).toHaveLength(2);
+  });
+
+  test('al apagar, vuelve al radio y lo elegido a mano queda guardado', async () => {
+    mockDb.__seed('perfiles_publicos/c1', conManual());
+    await reconstruirTerritorio(mockDb, AHORA, true);
+    expect(entradasDe('c1')).toHaveLength(2);
+
+    await aplicarCoberturaManual(mockDb, false, AHORA);
+    expect(entradasDe('c1')).toHaveLength(19);
+    expect(mockDb.__docs.get('perfiles_publicos/c1').celdas_cobertura)
+      .toEqual([R8, VECINA]);
+  });
+
+  test('quien no eligió a mano no cambia', async () => {
+    mockDb.__seed('perfiles_publicos/c2', perfil());
+    await reconstruirTerritorio(mockDb, AHORA, false);
+    await expect(aplicarCoberturaManual(mockDb, true, AHORA)).resolves.toBe(0);
+    expect(entradasDe('c2')).toHaveLength(19);
+  });
+
+  test('al habilitarse entra al índice y al perder la habilitación sale, sin que haga nada', async () => {
     const sinHabilitar = perfil({servicios_habilitados: []});
     await sincronizarCobertura(mockDb, 'c1', undefined, sinHabilitar, AHORA);
-    expect(indice(R8, 'c1')!.habilitado).toBe(false);
+    expect(entradasDe('c1')).toHaveLength(0);
 
-    await sincronizarCobertura(mockDb, 'c1', sinHabilitar, perfil(), AHORA);
-    expect(indice(R8, 'c1')!.habilitado).toBe(true);
+    const afectadas = await sincronizarCobertura(
+      mockDb, 'c1', sinHabilitar, perfil(), AHORA);
+    expect(afectadas).toHaveLength(19);
+    expect(entradasDe('c1')).toHaveLength(19);
 
     await sincronizarCobertura(mockDb, 'c1', perfil(), sinHabilitar, AHORA);
-    expect(indice(R8, 'c1')!.habilitado).toBe(false);
+    expect(entradasDe('c1')).toHaveLength(0);
+  });
+
+  test('un tutor con dirección nunca llega al índice, aunque cambie su perfil', async () => {
+    const tutor = {nombre: 'Santiago', h3_r8: R8};
+    expect(await sincronizarCobertura(mockDb, 't1', undefined, tutor, AHORA)).toEqual([]);
+    expect(await sincronizarCobertura(
+      mockDb, 't1', tutor, {...tutor, h3_r8: celdaDe(4.70, -74.00)}, AHORA)).toEqual([]);
+    expect(entradasDe('t1')).toHaveLength(0);
   });
 
   test('renovar la habilitación (otro vencimiento) actualiza el índice; sin cambios no escribe', async () => {
@@ -189,30 +247,26 @@ describe('sincronizarCobertura (índice)', () => {
 });
 
 describe('recalcularOperativa (oferta y demanda)', () => {
-  const sembrarCuidadores = (verificados: number, sinHabilitar = 0) => {
-    for (let i = 0; i < verificados; i++) {
-      mockDb.__seed(`indice_cobertura/${R8}/cuidadores/v${i}`, {uid: `v${i}`, habilitado: true});
-    }
-    for (let i = 0; i < sinHabilitar; i++) {
-      mockDb.__seed(`indice_cobertura/${R8}/cuidadores/s${i}`, {uid: `s${i}`, habilitado: false});
+  const sembrarCuidadores = (habilitados: number) => {
+    for (let i = 0; i < habilitados; i++) {
+      mockDb.__seed(`indice_cobertura/${R8}/cuidadores/v${i}`, {uid: `v${i}`});
     }
   };
 
   test('la oferta no cuenta a quien ya tiene la habilitación vencida', async () => {
-    mockDb.__seed(`indice_cobertura/${R8}/cuidadores/vigente`, {uid: 'vigente', habilitado: true, habilitado_hasta: AHORA_MS + 1});
-    mockDb.__seed(`indice_cobertura/${R8}/cuidadores/sin_vencer`, {uid: 'sin_vencer', habilitado: true, habilitado_hasta: null});
-    mockDb.__seed(`indice_cobertura/${R8}/cuidadores/vencido`, {uid: 'vencido', habilitado: true, habilitado_hasta: AHORA_MS});
-    mockDb.__seed(`indice_cobertura/${R8}/cuidadores/sin_dato`, {uid: 'sin_dato', habilitado: true});
-    mockDb.__seed(`indice_cobertura/${R8}/cuidadores/no_habilitado`, {uid: 'no_habilitado', habilitado: false});
+    mockDb.__seed(`indice_cobertura/${R8}/cuidadores/vigente`, {uid: 'vigente', habilitado_hasta: AHORA_MS + 1});
+    mockDb.__seed(`indice_cobertura/${R8}/cuidadores/sin_vencer`, {uid: 'sin_vencer', habilitado_hasta: null});
+    mockDb.__seed(`indice_cobertura/${R8}/cuidadores/vencido`, {uid: 'vencido', habilitado_hasta: AHORA_MS});
+    mockDb.__seed(`indice_cobertura/${R8}/cuidadores/sin_dato`, {uid: 'sin_dato'});
 
     await recalcularOperativa(mockDb, R8, AHORA);
 
-    // vigente, sin_vencer y sin_dato (documento anterior al campo) cuentan
+    // vigente, sin_vencer y sin_dato cuentan; el vencido no
     expect(territorio(R8)!.operativa.cuidadores_count).toBe(3);
   });
 
   test('cuenta cuidadores habilitados, pedidos pendientes, paseos en curso y hechos', async () => {
-    sembrarCuidadores(3, 2);
+    sembrarCuidadores(3);
     mockDb.__seed('operaciones/p1', paseo({estado: 'PENDIENTE'}));
     mockDb.__seed('operaciones/p2', paseo({estado: 'PENDIENTE'}));
     mockDb.__seed('operaciones/p3', paseo({estado: 'EN_PROGRESO'}));
@@ -403,8 +457,8 @@ describe('sumarEventoATerritorio (narrativa)', () => {
     expect(territorio(R9)!.narrativa.eventos_por_tipo).toEqual({desconocido: 1});
   });
 
-  test('no cuenta incidentes, eventos sin ubicación ni celdas inválidas', async () => {
-    sembrarEvento({evento: 'incidente'}, 'a');
+  test('no cuenta otros eventos del paseo, eventos sin ubicación ni celdas inválidas', async () => {
+    sembrarEvento({evento: 'INICIAR_PASEO'}, 'a');
     sembrarEvento({hechoTerritorial: undefined}, 'b');
     sembrarEvento({hechoTerritorial: {h3_r9: 'basura'}}, 'c');
     sembrarEvento({hechoTerritorial: {h3_r9: R8}}, 'd'); // R8, no R9
@@ -431,10 +485,11 @@ describe('reconstruirTerritorio', () => {
 
     const resultado = await reconstruirTerritorio(mockDb, AHORA);
 
-    expect(resultado.perfiles).toBe(2);
+    // c2 no está habilitado y c3 no tiene ubicación: solo c1 queda en el índice
+    expect(resultado.perfiles).toBe(1);
     expect(resultado.celdas).toBe(19);
-    expect(indice(R8, 'c1')!.habilitado).toBe(true);
-    expect(indice(R8, 'c2')!.habilitado).toBe(false);
+    expect(indice(R8, 'c1')).toBeDefined();
+    expect(indice(R8, 'c2')).toBeUndefined();
     expect(territorio(R8)!.operativa).toMatchObject({
       cuidadores_count: 1, demanda_total: 1, estado: 'activa',
     });
@@ -452,5 +507,70 @@ describe('reconstruirTerritorio', () => {
     const primera = JSON.stringify(territorio(R8));
     await reconstruirTerritorio(mockDb, AHORA);
     expect(JSON.stringify(territorio(R8))).toBe(primera);
+  });
+});
+
+describe('sumarEventoATerritorio (incidentes y microzona del paseo)', () => {
+  const sembrar = (evento: Record<string, unknown>, id = 'e1') =>
+    mockDb.__seed(`operaciones/p1/eventos/${id}`, {
+      hechoTerritorial: {h3_r8: R8, h3_r9: R9}, ...evento,
+    });
+
+  test('un momento con las claves reales produce índices con sentido', async () => {
+    mockDb.__seed('operaciones/p1', paseo({estado: 'EN_PROGRESO'}));
+    sembrar({evento: 'bitacora', payload: {accion: 'como_esta.jugo'}});
+
+    await sumarEventoATerritorio(mockDb, 'p1', 'e1', AHORA);
+
+    expect(territorio(R9)!.narrativa.indices.bienestar).toBe(100);
+    expect(territorio(R9)!.narrativa.eventos_por_tipo).toEqual({'como_esta.jugo': 1});
+  });
+
+  test('un incidente se cuenta por gravedad, baja la seguridad y no suma a los momentos', async () => {
+    mockDb.__seed('operaciones/p1', paseo({estado: 'EN_PROGRESO'}));
+    sembrar({evento: 'incidente', payload: {tipo: 'lesion', severidad: 'critica'}});
+
+    await expect(sumarEventoATerritorio(mockDb, 'p1', 'e1', AHORA)).resolves.toBe(true);
+
+    expect(territorio(R9)!.narrativa).toMatchObject({
+      total_eventos: 0, incidentes: {critica: 1},
+    });
+    expect(territorio(R9)!.narrativa.indices.seguridad).toBe(40);
+    expect(mockDb.__docs.get('operaciones/p1/eventos/e1').territorio_contado).toBe(true);
+  });
+
+  test('un incidente sin gravedad válida cuenta como media', async () => {
+    mockDb.__seed('operaciones/p1', paseo({estado: 'EN_PROGRESO'}));
+    sembrar({evento: 'incidente', payload: {tipo: 'otro'}});
+    await sumarEventoATerritorio(mockDb, 'p1', 'e1', AHORA);
+    expect(territorio(R9)!.narrativa.incidentes).toEqual({media: 1});
+  });
+
+  test('cada evento con ubicación deja la microzona actual en el paseo', async () => {
+    mockDb.__seed('operaciones/p1', paseo({estado: 'EN_PROGRESO'}));
+    sembrar({evento: 'bitacora', payload: {accion: 'como_esta.jugo'}});
+    await sumarEventoATerritorio(mockDb, 'p1', 'e1', AHORA);
+    expect(mockDb.__docs.get('operaciones/p1').h3_r9).toBe(R9);
+
+    const otraMicro = celdasAlrededor(R9, 1).find((c) => c !== R9) as string;
+    sembrar({
+      evento: 'incidente', payload: {severidad: 'baja'},
+      hechoTerritorial: {h3_r8: R8, h3_r9: otraMicro},
+    }, 'e2');
+    await sumarEventoATerritorio(mockDb, 'p1', 'e2', AHORA);
+    expect(mockDb.__docs.get('operaciones/p1').h3_r9).toBe(otraMicro);
+  });
+
+  test('si el paseo no existe, igual cuenta el evento y no crea el paseo', async () => {
+    sembrar({evento: 'bitacora', payload: {accion: 'como_esta.jugo'}});
+    await expect(sumarEventoATerritorio(mockDb, 'p1', 'e1', AHORA)).resolves.toBe(true);
+    expect(mockDb.__docs.get('operaciones/p1')).toBeUndefined();
+  });
+
+  test('otros eventos del paseo (estados, llegada) no cuentan', async () => {
+    mockDb.__seed('operaciones/p1', paseo());
+    sembrar({evento: 'INICIAR_PASEO', payload: {}});
+    await expect(sumarEventoATerritorio(mockDb, 'p1', 'e1', AHORA)).resolves.toBe(false);
+    expect(mockDb.__docs.get('operaciones/p1').h3_r9).toBeUndefined();
   });
 });

@@ -92,6 +92,7 @@ const PerfilCuidador: React.FC = () => {
   const {
     principal: principalDir,
     agregar: agregarDir,
+    fijarPrincipal: fijarPrincipalDir,
     loading: loadingDir,
   } = useDirecciones()
 
@@ -158,7 +159,10 @@ const PerfilCuidador: React.FC = () => {
       direccion_formateada: detalle.direccion_formateada,
       coordenadas: detalle.coordenadas,
     }
-    await agregarDir(payload, 'Casa')
+    const nuevaId = await agregarDir(payload, 'Casa')
+    // Es "Cambiar": la nueva dirección pasa a ser la de casa (la principal), que
+    // es la que fija el origen del cuidador
+    await fijarPrincipalDir(nuevaId)
     setMostrarBuscadorDir(false)
   }
 

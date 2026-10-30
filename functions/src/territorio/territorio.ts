@@ -7,14 +7,17 @@
  *
  * - `indice_cobertura/{celda}/cuidadores/{uid}`: "quién atiende en esta celda".
  *   Se deriva del perfil del cuidador (su celda de origen o las celdas que
- *   eligió). La búsqueda de cuidadores lo usa solo para saber QUIÉNES cubren
- *   una celda; el resto lo lee de `perfiles_publicos`.
+ *   eligió) y SOLO existe para quien está habilitado para pasear: un tutor, un
+ *   admin o un cuidador aún sin aprobar no figuran. La búsqueda de cuidadores
+ *   lo usa para saber QUIÉNES cubren una celda; el resto lo lee de
+ *   `perfiles_publicos`.
  * - `territorio/{celda R8}.operativa`: oferta y demanda. Se RECALCULA contando
  *   (cuidadores habilitados del índice, pedidos pendientes, paseos en curso y
  *   hechos). No se suma ni se resta: si un aviso se pierde o llega repetido, el
  *   siguiente recálculo deja el número correcto.
  * - `territorio/{celda R9}.narrativa`: lo observado en el paseo, acumulado desde
- *   los eventos de la bitácora (cada evento se cuenta una sola vez).
+ *   los momentos de la bitácora y los incidentes (cada evento se cuenta una sola
+ *   vez). Además el paseo guarda en `h3_r9` la última microzona observada.
  */
 import {
   Timestamp,
@@ -33,7 +36,9 @@ import {ofreceServicio} from '../compartido/habilitacion';
 import {
   COLECCION_TERRITORIO,
   armarOperativa,
+  esSeveridad,
   sumarEvento,
+  sumarIncidente,
   type Narrativa,
 } from '../compartido/territorio';
 import {TIPO_PASEO, esPaseo} from '../compartido/servicios';
@@ -57,9 +62,7 @@ interface Cobertura {
   celdas: string[]
   uid: string
   h3_origen: string
-  /** Habilitado para pasear cuando se escribió (ver ofreceServicio). */
-  habilitado: boolean
-  /** Hasta cuándo (ms) vale esa habilitación; null si no vence. */
+  /** Hasta cuándo (ms) vale su habilitación para pasear; null si no vence. */
   habilitadoHasta: number | null
 }
 
@@ -76,32 +79,34 @@ function vencimientoDe(perfil: Dato, servicio: string): number | null {
 }
 
 /**
- * Dónde atiende un cuidador y si está habilitado para pasear, según su perfil.
+ * Dónde atiende un cuidador, según su perfil. Solo cuenta quien está
+ * habilitado para pasear ahora: los demás perfiles (tutores, admin, cuidadores
+ * sin aprobar o con la habilitación vencida) no tienen cobertura.
  * @param {string} uid Cuidador.
  * @param {Dato | undefined} perfil Perfil público (o undefined si no existe).
  * @param {number} ahoraMs Momento, para saber si su habilitación sigue vigente.
- * @return {Cobertura | null} Cobertura, o null si no tiene ubicación.
+ * @return {Cobertura | null} Cobertura, o null si no atiende (sin ubicación o
+ *   sin habilitación).
  */
 export function coberturaDe(
   uid: string,
   perfil: Dato | undefined,
-  ahoraMs: number
+  ahoraMs: number,
+  manual = false
 ): Cobertura | null {
-  if (!perfil) return null;
-  const celdas = celdasDeCoberturaDe(perfil);
+  if (!perfil || !ofreceServicio(perfil, TIPO_PASEO, ahoraMs)) return null;
+  const celdas = celdasDeCoberturaDe(perfil, manual);
   if (celdas.length === 0) return null;
   return {
     celdas,
     uid,
     h3_origen: esCeldaValida(perfil.h3_r8) ? perfil.h3_r8 : celdas[0],
-    habilitado: ofreceServicio(perfil, TIPO_PASEO, ahoraMs),
     habilitadoHasta: vencimientoDe(perfil, TIPO_PASEO),
   };
 }
 
 const mismaCobertura = (a: Cobertura | null, b: Cobertura | null): boolean =>
   a === b || (a !== null && b !== null &&
-    a.habilitado === b.habilitado &&
     a.habilitadoHasta === b.habilitadoHasta &&
     a.h3_origen === b.h3_origen &&
     a.celdas.length === b.celdas.length &&
@@ -109,10 +114,10 @@ const mismaCobertura = (a: Cobertura | null, b: Cobertura | null): boolean =>
 
 /**
  * Pone el índice al día cuando cambia el perfil de un cuidador: borra las
- * celdas que dejó de cubrir y escribe las que cubre. No hace nada si lo que
- * importa (celdas, origen, habilitación y su vencimiento) no cambió. Se guarda
- * hasta cuándo vale la habilitación para que el conteo de oferta descarte lo
- * vencido sin esperar a que el perfil cambie.
+ * celdas que dejó de cubrir (todas si ya no está habilitado) y escribe las que
+ * cubre. No hace nada si lo que importa (celdas, origen y vencimiento de su
+ * habilitación) no cambió. Se guarda hasta cuándo vale la habilitación para que
+ * el conteo de oferta descarte lo vencido sin esperar a que el perfil cambie.
  * @param {Firestore} db Firestore.
  * @param {string} uid Cuidador.
  * @param {Dato | undefined} antes Perfil antes del cambio.
@@ -125,10 +130,12 @@ export async function sincronizarCobertura(
   uid: string,
   antes: Dato | undefined,
   despues: Dato | undefined,
-  ahora: Timestamp
+  ahora: Timestamp,
+  manual = false,
+  manualAntes = manual
 ): Promise<string[]> {
-  const a = coberturaDe(uid, antes, ahora.toMillis());
-  const d = coberturaDe(uid, despues, ahora.toMillis());
+  const a = coberturaDe(uid, antes, ahora.toMillis(), manualAntes);
+  const d = coberturaDe(uid, despues, ahora.toMillis(), manual);
   if (mismaCobertura(a, d)) return [];
 
   const ref = (celda: string) =>
@@ -142,13 +149,35 @@ export async function sincronizarCobertura(
     batch.set(ref(celda), {
       uid,
       h3_origen: d!.h3_origen,
-      habilitado: d!.habilitado,
       habilitado_hasta: d!.habilitadoHasta,
       actualizado_en: ahora,
     });
   }
   await batch.commit();
   return [...new Set([...(a?.celdas ?? []), ...nuevas])];
+}
+
+/**
+ * El admin encendió o apagó la cobertura manual: pone el índice al día para
+ * quien tiene celdas elegidas a mano (el resto cubre lo mismo en ambos modos).
+ * @param {Firestore} db Firestore.
+ * @param {boolean} manual Modo nuevo.
+ * @param {Timestamp} ahora Momento.
+ * @return {Promise<number>} Celdas cuya oferta se recalculó.
+ */
+export async function aplicarCoberturaManual(
+  db: Firestore,
+  manual: boolean,
+  ahora: Timestamp
+): Promise<number> {
+  const perfiles = await db.collection('perfiles_publicos').get();
+  const celdas = new Set<string>();
+  for (const doc of perfiles.docs) {
+    const afectadas = await sincronizarCobertura(
+      db, doc.id, doc.data(), doc.data(), ahora, manual, !manual);
+    afectadas.forEach((c) => celdas.add(c));
+  }
+  return recalcularOperativas(db, [...celdas], ahora);
 }
 
 // ---------- Operativa (oferta y demanda) ----------
@@ -174,9 +203,9 @@ async function contar(
 }
 
 /**
- * Cuidadores de la celda con la habilitación vigente a esa hora. Lee los
- * documentos (pocas decenas por celda) en vez de contar: así descarta los
- * vencidos sin pedir un índice compuesto.
+ * Cuidadores de la celda con la habilitación vigente a esa hora. El índice solo
+ * tiene habilitados; se leen los documentos (pocas decenas por celda) en vez de
+ * contar para descartar los que ya vencieron sin pedir un índice compuesto.
  * @param {Firestore} db Firestore.
  * @param {string} celda Celda de cobertura.
  * @param {number} ahoraMs Momento de referencia.
@@ -189,7 +218,6 @@ async function contarHabilitados(
 ): Promise<number> {
   const docs = await db
     .collection(`${COLECCION_INDICE}/${celda}/${SUBCOLECCION_INDICE}`)
-    .where('habilitado', '==', true)
     .get();
   return docs.docs.filter((d) => {
     const hasta = d.data().habilitado_hasta;
@@ -301,7 +329,8 @@ export async function actualizarPorPaseo(
 // ---------- Narrativa (lo observado) ----------
 
 /**
- * Suma un evento de la bitácora a la narrativa de su microzona. Cada evento se
+ * Suma un evento del paseo (un momento de la bitácora o un incidente) a la
+ * narrativa de su microzona y anota esa microzona en el paseo. Cada evento se
  * cuenta una sola vez (se marca en el propio evento), aunque el aviso llegue
  * repetido.
  * @param {Firestore} db Firestore.
@@ -317,9 +346,11 @@ export async function sumarEventoATerritorio(
   ahora: Timestamp
 ): Promise<boolean> {
   const eventoRef = db.doc(`operaciones/${paseoId}/eventos/${eventoId}`);
+  const paseoRef = db.doc(`operaciones/${paseoId}`);
   return db.runTransaction(async (tx) => {
     const evento = (await tx.get(eventoRef)).data();
-    if (!evento || evento.evento !== 'bitacora' ||
+    const esIncidente = evento?.evento === 'incidente';
+    if (!evento || (evento.evento !== 'bitacora' && !esIncidente) ||
       evento.territorio_contado === true) {
       return false;
     }
@@ -327,19 +358,26 @@ export async function sumarEventoATerritorio(
     if (!esCeldaValida(celda) || resolucionDe(celda) !== RESOLUCIONES.micro) {
       return false;
     }
-    const accion = esTexto((evento.payload as Dato | undefined)?.accion) ?
-      (evento.payload as Dato).accion as string : 'desconocido';
-
+    const payload = evento.payload as Dato | undefined;
     const ref = db.doc(`${COLECCION_TERRITORIO}/${celda}`);
-    const actual = (await tx.get(ref)).data();
+    const actual = (await tx.get(ref)).data()?.narrativa as Narrativa | undefined;
+    const hayPaseo = (await tx.get(paseoRef)).exists;
+
+    const narrativa = esIncidente ?
+      sumarIncidente(actual, esSeveridad(payload?.severidad) ?
+        payload.severidad : 'media') :
+      sumarEvento(actual, esTexto(payload?.accion) ?
+        payload.accion : 'desconocido');
     tx.set(ref, {
       celda,
       res: RESOLUCIONES.micro,
       padre_r8: padreDe(celda, 'cobertura'),
-      narrativa: sumarEvento(actual?.narrativa as Narrativa | undefined, accion),
+      narrativa,
       actualizado_en: ahora,
     }, {merge: true});
     tx.update(eventoRef, {territorio_contado: true});
+    // La tarjeta del tutor lee de aquí qué microzona se está recorriendo
+    if (hayPaseo) tx.update(paseoRef, {h3_r9: celda});
     return true;
   });
 }
@@ -356,14 +394,15 @@ export async function sumarEventoATerritorio(
  */
 export async function reconstruirTerritorio(
   db: Firestore,
-  ahora: Timestamp
+  ahora: Timestamp,
+  manual = false
 ): Promise<{perfiles: number; celdas: number}> {
   const perfiles = await db.collection('perfiles_publicos').get();
   const celdas = new Set<string>();
   let sincronizados = 0;
   for (const doc of perfiles.docs) {
     const afectadas = await sincronizarCobertura(
-      db, doc.id, undefined, doc.data(), ahora);
+      db, doc.id, undefined, doc.data(), ahora, manual);
     if (afectadas.length > 0) sincronizados++;
     afectadas.forEach((c) => celdas.add(c));
   }

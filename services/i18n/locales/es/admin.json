@@ -291,11 +291,22 @@
         "descripcion": "Una evaluación sin contraparte se revela en uno de estos días, al azar (el evaluado no sabe cuándo)"
       }
     },
+    "territorio": {
+      "titulo": "Inteligencia territorial",
+      "min_datos_indices": {
+        "titulo": "Datos mínimos para mostrar los índices",
+        "descripcion": "Momentos e incidentes que debe tener una zona antes de mostrar su bienestar, seguridad, actividad y socialización. Con menos, se muestra «pocos datos»: uno o dos registros no representan al lugar"
+      }
+    },
     "funcionalidades": {
       "titulo": "Funcionalidades",
       "paseo_compartido": {
         "titulo": "Paseo compartido",
         "descripcion": "Permite elegir paseos compartidos al reservar"
+      },
+      "cobertura_manual": {
+        "titulo": "Cobertura manual por celdas",
+        "descripcion": "Permite al cuidador elegir a mano en el mapa las celdas donde atiende, en vez de solo un radio alrededor de su casa. Al apagarlo, todos vuelven a su radio (lo elegido a mano se conserva y vuelve a valer si se enciende otra vez)"
       }
     },
     "expediente": {

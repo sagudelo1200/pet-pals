@@ -6,7 +6,10 @@
  * - alCambiarCoberturaTerritorio: el perfil del cuidador cambió → índice y oferta
  *   (y, si vive fuera de servicio, su interés).
  * - alCambiarPaseoTerritorio: un paseo cambió → demanda y paseos en curso.
- * - alRegistrarEventoTerritorio: evento de la bitácora → narrativa de la microzona.
+ * - alRegistrarEventoTerritorio: momento de la bitácora o incidente → narrativa
+ *   de la microzona (y la microzona actual del paseo).
+ * - alCambiarCoberturaManual: el admin enciende/apaga la cobertura manual →
+ *   el índice se ajusta a quien eligió celdas a mano.
  * - reconstruirTerritorio: el admin lo reconstruye todo desde los datos.
  */
 import {
@@ -22,8 +25,10 @@ import {
   requerirAdmin,
 } from '../comun/callables';
 import {registrarInteresDeCuidador} from '../zonas/servicio';
+import {leerConfiguracion} from '../comun/configuracion';
 import {
   actualizarPorPaseo,
+  aplicarCoberturaManual,
   recalcularOperativas,
   reconstruirTerritorio as reconstruir,
   sincronizarCobertura,
@@ -44,8 +49,10 @@ export const alCambiarCoberturaTerritorio = onDocumentWritten(
     try {
       const ahora = Timestamp.now();
       const despues = event.data?.after.data();
+      const {cobertura_manual: manual} =
+        await leerConfiguracion(db, 'funcionalidades');
       const celdas = await sincronizarCobertura(
-        db, uid, event.data?.before.data(), despues, ahora);
+        db, uid, event.data?.before.data(), despues, ahora, manual);
       if (celdas.length > 0) {
         await recalcularOperativas(db, celdas, ahora);
         // Si vive donde aún no se atiende, es señal de dónde abrir
@@ -74,11 +81,26 @@ export const alRegistrarEventoTerritorio = onDocumentCreated(
   'operaciones/{operacionId}/eventos/{eventoId}',
   async (event) => {
     const {operacionId, eventoId} = event.params;
-    if (event.data?.data()?.evento !== 'bitacora') return;
+    const tipo = event.data?.data()?.evento;
+    if (tipo !== 'bitacora' && tipo !== 'incidente') return;
     try {
       await sumarEventoATerritorio(db, operacionId, eventoId, Timestamp.now());
     } catch (error) {
       registrarFallo('evento', `${operacionId}/${eventoId}`, error);
+    }
+  }
+);
+
+export const alCambiarCoberturaManual = onDocumentWritten(
+  'configuracion/funcionalidades',
+  async (event) => {
+    const antes = event.data?.before.data()?.cobertura_manual === true;
+    const despues = event.data?.after.data()?.cobertura_manual === true;
+    if (antes === despues) return;
+    try {
+      await aplicarCoberturaManual(db, despues, Timestamp.now());
+    } catch (error) {
+      registrarFallo('cobertura_manual', String(despues), error);
     }
   }
 );
@@ -88,6 +110,8 @@ export const reconstruirTerritorio = onCall(
   (request) =>
     conErrores(async () => {
       await requerirAdmin(db, request);
-      return reconstruir(db, Timestamp.now());
+      const {cobertura_manual: manual} =
+        await leerConfiguracion(db, 'funcionalidades');
+      return reconstruir(db, Timestamp.now(), manual);
     })
 );

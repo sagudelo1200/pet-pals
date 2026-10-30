@@ -3,6 +3,10 @@ import { View, Text, StyleSheet, TouchableOpacity } from 'react-native'
 import { useZonaH3 } from '@/hooks/useZonaH3'
 import { COLOR } from '@/constants'
 import { useTranslation } from 'react-i18next'
+import {
+  conteoPorCategoria,
+  type CategoriaMomento,
+} from '@/functions/src/compartido/territorio'
 
 type Traducir = (_clave: string, _opciones?: Record<string, unknown>) => string
 
@@ -24,7 +28,7 @@ export function TerritorialCard({ h3_r9, onPress }: Props) {
   const { zona, loading, error } = useZonaH3(h3_r9)
 
   const narrativa = useMemo(() => {
-    if (!zona?.narrativa) return null
+    if (!zona?.narrativa?.indices) return null
     return generarNarrativa(zona.narrativa, t)
   }, [zona?.narrativa, t])
 
@@ -36,8 +40,17 @@ export function TerritorialCard({ h3_r9, onPress }: Props) {
     )
   }
 
-  if (error || !zona?.narrativa || !narrativa) {
+  if (error || !zona?.narrativa) {
     return null
+  }
+
+  // Aún hay pocos datos para decir cómo es el lugar
+  if (!narrativa) {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.loading}>{t('comun:territorial.pocos_datos')}</Text>
+      </View>
+    )
   }
 
   return (
@@ -61,9 +74,8 @@ export function TerritorialCard({ h3_r9, onPress }: Props) {
           <Text style={styles.confianzaScore}>{narrativa.confianza}%</Text>
           <View style={styles.confianzaDetalle}>
             <Text style={styles.pequeno}>
-              {t('comun:territorial.paseos_meses', {
-                paseos: zona.narrativa.total_eventos,
-                meses: narrativa.meses_historia,
+              {t('comun:territorial.momentos_registrados', {
+                count: zona.narrativa.total_eventos,
               })}
             </Text>
           </View>
@@ -166,7 +178,6 @@ interface Narrativa {
   nombre: string
   personalidad: string
   confianza: number
-  meses_historia: number
   insights: string[]
   ideal_para: string[]
   no_recomendado_para: string[]
@@ -199,10 +210,12 @@ function generarNarrativa(narrativaSec: any, t: Traducir): Narrativa {
 
   // Calcular confianza
   const confianza = identidad.confianza || 50
-  const meses_historia = Math.floor(Math.random() * 24) + 2
+
+  // Lo observado, por categoría (los momentos se guardan por clave del catálogo)
+  const porCategoria = conteoPorCategoria(eventos_por_tipo)
 
   // Generar insights
-  const insights = generarInsights(indices, eventos_por_tipo, total_eventos, t)
+  const insights = generarInsights(indices, porCategoria, total_eventos, t)
 
   // Generar recomendaciones
   const { ideal_para, no_recomendado_para } = generarRecomendaciones(indices, t)
@@ -210,25 +223,19 @@ function generarNarrativa(narrativaSec: any, t: Traducir): Narrativa {
   const duracion_optima = generarDuracion(indices, t)
 
   // Generar experiencias (estrellas)
+  const estrellas = (cantidad: number) =>
+    Math.round((cantidad / total_eventos) * 5) || 3
   const experiencias = {
-    juego:
-      Math.round(((eventos_por_tipo['juego'] || 0) / total_eventos) * 5) || 3,
-    socializacion:
-      Math.round(
-        ((eventos_por_tipo['socializacion'] || 0) / total_eventos) * 5
-      ) || 3,
-    descanso:
-      Math.round(((eventos_por_tipo['descanso'] || 0) / total_eventos) * 5) ||
-      3,
-    exploracion:
-      Math.round(((eventos_por_tipo['agua'] || 0) / total_eventos) * 5) || 3,
+    juego: estrellas(porCategoria.juego),
+    socializacion: estrellas(porCategoria.socializacion),
+    descanso: estrellas(porCategoria.descanso),
+    exploracion: estrellas(porCategoria.agua),
   }
 
   return {
     nombre,
     personalidad,
     confianza,
-    meses_historia,
     insights,
     ideal_para,
     no_recomendado_para,
@@ -264,23 +271,17 @@ function generarPersonalidad(indices: any, _tipo: string, t: Traducir): string {
 
 function generarInsights(
   indices: any,
-  eventos_por_tipo: Record<string, number>,
+  porCategoria: Record<CategoriaMomento, number>,
   total_eventos: number,
   t: Traducir
 ): string[] {
   const insights: string[] = []
 
-  if (
-    eventos_por_tipo['juego'] &&
-    eventos_por_tipo['juego'] / total_eventos > 0.4
-  ) {
+  if (porCategoria.juego / total_eventos > 0.4) {
     insights.push(t('comun:territorial.insights.juegan'))
   }
 
-  if (
-    eventos_por_tipo['agua'] &&
-    eventos_por_tipo['agua'] / total_eventos > 0.2
-  ) {
+  if (porCategoria.agua / total_eventos > 0.2) {
     insights.push(t('comun:territorial.insights.agua'))
   }
 

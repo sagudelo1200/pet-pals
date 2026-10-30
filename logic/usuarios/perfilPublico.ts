@@ -5,6 +5,10 @@ import { CrudResult } from '@/services/firebase/comun'
 import { ERR } from '@/constants'
 import { ofreceServicio } from '@/functions/src/compartido/habilitacion'
 import { TIPO_PASEO } from '@/functions/src/compartido/servicios'
+import {
+  RADIOS_COBERTURA,
+  errorDeCobertura,
+} from '@/functions/src/compartido/geografia'
 
 /**
  * Gestor de Perfiles Públicos (Cuidadores).
@@ -80,6 +84,42 @@ export class GestorPerfilPublico {
   }
 
   /**
+   * Guarda el radio de atención del cuidador. Elegir un radio reemplaza lo que
+   * hubiera elegido a mano. El servidor actualiza el índice a partir del perfil.
+   * @param uid ID del cuidador
+   * @param radio Anillos de celdas alrededor de su casa (1 o 2)
+   * @param h3OrigenFallback Origen a guardar si el perfil aún no tiene `h3_r8`
+   */
+  static async actualizarRadioCobertura(
+    uid: string,
+    radio: number,
+    h3OrigenFallback?: string | null
+  ): Promise<CrudResult<PerfilPublico>> {
+    if (!uid) return { success: false, error: ERR.COMUN.NO_AUTENTICADO }
+    if (!(RADIOS_COBERTURA as readonly number[]).includes(radio)) {
+      return { success: false, error: ERR.COMUN.DATOS_INVALIDOS }
+    }
+
+    const perfilRes = await ServicioCrudBase.obtenerPorId<PerfilPublico>(
+      'perfiles_publicos',
+      uid
+    )
+    if (!perfilRes.success || !perfilRes.data) {
+      return { success: false, error: 'Perfil no encontrado' }
+    }
+    const h3Origen = perfilRes.data.h3_r8 ?? h3OrigenFallback ?? null
+    if (!h3Origen) {
+      return { success: false, error: ERR.COMUN.DATOS_INVALIDOS }
+    }
+
+    return ServicioPerfilPublico.guardarConId(uid, {
+      radio_cobertura: radio,
+      celdas_cobertura: [],
+      h3_r8: h3Origen,
+    })
+  }
+
+  /**
    * Guarda las celdas de cobertura que el cuidador eligió a mano. El servidor
    * actualiza el índice a partir del perfil.
    * @param uid ID del cuidador
@@ -92,6 +132,13 @@ export class GestorPerfilPublico {
     h3OrigenFallback?: string | null
   ): Promise<CrudResult<PerfilPublico>> {
     if (!uid) return { success: false, error: ERR.COMUN.NO_AUTENTICADO }
+
+    // Una cobertura vacía el servidor la lee como "el vecindario de casa": la
+    // pantalla mostraría una cosa y el sistema haría otra
+    const problema = errorDeCobertura(celdasNuevas)
+    if (problema) {
+      return { success: false, error: ERR.COMUN.DATOS_INVALIDOS }
+    }
 
     const perfilRes = await ServicioCrudBase.obtenerPorId<PerfilPublico>(
       'perfiles_publicos',

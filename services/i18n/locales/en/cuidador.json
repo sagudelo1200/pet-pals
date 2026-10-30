@@ -159,6 +159,13 @@
     "listo": "Done",
     "actualizada": "Your coverage has been updated.",
     "titulo": "Coverage",
+    "radio_subtitulo": "Choose how far from home you work",
+    "radio_1_titulo": "Close",
+    "radio_1_detalle": "Up to ~1 km from home. Fewer requests, but closer.",
+    "radio_2_titulo": "Wide",
+    "radio_2_detalle": "Up to ~2 km from home. More requests to choose from.",
+    "elegir_en_mapa": "Choose zones on the map",
+    "manual_activa": "You currently work the zones you picked on the map. Saving a radius replaces them.",
     "zonas_titulo": "Coverage zones",
     "zonas_subtitulo": "Tap the hexagons to turn them on or off",
     "sin_direccion": "Add an address to your profile to define your coverage zones.",
@@ -169,6 +176,8 @@
     "zonas_seleccionadas": "zones selected",
     "mi_ubicacion": "My location",
     "cambiar_tema": "Toggle theme",
+    "maximo_zonas": "You can choose up to {{count}} zones",
+    "minimo_zonas": "Choose at least one zone",
     "error_guardar": "The coverage could not be saved. Please try again."
   },
   "habilitacion": {

@@ -31,11 +31,13 @@ export function TerritorialIndices({ h3_r9 }: Props) {
   }
 
   const narrativa = zona.narrativa
-  const indices = narrativa.indices || {
-    bienestar: 0,
-    seguridad: 0,
-    actividad: 0,
-    socializacion: 0,
+  const indices = narrativa.indices
+  if (!indices) {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.label}>{t('territorial.pocos_datos')}</Text>
+      </View>
+    )
   }
 
   const identidad = narrativa.identidad

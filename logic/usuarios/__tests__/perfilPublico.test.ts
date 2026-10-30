@@ -88,10 +88,63 @@ describe('GestorPerfilPublico.actualizarCoberturaYPerfil', () => {
   })
 })
 
+describe('GestorPerfilPublico.actualizarRadioCobertura', () => {
+  beforeEach(() => {
+    jest.clearAllMocks()
+    mock(ServicioPerfilPublico.guardarConId).mockResolvedValue({ success: true })
+  })
+
+  it('guarda el radio y borra lo elegido a mano', async () => {
+    perfilActual({ h3_r8: H3_A, celdas_cobertura: [H3_B] })
+
+    await GestorPerfilPublico.actualizarRadioCobertura('c1', 1)
+
+    expect(ServicioPerfilPublico.guardarConId).toHaveBeenCalledWith('c1', {
+      radio_cobertura: 1,
+      celdas_cobertura: [],
+      h3_r8: H3_A,
+    })
+  })
+
+  it('un radio que no se ofrece no se guarda', async () => {
+    perfilActual({ h3_r8: H3_A })
+    const res = await GestorPerfilPublico.actualizarRadioCobertura('c1', 3)
+    expect(res).toEqual({ success: false, error: 'DATOS_INVALIDOS' })
+    expect(ServicioPerfilPublico.guardarConId).not.toHaveBeenCalled()
+  })
+
+  it('sin casa no hay radio que guardar', async () => {
+    perfilActual({})
+    const res = await GestorPerfilPublico.actualizarRadioCobertura('c1', 2)
+    expect(res.success).toBe(false)
+    expect(ServicioPerfilPublico.guardarConId).not.toHaveBeenCalled()
+  })
+
+  it('si el perfil aún no tiene casa, usa la de la dirección principal', async () => {
+    perfilActual({})
+    await GestorPerfilPublico.actualizarRadioCobertura('c1', 2, H3_A)
+    expect(ServicioPerfilPublico.guardarConId).toHaveBeenCalledWith('c1', {
+      radio_cobertura: 2,
+      celdas_cobertura: [],
+      h3_r8: H3_A,
+    })
+  })
+})
+
 describe('GestorPerfilPublico.actualizarCeldasCobertura', () => {
   beforeEach(() => {
     jest.clearAllMocks()
     mock(ServicioPerfilPublico.guardarConId).mockResolvedValue({ success: true })
+  })
+
+  it('no guarda una cobertura vacía, con celdas inválidas o de más de 30', async () => {
+    perfilActual({ h3_r8: H3_A })
+
+    for (const celdas of [[], ['a', 'b'], Array(31).fill(H3_B)]) {
+      const res = await GestorPerfilPublico.actualizarCeldasCobertura('c1', celdas)
+      expect(res).toEqual({ success: false, error: 'DATOS_INVALIDOS' })
+    }
+    expect(ServicioPerfilPublico.guardarConId).not.toHaveBeenCalled()
   })
 
   it('exige que el cuidador tenga zona de origen', async () => {

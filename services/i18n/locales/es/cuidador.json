@@ -159,6 +159,13 @@
     "listo": "Listo",
     "actualizada": "Tu cobertura ha sido actualizada.",
     "titulo": "Cobertura",
+    "radio_subtitulo": "Elige hasta dónde atiendes desde tu casa",
+    "radio_1_titulo": "Cerca",
+    "radio_1_detalle": "Hasta ~1 km de tu casa. Menos solicitudes, pero más cercanas.",
+    "radio_2_titulo": "Amplio",
+    "radio_2_detalle": "Hasta ~2 km de tu casa. Más solicitudes para elegir.",
+    "elegir_en_mapa": "Elegir zonas en el mapa",
+    "manual_activa": "Ahora atiendes las zonas que elegiste en el mapa. Guardar un radio las reemplaza.",
     "zonas_titulo": "Zonas de cobertura",
     "zonas_subtitulo": "Toca los hexágonos para activar o desactivar",
     "sin_direccion": "Agrega una dirección en tu perfil para definir tus zonas de cobertura.",
@@ -169,6 +176,8 @@
     "zonas_seleccionadas": "zonas seleccionadas",
     "mi_ubicacion": "Mi ubicación",
     "cambiar_tema": "Cambiar tema",
+    "maximo_zonas": "Puedes elegir hasta {{count}} zonas",
+    "minimo_zonas": "Elige al menos una zona",
     "error_guardar": "No se pudo guardar la cobertura. Intenta de nuevo."
   },
   "habilitacion": {

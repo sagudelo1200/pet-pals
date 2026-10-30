@@ -1,9 +1,15 @@
 /* eslint-env jest */
-import { combinarZonas, sumarNarrativas } from '../zonas'
+import {
+  combinarZonas,
+  datosDe,
+  sumarNarrativas,
+  vistaDeNarrativa,
+} from '../zonas'
 import { celdaDe, padreDe } from '@/functions/src/compartido/geografia'
 import {
   armarOperativa,
   sumarEvento,
+  sumarIncidente,
   type CeldaTerritorial,
 } from '@/functions/src/compartido/territorio'
 
@@ -49,6 +55,24 @@ describe('sumarNarrativas', () => {
     expect(suma.total_eventos).toBe(3)
     expect(suma.eventos_por_tipo).toEqual({ juego: 2, agua: 1 })
     expect(suma.indices.bienestar).toBeGreaterThan(80)
+  })
+
+  it('suma los incidentes de las microzonas y baja la seguridad de la celda', () => {
+    const a = sumarIncidente(micro(R9_A, 'como_esta.jugo').narrativa, 'media')
+    const b = sumarIncidente(micro(R9_B, 'como_esta.jugo').narrativa, 'critica')
+
+    const suma = sumarNarrativas([a, b])!
+
+    expect(suma.incidentes).toEqual({ media: 1, critica: 1 })
+    expect(suma.indices.seguridad).toBeLessThan(
+      sumarNarrativas([micro(R9_A, 'como_esta.jugo').narrativa!])!.indices.seguridad
+    )
+  })
+
+  it('sin incidentes la narrativa no trae el campo', () => {
+    expect(sumarNarrativas([micro(R9_A, 'como_esta.jugo').narrativa!])).not.toHaveProperty(
+      'incidentes'
+    )
   })
 
   it('la identidad es la de la microzona con más eventos', () => {
@@ -156,5 +180,50 @@ describe('combinarZonas', () => {
       cobertura(OTRA_R8),
     ]).map(z => z.nivel)
     expect(niveles).toEqual([8, 8, 9])
+  })
+})
+
+describe('mínimo de datos para mostrar los índices', () => {
+  const juegos = (n: number) => Array(n).fill('como_esta.jugo')
+
+  it('con menos datos del mínimo la zona no muestra índices, pero sí lo que se vio', () => {
+    const [zona] = combinarZonas([micro(R9_A, ...juegos(2))], 5)
+    expect(zona.narrativa?.indices).toBeUndefined()
+    expect(zona.narrativa?.total_eventos).toBe(2)
+    expect(zona.narrativa?.identidad).toBeDefined()
+  })
+
+  it('al llegar al mínimo los muestra', () => {
+    const [zona] = combinarZonas([micro(R9_A, ...juegos(5))], 5)
+    expect(zona.narrativa?.indices?.bienestar).toBe(100)
+  })
+
+  it('por defecto (sin mínimo) los muestra siempre', () => {
+    const [zona] = combinarZonas([micro(R9_A, ...juegos(1))])
+    expect(zona.narrativa?.indices).toBeDefined()
+  })
+
+  it('los incidentes también cuentan como datos', () => {
+    let n = undefined as ReturnType<typeof sumarEvento> | undefined
+    n = sumarEvento(n, 'como_esta.jugo')
+    for (let i = 0; i < 4; i++) n = sumarIncidente(n, 'baja')
+    expect(datosDe(n!)).toBe(5)
+    expect(vistaDeNarrativa(n, 5)?.indices).toBeDefined()
+    expect(vistaDeNarrativa(n, 6)?.indices).toBeUndefined()
+  })
+
+  it('la celda de cobertura suma sus microzonas para llegar al mínimo', () => {
+    const zonas = combinarZonas(
+      [cobertura(R8), micro(R9_A, ...juegos(3)), micro(R9_B, ...juegos(2))],
+      5
+    )
+    const r8 = zonas.find(z => z.nivel === 8)!
+    const r9 = zonas.filter(z => z.nivel === 9)
+    expect(r8.narrativa?.indices).toBeDefined()
+    expect(r9.every(z => z.narrativa?.indices === undefined)).toBe(true)
+  })
+
+  it('sin narrativa no hay vista', () => {
+    expect(vistaDeNarrativa(undefined, 5)).toBeUndefined()
   })
 })

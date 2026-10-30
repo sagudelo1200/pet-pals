@@ -291,11 +291,22 @@
         "descripcion": "An evaluation without a counterpart is revealed on one of these days, at random (the evaluated person does not know when)"
       }
     },
+    "territorio": {
+      "titulo": "Territorial intelligence",
+      "min_datos_indices": {
+        "titulo": "Minimum data to show the indices",
+        "descripcion": "Moments and incidents a zone needs before showing its wellbeing, safety, activity and socialization. With fewer, “not enough data” is shown: one or two records do not represent the place"
+      }
+    },
     "funcionalidades": {
       "titulo": "Features",
       "paseo_compartido": {
         "titulo": "Shared walk",
         "descripcion": "Allows choosing shared walks when booking"
+      },
+      "cobertura_manual": {
+        "titulo": "Manual coverage by cells",
+        "descripcion": "Lets caregivers pick on the map the cells where they work, instead of only a radius around their home. When turned off, everyone goes back to their radius (manual picks are kept and apply again if turned back on)"
       }
     },
     "expediente": {

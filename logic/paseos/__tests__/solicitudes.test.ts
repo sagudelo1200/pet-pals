@@ -20,18 +20,36 @@ describe('celdasDeSolicitudes', () => {
     expect(new Set(celdas)).toEqual(new Set(celdasDeCobertura(CASA)))
   })
 
-  it('si eligió celdas manualmente, usa esas (y siempre incluye su casa)', () => {
+  it('si eligió celdas manualmente, usa exactamente esas, las más cercanas primero', () => {
+    const celdas = celdasDeSolicitudes(
+      { h3_r8: CASA, celdas_cobertura: [LEJOS, CERCA] },
+      true
+    )
+    // igual que el servidor: su casa no cuenta si no la eligió
+    expect(celdas).toEqual([CERCA, LEJOS])
+  })
+
+  it('con el modo manual apagado, las celdas a mano no cuentan', () => {
     const celdas = celdasDeSolicitudes({
       h3_r8: CASA,
       celdas_cobertura: [CERCA, LEJOS],
     })
-    expect(celdas).toEqual([CASA, CERCA, LEJOS])
+    expect(new Set(celdas)).toEqual(new Set(celdasDeCobertura(CASA)))
+  })
+
+  it('el radio elegido define las celdas, la casa primero', () => {
+    const celdas = celdasDeSolicitudes({ h3_r8: CASA, radio_cobertura: 1 })
+    expect(celdas).toHaveLength(7)
+    expect(celdas[0]).toBe(CASA)
   })
 
   it('nunca pasa del máximo de una consulta, dejando las más cercanas', () => {
     const muchas = celdasDeCobertura(CASA, 4) // 61 celdas
     expect(muchas.length).toBeGreaterThan(MAX_CELDAS_CONSULTA)
-    const celdas = celdasDeSolicitudes({ h3_r8: CASA, celdas_cobertura: muchas })
+    const celdas = celdasDeSolicitudes(
+      { h3_r8: CASA, celdas_cobertura: muchas },
+      true
+    )
     expect(celdas).toHaveLength(MAX_CELDAS_CONSULTA)
     expect(celdas[0]).toBe(CASA)
   })

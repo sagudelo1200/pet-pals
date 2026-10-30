@@ -1,118 +1,66 @@
-import React, { useState, useMemo, useRef } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import {
   View,
   Text,
   StyleSheet,
   ActivityIndicator,
   Alert,
-  Platform,
+  Pressable,
 } from 'react-native'
-import { WebView, type WebViewMessageEvent } from 'react-native-webview'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useNavigation } from '@react-navigation/native'
+import { useTranslation } from 'react-i18next'
 import { useAuth } from '@/context/AuthContext'
 import { useCoberturaCuidador } from '@/hooks/cuidador/useCoberturaCuidador'
+import { useConfiguracion } from '@/hooks/configuracion/useConfiguracion'
 import { GestorPerfilPublico } from '@/logic/usuarios/perfilPublico'
-import { COLOR } from '@/constants'
 import { celdaPrincipalDe } from '@/logic/ubicaciones/celdaPrincipal'
+import { RADIOS_COBERTURA } from '@/functions/src/compartido/geografia'
+import { COLOR, SPACING } from '@/constants'
+import Button from '@/components/ui/Button'
 import ScreenHeader from '@/components/ui/ScreenHeader'
-import { VisorEnlaceMapa } from '@/components/ui/VisorEnlaceMapa'
-import { urlEnlaceMapa } from '@/services/maps/carto'
-import { construirHTMLCobertura } from './coberturaHtml'
-import { useTranslation } from 'react-i18next'
 
+/**
+ * Hasta dónde atiende el cuidador: un radio alrededor de su casa. Si el admin
+ * habilitó la cobertura manual, además puede afinar las zonas en el mapa.
+ */
 export default function CoberturaCuidador() {
-  const { t, i18n } = useTranslation(['cuidador', 'comun'])
-  const navigation = useNavigation()
+  const { t } = useTranslation(['cuidador', 'comun'])
+  const navigation = useNavigation<any>()
   const { user, profile } = useAuth()
   const insets = useSafeAreaInsets()
-  const webViewRef = useRef<WebView>(null)
-  const [enlaceMapa, setEnlaceMapa] = useState<string | null>(null)
+  const { cobertura_manual: manualPermitido } =
+    useConfiguracion('funcionalidades')
 
-  // Fallback: celda de la dirección principal si PerfilPublico.h3_r8 aún no fue guardado
   const h3HomeDesdeAuth = useMemo(() => celdaPrincipalDe(profile), [profile])
-
-  const { h3Home, selectedCells, loading } = useCoberturaCuidador(
+  const { h3Home, radio, hayManual, loading } = useCoberturaCuidador(
     user?.uid ?? null,
     h3HomeDesdeAuth
   )
 
+  const [elegido, setElegido] = useState<number>(radio)
   const [saving, setSaving] = useState(false)
+  useEffect(() => setElegido(radio), [radio])
 
-  // HTML generado una sola vez cuando los datos están listos.
-  // selectedCells se pasa como estado inicial; el WebView gestiona cambios internamente.
-  const htmlSource = useMemo(() => {
-    if (!h3Home) return null
-    return construirHTMLCobertura(
-      h3Home,
-      selectedCells,
-      insets.bottom,
-      insets.top,
-      {
-        lang: i18n.language?.startsWith('en') ? 'en' : 'es',
-        cargando: t('cuidador:cobertura.cargando'),
-        guardar: t('cuidador:cobertura.guardar'),
-        guardando: t('cuidador:cobertura.guardando'),
-        zonaSeleccionada: t('cuidador:cobertura.zona_seleccionada'),
-        zonasSeleccionadas: t('cuidador:cobertura.zonas_seleccionadas'),
-        miUbicacion: t('cuidador:cobertura.mi_ubicacion'),
-        cambiarTema: t('cuidador:cobertura.cambiar_tema'),
-      }
+  const guardar = async () => {
+    if (!user?.uid) return
+    setSaving(true)
+    const res = await GestorPerfilPublico.actualizarRadioCobertura(
+      user.uid,
+      elegido,
+      h3Home
     )
-    // eslint-disable-next-line
-  }, [h3Home, insets.bottom, insets.top, i18n.language])
-
-  const handleMessage = async (event: WebViewMessageEvent) => {
-    try {
-      const data = JSON.parse(event.nativeEvent.data)
-      const enlace = urlEnlaceMapa(data)
-      if (enlace) {
-        setEnlaceMapa(enlace)
-        return
-      }
-      const msg = data as {
-        type: string
-        cells: string[]
-      }
-      if (msg.type !== 'save' || !user?.uid) return
-
-      setSaving(true)
-      const res = await GestorPerfilPublico.actualizarCeldasCobertura(
-        user.uid,
-        msg.cells,
-        h3Home // Pasar h3Home como fallback para calcular celdas anteriores si es necesario
+    setSaving(false)
+    if (res.success) {
+      Alert.alert(
+        t('cuidador:cobertura.listo'),
+        t('cuidador:cobertura.actualizada'),
+        [{ text: t('comun:ok'), onPress: () => navigation.goBack() }]
       )
-      setSaving(false)
-
-      if (res.success) {
-        Alert.alert(
-          t('cuidador:cobertura.listo'),
-          t('cuidador:cobertura.actualizada'),
-          [{ text: t('comun:ok'), onPress: () => navigation.goBack() }]
-        )
-      } else {
-        console.error(
-          '[CoberturaCuidador] Error al guardar cobertura:',
-          res.error
-        )
-        Alert.alert(
-          'Error',
-          res.error || t('cuidador:cobertura.error_guardar')
-        )
-        // Reactivar el botón en el WebView si el guardado falla
-        webViewRef.current?.injectJavaScript(`
-          var btn = document.getElementById('save-btn');
-          if (btn) { btn.disabled = false; btn.textContent = ${JSON.stringify(t('cuidador:cobertura.guardar'))}; }
-          true;
-        `)
-      }
-    } catch (e) {
-      setSaving(false)
-      console.error('[CoberturaCuidador] handleMessage exception:', e)
+    } else {
+      Alert.alert(t('comun:error'), t('cuidador:cobertura.error_guardar'))
     }
   }
-
-  // ── Estados intermedios ──────────────────────────────────────────────────
 
   if (loading) {
     return (
@@ -138,59 +86,62 @@ export default function CoberturaCuidador() {
     )
   }
 
-  // ── Vista principal ──────────────────────────────────────────────────────
-
   return (
-    // View plano, sin TouchableWithoutFeedback ni KeyboardAvoidingView
-    // (Screen los añade y bloquean los eventos táctiles del WebView)
     <View style={[styles.container, { paddingTop: insets.top }]}>
       <ScreenHeader
-        title={t('cuidador:cobertura.zonas_titulo')}
-        subtitle={t('cuidador:cobertura.zonas_subtitulo')}
+        title={t('cuidador:cobertura.titulo')}
+        subtitle={t('cuidador:cobertura.radio_subtitulo')}
       />
 
-      <WebView
-        ref={webViewRef}
-        source={{ html: htmlSource! }}
-        style={styles.webview}
-        originWhitelist={['*']}
-        javaScriptEnabled={true}
-        domStorageEnabled={true}
-        geolocationEnabled={true}
-        scrollEnabled={false}
-        mixedContentMode={
-          Platform.OS === 'android' ? ('always' as any) : undefined
-        }
-        onShouldStartLoadWithRequest={request =>
-          request.url === 'about:blank' || request.url === ''
-        }
-        onMessage={handleMessage}
-        onError={(e: any) => {
-          console.warn('[CoberturaCuidador] WebView error:', e.nativeEvent)
-        }}
-      />
+      <View style={styles.contenido}>
+        {RADIOS_COBERTURA.map(r => {
+          const activo = r === elegido
+          return (
+            <Pressable
+              key={r}
+              onPress={() => setElegido(r)}
+              style={[styles.opcion, activo && styles.opcionActiva]}
+              accessibilityRole="radio"
+              accessibilityState={{ selected: activo }}
+            >
+              <Text style={styles.opcionTitulo}>
+                {t(`cuidador:cobertura.radio_${r}_titulo`)}
+              </Text>
+              <Text style={styles.opcionDetalle}>
+                {t(`cuidador:cobertura.radio_${r}_detalle`)}
+              </Text>
+            </Pressable>
+          )
+        })}
 
-      {/* Banner de guardado: pointerEvents none para no bloquear el WebView */}
-      {saving && (
-        <View style={styles.savingBanner} pointerEvents="none">
-          <ActivityIndicator size="small" color={COLOR.PRIMARIO} />
-        </View>
-      )}
+        {manualPermitido && hayManual && (
+          <Text style={styles.nota}>
+            {t('cuidador:cobertura.manual_activa')}
+          </Text>
+        )}
 
-      <VisorEnlaceMapa url={enlaceMapa} onCerrar={() => setEnlaceMapa(null)} />
+        {manualPermitido && (
+          <Button
+            title={t('cuidador:cobertura.elegir_en_mapa')}
+            variant="contorno"
+            onPress={() => navigation.navigate('CoberturaManualCuidador')}
+          />
+        )}
+      </View>
+
+      <View style={[styles.footer, { paddingBottom: insets.bottom + SPACING.md }]}>
+        <Button
+          title={t('cuidador:cobertura.guardar')}
+          onPress={guardar}
+          loading={saving}
+        />
+      </View>
     </View>
   )
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLOR.BASE,
-  },
-  webview: {
-    flex: 1,
-    backgroundColor: COLOR.BASE,
-  },
+  container: { flex: 1, backgroundColor: COLOR.BASE },
   centered: {
     flex: 1,
     alignItems: 'center',
@@ -203,16 +154,22 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 22,
   },
-  savingBanner: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    zIndex: 20,
-    paddingVertical: 6,
-    backgroundColor: 'rgba(18,25,24,0.92)',
-    alignItems: 'center',
-    borderBottomWidth: 1,
-    borderBottomColor: COLOR.BORDE,
+  contenido: { flex: 1, padding: SPACING.md, gap: SPACING.base },
+  opcion: {
+    padding: SPACING.md,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: COLOR.BORDE,
+    backgroundColor: COLOR.BLOQUE,
+    gap: SPACING.xs,
+  },
+  opcionActiva: { borderColor: COLOR.PRIMARIO, backgroundColor: COLOR.SECUNDARIO },
+  opcionTitulo: { color: COLOR.TEXTO, fontSize: 16, fontWeight: '600' },
+  opcionDetalle: { color: COLOR.SUBTEXTO, fontSize: 14, lineHeight: 20 },
+  nota: { color: COLOR.ALERTA, fontSize: 13, lineHeight: 18 },
+  footer: {
+    padding: SPACING.md,
+    borderTopWidth: 1,
+    borderTopColor: COLOR.BORDE,
   },
 })

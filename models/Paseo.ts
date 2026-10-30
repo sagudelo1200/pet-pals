@@ -265,7 +265,10 @@ export interface Paseo extends Operacion, BaseModel {
    * las solicitudes de su zona de cobertura.
    */
   h3_r8?: string
-  /** Celda H3 (R9) donde ocurre el paseo (para inteligencia territorial). */
+  /**
+   * Última microzona (H3 R9) que se observó en el paseo. La escribe el servidor
+   * al contar cada momento o incidente con ubicación (inteligencia territorial).
+   */
   h3_r9?: string
   /** Nombre de la primera mascota para visualización en listas. */
   mascota_nombre_visual?: string
