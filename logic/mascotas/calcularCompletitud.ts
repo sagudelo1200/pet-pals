@@ -10,6 +10,8 @@ export interface CompletitudMascota {
   porcentaje: number
   /** Estado de preparación para solicitar paseos */
   readiness: 'incompleto' | 'basico' | 'completo'
+  /** Tiene lo mínimo para pedir un paseo (ver `listaParaPaseo`) */
+  listaParaPaseo: boolean
   /** Desglose de campos completados por sección */
   campos: {
     basico: Record<string, boolean>
@@ -19,6 +21,18 @@ export interface CompletitudMascota {
     compatibilidad: Record<string, boolean>
     notas: Record<string, boolean>
   }
+}
+
+/**
+ * Lo mínimo para pedir un paseo: nombre y tamaño. El tamaño es lo que el
+ * emparejamiento usa para avisar si el cuidador no recibe ese tamaño; lo demás
+ * (foto, raza, edad, salud...) enriquece el perfil pero no bloquea el paseo.
+ * @param mascota - Mascota a evaluar
+ */
+export function listaParaPaseo(
+  mascota: Pick<Mascota, 'nombre' | 'tamano'>
+): boolean {
+  return !!mascota.nombre && mascota.nombre.trim().length > 0 && !!mascota.tamano
 }
 
 /**
@@ -123,16 +137,18 @@ export function calcularCompletitud(mascota: Mascota): CompletitudMascota {
       porcentaje_salud * pesos.salud
   )
 
-  // Determinar nivel basado en porcentaje continuo
+  // Nivel según el porcentaje, salvo que lo mínimo para pasear decide el
+  // umbral: con nombre y tamaño ya es nivel 2 (lista); sin ellos, nivel 1
+  const lista = listaParaPaseo(mascota)
   let nivel: 1 | 2 | 3 | 4 = 1
-  if (porcentajeGeneral >= 75) {
+  if (!lista) {
+    nivel = 1
+  } else if (porcentajeGeneral >= 75) {
     nivel = 4
   } else if (porcentajeGeneral >= 50) {
     nivel = 3
-  } else if (porcentajeGeneral >= 25) {
-    nivel = 2
   } else {
-    nivel = 1
+    nivel = 2
   }
 
   // Determinar estado de preparación para paseos
@@ -151,6 +167,7 @@ export function calcularCompletitud(mascota: Mascota): CompletitudMascota {
     nivel,
     porcentaje: porcentajeGeneral,
     readiness,
+    listaParaPaseo: lista,
     campos: {
       basico: campos_basico,
       fisico: campos_fisico,

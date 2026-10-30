@@ -13,7 +13,7 @@ interface UseFormularioMascotaReturn {
   totalPasos: number
 }
 
-const TOTAL_PASOS = 4 // nombre, raza, edad, foto
+const TOTAL_PASOS = 5 // nombre, tamaño, raza, edad, foto
 
 export const useFormularioMascota = (
   mascotaInicial?: Mascota
@@ -36,11 +36,13 @@ export const useFormularioMascota = (
     switch (pasoActual) {
       case 1: // Nombre
         return !!datosMascota.nombre && datosMascota.nombre.trim().length > 0
-      case 2: // Raza (opcional)
+      case 2: // Tamaño (obligatorio: con el nombre, deja la mascota lista para pasear)
+        return !!datosMascota.tamano
+      case 3: // Raza (opcional)
         return true
-      case 3: // Edad (opcional)
+      case 4: // Edad (opcional)
         return true
-      case 4: // Foto (opcional)
+      case 5: // Foto (opcional)
         return true
       default:
         return false

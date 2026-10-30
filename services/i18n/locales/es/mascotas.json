@@ -36,6 +36,11 @@
       "placeholder": "Nombre de tu mascota",
       "continuar": "Continuar"
     },
+    "tamano": {
+      "titulo": "¿De qué tamaño es?",
+      "subtitulo": "Así encontramos cuidadores que lo reciban sin problema.",
+      "continuar": "Continuar"
+    },
     "paso2": {
       "titulo": "¿De qué raza?",
       "placeholder": "Raza (opcional)",
@@ -171,7 +176,7 @@
     "nivel_2": "Perfil Físico",
     "nivel_3": "Perfil Conocido",
     "nivel_4": "Perfil Completo",
-    "mensaje_nivel_1": "Completa el perfil físico para desbloquear paseos",
+    "mensaje_nivel_1": "Agrega el nombre y el tamaño para desbloquear paseos",
     "mensaje_nivel_2": "Falta info de comportamiento y salud",
     "mensaje_nivel_3": "Falta información de salud",
     "mensaje_nivel_4": "Tu mascota está completamente perfilada"

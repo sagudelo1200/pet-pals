@@ -36,6 +36,11 @@
       "placeholder": "Your pet's name",
       "continuar": "Continue"
     },
+    "tamano": {
+      "titulo": "What size are they?",
+      "subtitulo": "So we can find caregivers who take them without a problem.",
+      "continuar": "Continue"
+    },
     "paso2": {
       "titulo": "What breed are they?",
       "placeholder": "Breed (optional)",
@@ -171,7 +176,7 @@
     "nivel_2": "Physical Profile",
     "nivel_3": "Known Profile",
     "nivel_4": "Complete Profile",
-    "mensaje_nivel_1": "Complete the physical profile to unlock walks",
+    "mensaje_nivel_1": "Add the name and size to unlock walks",
     "mensaje_nivel_2": "Missing behavior and health info",
     "mensaje_nivel_3": "Missing health information",
     "mensaje_nivel_4": "Your pet is fully profiled"

@@ -17,13 +17,15 @@ import {
   TextInput as UITextInput,
 } from '@/components/ui'
 import { useFormularioMascota } from '@/hooks/useFormularioMascota'
-import type { Mascota } from '@/models/Mascota'
+import type { Mascota, TamanoMascota } from '@/models/Mascota'
 import * as ImagePicker from 'expo-image-picker'
 import {
   validarTamañoImagen,
   obtenerMensajeErrorTamaño,
 } from '@/services/imagen/compresion'
 import AcariciandoMascotaSvg from '@/assets/imgs/undraw/acariciando_mascota.svg'
+
+const TAMANOS: TamanoMascota[] = ['pequeño', 'mediano', 'grande', 'gigante']
 
 // Componente para animar la entrada de cada paso
 const PasoAnimado: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -245,6 +247,38 @@ export const CrearMascotaFlow: React.FC<CrearMascotaFlowProps> = ({
           <PasoAnimado>
             <View style={styles.pasoContainer}>
               <Text style={styles.titulo}>
+                {t('mascotas:crear.tamano.titulo')}
+              </Text>
+              <Text style={styles.subtitulo}>
+                {t('mascotas:crear.tamano.subtitulo')}
+              </Text>
+              <View style={styles.tamanos}>
+                {TAMANOS.map(tamano => (
+                  <Button
+                    key={tamano}
+                    title={t(`mascotas:tamanos.${tamano.replace('ñ', 'n')}`)}
+                    variant={
+                      datosMascota.tamano === tamano ? 'primario' : 'bloque'
+                    }
+                    onPress={() => actualizarCampo('tamano', tamano)}
+                    style={styles.botonTamano}
+                  />
+                ))}
+              </View>
+              <Button
+                title={t('mascotas:crear.tamano.continuar')}
+                onPress={handleContinuar}
+                disabled={!validarPasoActual()}
+                style={styles.boton}
+              />
+            </View>
+          </PasoAnimado>
+        )
+      case 3:
+        return (
+          <PasoAnimado>
+            <View style={styles.pasoContainer}>
+              <Text style={styles.titulo}>
                 {t('mascotas:crear.paso2.titulo')}
               </Text>
               <UITextInput
@@ -271,7 +305,7 @@ export const CrearMascotaFlow: React.FC<CrearMascotaFlowProps> = ({
             </View>
           </PasoAnimado>
         )
-      case 3:
+      case 4:
         return (
           <PasoAnimado>
             <View style={styles.pasoContainer}>
@@ -302,7 +336,7 @@ export const CrearMascotaFlow: React.FC<CrearMascotaFlowProps> = ({
             </View>
           </PasoAnimado>
         )
-      case 4:
+      case 5:
         return (
           <PasoAnimado>
             <View style={styles.pasoContainer}>
@@ -440,6 +474,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 12,
     marginTop: 20,
+  },
+  tamanos: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+  },
+  botonTamano: {
+    flexBasis: '47%',
+    flexGrow: 1,
   },
   botonMitad: {
     flex: 1,

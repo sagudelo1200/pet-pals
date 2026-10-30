@@ -74,7 +74,7 @@
     "SIN_MASCOTAS_TITULO": "Oops! You don't have pets",
     "SIN_MASCOTAS_MSG": "To request a walk, first register a pet.",
     "mascota_no_lista_titulo": "Your pet is not ready yet",
-    "mascota_no_lista_msg": "Complete your pet's basic profile (name, photo, breed, date, gender, size, and weight) to request a walk.",
+    "mascota_no_lista_msg": "Add your pet's name and size to request a walk.",
     "completar_perfil": "Go edit",
     "NO_HAY_PASEO_ACTIVO": "There is no active walk at this time",
     "transicion_invalida": "This action is not allowed in the current state",

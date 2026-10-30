@@ -50,6 +50,7 @@ import {
   obtenerActividadReciente,
 } from '@/logic/dashboard/helpers'
 import { calcularCompletitud } from '@/logic/mascotas/calcularCompletitud'
+import type { Mascota } from '@/models/Mascota'
 
 type DashboardNavigationProp = BottomTabNavigationProp<TutorTabParamList>
 
@@ -149,6 +150,16 @@ const Dashboard: React.FC = () => {
     // @ts-ignore
     navigation.navigate('Mascotas')
   }, [navigation])
+
+  // El detalle carga la mascota por id: siempre muestra datos al día
+  const handleSeleccionarMascota = useCallback(
+    (mascota: Mascota) => {
+      if (!mascota.id) return
+      // @ts-ignore
+      navigation.navigate('DetalleMascota', { mascotaId: mascota.id })
+    },
+    [navigation]
+  )
 
   const handleAbrirPaseos = useCallback(() => {
     // @ts-ignore
@@ -311,6 +322,7 @@ const Dashboard: React.FC = () => {
               mascotas={mascotas}
               onVerTodas={handleAbrirMascotas}
               onAgregarMascota={handleAgregarMascota}
+              onSeleccionarMascota={handleSeleccionarMascota}
             />
           )}
         </Animated.View>

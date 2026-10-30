@@ -253,6 +253,7 @@ export const useEdicionMascota = (
         nivel: 1,
         porcentaje: 0,
         readiness: 'incompleto',
+        listaParaPaseo: false,
         campos: {
           basico: {},
           fisico: {},
